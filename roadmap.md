@@ -9,3 +9,6 @@
 - [x] Verify navigation, 3D scroll, mobile layout and article metadata.- [x] Bilingual /en and /vi architecture with language switcher, hreflang and redirects.
 - [x] Product detail pages, about, supply-chain and contact pages in both languages.
 - [x] Vietnamese editions of all six articles with editorial status and dates.
+- [x] Reposition as integrated agricultural supply chain; 6-chapter 3D journey (globe → origin → processing → control tower → markets → CTA).
+- [x] Supply Chain Control Tower, Follow-the-Product (passion fruit sample), product value-chain sections, trade requirement RFQ.
+- [ ] Product journeys for bananas, dragon fruit, spices, cashews, tapioca — waiting on HMV's confirmed process details.

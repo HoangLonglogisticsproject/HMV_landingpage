@@ -19,11 +19,15 @@ export type Database = {
           company: string
           created_at: string
           destination: string
+          documents: string
           email: string
+          frequency: string
           id: string
           incoterm: string
+          locale: string
           name: string
           product: string
+          product_format: string
           quantity: string
           requirements: string
         }
@@ -31,11 +35,15 @@ export type Database = {
           company: string
           created_at?: string
           destination: string
+          documents?: string
           email: string
+          frequency?: string
           id?: string
           incoterm: string
+          locale?: string
           name: string
           product: string
+          product_format?: string
           quantity: string
           requirements?: string
         }
@@ -43,11 +51,15 @@ export type Database = {
           company?: string
           created_at?: string
           destination?: string
+          documents?: string
           email?: string
+          frequency?: string
           id?: string
           incoterm?: string
+          locale?: string
           name?: string
           product?: string
+          product_format?: string
           quantity?: string
           requirements?: string
         }

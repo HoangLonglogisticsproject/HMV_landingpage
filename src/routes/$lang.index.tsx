@@ -8,12 +8,13 @@ import { InsightsTabs } from '@/components/InsightsTabs';
 import { AboutSection, Capabilities, FaqSection, RfqSection, SupplySteps } from '@/components/sections';
 import { seoHead, ui, type Locale } from '@/lib/i18n';
 import { homeLd } from '@/lib/schema';
+import { ControlTower, FollowTheProduct } from '@/components/ValueChain';
 import landscape from '@/assets/agri-landscape.jpg';
 
 const SupplyGlobe = lazy(() => import('@/components/SupplyGlobe'));
 const seo = {
-  en: { title: 'HMV Global | Agri-Commodity Trading & Integrated Supply Chain', description: 'Source tropical agricultural commodities with HMV Global, Vietnam. Passion fruit, bananas, dragon fruit, spices, cashews and tapioca starch with integrated supply-chain coordination.' },
-  vi: { title: 'HMV Global | Thương mại nông sản & Chuỗi cung ứng tích hợp', description: 'Tìm nguồn nông sản nhiệt đới Việt Nam cùng HMV Global: chanh dây, chuối, thanh long, gia vị, hạt điều và tinh bột sắn với năng lực điều phối chuỗi cung ứng quốc tế.' },
+  en: { title: 'HMV Global | Integrated Agricultural Supply Chain & Global Trading', description: "From Vietnam's farms to global markets. HMV connects raw materials, processing partners and international trade for passion fruit, bananas, dragon fruit, spices, cashews and tapioca starch." },
+  vi: { title: 'HMV Global | Chuỗi cung ứng nông nghiệp tích hợp & Thương mại toàn cầu', description: 'Từ vùng nguyên liệu Việt Nam đến thị trường toàn cầu. HMV kết nối nguồn nguyên liệu, đối tác chế biến và thương mại quốc tế cho chanh dây, chuối, thanh long, gia vị, hạt điều và tinh bột sắn.' },
 };
 export const Route = createFileRoute('/$lang/')({
   head: ({ params }) => {
@@ -33,7 +34,9 @@ function Home() {
     <WorldJourney locale={locale} />
     <section aria-label={t.focusLabel} className="border-b border-border"><div className="page-width grid grid-cols-2 gap-y-7 py-8 md:grid-cols-4">{t.focus.map(([label, sub], i) => { const I = [Leaf, Layers3, ShieldCheck, Globe2][i] ?? Leaf; return <div key={label} className="flex items-center gap-3.5 md:justify-center md:border-r md:border-border md:last:border-0"><I className="size-7 shrink-0 stroke-[1.4] text-primary" /><div><h2 className="text-[12px] font-semibold">{label}</h2><p className="mt-1 text-[10px] text-muted-foreground">{sub}</p></div></div>; })}</div></section>
     <ProductCatalog locale={locale} />
+    <div id="follow-product"><FollowTheProduct locale={locale} /></div>
     <section id="supply-chain" className="journey-section bg-secondary"><div className="page-width"><SupplySteps locale={locale} /></div>{mounted && <Suspense fallback={null}><SupplyGlobe /></Suspense>}<p className="absolute bottom-5 right-5 text-[9px] text-muted-foreground">{t.supply.note}</p></section>
+    <ControlTower locale={locale} />
     <Capabilities locale={locale} />
     <AboutSection locale={locale} />
     <section className="border-t border-border py-18"><div className="page-width"><div className="mb-8 flex flex-wrap items-end justify-between gap-5"><div><p className="eyebrow mb-4 text-primary">{t.insights.eyebrow}</p><h2 className="section-heading">{t.insights.title}</h2></div><Button asChild variant="link" className="px-0"><Link to="/$lang/insights" params={{ lang: locale }}>{t.insights.all} <ArrowUpRight /></Link></Button></div><InsightsTabs locale={locale} /></div></section>

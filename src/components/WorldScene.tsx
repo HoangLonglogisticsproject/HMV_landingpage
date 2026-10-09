@@ -3,6 +3,7 @@ import { useTexture } from '@react-three/drei';
 import { Component, Suspense, useEffect, useMemo, useRef, type ReactNode, type RefObject } from 'react';
 import { CatmullRomCurve3, Color, Group, SRGBColorSpace, Vector3 } from 'three';
 import earth from '@/assets/earth.jpg.asset.json';
+import { globeWeight } from '@/lib/journey';
 
 function usePalette() {
   return useMemo(() => {
@@ -27,8 +28,10 @@ function coordinate(lat: number, lon: number, radius = 2.43) {
   const theta = (lon + 180) * Math.PI / 180;
   return new Vector3(-radius * Math.sin(phi) * Math.cos(theta), radius * Math.cos(phi), radius * Math.sin(phi) * Math.sin(theta));
 }
+function smoothingFor(delta: number) { return 1 - Math.exp(-4 * Math.min(delta, 0.05)); }
 function World({ progress, reduced, onReady }: { progress: RefObject<number>; reduced: boolean; onReady: () => void }) {
   const farm = useRef<Group>(null);
+  const factory = useRef<Group>(null);
   const globe = useRef<Group>(null);
   const palette = usePalette();
   const texture = useTexture(earth.url, t => { t.colorSpace = SRGBColorSpace; });
@@ -41,7 +44,9 @@ function World({ progress, reduced, onReady }: { progress: RefObject<number>; re
     const f = farm.current; const g = globe.current;
     if (!f || !g) return;
     const p = progress.current;
-    const transition = Math.max(0, Math.min(1, (p - 0.35) / 0.3));
+    const transition = globeWeight(p);
+    const fac = factory.current;
+    if (fac) { const k = Math.max(0, Math.min(1, (p - 0.3) / 0.1)); const s = reduced ? k : fac.scale.x + (k - fac.scale.x) * smoothingFor(delta); fac.scale.setScalar(Math.max(0.001, s)); fac.visible = s > 0.01; }
     const mobile = state.size.width < 768;
     const smoothing = reduced ? 1 : 1 - Math.exp(-4 * Math.min(delta, 0.05));
     const fit = mobile ? Math.min(1.2, state.viewport.width * 0.39 / 2.5) : Math.min(1.05, state.viewport.width * 0.22 / 2.5);
@@ -54,7 +59,7 @@ function World({ progress, reduced, onReady }: { progress: RefObject<number>; re
     const globeSize = fit * 0.87 * transition;
     g.scale.lerp(new Vector3(globeSize, globeSize, globeSize), smoothing);
     g.position.lerp(new Vector3(center, mobile ? -0.2 : 0.05, 0), smoothing);
-    g.rotation.y += (-1.6 + p * 1.8 - g.rotation.y) * smoothing;
+    g.rotation.y += ((p < 0.5 ? -1.6 : -1.6 + (p - 0.6) * 2.2) - g.rotation.y) * smoothing;
     g.visible = transition > 0.005;
   });
   return <>
@@ -66,6 +71,7 @@ function World({ progress, reduced, onReady }: { progress: RefObject<number>; re
       {Array.from({ length: 12 }, (_, i) => { const x = -1.25 + (i % 4) * 0.45; const z = -1.2 + Math.floor(i / 4) * 0.38; return <group key={`tree-${i}`} position={[x,0,z]}><mesh position={[0,0.14,0]}><cylinderGeometry args={[0.025,0.04,0.3,6]} /><meshStandardMaterial color={palette.soil} /></mesh><mesh position={[0,0.4,0]}><icosahedronGeometry args={[0.23,1]} /><meshStandardMaterial color={i % 2 ? palette.leaf : palette.grass} flatShading /></mesh><mesh position={[0.13,0.4,0.1]}><sphereGeometry args={[0.045,8,6]} /><meshStandardMaterial color={palette.crop} /></mesh></group>; })}
       <group position={[1.1,0,-0.5]}><mesh position={[0,0.24,0]}><boxGeometry args={[0.7,0.48,0.65]} /><meshStandardMaterial color={palette.white} /></mesh><mesh position={[0,0.58,0]} rotation={[0,Math.PI / 4,0]}><coneGeometry args={[0.57,0.28,4]} /><meshStandardMaterial color={palette.roof} /></mesh><mesh position={[0,0.16,0.331]}><boxGeometry args={[0.18,0.32,0.015]} /><meshStandardMaterial color={palette.blue} /></mesh></group>
       <mesh position={[0.55,0.035,0.25]}><boxGeometry args={[0.17,0.025,2.6]} /><meshStandardMaterial color={palette.white} /></mesh>
+      <group ref={factory} position={[-0.15,0,-1.55]} scale={0.001}><mesh position={[0,0.3,0]}><boxGeometry args={[1.3,0.6,0.7]} /><meshStandardMaterial color={palette.white} /></mesh><mesh position={[0,0.66,0]}><boxGeometry args={[1.34,0.12,0.74]} /><meshStandardMaterial color={palette.blue} /></mesh><mesh position={[0.45,0.9,0]}><cylinderGeometry args={[0.07,0.09,0.6,12]} /><meshStandardMaterial color={palette.roof} /></mesh>{[-0.4,-0.1,0.2].map((x,i) => <mesh key={`win-${i}`} position={[x,0.34,0.352]}><boxGeometry args={[0.18,0.14,0.01]} /><meshStandardMaterial color={palette.ocean} /></mesh>)}</group>
       {[-0.2,0.25,0.7].map((z,i) => <mesh key={`crate-${i}`} position={[1.1,0.12,z]}><boxGeometry args={[0.3,0.24,0.3]} /><meshStandardMaterial color={palette.crop} /></mesh>)}
     </group>
     <group ref={globe} rotation={[0.1,-1.6,-0.1]} scale={0}>
