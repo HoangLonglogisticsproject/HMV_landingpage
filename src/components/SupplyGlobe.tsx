@@ -11,10 +11,6 @@ function coordinate(lat: number, lon: number, radius = 2.2) {
 function Globe({ progress, reduced }: { progress: React.RefObject<number>; reduced: boolean }) {
   const group = useRef<Group>(null);
   const texture = useTexture(earth.url, t => { t.colorSpace = SRGBColorSpace; });
-  const colors = useMemo(() => {
-    const style = getComputedStyle(document.documentElement);
-    return { route: new Color(style.getPropertyValue('--primary').trim()), pin: new Color(style.getPropertyValue('--leaf').trim()) };
-  }, []);
   // Three.js does not parse OKLCH; canvas tokens are converted by the browser.
   const palette = useMemo(() => {
     const el = document.createElement('span'); document.body.appendChild(el);
