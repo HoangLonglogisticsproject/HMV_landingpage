@@ -6,4 +6,6 @@
 - [x] Desktop/mobile and submission verification.
 - [x] Replace homepage opening with an immersive trading-first farming-to-world 3D journey.
 - [x] Add six editorial topics with separate article pages and topic tabs.
-- [x] Verify navigation, 3D scroll, mobile layout and article metadata.
+- [x] Verify navigation, 3D scroll, mobile layout and article metadata.- [x] Bilingual /en and /vi architecture with language switcher, hreflang and redirects.
+- [x] Product detail pages, about, supply-chain and contact pages in both languages.
+- [x] Vietnamese editions of all six articles with editorial status and dates.
