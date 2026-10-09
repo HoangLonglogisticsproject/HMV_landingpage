@@ -23,6 +23,8 @@ function usePalette() {
     return result;
   }, []);
 }
+/** Globe Y rotation that turns Vietnam (≈106.6°E) toward the camera. */
+const VIETNAM_Y = 2.75;
 function coordinate(lat: number, lon: number, radius = 2.43) {
   const phi = (90 - lat) * Math.PI / 180;
   const theta = (lon + 180) * Math.PI / 180;
@@ -59,7 +61,9 @@ function World({ progress, reduced, onReady }: { progress: RefObject<number>; re
     const globeSize = fit * 0.87 * transition;
     g.scale.lerp(new Vector3(globeSize, globeSize, globeSize), smoothing);
     g.position.lerp(new Vector3(center, mobile ? -0.2 : 0.05, 0), smoothing);
-    g.rotation.y += ((p < 0.5 ? -1.6 : -1.6 + (p - 0.6) * 2.2) - g.rotation.y) * smoothing;
+    // Opening shows buyer markets then turns to Vietnam; the closing globe keeps Vietnam as the visual origin.
+    const target = p < 0.5 ? VIETNAM_Y - 1.5 * Math.max(0, 1 - p / 0.12) : VIETNAM_Y - 0.55 * Math.min(1, Math.max(0, (p - 0.8) / 0.2));
+    g.rotation.y += (target - g.rotation.y) * smoothing;
     g.visible = transition > 0.005;
   });
   return <>
@@ -74,9 +78,9 @@ function World({ progress, reduced, onReady }: { progress: RefObject<number>; re
       <group ref={factory} position={[-0.15,0,-1.55]} scale={0.001}><mesh position={[0,0.3,0]}><boxGeometry args={[1.3,0.6,0.7]} /><meshStandardMaterial color={palette.white} /></mesh><mesh position={[0,0.66,0]}><boxGeometry args={[1.34,0.12,0.74]} /><meshStandardMaterial color={palette.blue} /></mesh><mesh position={[0.45,0.9,0]}><cylinderGeometry args={[0.07,0.09,0.6,12]} /><meshStandardMaterial color={palette.roof} /></mesh>{[-0.4,-0.1,0.2].map((x,i) => <mesh key={`win-${i}`} position={[x,0.34,0.352]}><boxGeometry args={[0.18,0.14,0.01]} /><meshStandardMaterial color={palette.ocean} /></mesh>)}</group>
       {[-0.2,0.25,0.7].map((z,i) => <mesh key={`crate-${i}`} position={[1.1,0.12,z]}><boxGeometry args={[0.3,0.24,0.3]} /><meshStandardMaterial color={palette.crop} /></mesh>)}
     </group>
-    <group ref={globe} rotation={[0.1,-1.6,-0.1]} scale={0}>
+    <group ref={globe} rotation={[0.1,VIETNAM_Y - 1.5,-0.1]} scale={0}>
       <mesh><sphereGeometry args={[2.4,64,40]} /><meshStandardMaterial map={texture} roughness={0.8} metalness={0.05} /></mesh>
-      {paths.map((curve,i) => <group key={i}><mesh><tubeGeometry args={[curve,64,0.015,6,false]} /><meshBasicMaterial color={palette.blue} /></mesh><mesh position={curve.getPoint(1)}><sphereGeometry args={[0.06,12,8]} /><meshBasicMaterial color={palette.crop} /></mesh></group>)}
+      {paths.map((curve,i) => <group key={i}><mesh><tubeGeometry args={[curve,64,0.01,6,false]} /><meshBasicMaterial color={palette.blue} transparent opacity={0.7} /></mesh><mesh position={curve.getPoint(1)}><sphereGeometry args={[0.06,12,8]} /><meshBasicMaterial color={palette.crop} /></mesh></group>)}
       <mesh position={coordinate(10.82,106.63)}><sphereGeometry args={[0.085,16,8]} /><meshBasicMaterial color={palette.leaf} /></mesh>
     </group>
   </>;
