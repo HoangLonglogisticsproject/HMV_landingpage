@@ -197,8 +197,9 @@ h1,h2,h3 { font-family: var(--font-display); letter-spacing: 0; }
  .hero-heading { font-size: 41px; line-height: 1.15; }
  .hero-image { object-position: 40% center; }
  .section-heading { font-size: 29px; }
- .journey-section { min-height: 820px; }
+ .journey-section { min-height: 1030px; }
  .journey-copy { padding-block: 50px; max-width: none; }
- .journey-canvas { inset: 400px 0 0; }
+ .journey-canvas { inset: 570px 0 35px; }
+ .hero > .absolute.bottom-7 { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *,*::before,*::after { animation: none !important; transition: none !important; } }
