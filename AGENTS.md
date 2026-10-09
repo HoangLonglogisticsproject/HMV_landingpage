@@ -16,4 +16,5 @@
 - All public pages live under a `/$lang` locale prefix with shared language-independent product IDs and article slugs, UI strings in `src/lib/i18n.ts`, and per-route `seoHead()` for self canonical + reciprocal hreflang, so every language is indexable from one codebase.
 - Articles carry a per-locale editorial status; only `published` editions are listed or indexed, so untranslated drafts never surface.
 - Legacy unprefixed URLs use single-hop 301 redirects to `/en`; never redirect by browser language or IP, so visitors and crawlers can reach any locale.
+- Supply-chain storytelling (control tower nodes, per-product journeys) lives in `src/lib/valueChain.ts` as coordination scope only, so claims stay consistent and no KPIs, owned assets or certifications are implied.
 - Use a sticky client-only world scene with shared scroll progress and chapter data so the farming-to-global journey preserves readable server-rendered trading content.
