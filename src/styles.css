@@ -208,7 +208,7 @@ h1,h2,h3 { font-family: var(--font-display); letter-spacing: 0; }
  .hero > .absolute.bottom-7 { display: none; }
 }
 .site-header { backdrop-filter: blur(16px); }
-.world-journey { height: 290svh; position: relative; }
+.world-journey { height: 560svh; position: relative; }
 .world-stage { position: sticky; top: 88px; height: calc(100svh - 112px); min-height: 540px; overflow: hidden; }
 .world-canvas { position: absolute; inset: 0; }
 .world-fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.2; transition: opacity 0.6s; }
@@ -236,7 +236,7 @@ h1,h2,h3 { font-family: var(--font-display); letter-spacing: 0; }
   .world-caption { bottom: 85px; }
 }
 @media (max-width: 767px) {
-  .world-journey { height: 280svh; }
+  .world-journey { height: 540svh; }
   .world-stage { height: calc(100svh - 106px); min-height: 590px; }
   .world-copy { padding-top: 26px; }
   .world-chapters { width: 100%; height: 310px; max-width: 540px; }
@@ -256,3 +256,14 @@ h1,h2,h3 { font-family: var(--font-display); letter-spacing: 0; }
   .article-title { font-size: 32px; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *,*::before,*::after { animation: none !important; transition: none !important; } }
+
+.tower-chain { display: grid; gap: 10px; position: relative; }
+.tower-node { display: flex; width: 100%; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); transition: border-color .3s, box-shadow .3s, transform .3s; }
+.tower-node:hover { border-color: var(--primary); }
+.tower-node.is-active { border-color: var(--primary); box-shadow: 0 10px 30px -14px color-mix(in oklab, var(--primary) 55%, transparent); transform: translateX(6px); }
+.tower-index { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border-radius: 999px; background: var(--secondary); color: var(--primary); font-size: 11px; font-weight: 600; }
+.tower-node.is-active .tower-index { background: var(--primary); color: var(--primary-foreground); }
+.journey-steps { display: grid; gap: 0; counter-reset: s; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); border-top: 2px solid var(--primary); }
+.journey-steps > li { position: relative; padding: 18px 14px 4px 0; font-size: 13px; font-weight: 500; line-height: 1.45; }
+.journey-steps > li::before { content: ""; position: absolute; top: -7px; left: 0; width: 12px; height: 12px; border-radius: 999px; background: var(--background); border: 2px solid var(--primary); }
+.journey-steps > li > span { display: block; margin-bottom: 6px; font-size: 10px; color: var(--primary); }
