@@ -8,17 +8,13 @@ Availability, origin, numerical specifications, certification, import eligibilit
 
 Office: Floor 5, 240 Nguyen Dinh Chinh St., Phu Nhuan Ward, Ho Chi Minh City, Vietnam. Trading contact: Ms. Van Nguyen, General Manager, vannguyen@hmvglobal.com.
 
-## Pages
-- [HMV Global](/): Company, agricultural commodity portfolio, specification review sheets, supply-chain approach, leadership, buyer FAQ and request for quotation.
-- [Perspectives](/insights): Six topic tabs with separate sourced editorial pages. General commercial explainers, not proof of certifications or completed HMV projects.
-- [Trading-first supply chain](/insights/from-farm-to-market)
-- [GLOBALG.A.P. buyer verification](/insights/globalgap-fruit-buyers)
-- [Cold-chain handoffs](/insights/cold-chain-critical-handoffs)
-- [Vietnam and Southeast Asian investment](/insights/vietnam-southeast-asia-investment)
-- [Air, sea and cross-border process](/insights/air-sea-cross-border-process)
-- [Wind, solar and supply chains](/insights/wind-solar-food-supply-chains)
+## Languages
+English pages live under /en, Vietnamese under /vi. The same product ID or article slug is used in both languages.
 
-## Optional
-- [Commodity portfolio](/#commodities): Product formats and specification review fields.
-- [Integrated supply chain](/#supply-chain): Origin sourcing, quality preparation and global coordination.
-- [Buyer FAQ](/#about): Company details and buyer questions further down the page.
+## Pages
+- [HMV Global](/en) · [Tiếng Việt](/vi): Company, commodity portfolio, supply-chain approach, leadership, FAQ and RFQ.
+- [Commodities](/en/products): passion-fruit, bananas, dragon-fruit, spices, cashews, tapioca — each at /en/products/{id} and /vi/products/{id}.
+- [Integrated supply chain](/en/supply-chain)
+- [About HMV](/en/about)
+- [Request for Quotation](/en/contact)
+- [Perspectives](/en/insights): Six sourced editorial pages at /en/insights/{slug} and /vi/insights/{slug}: from-farm-to-market, globalgap-fruit-buyers, cold-chain-critical-handoffs, vietnam-southeast-asia-investment, air-sea-cross-border-process, wind-solar-food-supply-chains. General commercial explainers, not proof of certifications or completed HMV projects.

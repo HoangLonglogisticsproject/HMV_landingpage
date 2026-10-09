@@ -10,60 +10,170 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as InsightsRouteImport } from './routes/insights'
+import { Route as LangRouteImport } from './routes/$lang'
+import { Route as LangIndexRouteImport } from './routes/$lang.index'
+import { Route as LangAboutRouteImport } from './routes/$lang.about'
+import { Route as LangContactRouteImport } from './routes/$lang.contact'
+import { Route as LangSupplyChainRouteImport } from './routes/$lang.supply-chain'
 import { Route as InsightsIndexRouteImport } from './routes/insights.index'
 import { Route as InsightsSlugRouteImport } from './routes/insights.$slug'
+import { Route as LangInsightsIndexRouteImport } from './routes/$lang.insights.index'
+import { Route as LangInsightsSlugRouteImport } from './routes/$lang.insights.$slug'
+import { Route as LangProductsIndexRouteImport } from './routes/$lang.products.index'
+import { Route as LangProductsIdRouteImport } from './routes/$lang.products.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InsightsRoute = InsightsRouteImport.update({
-  id: '/insights',
-  path: '/insights',
+const LangRoute = LangRouteImport.update({
+  id: '/$lang',
+  path: '/$lang',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InsightsIndexRoute = InsightsIndexRouteImport.update({
+const LangIndexRoute = LangIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => InsightsRoute,
+  getParentRoute: () => LangRoute,
+} as any)
+const LangAboutRoute = LangAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangContactRoute = LangContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangSupplyChainRoute = LangSupplyChainRouteImport.update({
+  id: '/supply-chain',
+  path: '/supply-chain',
+  getParentRoute: () => LangRoute,
+} as any)
+const InsightsIndexRoute = InsightsIndexRouteImport.update({
+  id: '/insights/',
+  path: '/insights/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const InsightsSlugRoute = InsightsSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => InsightsRoute,
+  id: '/insights/$slug',
+  path: '/insights/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LangInsightsIndexRoute = LangInsightsIndexRouteImport.update({
+  id: '/insights/',
+  path: '/insights/',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangInsightsSlugRoute = LangInsightsSlugRouteImport.update({
+  id: '/insights/$slug',
+  path: '/insights/$slug',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangProductsIndexRoute = LangProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangProductsIdRoute = LangProductsIdRouteImport.update({
+  id: '/products/$id',
+  path: '/products/$id',
+  getParentRoute: () => LangRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/insights': typeof InsightsRouteWithChildren
+  '/$lang': typeof LangRouteWithChildren
+  '/$lang/about': typeof LangAboutRoute
+  '/$lang/contact': typeof LangContactRoute
+  '/$lang/supply-chain': typeof LangSupplyChainRoute
   '/insights/$slug': typeof InsightsSlugRoute
+  '/$lang/': typeof LangIndexRoute
   '/insights/': typeof InsightsIndexRoute
+  '/$lang/insights/$slug': typeof LangInsightsSlugRoute
+  '/$lang/products/$id': typeof LangProductsIdRoute
+  '/$lang/insights/': typeof LangInsightsIndexRoute
+  '/$lang/products/': typeof LangProductsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$lang/about': typeof LangAboutRoute
+  '/$lang/contact': typeof LangContactRoute
+  '/$lang/supply-chain': typeof LangSupplyChainRoute
   '/insights/$slug': typeof InsightsSlugRoute
+  '/$lang': typeof LangIndexRoute
   '/insights': typeof InsightsIndexRoute
+  '/$lang/insights/$slug': typeof LangInsightsSlugRoute
+  '/$lang/products/$id': typeof LangProductsIdRoute
+  '/$lang/insights': typeof LangInsightsIndexRoute
+  '/$lang/products': typeof LangProductsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/insights': typeof InsightsRouteWithChildren
+  '/$lang': typeof LangRouteWithChildren
+  '/$lang/about': typeof LangAboutRoute
+  '/$lang/contact': typeof LangContactRoute
+  '/$lang/supply-chain': typeof LangSupplyChainRoute
   '/insights/$slug': typeof InsightsSlugRoute
+  '/$lang/': typeof LangIndexRoute
   '/insights/': typeof InsightsIndexRoute
+  '/$lang/insights/$slug': typeof LangInsightsSlugRoute
+  '/$lang/products/$id': typeof LangProductsIdRoute
+  '/$lang/insights/': typeof LangInsightsIndexRoute
+  '/$lang/products/': typeof LangProductsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/insights' | '/insights/$slug' | '/insights/'
+  fullPaths:
+    | '/'
+    | '/$lang'
+    | '/$lang/about'
+    | '/$lang/contact'
+    | '/$lang/supply-chain'
+    | '/insights/$slug'
+    | '/$lang/'
+    | '/insights/'
+    | '/$lang/insights/$slug'
+    | '/$lang/products/$id'
+    | '/$lang/insights/'
+    | '/$lang/products/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/insights/$slug' | '/insights'
-  id: '__root__' | '/' | '/insights' | '/insights/$slug' | '/insights/'
+  to:
+    | '/'
+    | '/$lang/about'
+    | '/$lang/contact'
+    | '/$lang/supply-chain'
+    | '/insights/$slug'
+    | '/$lang'
+    | '/insights'
+    | '/$lang/insights/$slug'
+    | '/$lang/products/$id'
+    | '/$lang/insights'
+    | '/$lang/products'
+  id:
+    | '__root__'
+    | '/'
+    | '/$lang'
+    | '/$lang/about'
+    | '/$lang/contact'
+    | '/$lang/supply-chain'
+    | '/insights/$slug'
+    | '/$lang/'
+    | '/insights/'
+    | '/$lang/insights/$slug'
+    | '/$lang/products/$id'
+    | '/$lang/insights/'
+    | '/$lang/products/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  InsightsRoute: typeof InsightsRouteWithChildren
+  LangRoute: typeof LangRouteWithChildren
+  InsightsSlugRoute: typeof InsightsSlugRoute
+  InsightsIndexRoute: typeof InsightsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,47 +185,115 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/insights': {
-      id: '/insights'
-      path: '/insights'
-      fullPath: '/insights'
-      preLoaderRoute: typeof InsightsRouteImport
+    '/$lang': {
+      id: '/$lang'
+      path: '/$lang'
+      fullPath: '/$lang'
+      preLoaderRoute: typeof LangRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/$lang/': {
+      id: '/$lang/'
+      path: '/'
+      fullPath: '/$lang/'
+      preLoaderRoute: typeof LangIndexRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/about': {
+      id: '/$lang/about'
+      path: '/about'
+      fullPath: '/$lang/about'
+      preLoaderRoute: typeof LangAboutRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/contact': {
+      id: '/$lang/contact'
+      path: '/contact'
+      fullPath: '/$lang/contact'
+      preLoaderRoute: typeof LangContactRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/supply-chain': {
+      id: '/$lang/supply-chain'
+      path: '/supply-chain'
+      fullPath: '/$lang/supply-chain'
+      preLoaderRoute: typeof LangSupplyChainRouteImport
+      parentRoute: typeof LangRoute
     }
     '/insights/': {
       id: '/insights/'
-      path: '/'
+      path: '/insights'
       fullPath: '/insights/'
       preLoaderRoute: typeof InsightsIndexRouteImport
-      parentRoute: typeof InsightsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/insights/$slug': {
       id: '/insights/$slug'
-      path: '/$slug'
+      path: '/insights/$slug'
       fullPath: '/insights/$slug'
       preLoaderRoute: typeof InsightsSlugRouteImport
-      parentRoute: typeof InsightsRoute
+      parentRoute: typeof rootRouteImport
+    }
+    '/$lang/insights/': {
+      id: '/$lang/insights/'
+      path: '/insights'
+      fullPath: '/$lang/insights/'
+      preLoaderRoute: typeof LangInsightsIndexRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/insights/$slug': {
+      id: '/$lang/insights/$slug'
+      path: '/insights/$slug'
+      fullPath: '/$lang/insights/$slug'
+      preLoaderRoute: typeof LangInsightsSlugRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/products/': {
+      id: '/$lang/products/'
+      path: '/products'
+      fullPath: '/$lang/products/'
+      preLoaderRoute: typeof LangProductsIndexRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/products/$id': {
+      id: '/$lang/products/$id'
+      path: '/products/$id'
+      fullPath: '/$lang/products/$id'
+      preLoaderRoute: typeof LangProductsIdRouteImport
+      parentRoute: typeof LangRoute
     }
   }
 }
 
-interface InsightsRouteChildren {
-  InsightsSlugRoute: typeof InsightsSlugRoute
-  InsightsIndexRoute: typeof InsightsIndexRoute
+interface LangRouteChildren {
+  LangAboutRoute: typeof LangAboutRoute
+  LangContactRoute: typeof LangContactRoute
+  LangSupplyChainRoute: typeof LangSupplyChainRoute
+  LangIndexRoute: typeof LangIndexRoute
+  LangInsightsSlugRoute: typeof LangInsightsSlugRoute
+  LangProductsIdRoute: typeof LangProductsIdRoute
+  LangInsightsIndexRoute: typeof LangInsightsIndexRoute
+  LangProductsIndexRoute: typeof LangProductsIndexRoute
 }
 
-const InsightsRouteChildren: InsightsRouteChildren = {
-  InsightsSlugRoute: InsightsSlugRoute,
-  InsightsIndexRoute: InsightsIndexRoute,
+const LangRouteChildren: LangRouteChildren = {
+  LangAboutRoute: LangAboutRoute,
+  LangContactRoute: LangContactRoute,
+  LangSupplyChainRoute: LangSupplyChainRoute,
+  LangIndexRoute: LangIndexRoute,
+  LangInsightsSlugRoute: LangInsightsSlugRoute,
+  LangProductsIdRoute: LangProductsIdRoute,
+  LangInsightsIndexRoute: LangInsightsIndexRoute,
+  LangProductsIndexRoute: LangProductsIndexRoute,
 }
 
-const InsightsRouteWithChildren = InsightsRoute._addFileChildren(
-  InsightsRouteChildren,
-)
+const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  InsightsRoute: InsightsRouteWithChildren,
+  LangRoute: LangRouteWithChildren,
+  InsightsSlugRoute: InsightsSlugRoute,
+  InsightsIndexRoute: InsightsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
