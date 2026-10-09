@@ -44,14 +44,16 @@ function World({ progress, reduced, onReady }: { progress: RefObject<number>; re
     const transition = Math.max(0, Math.min(1, (p - 0.35) / 0.3));
     const mobile = state.size.width < 768;
     const smoothing = reduced ? 1 : 1 - Math.exp(-4 * Math.min(delta, 0.05));
-    const farmSize = (mobile ? 0.67 : 1.05) * (1 - transition);
+    const fit = mobile ? Math.min(1.2, state.viewport.width * 0.39 / 2.5) : Math.min(1.05, state.viewport.width * 0.22 / 2.5);
+    const center = mobile ? 0 : state.viewport.width * 0.25;
+    const farmSize = fit * (1 - transition);
     f.scale.lerp(new Vector3(farmSize, farmSize, farmSize), smoothing);
-    f.position.lerp(new Vector3(mobile ? 0 : 2.25, mobile ? -0.2 : -0.25, 0), smoothing);
+    f.position.lerp(new Vector3(center, mobile ? -0.2 : -0.25, 0), smoothing);
     f.rotation.y = reduced ? -0.35 : -0.35 + p * 1.2 + Math.sin(state.clock.elapsedTime * 0.16) * 0.035;
     f.visible = transition < 0.995;
-    const globeSize = (mobile ? 0.76 : 1.05) * transition;
+    const globeSize = fit * 0.87 * transition;
     g.scale.lerp(new Vector3(globeSize, globeSize, globeSize), smoothing);
-    g.position.lerp(new Vector3(mobile ? 0 : 2.3, mobile ? -0.2 : 0.05, 0), smoothing);
+    g.position.lerp(new Vector3(center, mobile ? -0.2 : 0.05, 0), smoothing);
     g.rotation.y += (-1.6 + p * 1.8 - g.rotation.y) * smoothing;
     g.visible = transition > 0.005;
   });
@@ -74,9 +76,9 @@ function World({ progress, reduced, onReady }: { progress: RefObject<number>; re
   </>;
 }
 class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
+  override state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  render() { return this.state.failed ? null : this.props.children; }
+  override render() { return this.state.failed ? null : this.props.children; }
 }
 export default function WorldScene({ progress, reduced, visible, onReady }: { progress: RefObject<number>; reduced: boolean; visible: boolean; onReady: () => void }) {
   return <div className="world-canvas" aria-label="Interactive 3D agricultural world with farms and international trade connections"><SceneBoundary><Canvas dpr={[1,1.5]} camera={{ position: [0,5.6,10.8], fov: 40 }} gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }} frameloop={visible && !reduced ? 'always' : 'demand'}>
