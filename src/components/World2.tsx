@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from 'react';
+
+type Draft = Partial<Record<'product' | 'format' | 'spec' | 'qty' | 'season' | 'market' | 'incoterm' | 'documents', string>>;
 import { Link } from '@tanstack/react-router';
 import { ArrowUpRight, FlaskConical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,10 +37,10 @@ export function QualityScience({ locale }: { locale: Locale }) {
 export function SupplyBlueprint({ locale }: { locale: Locale }) {
   const t = blueprintLabels[locale]; const products = getProducts(locale);
   const [stages, setStages] = useState<string[] | null>(null);
-  const [data, setData] = useState<Record<string, string>>({});
+  const [data, setData] = useState<Draft>({});
   function build(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const d = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
+    const d = Object.fromEntries(new FormData(e.currentTarget)) as Draft;
     setData(d);
     setStages(buildBlueprint({ product: d.product ?? '', format: d.format ?? 'To be discussed', market: d.market ?? '', season: d.season ?? '', documents: d.documents ?? '' }, locale));
   }
