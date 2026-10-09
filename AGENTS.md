@@ -18,3 +18,4 @@
 - Legacy unprefixed URLs use single-hop 301 redirects to `/en`; never redirect by browser language or IP, so visitors and crawlers can reach any locale.
 - Supply-chain storytelling (control tower nodes, per-product journeys) lives in `src/lib/valueChain.ts` as coordination scope only, so claims stay consistent and no KPIs, owned assets or certifications are implied.
 - Use a sticky client-only world scene with shared scroll progress and chapter data so the farming-to-global journey preserves readable server-rendered trading content.
+- World 2.0 content (menu, quality science, intelligence capability tags, blueprint rules) lives in `src/lib/world2.ts`, separate from animation components, so claims can be verified and edited in one place.
