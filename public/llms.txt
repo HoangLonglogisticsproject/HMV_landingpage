@@ -10,6 +10,13 @@ Office: Floor 5, 240 Nguyen Dinh Chinh St., Phu Nhuan Ward, Ho Chi Minh City, Vi
 
 ## Pages
 - [HMV Global](/): Company, agricultural commodity portfolio, specification review sheets, supply-chain approach, leadership, buyer FAQ and request for quotation.
+- [Perspectives](/insights): Six topic tabs with separate sourced editorial pages. General commercial explainers, not proof of certifications or completed HMV projects.
+- [Trading-first supply chain](/insights/from-farm-to-market)
+- [GLOBALG.A.P. buyer verification](/insights/globalgap-fruit-buyers)
+- [Cold-chain handoffs](/insights/cold-chain-critical-handoffs)
+- [Vietnam and Southeast Asian investment](/insights/vietnam-southeast-asia-investment)
+- [Air, sea and cross-border process](/insights/air-sea-cross-border-process)
+- [Wind, solar and supply chains](/insights/wind-solar-food-supply-chains)
 
 ## Optional
 - [Commodity portfolio](/#commodities): Product formats and specification review fields.
