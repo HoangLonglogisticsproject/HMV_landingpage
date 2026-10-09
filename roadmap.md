@@ -4,6 +4,6 @@
 - [x] Private online RFQ collection in Lovable Cloud.
 - [x] Semantic metadata, structured data and llms.txt.
 - [x] Desktop/mobile and submission verification.
-- [ ] Replace homepage opening with an immersive trading-first farming-to-world 3D journey.
-- [ ] Add six editorial topics with separate article pages and topic tabs.
-- [ ] Verify navigation, 3D scroll, mobile layout and article metadata.
+- [x] Replace homepage opening with an immersive trading-first farming-to-world 3D journey.
+- [x] Add six editorial topics with separate article pages and topic tabs.
+- [x] Verify navigation, 3D scroll, mobile layout and article metadata.
