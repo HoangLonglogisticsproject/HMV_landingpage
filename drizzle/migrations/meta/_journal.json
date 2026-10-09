@@ -15,6 +15,13 @@
       "when": 1791530030281,
       "tag": "0001_validate_rfq_email",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791533993640,
+      "tag": "0002_rfq_trade_requirements",
+      "breakpoints": true
     }
   ]
 }
