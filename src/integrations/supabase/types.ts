@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      rfqs: {
+        Row: {
+          company: string
+          created_at: string
+          destination: string
+          email: string
+          id: string
+          incoterm: string
+          name: string
+          product: string
+          quantity: string
+          requirements: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          destination: string
+          email: string
+          id?: string
+          incoterm: string
+          name: string
+          product: string
+          quantity: string
+          requirements?: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          destination?: string
+          email?: string
+          id?: string
+          incoterm?: string
+          name?: string
+          product?: string
+          quantity?: string
+          requirements?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

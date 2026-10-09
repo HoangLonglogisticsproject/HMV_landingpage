@@ -8,3 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep commercial catalog data and specification fields in a shared browser-safe module so visible product details and structured data stay consistent.
+- Keep the scroll-driven Three.js experience lazy-loaded and client-only while the commercial landing page remains server-rendered for search accessibility.
+- RFQs are insert-only for public visitors, with validation and a database submission limit; never expose customer inquiries through public reads.
