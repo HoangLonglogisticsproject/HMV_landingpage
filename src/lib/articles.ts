@@ -60,4 +60,21 @@ export const articles: Article[] = [
     ], sources: [{ name: 'IEA — Renewables 2024 executive summary', url: 'https://www.iea.org/reports/renewables-2024/executive-summary' }, { name: 'IRENA — World Energy Transitions Outlook 2024', url: 'https://www.irena.org/Publications/2024/Nov/World-Energy-Transitions-Outlook-2024' }],
   },
 ];
-export function findArticle(slug: string) { return articles.find(article => article.slug === slug); }
+import type { Locale } from './i18n';
+import { viArticles } from './articles.vi';
+
+export type ArticleStatus = 'draft' | 'review' | 'published';
+// Editorial workflow metadata, shared by every locale edition. Only published editions are listed and indexed.
+const editorial: Record<string, { published: string; updated: string; status: Record<Locale, ArticleStatus> }> = Object.fromEntries(articles.map(a => [a.slug, { published: '2026-10-01', updated: '2026-10-09', status: { en: 'published', vi: viArticles[a.slug] ? 'published' : 'draft' } }]));
+
+export function getArticles(locale: Locale = 'en') {
+  return articles.flatMap(a => {
+    const meta = editorial[a.slug]!;
+    if (meta.status[locale] !== 'published') return [];
+    const vi = locale === 'vi' ? viArticles[a.slug] : undefined;
+    return [{ ...a, ...(vi ?? {}), id: a.slug, locale, published: meta.published, updated: meta.updated }];
+  });
+}
+export type LocalizedArticle = ReturnType<typeof getArticles>[number];
+export function findArticle(slug: string, locale: Locale = 'en') { return getArticles(locale).find(a => a.slug === slug); }
+export function articleLocales(slug: string) { const m = editorial[slug]; return m ? (Object.keys(m.status) as Locale[]).filter(l => m.status[l] === 'published') : []; }
