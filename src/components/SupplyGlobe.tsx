@@ -48,7 +48,7 @@ export default function SupplyGlobe() {
     return () => { observer.disconnect();window.removeEventListener('scroll',onScroll); };
   },[]);
   return <div ref={container} className="journey-canvas" aria-label="3D supply-chain globe connecting Vietnam with Europe and North America">
-    {visible && <Canvas dpr={[1,1.5]} camera={{position:[0,0,7.5],fov:42}} gl={{antialias:true,alpha:true}} frameloop={reduced?'demand':'always'}>
+    {visible && <Canvas dpr={[1,1.5]} camera={{position:[0,0,9.5],fov:42}} gl={{antialias:true,alpha:true}} frameloop={reduced?'demand':'always'}>
       <ambientLight intensity={1.6} /><directionalLight position={[3,4,6]} intensity={2} />
       <Environment resolution={64}><Lightformer intensity={1} position={[0,5,0]} scale={[8,8,1]} /></Environment>
       <Suspense fallback={null}><Globe progress={progress} reduced={reduced} /></Suspense>
