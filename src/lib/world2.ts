@@ -38,8 +38,8 @@ export const supplyMenu: Record<Locale, { products: string; items: { hash: strin
   ] },
 };
 export const navExtra = {
-  en: { solutions: 'Trade Solutions', partner: 'Partner With Us', hub: 'Supply Chain Hub' },
-  vi: { solutions: 'Giải pháp thương mại', partner: 'Hợp tác ngay', hub: 'Trung tâm chuỗi cung ứng' },
+  en: { home: 'Home', related: 'Explore the Supply Chain Hub', qualityLink: 'Science & quality management', intelLink: 'Integrated operating model', solutions: 'Trade Solutions', partner: 'Partner With Us', hub: 'Supply Chain Hub' },
+  vi: { home: 'Trang chủ', related: 'Khám phá trung tâm chuỗi cung ứng', qualityLink: 'Khoa học & quản lý chất lượng', intelLink: 'Mô hình vận hành tích hợp', solutions: 'Giải pháp thương mại', partner: 'Hợp tác ngay', hub: 'Trung tâm chuỗi cung ứng' },
 };
 
 // Science behind quality: which parameters are typically agreed per product. Not HMV test results.

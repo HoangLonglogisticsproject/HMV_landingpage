@@ -6,6 +6,7 @@ import { findProduct, getProducts } from '@/lib/catalog';
 import { findArticle } from '@/lib/articles';
 import { isLocale, seoHead, ui, type Locale } from '@/lib/i18n';
 import { NeedsList, ProductJourney } from '@/components/ValueChain';
+import { navExtra } from '@/lib/world2';
 import { chainLabels } from '@/lib/valueChain';
 import { breadcrumbLd, jsonLd, organization, productLd } from '@/lib/schema';
 
@@ -37,6 +38,7 @@ function ProductPage() {
       <img src={p.image} alt={p.name} width={502} height={502} className="aspect-[4/3] w-full rounded-lg object-cover" />
     </section>
     <section className="border-t border-border bg-secondary py-16"><div className="page-width grid gap-10 lg:grid-cols-[0.8fr_1.2fr]"><div><p className="eyebrow mb-4 text-primary">{c.sheet}</p><h2 className="section-heading">{t.product.specs}</h2><p className="mt-5 text-xs leading-6 text-muted-foreground">{c.disclaimer}</p></div><table className="spec-table bg-background"><tbody>{p.specs.map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}</tbody></table></div></section>
+    <nav aria-label={navExtra[locale].related} className="border-y border-border bg-secondary"><div className="page-width flex flex-wrap items-center gap-x-8 gap-y-3 py-5 text-sm"><span className="eyebrow text-primary">{navExtra[locale].related}</span><Link to="/$lang/supply-chain" params={{ lang: locale }} hash="quality" className="hover:text-primary">{navExtra[locale].qualityLink}</Link><Link to="/$lang/supply-chain" params={{ lang: locale }} hash="intelligence" className="hover:text-primary">{navExtra[locale].intelLink}</Link><Link to="/$lang/supply-chain" params={{ lang: locale }} hash="blueprint" className="hover:text-primary">{navExtra[locale].solutions}</Link></div></nav>
     <section className="py-16"><div className="page-width"><p className="eyebrow mb-4 text-primary">{chainLabels[locale].eyebrow}</p><h2 className="section-heading">{chainLabels[locale].title}</h2><div className="mt-8 grid gap-10 lg:grid-cols-[1.4fr_0.6fr]"><ProductJourney locale={locale} productId={p.id} /><NeedsList locale={locale} /></div></div></section>
     <section className="pb-16"><div className="page-width grid gap-6 rounded-lg border border-border p-8 md:grid-cols-[1fr_auto] md:items-center"><div><h2 className="text-2xl font-semibold">{t.product.ctaTitle}</h2><p className="mt-3 max-w-150 text-sm leading-7 text-muted-foreground">{t.product.ctaText}</p></div><Button asChild className="h-12 px-6"><Link to="/$lang/contact" params={{ lang: locale }}>{t.nav.trade} <ArrowUpRight /></Link></Button></div></section>
     {articles.length > 0 && <section className="border-t border-border py-14"><div className="page-width"><h2 className="text-2xl font-semibold">{t.product.articles}</h2><div className="mt-7 grid gap-6 md:grid-cols-2">{articles.map(a => <Link key={a.slug} to="/$lang/insights/$slug" params={{ lang: locale, slug: a.slug }} className="border-t border-border py-5"><p className="eyebrow text-primary">{a.topic}</p><h3 className="mt-3 text-lg font-semibold">{a.title}</h3><ArrowUpRight className="mt-4 size-5 text-primary" /></Link>)}</div></div></section>}

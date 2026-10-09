@@ -15,7 +15,7 @@ export function SiteHeader() {
   const close = () => setMenu(false);
   const x = navExtra[lang]; const menuData = supplyMenu[lang]; const products = getProducts(lang);
   const navigation = <>
-    <Link to="/$lang" params={{ lang }} onClick={close} activeOptions={{ exact: true }} activeProps={{ className: 'text-primary' }}>{t.home.replace(/HMV Global ?/i, '').trim() || 'Home'}</Link>
+    <Link to="/$lang" params={{ lang }} onClick={close} activeOptions={{ exact: true }} activeProps={{ className: 'text-primary' }}>{x.home}</Link>
     <div className="mega group relative">
       <Link to="/$lang/supply-chain" params={{ lang }} onClick={close} activeProps={{ className: 'text-primary' }} className="inline-flex items-center gap-1">{t.supply} <ChevronDown className="hidden size-3.5 lg:block" /></Link>
       <div className="mega-panel">
