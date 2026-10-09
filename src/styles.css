@@ -267,3 +267,34 @@ h1,h2,h3 { font-family: var(--font-display); letter-spacing: 0; }
 .journey-steps > li { position: relative; padding: 18px 14px 4px 0; font-size: 13px; font-weight: 500; line-height: 1.45; }
 .journey-steps > li::before { content: ""; position: absolute; top: -7px; left: 0; width: 12px; height: 12px; border-radius: 999px; background: var(--background); border: 2px solid var(--primary); }
 .journey-steps > li > span { display: block; margin-bottom: 6px; font-size: 10px; color: var(--primary); }
+
+/* Supply Chain World 2.0 */
+.world-title { text-wrap: balance; }
+.world-title > span { max-width: 560px; text-wrap: balance; }
+.mega-panel { display: none; }
+@media (min-width: 1024px) {
+  .mega-panel { position: absolute; left: -24px; top: 100%; padding-top: 18px; width: 640px; }
+  .mega:hover .mega-panel, .mega:focus-within .mega-panel { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 28px; background: var(--background); border: 1px solid var(--border); border-radius: 12px; padding: 26px; box-shadow: 0 24px 50px -28px color-mix(in oklab, var(--ocean-deep) 35%, transparent); }
+}
+@media (max-width: 1023px) { .mega .mega-panel { display: grid; gap: 14px; padding: 10px 0 0 12px; border-left: 1px solid var(--border); margin-top: 10px; } }
+.cap-tag { display: inline-flex; border-radius: 999px; padding: 3px 10px; font-size: 10px; font-weight: 600; margin-bottom: 12px; border: 1px solid var(--border); }
+.cap-hmv { color: var(--primary); background: color-mix(in oklab, var(--primary) 10%, transparent); }
+.cap-partner { color: var(--leaf); background: color-mix(in oklab, var(--leaf) 10%, transparent); }
+.cap-proposed { color: var(--muted-foreground); border-style: dashed; }
+.intel-progress { height: 4px; border-radius: 99px; background: var(--border); overflow: hidden; }
+.intel-progress > span { display: block; height: 100%; background: linear-gradient(90deg, var(--primary), var(--leaf)); transition: width 0.5s; }
+.quality-science { background: linear-gradient(180deg, var(--background), color-mix(in oklab, var(--primary) 5%, var(--background))); }
+.science-orbit { position: relative; width: min(260px, 70vw); aspect-ratio: 1; margin-inline: auto; }
+.science-orbit svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.science-track { fill: none; stroke: var(--border); stroke-width: 4; }
+.science-arc { fill: none; stroke: var(--primary); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 540; transition: stroke-dashoffset 0.6s; }
+.science-inner { fill: color-mix(in oklab, var(--primary) 6%, var(--background)); stroke: color-mix(in oklab, var(--primary) 25%, transparent); stroke-dasharray: 2 6; }
+.science-core { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 6px; }
+.science-step { width: 100%; display: flex; gap: 10px; align-items: center; text-align: left; font-size: 13px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); transition: border-color 0.2s; }
+.science-step.is-active { border-color: var(--primary); color: var(--ocean-deep); font-weight: 600; }
+.science-param { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 10px 12px; border-radius: 8px; background: var(--secondary); }
+.science-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--leaf); flex-shrink: 0; }
+.blueprint-chain { display: grid; gap: 0; }
+.blueprint-chain > li { display: flex; align-items: center; gap: 12px; font-size: 13px; padding: 10px 0; border-bottom: 1px dashed var(--border); }
+.blueprint-empty { height: 100%; min-height: 220px; display: grid; place-items: center; text-align: center; padding: 28px; border: 1px dashed var(--border); border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) { .science-arc, .intel-progress > span { transition: none; } }

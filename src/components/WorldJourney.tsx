@@ -45,7 +45,7 @@ export function WorldJourney({ locale = 'en' }: { locale?: Locale }) {
           <p className="eyebrow mb-5 flex items-center gap-3 text-primary"><span className="h-px w-8 bg-primary" /> {chapter.label}</p>
           {i === 0 ? <h1 className="world-title">{chapter.title}<span>{chapter.accent}</span></h1> : <h2 className="world-title">{chapter.title}<span>{chapter.accent}</span></h2>}
           <p className="world-description mt-6 text-sm leading-7 text-muted-foreground">{chapter.description}</p>
-          <div className="mt-7 flex flex-wrap items-center gap-4"><Button asChild className="h-12 px-5"><a href={chapter.href}>{chapter.cta}<ArrowUpRight /></a></Button>{(i === 0 || i === 5) && <a href="#rfq" className="inline-flex items-center gap-2 text-xs font-semibold text-ocean-deep">{x.partner} <ArrowUpRight className="size-4" /></a>}</div>
+          <div className="mt-7 flex flex-wrap items-center gap-4">{i === 5 && <p className="w-full font-display text-lg font-semibold text-primary">{x.build}</p>}<Button asChild className="h-12 px-5"><a href={chapter.href}>{chapter.cta}<ArrowUpRight /></a></Button>{i === 5 && <Button asChild variant="outline" className="h-12 px-5"><a href="#commodities">{x.explore}</a></Button>}{(i === 0 || i === 5) && <a href="#blueprint" className="inline-flex items-center gap-2 text-xs font-semibold text-ocean-deep">{x.partner} <ArrowUpRight className="size-4" /></a>}</div>
         </div>)}</div>
       </div>
       <div className="world-caption text-primary"><span className="eyebrow">{journeyChapters[stage]?.caption}</span><span className="mt-2 block text-[10px] text-muted-foreground">{x.note}</span></div>

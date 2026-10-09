@@ -12,3 +12,5 @@
 - [x] Reposition as integrated agricultural supply chain; 6-chapter 3D journey (globe → origin → processing → control tower → markets → CTA).
 - [x] Supply Chain Control Tower, Follow-the-Product (passion fruit sample), product value-chain sections, trade requirement RFQ.
 - [ ] Product journeys for bananas, dragon fruit, spices, cashews, tapioca — waiting on HMV's confirmed process details.
+- [x] World 2.0: demand-first 6-chapter story, Vietnam-centred globe, Supply Chain mega menu, Science & Quality, Supply Chain Intelligence with capability tags, Follow the Material, Supply Chain Blueprint → RFQ.
+- [ ] Mark verified HMV capabilities and attach certificates — waiting on HMV documents.

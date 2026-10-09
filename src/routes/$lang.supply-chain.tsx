@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { Capabilities, RfqSection, SupplySteps } from '@/components/sections';
 import { seoHead, ui, type Locale } from '@/lib/i18n';
 import { ControlTower, FollowTheProduct } from '@/components/ValueChain';
+import { QualityScience, SupplyBlueprint } from '@/components/World2';
 
 const SupplyGlobe = lazy(() => import('@/components/SupplyGlobe'));
 const seo = {
@@ -17,5 +18,5 @@ function SupplyPage() {
   const locale = Route.useParams().lang as Locale;
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  return <main><section id="supply-chain" className="journey-section bg-secondary"><div className="page-width"><SupplySteps locale={locale} h1 /></div>{mounted && <Suspense fallback={null}><SupplyGlobe /></Suspense>}<p className="absolute bottom-5 right-5 text-[9px] text-muted-foreground">{ui[locale].supply.note}</p></section><ControlTower locale={locale} /><FollowTheProduct locale={locale} /><Capabilities locale={locale} /><RfqSection locale={locale} /></main>;
+  return <main><span id="sourcing" /><section id="supply-chain" className="journey-section bg-secondary"><div className="page-width"><SupplySteps locale={locale} h1 /></div>{mounted && <Suspense fallback={null}><SupplyGlobe /></Suspense>}<p className="absolute bottom-5 right-5 text-[9px] text-muted-foreground">{ui[locale].supply.note}</p></section><FollowTheProduct locale={locale} /><QualityScience locale={locale} /><ControlTower locale={locale} /><div id="export"><Capabilities locale={locale} /></div><SupplyBlueprint locale={locale} /><RfqSection locale={locale} /></main>;
 }
