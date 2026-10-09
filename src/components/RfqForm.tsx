@@ -5,11 +5,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { getProducts } from '@/lib/catalog';
 import { ui, type Locale } from '@/lib/i18n';
 import { rfqSchema } from '@/lib/rfq';
+import type { z } from 'zod';
 
 export function RfqForm({ locale = 'en' }: { locale?: Locale }) {
   const t = ui[locale].rfq;
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<null | Record<string, string>>(null);
+  const [done, setDone] = useState<null | z.infer<typeof rfqSchema>>(null);
   const [error, setError] = useState('');
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -22,11 +23,11 @@ export function RfqForm({ locale = 'en' }: { locale?: Locale }) {
     try {
       const { error: insertError } = await supabase.from('rfqs').insert(result.data);
       if (insertError) throw new Error(insertError.message.includes('limit') ? t.limit : t.failed);
-      setDone(Object.fromEntries(Object.entries(result.data).map(([k, v]) => [k, String(v)]))); form.reset();
+      setDone(result.data); form.reset();
     } catch (err) { setError(err instanceof Error ? err.message : t.failed); }
     finally { setBusy(false); }
   }
-  if (done) return <div className="py-14" role="status"><CheckCircle2 className="mb-5 size-10 text-leaf" /><h3 className="text-2xl font-semibold">{t.doneTitle}</h3><p className="mt-3 text-muted-foreground">{t.doneText}</p><div className="mt-7 rounded-lg border border-border bg-secondary p-6"><p className="eyebrow text-primary">{t.summary}</p><table className="spec-table mt-3"><tbody>{([[t.company, done.company], [t.product, done.product], [t.format, t.formats[done.product_format ?? ''] ?? done.product_format], [t.quantity, done.quantity], [t.frequency, done.frequency], [t.destination, done.destination], [t.incoterm, done.incoterm === 'To be agreed' ? t.tba : done.incoterm], [t.documents, done.documents], [t.requirements, done.requirements]] as const).filter(([, v]) => v).map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}</tbody></table><p className="mt-4 text-xs text-muted-foreground">{t.summaryNote}</p></div><Button variant="outline" className="mt-7" onClick={() => setDone(null)}>{t.again} <ArrowUpRight /></Button></div>;
+  if (done) return <div className="py-14" role="status"><CheckCircle2 className="mb-5 size-10 text-leaf" /><h3 className="text-2xl font-semibold">{t.doneTitle}</h3><p className="mt-3 text-muted-foreground">{t.doneText}</p><div className="mt-7 rounded-lg border border-border bg-secondary p-6"><p className="eyebrow text-primary">{t.summary}</p><table className="spec-table mt-3"><tbody>{([[t.company, done.company], [t.product, done.product], [t.format, t.formats[done.product_format] ?? done.product_format], [t.quantity, done.quantity], [t.frequency, done.frequency], [t.destination, done.destination], [t.incoterm, done.incoterm === 'To be agreed' ? t.tba : done.incoterm], [t.documents, done.documents], [t.requirements, done.requirements]] as const).filter(([, v]) => v).map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}</tbody></table><p className="mt-4 text-xs text-muted-foreground">{t.summaryNote}</p></div><Button variant="outline" className="mt-7" onClick={() => setDone(null)}>{t.again} <ArrowUpRight /></Button></div>;
   return <form onSubmit={submit} className="grid gap-5">
     <div className="grid gap-5 sm:grid-cols-2"><label className="field-label">{t.name} *<input className="field" name="name" required minLength={2} maxLength={100} placeholder={t.namePh} autoComplete="name" /></label><label className="field-label">{t.company} *<input className="field" name="company" required minLength={2} maxLength={150} placeholder={t.companyPh} autoComplete="organization" /></label></div>
     <label className="field-label">{t.email} *<input className="field" name="email" type="email" required maxLength={254} placeholder="you@company.com" autoComplete="email" /></label>
