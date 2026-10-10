@@ -1,36 +1,5 @@
-import { forwardRef } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Highlight } from '@/components/common/Highlight';
-import { Navigation } from '@/components/sections/Navigation';
-import { scrollToSection } from '@/lib/scroll';
-
-/** Hero: nav + tiêu đề lớn + ảnh, chiếm trọn chiều cao màn hình. */
-export const Header = forwardRef(function Header({ isSticky }, ref) {
-  return (
-    <header ref={ref} className="flex h-screen flex-col items-center px-[30px]">
-      <Navigation isSticky={isSticky} />
-
-      <div className="grid max-w-[1150px] flex-1 content-center justify-center justify-items-start gap-y-[30px] lg:grid-cols-[3fr_2fr] lg:items-start">
-        <h1 className="text-[40px] leading-[1.35] lg:text-[55px]">
-          When <Highlight>HMV Global</Highlight> Connect
-          <br />
-          <Highlight>The World</Highlight>
-        </h1>
-
-        <h4 className="text-[24px] font-medium">
-          A simpler Trading experience for a simpler life.
-        </h4>
-
-        <Button variant="text" size="text" onClick={() => scrollToSection('#section--1')}>
-          Learn more &DownArrow;
-        </Button>
-
-        <img
-          src="/img/hero.png"
-          alt="Minimalist bank items"
-          className="w-full lg:col-start-2 lg:row-span-4 lg:row-start-1 lg:-translate-y-[60px]"
-        />
-      </div>
-    </header>
-  );
-});
+import { copy,photos } from '@/data/hmv';
+export function Header({lang='en'}) {const t=copy[lang];return <header className="home-hero"><img className="hero-photo" src={photos.factory} alt={lang==='vi'?'Nhóm người trong chuyến thăm cơ sở công nghiệp':'A group visiting an industrial facility'} width="768" height="1024" fetchPriority="high"/><div className="hero-shade"/><div className="hero-inner"><p className="eyebrow hero-eyebrow">{t.label}</p><h1>HMV GLOBAL<span>{t.headline}</span></h1><p className="hero-intro">{t.heroText}</p><Button asChild size="lg" variant="secondary" className="hero-action"><Link to={`/${lang}/supply-chain`}>{t.heroCta}<ArrowUpRight/></Link></Button></div><div className="hero-bottom"><span>{t.heroNote}</span><a href="#story" aria-label={lang==='vi'?'Cuộn đến câu chuyện HMV':'Scroll to the HMV story'}><ArrowDown size={20}/></a></div></header>}

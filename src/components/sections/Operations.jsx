@@ -1,63 +1,6 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowUpRight, Check, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Section } from '@/components/common/Section';
-import { SectionTitle } from '@/components/common/SectionTitle';
-import { Icon } from '@/components/common/Icon';
-import { operations } from '@/data/site';
-import { cn } from '@/lib/utils';
-
-/** Tabbed component: state thay cho việc thêm/bớt class active bằng tay. */
-export function Operations() {
-  const [activeId, setActiveId] = useState(operations[0].id);
-  const active = operations.find(op => op.id === activeId);
-
-  return (
-    <Section id="section--2">
-      <SectionTitle
-        description="Operations"
-        title="Everything as simple as possible, but no simpler."
-      />
-
-      <div className="mx-auto mt-[120px] max-w-[1000px] bg-white shadow-[0_18px_45px_-25px_rgba(0,29,89,0.35)]">
-        <div className="flex flex-wrap justify-center">
-          {operations.map(op => (
-            <Button
-              key={op.id}
-              variant="tab"
-              size="pill"
-              onClick={() => setActiveId(op.id)}
-              aria-pressed={op.id === activeId}
-              className={cn(
-                'mr-[25px] transition-all duration-300 last:mr-0',
-                op.id === activeId ? '-translate-y-[66%]' : '-translate-y-1/2'
-              )}
-            >
-              <span
-                className={cn(
-                  'mr-[10px] inline-block font-semibold',
-                  op.id === activeId ? 'text-cyan' : 'text-core-blue/70'
-                )}
-              >
-                {op.number}
-              </span>
-              {op.label}
-            </Button>
-          ))}
-        </div>
-
-        <div className="grid gap-x-[30px] gap-y-[5px] px-[30px] pt-[25px] pb-[65px] text-[17px] lg:grid-cols-[70px_1fr] lg:px-[70px]">
-          <div
-            className={cn(
-              'flex size-[70px] items-center justify-center rounded-full',
-              active.iconClassName
-            )}
-          >
-            <Icon name={active.icon} className="size-[27.5px] fill-inherit" />
-          </div>
-          <h5 className="self-center text-[22.5px] font-medium">{active.title}</h5>
-          <p className="text-ink-muted lg:col-start-2">{active.text}</p>
-        </div>
-      </div>
-    </Section>
-  );
-}
+import { copy,stages,photos } from '@/data/hmv';
+export function Operations({lang,full=false}){const [active,setActive]=useState(0);const t=copy[lang];const item=stages[active];return <section className="section-pad chain-section" id="supply"><div className="content-width"><div className="section-heading"><div><p className="eyebrow">{t.chainLabel}</p><h2>{t.chainTitle}</h2></div><p>{t.chainText}</p></div><div className="chain-tabs" role="tablist" aria-label={t.supply}>{stages.map((s,i)=><Button key={s.id} variant="ghost" role="tab" id={`tab-${s.id}`} aria-selected={active===i} aria-controls={`panel-${s.id}`} tabIndex={active===i?0:-1} onKeyDown={e=>{if(['ArrowRight','ArrowLeft','Home','End'].includes(e.key)){e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?5:(active+(e.key==='ArrowRight'?1:5))%6;setActive(next);document.getElementById(`tab-${stages[next].id}`)?.focus()}}} onClick={()=>setActive(i)} className={`chain-tab ${active===i?'selected':''}`}><span className="stage-number">0{i+1}</span><span>{s[lang]}</span><ChevronRight size={16}/></Button>)}</div><div className="chain-panel" role="tabpanel" id={`panel-${item.id}`} aria-labelledby={`tab-${item.id}`} tabIndex={0}><figure><img src={photos.material} width="768" height="1024" loading="lazy" decoding="async" alt={lang==='vi'?'Chuyến thăm một cơ sở lưu trữ nguyên liệu':'A visit to a material storage facility'}/><figcaption>{t.materialVisit}</figcaption></figure><div><p className="eyebrow">0{active+1} / 06</p><h3>{item[lang]}</h3><p className="stage-tagline">{lang==='vi'?item.shortVi:item.shortEn}</p><p>{lang==='vi'?item.viText:item.enText}</p>{!full&&<Button asChild variant="text" size="text"><Link to={`/${lang}/supply-chain`}>{t.detail}<ArrowUpRight/></Link></Button>}</div></div><p className="commercial-note">{t.processNote}</p>{full&&<div className="stage-details">{stages.map((s,i)=><article id={s.id} key={s.id}><span>0{i+1}</span><div><h3>{s[lang]}</h3><p>{lang==='vi'?s.viText:s.enText}</p></div></article>)}</div>}</div></section>}
