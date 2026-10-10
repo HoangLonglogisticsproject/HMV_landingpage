@@ -1,0 +1,5 @@
+import { Link } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { copy, products } from '@/data/hmv';
+export function HomeOverview({lang}){const t=copy[lang];return <section className="home-overview section-pad"><div className="content-width"><div className="overview-row"><span className="eyebrow">01 / {t.supply}</span><div><h2>{t.chainTitle}</h2><p>{lang==='vi'?'Kết nối vùng nguyên liệu, yêu cầu chất lượng và hành trình đến thị trường.':'Connecting agricultural origins, quality requirements and the path to market.'}</p></div><Button asChild variant="text" size="text"><Link to={`/${lang}/supply-chain`}>{t.more}<ArrowUpRight/></Link></Button></div><div className="overview-row"><span className="eyebrow">02 / {t.trade}</span><div><h2>{lang==='vi'?'Nông sản Việt. Tầm nhìn quốc tế.':'Vietnamese origins. Global perspective.'}</h2><p>{products.map(p=>p[lang]).join(' · ')}</p></div><Button asChild variant="text" size="text"><Link to={`/${lang}/trade-solutions`}>{t.more}<ArrowUpRight/></Link></Button></div></div></section>}
