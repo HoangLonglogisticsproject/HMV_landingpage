@@ -26,5 +26,5 @@
 @media(max-width:820px){.featured-heading h2{font-size:27px}.featured-grid{gap:18px}.featured-caption h3{font-size:20px}.farm-art .hero-inner h1 span{font-size:30px}.featured-image{aspect-ratio:3/4}}
 @media(max-width:600px){.featured-products{padding:48px 0}.featured-heading{align-items:start;flex-direction:column;gap:18px}.featured-heading h2{font-size:27px}.featured-grid{grid-template-columns:1fr;gap:30px}.featured-image{aspect-ratio:5/4}.featured-caption{padding:16px 0}.featured-caption h3{font-size:23px}.farm-art .hero-inner{justify-content:flex-start;padding-top:50px}.farm-art .hero-inner h1 span{font-size:26px;max-width:300px}.journey-step{font-size:8px}.story-section{padding:48px 0}.activity-controls{margin:0 0 20px}}
 
-.farm-art .home-hero{height:calc(100svh - 138px);min-height:0;max-height:840px}.featured-dragon-fruit .featured-image img{object-fit:contain;background:var(--background)}
+.farm-art .home-hero{height:calc(100svh - 138px);min-height:0;max-height:none}.featured-dragon-fruit .featured-image img{object-fit:contain;background:var(--background)}
 @media(max-width:600px){.farm-art .home-hero{height:calc(100svh - 114px);min-height:550px;max-height:760px}}

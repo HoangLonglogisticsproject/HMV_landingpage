@@ -7,7 +7,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 // A deliberately sculpted miniature landscape, not a representation of HMV assets.
 function buildWorld(colors) {
  const group=new T.Group(), bins=new Map(), resources=[];
- const material=(key,roughness=.85)=>new T.MeshStandardMaterial({color:colors[key],roughness,metalness:key==='water'?.35:0});
+ const material=(key,roughness=.85)=>new T.MeshStandardMaterial({color:colors[key],roughness,side:T.DoubleSide,metalness:key==='water'?.35:0});
  const mats={};for(const k of ['leaf','moss','earth','path','water','fruit','hat','skin','roof','white','shirt']){mats[k]=material(k);resources.push(mats[k]);}
  const add=(geo,key,pos,scale=[1,1,1],rot=[0,0,0])=>{geo.scale(...scale);geo.rotateX(rot[0]);geo.rotateY(rot[1]);geo.rotateZ(rot[2]);geo.translate(...pos);if(!bins.has(key))bins.set(key,[]);bins.get(key).push(geo);};
  const sphere=(key,pos,scale)=>add(new T.IcosahedronGeometry(1,2),key,pos,scale);
@@ -42,7 +42,7 @@ function World({progress,colors,reduced}) {
  const route=useMemo(()=>new T.CatmullRomCurve3([new T.Vector3(65,42,77),new T.Vector3(28,20,43),new T.Vector3(25,18,16),new T.Vector3(78,40,23)]),[]);
  useEffect(()=>{invalidate();},[progress,invalidate]);useEffect(()=>()=>world.dispose(),[world]);
  useFrame((_,delta)=>{const desired=reduced?0:progress;current.current=T.MathUtils.lerp(current.current,desired,1-Math.exp(-5*Math.min(delta,.05)));if(Math.abs(current.current-desired)<.001)current.current=desired;route.getPoint(current.current,target);target.x+=reduced?0:pointer.x*1.2;target.y+=reduced?0:pointer.y*.7;camera.position.copy(target);camera.lookAt(3+current.current*30,7,-8-current.current*18);world.turbines.forEach((r,i)=>{r.rotation.z=current.current*8+i*.4;});if(current.current!==desired)invalidate();});
- return <><color attach="background" args={[colors.sky]}/><fog attach="fog" args={[colors.sky,85,185]}/><hemisphereLight args={[colors.light,colors.earth,1.6]}/><directionalLight position={[-25,65,45]} intensity={3.2} color={colors.light} castShadow shadow-mapSize={[1024,1024]} shadow-camera-left={-75} shadow-camera-right={75} shadow-camera-top={65} shadow-camera-bottom={-65} shadow-bias={-.001}/><Environment resolution={64}><Lightformer intensity={1.4} color={colors.light} position={[0,20,0]} rotation-x={Math.PI/2} scale={[90,90,1]}/><Lightformer intensity={.8} color={colors.sky} position={[50,15,0]} rotation-y={Math.PI/2} scale={[70,30,1]}/></Environment><primitive object={world.group}/></>;
+ return <><color attach="background" args={[colors.sky]}/><fog attach="fog" args={[colors.sky,115,220]}/><hemisphereLight args={[colors.light,colors.earth,1.6]}/><directionalLight position={[-25,65,45]} intensity={3.2} color={colors.light} castShadow shadow-mapSize={[1024,1024]} shadow-camera-left={-75} shadow-camera-right={75} shadow-camera-top={65} shadow-camera-bottom={-65} shadow-bias={-.001}/><Environment resolution={64}><Lightformer intensity={1.4} color={colors.light} position={[0,20,0]} rotation-x={Math.PI/2} scale={[90,90,1]}/><Lightformer intensity={.8} color={colors.sky} position={[50,15,0]} rotation-y={Math.PI/2} scale={[70,30,1]}/></Environment><primitive object={world.group}/></>;
 }
 export default function FarmScene({progress}) {
  const [colors,setColors]=useState(null);const [reduced,setReduced]=useState(false);const [visible,setVisible]=useState(true);const host=useRef(null);
