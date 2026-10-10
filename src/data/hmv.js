@@ -4,7 +4,19 @@ import discussion from '@/assets/material-discussion.webp.asset.json';
 import outdoor from '@/assets/outdoor-team.webp.asset.json';
 import forest from '@/assets/forest-team.webp.asset.json';
 import gathering from '@/assets/team-gathering.webp.asset.json';
-export const photos = { factory: factory.url, material: material.url, discussion: discussion.url, outdoor: outdoor.url, forest: forest.url, gathering: gathering.url };
+import farm from '@/assets/passion-fruit-farm.webp.asset.json';
+import grower from '@/assets/grower-visit.webp.asset.json';
+import farmTeam from '@/assets/farm-team.webp.asset.json';
+import fruitCut from '@/assets/passion-fruit-cut.webp.asset.json';
+import fruitWeighing from '@/assets/passion-fruit-weighing.webp.asset.json';
+import opening from '@/assets/opening-visit.webp.asset.json';
+import openingGroup from '@/assets/opening-gathering.webp.asset.json';
+import openingFlowers from '@/assets/opening-flowers.webp.asset.json';
+export const photos = { factory: factory.url, material: material.url, discussion: discussion.url, outdoor: outdoor.url, forest: forest.url, gathering: gathering.url, farm: farm.url, grower: grower.url, farmTeam: farmTeam.url, fruitCut: fruitCut.url, fruitWeighing: fruitWeighing.url, opening: opening.url, openingGroup: openingGroup.url, openingFlowers: openingFlowers.url };
+export const photoCopy = {
+ en:{farm:'Passion fruit growing on the vine',grower:'A visit to a passion fruit growing area',farmTeam:'Conversations at the growing area',weighing:'A closer look at the fruit',opening:'Meeting in person',openingGroup:'People & shared occasions',flowers:'A congratulatory floral display',hero:'Vietnamese agricultural origins · Connecting to Europe & the United States',organic:'Organic requirements and certification are reviewed for the specific grower, product and lot before quotation.'},
+ vi:{farm:'Chanh dây trên giàn trồng',grower:'Chuyến thăm vùng trồng chanh dây',farmTeam:'Trao đổi tại vùng nguyên liệu',weighing:'Quan sát và cân mẫu trái',opening:'Gặp gỡ trực tiếp',openingGroup:'Con người & những dịp gặp gỡ',flowers:'Hoa chúc mừng tại buổi gặp mặt',hero:'Nguồn nguyên liệu Việt Nam · Kết nối châu Âu & Hoa Kỳ',organic:'Yêu cầu organic và chứng nhận được đối chiếu với vùng trồng, sản phẩm và lô hàng cụ thể trước khi báo giá.'}
+};
 export const baseUrl = 'https://global-agro-trails.lovable.app';
 export const address = 'Floor 5, 240 Nguyen Dinh Chinh St., Phu Nhuan Ward, Ho Chi Minh City, Vietnam';
 export const products = [
