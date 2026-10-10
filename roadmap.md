@@ -1,4 +1,7 @@
 # HMV website upgrade
+- [x] Deepen the immersive farming-and-wind-energy art world and simplify the homepage ecosystem introduction.
+- [x] Add three featured agricultural products and automatic activities slides with pause controls.
+- [x] Verify the new world, featured photography and carousel behavior.
 - [x] Replace the invented logo with the uploaded official logo and matching favicon.
 - [x] Replace the photographic header with a custom 3D farming-world journey featuring farmers; move the former header photography into the company story.
 - [x] Simplify the homepage and make outside-office connections a swipeable carousel.
@@ -14,5 +17,5 @@
 - [x] Verify navigation, language switching, contact workflow, photo rendering and narrow-screen layout.
 - [x] Replace the factory hero with supplied farm photography; place factories within the supply-chain story.
 - [x] Add eight supplied farm/product/meeting photographs and a credited Vietnam banana plantation photograph.
-- [ ] Confirm photographed dragon-fruit crop origin and HMV product provenance; “Vietnam White” is a source title, not proof of growing location. Await HMV source confirmation or replacement product photographs.
+- [ ] Confirm photographed dragon-fruit crop origin and HMV product provenance; Current clean studio reference does not prove Vietnam origin. Await HMV source confirmation or replacement product photographs.
 - [x] Verify photos, product detail pages and layout; distinguish image provenance from organic certification.
