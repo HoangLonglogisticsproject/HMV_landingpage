@@ -1,4 +1,7 @@
 # HMV website upgrade
+- [x] Extend the opening journey through harvest, quality, processing, trade, global markets and wind energy.
+- [x] Refine featured products into premium motion cards with B2B product/inquiry actions.
+- [x] Verify every journey chapter and product-card interaction.
 - [x] Deepen the immersive farming-and-wind-energy art world and simplify the homepage ecosystem introduction.
 - [x] Add three featured agricultural products and automatic activities slides with pause controls.
 - [x] Verify the new world, featured photography and carousel behavior.

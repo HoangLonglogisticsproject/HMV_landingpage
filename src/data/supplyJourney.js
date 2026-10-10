@@ -1,0 +1,10 @@
+export const supplyJourney = [
+ {id:'origin',labelEn:'Origins',labelVi:'Vùng trồng',titleEn:'Rooted in the land.',titleVi:'Từ đất lành.',textEn:'Agricultural origins. People. Potential.',textVi:'Vùng nguyên liệu. Con người. Tiềm năng.',camera:[65,42,77],target:[3,7,-8]},
+ {id:'harvest',labelEn:'Harvest',labelVi:'Thu hoạch',titleEn:'Every harvest holds value.',titleVi:'Mỗi mùa vụ, một giá trị.',textEn:'Collection and sorting begin the product journey.',textVi:'Thu gom và phân loại mở đầu hành trình sản phẩm.',camera:[28,20,43],target:[5,5,15]},
+ {id:'quality',labelEn:'Quality',labelVi:'Chất lượng',titleEn:'Aligned with buyer requirements.',titleVi:'Theo chuẩn người mua.',textEn:'Specifications. Samples. Product readiness.',textVi:'Quy cách. Mẫu hàng. Yêu cầu chất lượng.',camera:[28,19,33],target:[0,4,0]},
+ {id:'processing',labelEn:'Processing',labelVi:'Chế biến',titleEn:'From fruit to possibility.',titleVi:'Từ nông sản đến thành phẩm.',textEn:'Fresh produce or processing with partners.',textVi:'Nông sản tươi hoặc chế biến cùng đối tác.',camera:[32,22,36],target:[0,5,0]},
+ {id:'trade',labelEn:'Trade',labelVi:'Thương mại',titleEn:'Connecting product and demand.',titleVi:'Kết nối hàng hóa & nhu cầu.',textEn:'Commercial terms. Documentation. Delivery coordination.',textVi:'Điều kiện thương mại. Chứng từ. Điều phối giao hàng.',camera:[30,23,38],target:[0,5,0]},
+ {id:'markets',labelEn:'Markets',labelVi:'Thị trường',titleEn:'A global market perspective.',titleVi:'Hướng đến thị trường toàn cầu.',textEn:'Europe & the USA. Importers, distributors, retail.',textVi:'Châu Âu & Mỹ. Nhập khẩu, phân phối, bán lẻ.',camera:[28,19,36],target:[0,5,0]},
+ {id:'energy',labelEn:'Wind energy',labelVi:'Điện gió',titleEn:'A new energy horizon.',titleVi:'Đón nguồn năng lượng mới.',textEn:'Wind energy in the wider HMV ecosystem.',textVi:'Điện gió trong hệ sinh thái HMV.',camera:[78,40,23],target:[33,7,-26]},
+];
+export function journeyIndex(progress){return Math.min(supplyJourney.length-1,Math.max(0,Math.floor(progress*supplyJourney.length)));}
