@@ -1,4 +1,7 @@
 # HMV website upgrade
+- [ ] Deepen the immersive farming-and-wind-energy art world and simplify the homepage ecosystem introduction.
+- [ ] Add three featured agricultural products and automatic activities slides with pause controls.
+- [ ] Verify the new world, featured photography and carousel behavior.
 - [x] Replace the invented logo with the uploaded official logo and matching favicon.
 - [x] Replace the photographic header with a custom 3D farming-world journey featuring farmers; move the former header photography into the company story.
 - [x] Simplify the homepage and make outside-office connections a swipeable carousel.
