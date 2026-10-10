@@ -4,3 +4,6 @@
 - [x] Use supplied authentic photos without claiming facility ownership, certifications or customer deliveries.
 - [x] Add accurate metadata, structured data, sitemap, robots and AI-readable company information.
 - [x] Verify navigation, language switching, contact workflow, photo rendering and narrow-screen layout.
+- [ ] Replace the factory hero with supplied farm photography; place factories within the supply-chain story.
+- [ ] Add supplied farm/product/meeting photographs and specific authentic photography for all six product categories.
+- [ ] Verify photos, product detail pages and layout; distinguish image provenance from organic certification.
