@@ -7,4 +7,5 @@
 - Serve uploaded photographs through Lovable Assets with explicit dimensions and lazy loading below the fold; this keeps the source lightweight and avoids layout shifts.
 - Keep product photography in a shared product-ID mapping with source and subject metadata; overview and detail pages must use the same verified product image.
 - Use an explicit email-draft contact workflow until a functioning inquiry delivery integration is implemented; never represent a browser-only form as a successfully delivered quotation request.
-- Keep the photographic journey's WebGL renderer lazy, scroll-driven and disposable with a real-image fallback; this preserves authentic imagery and avoids continuous GPU use.
+- Keep the art-world WebGL renderer lazy, scroll-driven and disposable, with scene colors sourced from global tokens and a static rendered scene for reduced motion; this prevents continuous GPU use and distinguishes illustration from evidence.
+- Keep homepage service summaries separate from full detail sections and use a native scroll-snap activities carousel; this limits homepage density and supports touch without another carousel dependency.

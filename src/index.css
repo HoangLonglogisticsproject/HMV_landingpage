@@ -9,6 +9,18 @@
 ---------------------------------------------------------------- */
 :root {
   --radius: 0.625rem;
+  --farm-sky: #c7e4e9;
+  --farm-light: #fff5db;
+  --farm-leaf: #34755a;
+  --farm-moss: #779956;
+  --farm-earth: #6c7051;
+  --farm-path: #d5c99e;
+  --farm-water: #58a4b7;
+  --farm-fruit: #edd166;
+  --farm-hat: #d4b980;
+  --farm-skin: #b98365;
+  --farm-roof: #31515c;
+  --farm-overlay: linear-gradient(90deg, rgb(0 20 55 / .72), rgb(0 20 55 / .25) 43%, transparent 74%);
 
   /* Bốn màu gốc của thương hiệu */
   --navy: #001d59;
