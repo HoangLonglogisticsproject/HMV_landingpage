@@ -1,1 +1,0 @@
-ALTER TABLE public.rfqs ADD CONSTRAINT rfqs_email_format CHECK (email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$');

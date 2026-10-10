@@ -1,0 +1,186 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------
+   Design tokens — HMV Global brand palette
+   Navy #001D59 · Deep Blue #00297B · Core Blue #0042A2 · Cyan #5AC8FD
+---------------------------------------------------------------- */
+:root {
+  --radius: 0.625rem;
+
+  /* Bốn màu gốc của thương hiệu */
+  --navy: #001d59;
+  --deep-blue: #00297b;
+  --core-blue: #0042a2;
+  --cyan: #5ac8fd;
+
+  /* Các biến thể phái sinh dùng cho hover / nền nhạt */
+  --navy-dark: #001339;
+  --navy-soft: rgb(0 41 123 / 0.14);
+  --cyan-dark: #2fb4f5;
+  --cyan-soft: rgb(90 200 253 / 0.18);
+  --cyan-light: #a9e4ff;
+
+  /* Slot thương hiệu: Core Blue là màu hành động chính */
+  --brand: var(--core-blue);
+  --brand-dark: var(--deep-blue);
+  --brand-soft: rgb(0 66 162 / 0.1);
+
+  /* Slot accent cho các tab Operations */
+  --accent-cyan: var(--cyan);
+  --accent-cyan-dark: var(--cyan-dark);
+  --accent-cyan-soft: var(--cyan-soft);
+  --accent-navy: var(--navy);
+  --accent-navy-dark: var(--navy-dark);
+  --accent-navy-soft: var(--navy-soft);
+
+  /* Chữ & nền */
+  --ink: #1b2a4e;
+  --ink-muted: #5b6a86;
+  --surface: #f3f3f3;
+  --surface-dark: var(--navy);
+
+  /* Gradient: khối lớn đi từ Deep Blue sang Core Blue, còn vệt highlight
+     dùng dải cyan nhạt để chữ xanh đậm bên trên vẫn đọc rõ. */
+  --gradient-brand: linear-gradient(to top left, var(--deep-blue), var(--core-blue));
+  --gradient-highlight: linear-gradient(to top left, var(--cyan), var(--cyan-light));
+
+  /* shadcn/ui tokens */
+  --background: #f3f3f3;
+  --foreground: #1b2a4e;
+  --card: #ffffff;
+  --card-foreground: #1b2a4e;
+  --popover: #f3f3f3;
+  --popover-foreground: #1b2a4e;
+  --primary: #0042a2;
+  --primary-foreground: #ffffff;
+  --secondary: #5ac8fd;
+  --secondary-foreground: #00297b;
+  --muted: #e9edf4;
+  --muted-foreground: #5b6a86;
+  --accent: #dfe7f3;
+  --accent-foreground: #00297b;
+  --destructive: #d8333c;
+  --border: #d4dcea;
+  --input: #d4dcea;
+  --ring: #0042a2;
+}
+
+@theme inline {
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+
+  --color-navy: var(--navy);
+  --color-navy-dark: var(--navy-dark);
+  --color-deep-blue: var(--deep-blue);
+  --color-core-blue: var(--core-blue);
+  --color-cyan: var(--cyan);
+  --color-cyan-dark: var(--cyan-dark);
+  --color-cyan-light: var(--cyan-light);
+
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-soft: var(--brand-soft);
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-cyan-dark: var(--accent-cyan-dark);
+  --color-accent-cyan-soft: var(--accent-cyan-soft);
+  --color-accent-navy: var(--accent-navy);
+  --color-accent-navy-dark: var(--accent-navy-dark);
+  --color-accent-navy-soft: var(--accent-navy-soft);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-surface: var(--surface);
+  --color-surface-dark: var(--surface-dark);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans font-light antialiased;
+    line-height: 1.9;
+  }
+}
+
+@layer components {
+  /* Vệt cyan nghiêng phía sau từ khoá ở hero / modal.
+     Chữ chuyển sang Deep Blue nên vẫn tương phản mạnh trên dải cyan. */
+  .highlight {
+    position: relative;
+    color: var(--deep-blue);
+  }
+
+  .highlight::after {
+    content: '';
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.85;
+    transform: scale(1.07, 1.05) skewX(-15deg);
+    background-image: var(--gradient-highlight);
+  }
+
+  /* Dùng trên nền tối: đảo lại thành dải navy, chữ cyan */
+  .highlight-invert {
+    color: var(--cyan);
+  }
+
+  .highlight-invert::after {
+    background-image: linear-gradient(to top left, var(--navy), var(--core-blue));
+    opacity: 0.9;
+  }
+
+  /* Menu fade animation: dim every nav item except the hovered one */
+  .nav-fade:hover .nav-fade-item {
+    opacity: 0.5;
+  }
+
+  .nav-fade:hover .nav-fade-item:hover {
+    opacity: 1;
+  }
+
+  /* Big decorative quote in front of a testimonial */
+  .testimonial-quote::before {
+    content: '\201C';
+    position: absolute;
+    top: -57px;
+    left: -68px;
+    line-height: 1;
+    font-size: 200px;
+    font-family: inherit;
+    color: var(--cyan);
+    z-index: -1;
+  }
+}
