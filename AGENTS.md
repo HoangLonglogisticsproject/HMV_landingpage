@@ -9,3 +9,5 @@
 - Use an explicit email-draft contact workflow until a functioning inquiry delivery integration is implemented; never represent a browser-only form as a successfully delivered quotation request.
 - Keep the art world lazy in React Three Fiber with demand rendering, merged static geometry, token-sourced colors and a static reduced-motion scene; this makes immersive illustration efficient and distinct from evidence.
 - Keep homepage service summaries separate from full detail sections and use a native scroll-snap activities carousel with visibility-aware automatic advancement and pause/interaction/reduced-motion safeguards; this limits homepage density and supports touch without another carousel dependency.
+
+- Keep opening journey chapter copy and camera coordinates in one shared bilingual module, with commercial vignettes separate from landscape geometry; this keeps navigation, chapter state and visual scenes aligned.
