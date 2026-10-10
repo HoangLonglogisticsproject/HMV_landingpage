@@ -1,6 +1,6 @@
 # HMV website upgrade
-- [ ] Refine the luxury editorial layout and introduce a farm-to-market scrolling photographic journey.
-- [ ] Create and install an HMV Global graphic logo after visual inspection.
+- [x] Refine the luxury editorial layout and introduce a farm-to-market scrolling photographic journey.
+- [x] Create and install an HMV Global graphic logo after visual inspection.
 - [ ] Complete four missing product images with accurate provenance and verify the updated experience.
 - [x] Preserve the current bright blue/white style and section-based source structure.
 - [x] Build English/Vietnamese overview, company story, supply-chain story, trade/product details, activities and contact pages with dropdown navigation.
