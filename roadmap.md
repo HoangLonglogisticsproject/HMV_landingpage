@@ -1,12 +1,12 @@
 # HMV website upgrade
-- [ ] Replace the invented logo with the uploaded official logo and matching favicon.
-- [ ] Replace the photographic header with a custom 3D farming-world journey featuring farmers; move the former header photography into the company story.
-- [ ] Simplify the homepage and make outside-office connections a swipeable carousel.
-- [ ] Replace branded cashew photography and add correctly identified tapioca-starch photography.
+- [x] Replace the invented logo with the uploaded official logo and matching favicon.
+- [x] Replace the photographic header with a custom 3D farming-world journey featuring farmers; move the former header photography into the company story.
+- [x] Simplify the homepage and make outside-office connections a swipeable carousel.
+- [x] Replace branded cashew photography and add correctly identified tapioca-starch reference photography with explicit provenance limitations.
 - [x] Refine the luxury editorial layout and introduce a farm-to-market scrolling photographic journey.
 - [x] Create and install an HMV Global graphic logo after visual inspection.
 - [x] Add and verify real dragon-fruit, pepper-growing and cashew photographs with explicit source limitations.
-- [ ] Add a verified Vietnam-origin finished tapioca-starch photograph; the available Vietnam processing image depicts noodles, not starch powder. Await a correctly identified reusable photo or HMV upload.
+- [ ] Replace reference cashew/starch photos with verified Vietnam-origin lot photographs when HMV supplies them; available clean references do not establish Vietnam origin.
 - [x] Preserve the current bright blue/white style and section-based source structure.
 - [x] Build English/Vietnamese overview, company story, supply-chain story, trade/product details, activities and contact pages with dropdown navigation.
 - [x] Use supplied authentic photos without claiming facility ownership, certifications or customer deliveries.

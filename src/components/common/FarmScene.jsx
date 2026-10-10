@@ -8,7 +8,7 @@ export default function FarmScene({progress}) {
    try{renderer=new T.WebGLRenderer({antialias:true,powerPreference:'low-power'});}catch{return;}
    renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=T.SRGBColorSpace;el.appendChild(renderer.domElement);
    const css=getComputedStyle(document.documentElement);const color=key=>css.getPropertyValue(key).trim();
-   const scene=new T.Scene();scene.background=new T.Color(color('--farm-sky'));scene.fog=new T.Fog(color('--farm-sky'),40,100);
+   const scene=new T.Scene();scene.background=new T.Color(color('--farm-sky'));scene.fog=new T.Fog(color('--farm-sky'),65,130);
    const camera=new T.PerspectiveCamera(46,1,.1,150);scene.add(new T.HemisphereLight(color('--farm-light'),color('--farm-earth'),2.3));const sun=new T.DirectionalLight(color('--farm-light'),3);sun.position.set(-20,35,12);scene.add(sun);
    const materials={};for(const [key,token] of Object.entries({leaf:'--farm-leaf',moss:'--farm-moss',soil:'--farm-earth',path:'--farm-path',water:'--farm-water',fruit:'--farm-fruit',shirt:'--brand',hat:'--farm-hat',skin:'--farm-skin',roof:'--farm-roof',white:'--background'})){materials[key]=new T.MeshStandardMaterial({color:color(token),roughness:.88});resources.push(materials[key]);}
    const box=new T.BoxGeometry(1,1,1),sphere=new T.SphereGeometry(1,10,7),cylinder=new T.CylinderGeometry(1,1,1,9),cone=new T.ConeGeometry(1,1,12);resources.push(box,sphere,cylinder,cone);
@@ -25,7 +25,7 @@ export default function FarmScene({progress}) {
    function tree(x,z){mesh(cylinder,'soil',x,3,z,.22,6,.22);mesh(sphere,'leaf',x,6,z,2.2,2.8,2.2);mesh(sphere,'moss',x+1.1,6.7,z,1.8,2.2,1.8);}
    for(let i=0;i<12;i++)tree(-30-(i%2)*3,-30+i*5);
    function farmer(x,z,angle=0,bend=0){const g=new T.Group();g.position.set(x,1.7,z);g.rotation.y=angle;scene.add(g);mesh(cylinder,'shirt',0,1.15,0,.3,.85,.28,g).rotation.z=bend;mesh(sphere,'skin',0,1.85,0,.22,.26,.22,g);mesh(cone,'hat',0,2.15,0,.65,.3,.65,g);for(const side of [-1,1]){mesh(cylinder,'roof',side*.15,.45,0,.09,.9,.09,g);const arm=mesh(cylinder,'skin',side*.36,1.1,.12,.075,.65,.075,g);arm.rotation.z=side*.32;arm.rotation.x=.6;}mesh(cylinder,'hat',.65,.35,.32,.4,.45,.4,g);for(let i=0;i<4;i++)mesh(sphere,'fruit',.5+(i%2)*.19,.64,.2+Math.floor(i/2)*.19,.1,.1,.1,g);}
-   farmer(2,8,.5,.2);farmer(-9,-6,-.5,.35);farmer(8,-19,2.2);farmer(-19,19,1.1);
+   farmer(2,8,.5,.2);farmer(1,-6,-.5,.35);farmer(8,-19,2.2);farmer(-19,19,1.1);
    // Open sorting pavilion: an illustrative handover, not an asserted HMV facility.
    const shed=new T.Group();shed.position.set(17,1.8,-24);scene.add(shed);mesh(box,'path',0,0,0,9,.25,7,shed);for(const x of [-4,4])for(const z of [-3,3])mesh(box,'white',x,2,z,.2,4,.2,shed);const roof=mesh(box,'roof',0,4.3,0,10,.35,8,shed);roof.rotation.z=.06;mesh(box,'hat',0,1,0,5,.2,2,shed);for(let i=0;i<6;i++)mesh(box,'hat',-2+(i%3)*1.3,.5,-1.7+Math.floor(i/3)*2.7,1,.8,.8,shed);
    const route=new T.CatmullRomCurve3([new T.Vector3(30,24,39),new T.Vector3(18,13,19),new T.Vector3(12,8,-2),new T.Vector3(24,10,-12)]);
