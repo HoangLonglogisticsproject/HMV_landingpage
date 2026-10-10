@@ -19,9 +19,9 @@ const buttonVariants = cva(
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
         /* --- Brand variants: Core Blue / Cyan / Navy --- */
-        brand: "bg-brand text-white hover:bg-brand-dark",
+        brand: "bg-brand text-primary-foreground hover:bg-brand-dark",
         cyan: "bg-accent-cyan text-deep-blue hover:bg-accent-cyan-dark",
-        navy: "bg-accent-navy text-white hover:bg-accent-navy-dark",
+        navy: "bg-accent-navy text-primary-foreground hover:bg-accent-navy-dark",
         text: "rounded-none border-b border-current text-brand hover:text-brand-dark",
         /* Tab Operations: trạng thái quyết định màu, không phải thứ tự tab */
         tab: "border border-core-blue/20 bg-white text-deep-blue shadow-[0_2px_8px_rgba(0,29,89,0.08)] hover:border-core-blue/45 hover:bg-cyan/10 aria-pressed:border-transparent aria-pressed:bg-brand aria-pressed:text-white aria-pressed:shadow-[0_12px_26px_-8px_rgba(0,66,162,0.65)]",

@@ -1,32 +1,4 @@
-import { footerLinks } from '@/data/site';
-
-export function Footer() {
-  return (
-    <footer className="bg-surface-dark px-[30px] py-[100px]">
-      <ul className="mb-[50px] flex flex-wrap list-none justify-center">
-        {footerLinks.map(link => (
-          <li key={link.label} className="mr-[40px] last:mr-0">
-            <a href={link.href} className="text-[16px] text-[#eee] no-underline hover:underline">
-              {link.label}
-            </a>
-          </li>
-        ))}
-      </ul>
-
-      <img src="/img/icon.png" alt="Logo" className="mx-auto mb-[50px] block h-[50px]" />
-
-      <p className="text-center text-[14px] text-[#aaa]">
-        &copy; Copyright by{' '}
-        <a
-          href="https://twitter.com/jonasschmedtman"
-          target="_blank"
-          rel="noreferrer"
-          className="text-[14px] text-[#eee] no-underline hover:underline"
-        >
-          Cody Le
-        </a>
-      
-      </p>
-    </footer>
-  );
-}
+import { Link } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
+import { copy,address } from '@/data/hmv';
+export function Footer({lang}){const t=copy[lang];return <footer className="site-footer"><div className="content-width"><div className="footer-grid"><div><Link className="wordmark footer-wordmark" to={`/${lang}`}><span>HMV<span className="wordmark-dot">.</span></span><small>GLOBAL</small></Link><p>{t.footerLine}</p><p className="footer-slogan">Connecting the world.</p></div><div><h3>{t.office}</h3><p>{address}</p><a href="mailto:vannguyen@hmvglobal.com">vannguyen@hmvglobal.com<ArrowUpRight size={14}/></a></div><div className="footer-links">{[['supply-chain',t.supply],['trade-solutions',t.trade],['about',t.about],['activities',t.activities],['contact',t.contact]].map(([path,label])=><Link key={path} to={`/${lang}/${path}`}>{label}<ArrowUpRight size={14}/></Link>)}</div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} {t.rights}</span><span>VIETNAM → THE WORLD</span></div></div></footer>}

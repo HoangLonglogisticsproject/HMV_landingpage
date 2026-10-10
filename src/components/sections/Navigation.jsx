@@ -1,59 +1,11 @@
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { ChevronDown, Menu, X, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useModal } from '@/context/ModalContext';
-import { navLinks } from '@/data/site';
-import { scrollToSection } from '@/lib/scroll';
-import { cn } from '@/lib/utils';
-
-/**
- * Thanh điều hướng: cuộn mượt tới section (event delegation trước đây
- * nay chỉ là onClick trên từng link), hiệu ứng mờ các mục còn lại khi
- * hover (class .nav-fade trong index.css) và trạng thái sticky.
- */
-export function Navigation({ isSticky }) {
-  const { openModal } = useModal();
-
-  const handleClick = (e, href) => {
-    e.preventDefault();
-    scrollToSection(href);
-  };
-
-  return (
-    <nav
-      className={cn(
-        'nav-fade z-100 flex h-[90px] w-full items-center justify-between px-[30px] lg:px-[60px]',
-        isSticky && 'fixed top-0 bg-white/95'
-      )}
-    >
-      <img
-        src="/img/logo.png"
-        alt="Bankist logo"
-        className="nav-fade-item h-[45px] transition-all duration-300"
-      />
-
-      <ul className="flex list-none items-center">
-        {navLinks.map(link => (
-          <li key={link.href} className="ml-[20px] lg:ml-[40px]">
-            <a
-              href={link.href}
-              onClick={e => handleClick(e, link.href)}
-              className="nav-fade-item block text-[17px] font-normal text-inherit no-underline transition-all duration-300"
-            >
-              {link.label}
-            </a>
-          </li>
-        ))}
-
-        <li className="ml-[20px] lg:ml-[40px]">
-          <Button
-            variant="brand"
-            size="pill-sm"
-            onClick={openModal}
-            className="nav-fade-item transition-all duration-300"
-          >
-            Open account
-          </Button>
-        </li>
-      </ul>
-    </nav>
-  );
+import { copy, products } from '@/data/hmv';
+export function Navigation({lang='en'}) {
+ const t=copy[lang];const [menu,setMenu]=useState(false);const [drop,setDrop]=useState(null);const {pathname}=useLocation();
+ const close=()=>{setMenu(false);setDrop(null)};
+ const groups=[{id:'supply-chain',label:t.supply,links:[{path:'supply-chain',label:t.chainLabel},{path:'supply-chain#quality',label:lang==='vi'?'Yêu cầu chất lượng':'Quality requirements'}]}, {id:'trade-solutions',label:t.trade,links:products.map(p=>({path:`products/${p.id}`,label:p[lang]}))},{id:'about',label:t.about,links:[{path:'about',label:t.storyLabel},{path:'activities',label:t.activities}]}];
+ return <nav className="site-nav" aria-label={lang==='vi'?'Điều hướng chính':'Main navigation'}><div className="nav-inner"><Link to={`/${lang}`} className="wordmark" onClick={close} aria-label="HMV Global home"><span>HMV<span className="wordmark-dot">.</span></span><small>GLOBAL</small></Link><Button className="mobile-toggle" variant="ghost" size="icon" aria-label={menu?'Close navigation':t.menu} aria-expanded={menu} onClick={()=>setMenu(!menu)}>{menu?<X/>:<Menu/>}</Button><div className={`nav-links ${menu?'nav-open':''}`}><Link className={pathname===`/${lang}`?'nav-active':''} to={`/${lang}`} onClick={close}>{t.home}</Link>{groups.map(g=><div className="nav-dropdown" key={g.id} onMouseEnter={()=>setDrop(g.id)} onMouseLeave={()=>setDrop(null)} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget))setDrop(null)}}><div className="nav-group"><Link to={`/${lang}/${g.id}`} onClick={close}>{g.label}</Link><Button variant="ghost" size="icon-xs" aria-label={`${g.label} submenu`} aria-expanded={drop===g.id} onClick={()=>setDrop(drop===g.id?null:g.id)}><ChevronDown/></Button></div>{drop===g.id&&<div className="dropdown-panel">{g.links.map(l=><Link key={l.path} to={`/${lang}/${l.path}`} onClick={close}>{l.label}<ArrowUpRight size={15}/></Link>)}</div>}</div>)}<div className="language-switch" aria-label="Language"><Link onClick={close} aria-current={lang==='en'?'true':undefined} to={pathname.replace(/^\/(en|vi)/,'/en')}>EN</Link><span>/</span><Link onClick={close} aria-current={lang==='vi'?'true':undefined} to={pathname.replace(/^\/(en|vi)/,'/vi')}>VI</Link></div><Button asChild variant="brand" className="nav-contact"><Link to={`/${lang}/contact`} onClick={close}>{t.contact}<ArrowUpRight/></Link></Button></div></div></nav>;
 }
