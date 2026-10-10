@@ -39,7 +39,7 @@
   /* Chữ & nền */
   --ink: #1b2a4e;
   --ink-muted: #5b6a86;
-  --surface: #f3f3f3;
+  --surface: #f5f8fc;
   --surface-dark: var(--navy);
 
   /* Gradient: khối lớn đi từ Deep Blue sang Core Blue, còn vệt highlight
@@ -48,7 +48,7 @@
   --gradient-highlight: linear-gradient(to top left, var(--cyan), var(--cyan-light));
 
   /* shadcn/ui tokens */
-  --background: #f3f3f3;
+  --background: #ffffff;
   --foreground: #1b2a4e;
   --card: #ffffff;
   --card-foreground: #1b2a4e;
@@ -66,6 +66,10 @@
   --border: #d4dcea;
   --input: #d4dcea;
   --ring: #0042a2;
+  --hero-overlay: linear-gradient(90deg, rgb(0 20 55 / .91) 0%, rgb(0 20 55 / .73) 39%, rgb(0 20 55 / .14) 78%);
+  --image-caption: linear-gradient(transparent, rgb(0 20 55 / .83));
+  --shadow-navigation: 0 12px 30px rgb(0 29 89 / .10);
+  --overlay: rgb(0 20 55 / .6);
 }
 
 @theme inline {
@@ -128,8 +132,8 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans font-light antialiased;
-    line-height: 1.9;
+    @apply bg-background text-foreground font-sans font-normal antialiased;
+    line-height: 1.7;
   }
 }
 
