@@ -1,30 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowUpRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { photos, photoCopy } from '@/data/hmv';
 import { productPhotos } from '@/data/productPhotos';
 
 const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export function CinematicHero({ lang }) {
-  const img = useRef(null);
-  useEffect(() => {
-    if (reduce()) return;
-    let f = 0;
-    const on = () => { cancelAnimationFrame(f); f = requestAnimationFrame(() => { if (img.current) img.current.style.transform = `translate3d(0,${Math.min(scrollY, 900) * 0.25}px,0) scale(1.08)`; }); };
-    addEventListener('scroll', on, { passive: true });
-    return () => { cancelAnimationFrame(f); removeEventListener('scroll', on); };
-  }, []);
   const go = () => document.getElementById('value-journey')?.scrollIntoView({ behavior: reduce() ? 'auto' : 'smooth' });
   return (
     <header className="cine-hero">
-      <img ref={img} src={photos.farm} alt={photoCopy[lang].farm} width={1280} height={960} fetchPriority="high" decoding="async" />
+      <img src={photos.farm} alt={photoCopy[lang].farm} width={1280} height={960} fetchPriority="high" decoding="async" />
       <div className="cine-shade" />
       <div className="cine-inner content-width">
         <p className="cine-kicker">HMV GLOBAL · VIETNAM → EUROPE & USA</p>
-        <h1>HMV GLOBAL<span>{lang === 'vi' ? 'Từ đất lành.' : 'Rooted in the land.'}</span></h1>
-        <p className="cine-sub">{lang === 'vi' ? 'Nông sản chất lượng. Chuỗi cung ứng xuyên suốt. Kết nối thế giới.' : 'Premium Agri-Commodities. Seamless Integrated Supply Chain. Connecting the world.'}</p>
-        <button type="button" className="cine-cta" onClick={go}>{lang === 'vi' ? 'Khám phá hệ sinh thái' : 'Explore Our Ecosystem'}<ArrowDown size={18} /></button>
+        <h1>HMV GLOBAL</h1>
+        <p className="cine-sub" lang="en"><span>Premium Agri-Commodities.</span><span>Seamless Integrated Supply Chain.</span></p>
+        <Button type="button" variant="secondary" size="lg" className="cine-cta" onClick={go}>{lang === 'vi' ? 'Khám phá hệ sinh thái' : 'Explore Our Ecosystem'}<ArrowDown size={18} /></Button>
       </div>
       <p className="cine-credit">{lang === 'vi' ? 'Vùng trồng chanh dây · Ảnh do HMV cung cấp' : 'Passion fruit origin · Photo supplied by HMV'}</p>
     </header>
