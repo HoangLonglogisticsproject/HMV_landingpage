@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ArrowUpRight, Mail, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { address } from '@/data/hmv';
-import { createInquiryMailto } from '@/lib/inquiry';
+import { toRfqRow } from '@/lib/rfq';
+import { supabase } from '@/integrations/supabase/client';
 
 const commodities = ['Passion Fruit', 'Cavendish Bananas', 'Dragon Fruit', 'Spices (Pepper, Cinnamon, Star Anise)', 'Cashew Nuts', 'Tapioca Starch', 'Other'];
 const leaders = [
@@ -13,14 +14,18 @@ const leaders = [
 
 export function TradeRfq({ lang }) {
   const vi = lang === 'vi';
-  const [ready, setReady] = useState(false);
+  const [state, setState] = useState('idle');
   const L = (e, v) => (vi ? v : e);
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    const d = Object.fromEntries(new FormData(e.currentTarget));
-    Object.keys(d).forEach((k) => (d[k] = String(d[k]).trim()));
-    window.location.href = createInquiryMailto(d);
-    setReady(true);
+    const form = e.currentTarget;
+    let row;
+    try { row = toRfqRow(Object.fromEntries(new FormData(form)), lang); } catch { setState('invalid'); return; }
+    setState('sending');
+    const { error } = await supabase.from('rfqs').insert(row);
+    if (error) { setState(/limit/i.test(error.message) ? 'limit' : 'error'); return; }
+    form.reset();
+    setState('done');
   };
   return (
     <section className="rfq-section" id="initiate-trade" aria-labelledby="rfq-title">
@@ -45,9 +50,12 @@ export function TradeRfq({ lang }) {
             <label className="rfq-wide">{L('Destination Port', 'Cảng đến')}<input name="port" maxLength={100} placeholder={L('e.g. Rotterdam, Los Angeles', 'VD: Rotterdam, Los Angeles')} /></label>
             <label className="rfq-wide">{L('Message', 'Lời nhắn')}<textarea name="message" rows={4} required maxLength={3000} /></label>
           </div>
-          <Button type="submit" size="lg" className="day-cta rfq-submit">{L('Prepare RFQ email', 'Soạn email yêu cầu báo giá')}<ArrowUpRight size={18} /></Button>
-          <p className="form-note">{L('Opens a draft in your email app — nothing is sent until you send it.', 'Mở bản nháp trong ứng dụng email — yêu cầu chỉ được gửi khi bạn bấm gửi.')}</p>
-          {ready && <p role="status" className="form-note">{L('Your draft is ready in your email app.', 'Bản nháp đã sẵn sàng trong ứng dụng email.')}</p>}
+          {state === 'done' ? (
+            <div className="rfq-success" role="status"><span>✓</span><p>{L('Thank you. Our trade team will be in touch shortly.', 'Cảm ơn bạn. Đội ngũ giao thương của chúng tôi sẽ liên hệ sớm nhất.')}</p><button type="button" onClick={() => setState('idle')}>{L('Send another request', 'Gửi yêu cầu khác')}</button></div>
+          ) : (
+            <Button type="submit" size="lg" className="day-cta rfq-submit" disabled={state === 'sending'}>{state === 'sending' ? L('Sending…', 'Đang gửi…') : L('Submit RFQ', 'Gửi yêu cầu báo giá')}<ArrowUpRight size={18} /></Button>
+          )}
+          {['invalid', 'error', 'limit'].includes(state) && <p role="alert" className="rfq-error">{state === 'invalid' ? L('Please check your company, work email and commodity.', 'Vui lòng kiểm tra tên doanh nghiệp, email và sản phẩm.') : state === 'limit' ? L('Too many requests from this email. Please email vannguyen@hmvglobal.com.', 'Email này đã gửi quá nhiều yêu cầu. Vui lòng gửi tới vannguyen@hmvglobal.com.') : L('Something went wrong. Please try again or email vannguyen@hmvglobal.com.', 'Đã có lỗi. Vui lòng thử lại hoặc gửi email tới vannguyen@hmvglobal.com.')}</p>}
         </form>
       </div>
     </section>
