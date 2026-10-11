@@ -11,3 +11,4 @@
 - Keep homepage service summaries separate from full detail sections and use a native scroll-snap activities carousel with visibility-aware automatic advancement and pause/interaction/reduced-motion safeguards; this limits homepage density and supports touch without another carousel dependency.
 
 - Keep opening journey chapter copy and camera coordinates in one shared bilingual module, with commercial vignettes separate from landscape geometry; this keeps navigation, chapter state and visual scenes aligned.
+- Keep hero stock imagery in its own asset pointer, separate from HMV evidence photographs, with CSS-only motion and reduced-motion support; this preserves provenance and avoids scroll-rendering overhead.

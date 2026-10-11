@@ -55,18 +55,23 @@
 @media(prefers-reduced-motion:reduce){.bento-item img,.qc-reveal{transition:none}}
 /* ===== Cinematic homepage ===== */
 .cine-hero,.journey-split h3,.commodities h2,.global-reach h2{font-family:'Plus Jakarta Sans',var(--font-sans)}
-.cine-hero{position:relative;height:100svh;min-height:620px;overflow:hidden;background:var(--ocean-navy);color:var(--background);display:flex;align-items:flex-end}
-.cine-hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.08);will-change:transform;filter:var(--grade)}
+.cine-hero{position:relative;height:calc(100svh - 148px);min-height:540px;max-height:1000px;overflow:hidden;background:var(--ocean-navy);color:var(--primary-foreground);display:flex;align-items:center}
+.cine-hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:65% center;will-change:transform;filter:var(--hero-grade);animation:cineBreathe 20s ease-in-out infinite alternate}
+@keyframes cineBreathe{from{transform:scale(1)}to{transform:scale(1.05)}}
 .cine-shade{position:absolute;inset:0;background:var(--cine-overlay)}
-.cine-inner{position:relative;padding-bottom:14vh}
-.cine-kicker{font-size:12px;letter-spacing:.28em;color:var(--tropical);margin-bottom:22px;font-weight:600}
-.cine-hero h1{font-size:clamp(44px,7vw,104px);line-height:.98;font-weight:800;letter-spacing:-.03em;margin:0}
-.cine-hero h1 span{display:block;font-weight:400;opacity:.92}
-.cine-sub{max-width:560px;margin:26px 0 36px;font-size:18px;opacity:.85}
-.cine-cta{display:inline-flex;gap:12px;align-items:center;padding:16px 28px;border-radius:999px;background:var(--background);color:var(--ocean-navy);font-weight:600;box-shadow:0 0 0 0 rgb(16 185 129 / .5);animation:cineGlow 2.8s infinite;transition:transform .3s}
+.cine-inner{position:relative;padding:60px 0 80px}
+.cine-kicker{font-size:12px;letter-spacing:0;color:var(--tropical);margin-bottom:26px;font-weight:700}
+.cine-hero h1{font-size:96px;line-height:1.08;font-weight:800;letter-spacing:0;margin:0}
+.cine-sub{max-width:590px;margin:28px 0 36px;font-size:21px;line-height:1.65}
+.cine-sub span{display:block}
+.cine-cta{display:inline-flex;gap:18px;align-items:center;height:54px;padding:0 24px;border-radius:4px;background:var(--primary-foreground);color:var(--ocean-navy);font-size:13px;font-weight:600;transition:transform .3s}
 .cine-cta:hover{transform:translateY(-2px)}
 @keyframes cineGlow{0%{box-shadow:0 0 0 0 rgb(16 185 129 / .45)}70%{box-shadow:0 0 0 16px rgb(16 185 129 / 0)}100%{box-shadow:0 0 0 0 rgb(16 185 129 / 0)}}
-.cine-credit{position:absolute;right:30px;bottom:24px;font-size:11px;letter-spacing:.12em;opacity:.6;text-transform:uppercase}
+.cine-credit{position:absolute;right:30px;bottom:24px;left:30px;text-align:right;font-size:10px;letter-spacing:0;opacity:.75}
+.cine-credit a{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:1100px){.cine-hero h1{font-size:76px}}
+@media(max-width:600px){.cine-hero{height:calc(100svh - 124px);min-height:540px}.cine-hero h1{font-size:46px}.cine-inner{padding:50px 0 80px}.cine-kicker{font-size:10px;max-width:250px;line-height:1.8}.cine-sub{font-size:17px;max-width:330px;margin:24px 0 30px}.cine-credit{left:20px;right:20px;font-size:9px;text-align:left}.cine-hero>img{object-position:62% center}}
+@media(prefers-reduced-motion:reduce){.cine-hero>img{animation:none;transform:none;will-change:auto}}
 .journey-split{padding:140px 0;background:var(--background)}
 .journey-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:90px}
 .journey-sticky{position:sticky;top:120px;align-self:start}

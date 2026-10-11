@@ -86,7 +86,8 @@
   --product-reveal-bg: rgb(255 255 255 / .95);
   --ocean-navy: #0a192f;
   --tropical: #10b981;
-  --cine-overlay: linear-gradient(180deg, rgb(10 25 47 / .35) 0%, rgb(10 25 47 / .55) 55%, rgb(10 25 47 / .92) 100%);
+  --cine-overlay: linear-gradient(90deg, hsl(215 65% 11% / .75) 0%, hsl(215 65% 11% / .65) 44%, hsl(215 65% 11% / .15) 100%);
+  --hero-grade: saturate(.9) contrast(1.08);
   --grade: saturate(.82) contrast(1.04) brightness(.97);
 }
 
