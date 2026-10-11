@@ -23,7 +23,7 @@ export function TradeRfq({ lang }) {
     try { row = toRfqRow(Object.fromEntries(new FormData(form)), lang); } catch { setState('invalid'); return; }
     setState('sending');
     const { error } = await supabase.from('rfqs').insert(row);
-    if (error) { setState(/limit/i.test(error.message) ? 'limit' : 'error'); return; }
+    if (error) { console.error('rfq', error.message); setState(/limit/i.test(error.message) ? 'limit' : 'error'); return; }
     form.reset();
     setState('done');
   };
