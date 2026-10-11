@@ -1,4 +1,5 @@
 # HMV website upgrade
+- [ ] Replace the close-up hero with premium macro-scale stock photography, navy overlay, geometric headline and slow cinematic zoom; verify rendering.
 - [x] Extend the opening journey through harvest, quality, processing, trade, global markets and wind energy.
 - [x] Refine featured products into premium motion cards with B2B product/inquiry actions.
 - [x] Verify every journey chapter and product-card interaction.
