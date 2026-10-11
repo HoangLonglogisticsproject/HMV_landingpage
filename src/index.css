@@ -88,6 +88,11 @@
   --tropical: #10b981;
   --cine-overlay: linear-gradient(90deg, hsl(215 65% 11% / .75) 0%, hsl(215 65% 11% / .65) 44%, hsl(215 65% 11% / .15) 100%);
   --hero-grade: saturate(.9) contrast(1.08);
+  --day-sky: radial-gradient(120% 90% at 80% 0%, #e0f2fe 0%, #f8fafc 55%, #ffffff 100%);
+  --farm-green: #10b981;
+  --ocean-blue: #0284c7;
+  --glass: rgb(255 255 255 / .62);
+  --map-land: #cbd5e1;
   --grade: saturate(.82) contrast(1.04) brightness(.97);
 }
 

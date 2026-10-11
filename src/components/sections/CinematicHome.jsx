@@ -10,17 +10,25 @@ const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export function CinematicHero({ lang }) {
   const go = () => document.getElementById('value-journey')?.scrollIntoView({ behavior: reduce() ? 'auto' : 'smooth' });
+  const vi = lang === 'vi';
   return (
-    <header className="cine-hero">
-      <img src={macroOcean.url} alt={lang === 'vi' ? 'Góc nhìn từ trên cao của tàu container trên đại dương xanh' : 'Aerial view of a container ship crossing the blue ocean'} width={2400} height={1729} fetchPriority="high" decoding="async" />
-      <div className="cine-shade" />
-      <div className="cine-inner content-width">
-        <p className="cine-kicker">HMV GLOBAL · VIETNAM → EUROPE & USA</p>
-        <h1>HMV GLOBAL</h1>
-        <p className="cine-sub" lang="en"><span>Premium Agri-Commodities.</span><span>Seamless Integrated Supply Chain.</span></p>
-        <Button type="button" variant="secondary" size="lg" className="cine-cta" onClick={go}>{lang === 'vi' ? 'Khám phá hệ sinh thái' : 'Explore Our Ecosystem'}<ArrowDown size={18} /></Button>
+    <header className="day-hero">
+      <div className="content-width day-grid">
+        <div className="day-copy">
+          <p className="day-kicker">HMV GLOBAL · VIETNAM → EUROPE & USA</p>
+          <h1 lang="en">Rooted in the land.<span>Connecting the world.</span></h1>
+          <p className="day-sub" lang="en">Premium Agri-Commodities. Seamless Integrated Supply Chain.</p>
+          <div className="day-actions">
+            <Button type="button" size="lg" className="day-cta" onClick={go}>{vi ? 'Khám phá hệ sinh thái' : 'Explore Our Ecosystem'}<ArrowDown size={18} /></Button>
+            <Link className="text-link" to={`/${lang}/contact`}>{vi ? 'Yêu cầu báo giá' : 'Request a quote'}<ArrowUpRight size={18} /></Link>
+          </div>
+        </div>
+        <div className="day-visual">
+          <img className="day-farm" src={photos.farm} alt={vi ? 'Vườn chanh dây dưới nắng tại Việt Nam' : 'Sunlit passion fruit farm in Vietnam'} width={1280} height={960} fetchPriority="high" decoding="async" />
+          <figure className="day-ocean glass"><img src={macroOcean.url} alt="" width={2400} height={1729} loading="lazy" decoding="async" /><figcaption>{vi ? 'Từ vườn đến cảng' : 'Farm to port'}</figcaption></figure>
+          <div className="day-chip glass"><strong>01</strong>{vi ? 'Vùng trồng Việt Nam' : 'Vietnamese origins'}</div>
+        </div>
       </div>
-      <p className="cine-credit">{lang === 'vi' ? 'Ảnh minh họa thương mại toàn cầu' : 'Global trade stock imagery'} · <a href="https://unsplash.com/photos/an-aerial-view-of-a-cargo-ship-in-the-ocean-0A7YwYhZhWw" target="_blank" rel="noopener noreferrer">Bent Van Aeken / Unsplash</a></p>
     </header>
   );
 }
@@ -103,6 +111,9 @@ export function GlobalReach({ lang }) {
   const trust = lang === 'vi'
     ? ['Chuỗi cung ứng xuyên suốt', 'Kiểm soát chất lượng chặt chẽ', 'Điều phối chứng từ xuất khẩu', 'Một đầu mối thương mại']
     : ['End-to-End Supply Chain', 'Strict Quality Control', 'Export Documentation Coordination', 'One Commercial Point of Contact'];
+  const nodes = lang === 'vi'
+    ? [['Vùng trồng', 'Kết nối người trồng, quy cách và mùa vụ.'], ['Chế biến', 'Đối tác sơ chế, đóng gói hoặc chế biến theo yêu cầu.'], ['Cảng xuất', 'Chứng từ và điều phối giao hàng xuất khẩu.']]
+    : [['Farm', 'Grower sourcing, specification and season planning.'], ['Processing', 'Partner packing or processing to buyer requirements.'], ['Port', 'Export documentation and delivery coordination.']];
   return (
     <section className="global-reach">
       <div className="content-width">
@@ -119,6 +130,7 @@ export function GlobalReach({ lang }) {
           ))}
           <circle cx={vn[0]} cy={vn[1]} r="7" className="map-node origin" /><text x={vn[0] + 12} y={vn[1] + 22} className="map-label">VIETNAM</text>
         </svg>
+        <ol className="chain-nodes">{nodes.map((n, i) => <li key={n[0]} tabIndex={0} className="glass"><span>0{i + 1}</span><strong>{n[0]}</strong><em role="tooltip">{n[1]}</em></li>)}</ol>
         <ul className="trust-list">{trust.map((t) => <li key={t}>{t}</li>)}</ul>
         <p className="reach-note">{lang === 'vi' ? 'Bản đồ minh họa thị trường mục tiêu, không phải tuyến hàng đã vận hành.' : 'Illustrative target markets, not a record of operated routes.'}</p>
       </div>
