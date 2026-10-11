@@ -25,7 +25,7 @@ export function CinematicHero({ lang }) {
         </div>
         <div className="day-visual">
           <img className="day-farm" src={photos.farm} alt={vi ? 'Vườn chanh dây dưới nắng tại Việt Nam' : 'Sunlit passion fruit farm in Vietnam'} width={1280} height={960} fetchPriority="high" decoding="async" />
-          <figure className="day-ocean glass"><img src={macroOcean.url} alt="" width={2400} height={1729} loading="lazy" decoding="async" /><figcaption>{vi ? 'Từ vườn đến cảng' : 'Farm to port'}</figcaption></figure>
+          <figure className="day-ocean glass"><img src={macroOcean.url} alt={vi ? 'Tàu container chở nông sản trên đại dương xanh' : 'Container ship carrying agricultural cargo across the blue ocean'} width={2400} height={1729} loading="lazy" decoding="async" /><figcaption>{vi ? 'Từ vườn đến cảng' : 'Farm to port'}</figcaption></figure>
           <div className="day-chip glass"><strong>01</strong>{vi ? 'Vùng trồng Việt Nam' : 'Vietnamese origins'}</div>
         </div>
       </div>
