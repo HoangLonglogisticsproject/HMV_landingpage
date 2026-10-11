@@ -243,3 +243,4 @@
 .article-cta{margin-top:56px;padding:28px;border-radius:16px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
 .article-cta p{margin:0;font-weight:700;font-size:17px}
 @media(max-width:600px){.article-body{font-size:16.5px}.article-hero{aspect-ratio:4/3;margin:30px auto 36px}.article-cta .day-cta{width:100%}}
+.article-body ul{list-style:disc}.article-body li::marker{color:var(--farm-green)}
