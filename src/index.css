@@ -93,6 +93,11 @@
   --ocean-blue: #0284c7;
   --glass: rgb(255 255 255 / .62);
   --map-land: #cbd5e1;
+  --nav-glass: rgb(255 255 255 / .72);
+  --nav-line: rgb(15 23 42 / .08);
+  --cta-gradient: linear-gradient(135deg, #0284c7 0%, #0042a2 100%);
+  --cta-shadow: 0 10px 24px -10px rgb(2 132 199 / .6), inset 0 1px 0 rgb(255 255 255 / .25);
+  --cta-shadow-hover: 0 16px 32px -12px rgb(2 132 199 / .7), inset 0 1px 0 rgb(255 255 255 / .25);
   --grade: saturate(.82) contrast(1.04) brightness(.97);
 }
 
