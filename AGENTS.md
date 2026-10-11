@@ -6,7 +6,7 @@
 - Keep layout CSS separate from global theme tokens; this preserves the authoritative semantic palette while isolating the editorial page styling.
 - Serve uploaded photographs through Lovable Assets with explicit dimensions and lazy loading below the fold; this keeps the source lightweight and avoids layout shifts.
 - Keep product photography in a shared product-ID mapping with source and subject metadata; overview and detail pages must use the same verified product image.
-- Use an explicit email-draft contact workflow until a functioning inquiry delivery integration is implemented; never represent a browser-only form as a successfully delivered quotation request.
+- Homepage RFQ submissions insert into the insert-only rfqs table (no public reads, per-email rate-limit trigger) via a shared row mapper; success UI is shown only after the insert succeeds so no lead is falsely confirmed.
 - Keep the art world lazy in React Three Fiber with demand rendering, merged static geometry, token-sourced colors and a static reduced-motion scene; this makes immersive illustration efficient and distinct from evidence.
 - Keep homepage service summaries separate from full detail sections and use a native scroll-snap activities carousel with visibility-aware automatic advancement and pause/interaction/reduced-motion safeguards; this limits homepage density and supports touch without another carousel dependency.
 
