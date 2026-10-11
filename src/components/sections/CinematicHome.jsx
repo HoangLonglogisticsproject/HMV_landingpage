@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { photos, photoCopy } from '@/data/hmv';
+import { photos } from '@/data/hmv';
+import macroOcean from '@/assets/hmv-macro-ocean.webp.asset.json';
 import { productPhotos } from '@/data/productPhotos';
 
 const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -11,7 +12,7 @@ export function CinematicHero({ lang }) {
   const go = () => document.getElementById('value-journey')?.scrollIntoView({ behavior: reduce() ? 'auto' : 'smooth' });
   return (
     <header className="cine-hero">
-      <img src={photos.farm} alt={photoCopy[lang].farm} width={1280} height={960} fetchPriority="high" decoding="async" />
+      <img src={macroOcean.url} alt={lang === 'vi' ? 'Góc nhìn từ trên cao của tàu container trên đại dương xanh' : 'Aerial view of a container ship crossing the blue ocean'} width={2400} height={1729} fetchPriority="high" decoding="async" />
       <div className="cine-shade" />
       <div className="cine-inner content-width">
         <p className="cine-kicker">HMV GLOBAL · VIETNAM → EUROPE & USA</p>
@@ -19,7 +20,7 @@ export function CinematicHero({ lang }) {
         <p className="cine-sub" lang="en"><span>Premium Agri-Commodities.</span><span>Seamless Integrated Supply Chain.</span></p>
         <Button type="button" variant="secondary" size="lg" className="cine-cta" onClick={go}>{lang === 'vi' ? 'Khám phá hệ sinh thái' : 'Explore Our Ecosystem'}<ArrowDown size={18} /></Button>
       </div>
-      <p className="cine-credit">{lang === 'vi' ? 'Vùng trồng chanh dây · Ảnh do HMV cung cấp' : 'Passion fruit origin · Photo supplied by HMV'}</p>
+      <p className="cine-credit">{lang === 'vi' ? 'Ảnh minh họa thương mại toàn cầu' : 'Global trade stock imagery'} · <a href="https://unsplash.com/photos/an-aerial-view-of-a-cargo-ship-in-the-ocean-0A7YwYhZhWw" target="_blank" rel="noopener noreferrer">Bent Van Aeken / Unsplash</a></p>
     </header>
   );
 }
