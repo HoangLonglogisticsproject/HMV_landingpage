@@ -270,6 +270,15 @@ export function SupplyChainPillars({ lang }) {
               <span>{vi ? 'Đầu mối duy nhất xuyên suốt' : 'Single Point of Accountability'}</span>
             </div>
           </div>
+
+          <div style={{ marginTop: '28px', textAlign: 'center' }}>
+            <Button asChild size="lg" variant="brand">
+              <Link to={`/${lang}/packaging-logistics`}>
+                {vi ? 'Xem Tiêu Chuẩn Thực Tế Đóng Gói & Đóng Container' : 'View Real Packaging & Container Freight Protocols'}
+                <ArrowUpRight size={18} style={{ marginLeft: 8 }} />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
     </div>
