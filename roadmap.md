@@ -1,4 +1,6 @@
 # HMV website upgrade
+- [ ] Show the complete logistics article group photo without cropping faces.
+- [ ] Upgrade the existing illustrative map with moving green-blue routes, origin radar and accessible sample market tooltips; verify desktop/mobile and reduced motion.
 - [x] Replace the close-up hero with premium macro-scale stock photography, navy overlay, geometric headline and slow cinematic zoom; verify rendering.
 - [x] Extend the opening journey through harvest, quality, processing, trade, global markets and wind energy.
 - [x] Refine featured products into premium motion cards with B2B product/inquiry actions.
