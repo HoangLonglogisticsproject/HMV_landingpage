@@ -5,7 +5,7 @@ import { copy, address } from '@/data/hmv';
 const mapSrc = 'https://www.google.com/maps?q=' + encodeURIComponent('240 Nguyen Dinh Chinh, Phu Nhuan, Ho Chi Minh City, Vietnam') + '&z=15&output=embed';
 export function Footer({ lang }) {
   const t = copy[lang];
-  const links = [['supply-chain', t.supply], ['trade-solutions', lang === 'vi' ? 'Sản phẩm' : 'Products'], ['about', t.about], ['activities', t.activities], ['insights', lang === 'vi' ? 'Tin tức & Insights' : 'News & Insights'], ['contact', t.contact]];
+  const links = [['supply-chain', t.supply], ['trade-solutions', lang === 'vi' ? 'Sản phẩm' : 'Products'], ['about', t.about], ['activities', t.activities], ['insights', 'EcoNews'], ['contact', t.contact]];
   return (
     <footer className="site-footer premium-footer">
       <div className="content-width">

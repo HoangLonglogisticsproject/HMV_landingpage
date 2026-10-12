@@ -12,8 +12,8 @@ export function LatestInsights({ lang }) {
     <section className="insights-home section-pad" aria-labelledby="insights-title">
       <div className="content-width">
         <div className="section-heading">
-          <div><p className="eyebrow">{vi ? 'LATEST INSIGHTS' : 'LATEST INSIGHTS'}</p><h2 id="insights-title">{vi ? 'Tin tức & Insights' : 'News & Insights'}</h2></div>
-          <Link className="text-link" to={`/${lang}/insights`}>{vi ? 'Tất cả bài viết' : 'All articles'}<ArrowUpRight size={18} /></Link>
+          <div><p className="eyebrow">HMV ECONEWS</p><h2 id="insights-title">EcoNews</h2></div>
+          <Link className="text-link" to={`/${lang}/insights`}>{vi ? 'Xem tất cả EcoNews' : 'All EcoNews articles'}<ArrowUpRight size={18} /></Link>
         </div>
         <div className="insight-grid">
           {posts.map((p) => (
