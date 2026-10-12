@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { brokeredPreviewStorage } from './previewAuthStorage';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
 
 
 function isNewSupabaseApiKey(value: string): boolean {
@@ -31,16 +31,26 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
+const hasCredentials = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
+
+const noopClient = new Proxy({}, {
+  get() {
+    return () => Promise.resolve({ data: null, error: { message: 'Supabase is not configured.' } });
+  },
+}) as never;
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  global: {
-    fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
-  },
-  auth: {
-    storage: brokeredPreviewStorage(),
-    persistSession: true,
-    autoRefreshToken: true,
-  }
-});
+export const supabase = hasCredentials
+  ? createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      global: {
+        fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
+      },
+      auth: {
+        storage: brokeredPreviewStorage(),
+        persistSession: true,
+        autoRefreshToken: true,
+      }
+    })
+  : noopClient;
