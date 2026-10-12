@@ -9,6 +9,8 @@
 ---------------------------------------------------------------- */
 :root {
   --radius: 0.625rem;
+  --site-header-height: 92px;
+  --site-content-clearance: 24px;
   --farm-sky: #d1e6ee;
   --farm-light: #fff5db;
   --farm-leaf: #2c6850;
@@ -164,6 +166,30 @@
   body {
     @apply bg-background text-foreground font-sans font-normal antialiased;
     line-height: 1.7;
+  }
+}
+
+/* Sticky navigation stays in flow; reserve only breathing room, not its height twice. */
+html {
+  scroll-padding-top: var(--site-header-height);
+}
+
+.site-nav.site-nav {
+  height: var(--site-header-height);
+}
+
+:where(#main-content) {
+  padding-top: var(--site-content-clearance);
+  scroll-margin-top: var(--site-content-clearance);
+}
+
+#main-content [id] {
+  scroll-margin-top: var(--site-content-clearance);
+}
+
+@media (max-width: 820px) {
+  :root {
+    --site-header-height: 76px;
   }
 }
 
