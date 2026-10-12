@@ -14,7 +14,7 @@ export function ArticlePage() {
   const nav = useNavigate();
   const location = useLocation();
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, [location.pathname]);
   if (!['en', 'vi'].includes(lang)) return <Navigate to="/en" replace />;
   const a = findArticle(slug);
