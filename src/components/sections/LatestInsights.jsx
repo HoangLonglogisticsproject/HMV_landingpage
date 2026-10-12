@@ -1,12 +1,10 @@
 import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { photos } from '@/data/hmv';
+import { articles } from '@/data/articles';
+const dims = { farm: [1280, 960], factory: [768, 1024], farmTeam: [1308, 1600] };
 
-const posts = [
-  { slug: 'xuat-khau-chanh-day-eu', img: photos.farm, w: 1280, h: 960, cat: { vi: 'Thị trường EU', en: 'EU Market' }, date: { vi: 'Tháng 10, 2026', en: 'October 2026' }, title: { vi: 'Xuất khẩu Chanh dây sang Châu Âu: Tiêu chuẩn GlobalGAP và câu chuyện của HMV Global.', en: 'Exporting passion fruit to Europe: GLOBALG.A.P. standards and the HMV Global story.' }, alt: { vi: 'Vườn chanh dây Việt Nam', en: 'Vietnamese passion fruit farm' } },
-  { img: photos.factory, w: 768, h: 1024, cat: { vi: 'Chuỗi cung ứng', en: 'Supply Chain' }, date: { vi: 'Tháng 9, 2026', en: 'September 2026' }, title: { vi: 'Tối ưu hóa logistics nông sản nhiệt đới: Giảm thiểu hao hụt từ Vườn đến Cảng.', en: 'Optimising tropical produce logistics: reducing losses from farm to port.' }, alt: { vi: 'Chuyến thăm cơ sở chế biến', en: 'Processing facility visit' } },
-  { img: photos.farmTeam, w: 1308, h: 1600, cat: { vi: 'Phát triển bền vững', en: 'Sustainability' }, date: { vi: 'Tháng 9, 2026', en: 'September 2026' }, title: { vi: 'Mô hình nông nghiệp khép kín: Tầm nhìn 2030 của HMV Global.', en: 'A closed-loop agriculture model: HMV Global’s 2030 vision.' }, alt: { vi: 'Đội ngũ HMV tại vùng trồng', en: 'HMV team at the growing area' } },
-];
+const posts = articles.map((a) => ({ ...a, img: photos[a.image], w: dims[a.image][0], h: dims[a.image][1] }));
 
 export function LatestInsights({ lang }) {
   const vi = lang === 'vi';
@@ -19,9 +17,9 @@ export function LatestInsights({ lang }) {
         </div>
         <div className="insight-grid">
           {posts.map((p) => (
-            <Link key={p.title.en} to={p.slug ? `/${lang}/blog/${p.slug}` : `/${lang}/insights`} className="insight-card">
+            <Link key={p.id} to={`/${lang}/blog/${p.slug[lang]}`} className="insight-card">
               <figure><img src={p.img} alt={p.alt[lang]} width={p.w} height={p.h} loading="lazy" decoding="async" /></figure>
-              <div className="insight-meta"><span>{p.cat[lang]}</span><time>{p.date[lang]}</time></div>
+              <div className="insight-meta"><span>{p.category[lang]}</span><time dateTime={p.iso}>{p.date[lang]}</time></div>
               <h3>{p.title[lang]}</h3>
               <em>{vi ? 'Đọc thêm' : 'Read more'}<ArrowUpRight size={16} /></em>
             </Link>
