@@ -205,7 +205,7 @@
 .insights-home{background:var(--background)}
 .insights-home h2{font-family:'Plus Jakarta Sans';font-weight:700;color:var(--ink)}
 .insight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
-.insight-card{display:flex;flex-direction:column;gap:14px;color:var(--ink)}
+.insight-card{display:flex;flex-direction:column;gap:14px;color:var(--ink);min-width:0}
 .insight-card figure{margin:0;aspect-ratio:4/3;border-radius:14px;overflow:hidden;box-shadow:0 20px 40px -28px rgb(15 23 42 / .4)}
 .insight-card img{width:100%;height:100%;object-fit:cover;transition:transform 1s cubic-bezier(.2,.7,.2,1)}
 .insight-card:hover img{transform:scale(1.05)}
@@ -244,3 +244,5 @@
 .article-cta p{margin:0;font-weight:700;font-size:17px}
 @media(max-width:600px){.article-body{font-size:16.5px}.article-hero{aspect-ratio:4/3;margin:30px auto 36px}.article-cta .day-cta{width:100%}}
 .article-body ul{list-style:disc}.article-body li::marker{color:var(--farm-green)}
+@media(max-width:1100px){.insight-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.insight-grid{grid-template-columns:1fr}}

@@ -1,4 +1,5 @@
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,10 @@ import { findArticle } from '@/data/articles';
 export function ArticlePage() {
   const { lang, slug } = useParams();
   const nav = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [location.pathname]);
   if (!['en', 'vi'].includes(lang)) return <Navigate to="/en" replace />;
   const a = findArticle(slug);
   if (!a) return <Navigate to={`/${lang}/insights`} replace />;
