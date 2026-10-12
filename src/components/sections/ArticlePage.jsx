@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
@@ -13,8 +13,15 @@ export function ArticlePage() {
   const { lang, slug } = useParams();
   const nav = useNavigate();
   const location = useLocation();
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
+  // Reset before paint and again after layout settles (images/fonts), so the
+  // browser's restored scroll position can never leave the title under the sticky header.
+  useLayoutEffect(() => {
+    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
+    const toTop = () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    toTop();
+    const raf = requestAnimationFrame(toTop);
+    const timer = setTimeout(toTop, 120);
+    return () => { cancelAnimationFrame(raf); clearTimeout(timer); };
   }, [location.pathname]);
   if (!['en', 'vi'].includes(lang)) return <Navigate to="/en" replace />;
   const a = findArticle(slug);

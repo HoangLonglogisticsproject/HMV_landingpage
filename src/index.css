@@ -169,9 +169,20 @@
   }
 }
 
-/* Sticky navigation stays in flow; reserve only breathing room, not its height twice. */
+/* Sticky navigation stays in flow; anchors and scroll targets clear header + breathing room. */
 html {
-  scroll-padding-top: var(--site-header-height);
+  scroll-padding-top: calc(var(--site-header-height) + var(--site-content-clearance));
+}
+
+/* Article titles always land below the header, including on desktop. */
+.article-page h1 {
+  scroll-margin-top: calc(var(--site-header-height) + var(--site-content-clearance));
+}
+
+@media (min-width: 821px) {
+  .article-page.article-page {
+    padding-top: 56px;
+  }
 }
 
 .site-nav.site-nav {
