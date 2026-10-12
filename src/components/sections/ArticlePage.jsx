@@ -41,7 +41,7 @@ export function ArticlePage() {
           <p className="article-meta"><span>{a.category[lang]}</span><time dateTime={a.iso}>{a.date[lang]}</time></p>
           <h1>{a.title[lang]}</h1>
         </div>
-        <figure className="article-hero"><img src={img} alt={a.alt[lang]} fetchPriority="high" decoding="async" /></figure>
+        <figure className="article-hero"><img src={img} alt={a.alt[lang]} fetchPriority="high" decoding="async" style={a.imagePosition ? { objectPosition: a.imagePosition } : undefined} /></figure>
         <article className="article-col article-body">
           {a.body[lang].map(([tag, c], i) => tag === 'h2' ? <h2 key={i}>{c}</h2> : tag === 'ul' ? <ul key={i}>{c.map(([b, t]) => <li key={b}><strong>{b}</strong> {t}</li>)}</ul> : <p key={i}>{c}</p>)}
           <aside className="article-cta glass">

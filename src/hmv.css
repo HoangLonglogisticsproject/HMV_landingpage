@@ -246,3 +246,124 @@
 .article-body ul{list-style:disc}.article-body li::marker{color:var(--farm-green)}
 @media(max-width:1100px){.insight-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:700px){.insight-grid{grid-template-columns:1fr}}
+
+/* ===== Living Logistics animated map ===== */
+.living-logistics{position:relative}
+.living-map{width:100%;display:block}
+
+/* Comet trail: pathLength="1" trick — dash runs along the full path */
+.living-comet{
+  stroke-dasharray: 0.18 0.82;
+  stroke-dashoffset: 0;
+  animation: cometRun 3.6s cubic-bezier(.4,0,.6,1) infinite;
+}
+.living-comet--usa{animation-delay:1.4s}
+.living-comet-glow{
+  stroke-dasharray: 0.22 0.78;
+  stroke-dashoffset: 0;
+  animation: cometRun 3.6s cubic-bezier(.4,0,.6,1) infinite;
+}
+.living-comet-glow--usa{animation-delay:1.4s}
+
+/* pathLength on these paths is not set, so we animate via stroke-dasharray fractions manually.
+   We use a known path-length proxy: set pathLength="1" on the SVG path and animate from 0 to -1. */
+@keyframes cometRun{
+  0%{stroke-dashoffset:1}
+  100%{stroke-dashoffset:-0.2}
+}
+
+/* Destination pulse dot */
+.living-dest{
+  animation: destPulse 2.4s ease-in-out infinite;
+}
+@keyframes destPulse{
+  0%,100%{r:5.5;opacity:1}
+  50%{r:7;opacity:.7}
+}
+
+/* Vietnam origin radar rings */
+.living-radar{
+  fill:none;
+  stroke:var(--farm-green);
+  stroke-width:1.5;
+  opacity:0;
+  transform-origin:742px 262px;
+  animation:radarPing 2.8s ease-out infinite;
+}
+.living-radar--2{animation-delay:1.4s}
+@keyframes radarPing{
+  0%{r:12;opacity:.9;stroke-width:2.5}
+  80%{r:34;opacity:0;stroke-width:0.5}
+  100%{r:12;opacity:0}
+}
+
+/* Hub button overlays */
+.living-hub{position:absolute;display:flex;flex-direction:column;align-items:center;gap:0}
+.living-hub--europe{top:33%;left:51%}
+.living-hub--usa{top:40%;left:21%}
+
+.living-hub-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 14px;border-radius:999px;
+  font-size:11px;font-weight:700;letter-spacing:.16em;
+  color:var(--ink);
+  background:rgb(255 255 255 / .72);
+  backdrop-filter:blur(12px) saturate(1.5);
+  -webkit-backdrop-filter:blur(12px) saturate(1.5);
+  border:1px solid rgb(255 255 255 / .7);
+  box-shadow:0 8px 24px -8px rgb(15 23 42 / .22);
+  cursor:pointer;transition:transform .2s,box-shadow .2s;
+}
+.living-hub-btn:hover,.living-hub-btn:focus-visible{
+  transform:translateY(-2px);
+  box-shadow:0 14px 30px -10px rgb(2 132 199 / .35);
+  outline:none;
+}
+.living-hub-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--ocean-blue);
+  animation:destPulse 2.4s ease-in-out infinite;
+}
+
+/* Glassmorphic tooltip */
+.living-tip{
+  position:absolute;top:calc(100% + 10px);
+  width:220px;
+  background:rgb(255 255 255 / .82);
+  backdrop-filter:blur(20px) saturate(1.6);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border:1px solid rgb(255 255 255 / .75);
+  box-shadow:0 18px 40px -16px rgb(15 23 42 / .3);
+  border-radius:14px;padding:14px 16px;
+  display:grid;gap:4px;
+  z-index:10;
+  animation:tipIn .18s ease forwards;
+}
+@keyframes tipIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.living-tip--left{left:50%;transform:translateX(-50%)}
+.living-tip--right{left:50%;transform:translateX(-50%)}
+.living-tip-badge{
+  font-size:9px;font-weight:700;letter-spacing:.16em;
+  color:var(--farm-green);text-transform:uppercase;
+}
+.living-tip strong{font-size:13px;color:var(--ink);display:block;margin-top:4px}
+.living-tip p{font-size:13px;color:var(--muted-foreground);margin:0}
+.living-tip-sub{font-size:11px!important;opacity:.75}
+.living-tip small{font-size:10px;color:var(--muted-foreground);opacity:.7;margin-top:4px;display:block;line-height:1.5}
+
+@media(max-width:820px){
+  .living-hub--europe{top:30%;left:49%}
+  .living-hub--usa{top:38%;left:17%}
+  .living-tip{width:180px}
+  .living-hub-btn{font-size:10px;padding:5px 10px}
+}
+@media(max-width:600px){
+  .living-hub--europe{top:28%;left:46%}
+  .living-hub--usa{top:37%;left:12%}
+  .living-tip{width:160px;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  .living-comet,.living-comet-glow,.living-radar,.living-dest{animation:none}
+}
+
+.global-reach .living-logistics{margin:44px 0 20px}

@@ -36,7 +36,7 @@ export const articles = [
     body: { vi: passionVi, en: passionEn },
   },
   {
-    id: 'tropical-logistics', slug: { vi: 'toi-uu-hoa-logistics', en: 'optimizing-tropical-logistics' }, iso: '2026-09-15', image: 'factory',
+    id: 'tropical-logistics', slug: { vi: 'toi-uu-hoa-logistics', en: 'optimizing-tropical-logistics' }, iso: '2026-09-15', image: 'factory', imagePosition: 'center 28%',
     date: { vi: 'Tháng 9, 2026', en: 'September 2026' }, category: { vi: 'Chuỗi cung ứng', en: 'Supply Chain' },
     title: { vi: 'Tối ưu hóa logistics nông sản nhiệt đới: Giảm thiểu hao hụt từ Vườn đến Cảng.', en: 'Optimizing Tropical Agri-Logistics: Minimizing Post-Harvest Loss from Farm to Port.' },
     description: { vi: 'Nhiệt độ bảo quản chuẩn cho chuối và chanh dây, và cách giữ chuỗi lạnh liền mạch từ vườn đến cảng Cát Lái, Cái Mép.', en: 'Storage temperatures for bananas and passion fruit, and how to keep the cold chain unbroken from farm to Cat Lai and Cai Mep.' },
