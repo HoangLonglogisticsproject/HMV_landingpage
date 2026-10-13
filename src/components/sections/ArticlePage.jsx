@@ -8,6 +8,7 @@ import { Footer } from '@/components/sections/Footer';
 import { PageMeta } from '@/components/common/PageMeta';
 import { photos } from '@/data/hmv';
 import { findArticle } from '@/data/articles';
+import { SupportChatWidget } from '@/components/common/SupportChatWidget';
 
 export function ArticlePage() {
   const { lang, slug } = useParams();
@@ -51,6 +52,7 @@ export function ArticlePage() {
         </article>
       </main>
       <Footer lang={lang} />
+      <SupportChatWidget lang={lang} />
     </>
   );
 }

@@ -278,14 +278,24 @@ export function Navigation({ lang = 'en' }) {
                       </Link>
                     </div>
 
-                    <Link
-                      to={`/${lang}/supply-chain#logistics-capacity`}
-                      onClick={close}
-                      className="mega-col-footer-link"
-                    >
-                      <span>{vi ? 'Xem năng lực vận hành & giải pháp' : 'Full logistics & solutions capacity'}</span>
-                      <ArrowUpRight size={14} />
-                    </Link>
+                    <div className="mega-col-footer-dual">
+                      <Link
+                        to={`/${lang}/supply-chain/compliance`}
+                        onClick={close}
+                        className="mega-col-footer-link mega-compliance-link"
+                      >
+                        <span>{vi ? '⚖️ Quy chuẩn Pháp lý & Rào cản (IPPC · EFSA · CBAM)' : '⚖️ Standards & Compliance (IPPC · EFSA · CBAM)'}</span>
+                        <ArrowUpRight size={14} />
+                      </Link>
+                      <Link
+                        to={`/${lang}/supply-chain#logistics-capacity`}
+                        onClick={close}
+                        className="mega-col-footer-link"
+                      >
+                        <span>{vi ? 'Tổng quan năng lực vận hành' : 'Full logistics capacity'}</span>
+                        <ArrowUpRight size={14} />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               )}
@@ -358,12 +368,19 @@ export function Navigation({ lang = 'en' }) {
               </Link>
             </div>
 
-            <Button asChild variant="brand" className="nav-support-btn">
-              <Link to={`/${lang}/contact`} onClick={close} title={vi ? 'Kênh hỗ trợ trực tuyến 24/7' : '24/7 Online Support'}>
-                <span className="live-status-dot" aria-hidden="true" />
-                <Headphones size={15} />
-                <span>{vi ? 'Hỗ trợ 24/7' : '24/7 Support'}</span>
-              </Link>
+            <Button
+              variant="brand"
+              className="nav-support-btn"
+              onClick={() => {
+                close();
+                window.dispatchEvent(new CustomEvent('open-hmv-support-chat'));
+              }}
+              title={vi ? 'Mở cổng Hỗ trợ trực tuyến 24/7' : 'Open 24/7 Online Support Chat'}
+              type="button"
+            >
+              <span className="live-status-dot" aria-hidden="true" />
+              <Headphones size={15} />
+              <span>{vi ? 'Hỗ trợ 24/7' : '24/7 Support'}</span>
             </Button>
           </div>
         </div>

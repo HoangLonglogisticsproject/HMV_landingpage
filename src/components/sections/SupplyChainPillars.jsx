@@ -252,6 +252,40 @@ export function SupplyChainPillars({ lang }) {
             })}
           </div>
 
+          {/* Authoritative Deep-Dive Compliance Banner */}
+          <div className="logistics-compliance-card">
+            <div className="compliance-card-left">
+              <div className="compliance-card-badge">
+                <ShieldCheck size={14} />
+                <span>{vi ? 'BẢO CHỨNG PHÁP LÝ & RÀO CẢN KỸ THUẬT' : 'GLOBAL REGULATORY & LEGAL ARCHITECTURE'}</span>
+              </div>
+              <h3>
+                {vi
+                  ? 'Quy Chuẩn Kiểm Dịch IPPC/ISPM 15, Dư Lượng EFSA MRLs & Cơ Chế Carbon CBAM'
+                  : 'Deep-Dive Compliance: IPPC/ISPM 15 Phytosanitary, EFSA MRLs & CBAM Carbon Protocols'}
+              </h3>
+              <p>
+                {vi
+                  ? 'Đối với khách hàng B2B quốc tế, năng lực vận hành cần đi kèm bằng chứng pháp lý rõ ràng. Tìm hiểu cách HMV Global kiểm soát rủi ro kiểm dịch thực vật tại cảng đến, lấy mẫu test độc lập ISO 17025 tại vùng trồng và chuẩn bị dữ liệu phát thải Scope 3 cho dự án điện gió.'
+                  : 'For international enterprise buyers, operational excellence requires verifiable legal rigor. Discover how HMV Global eliminates port detentions via ISPM 15, enforces ISO 17025 pre-harvest MRLs testing, and equips EPC contractors with Scope 3 CBAM emission datasets.'}
+              </p>
+              <div className="compliance-trust-tags">
+                <span>EU Directive 2000/29/EC</span>
+                <span>Regulation EC 396/2005</span>
+                <span>Regulation EU 2023/956</span>
+                <span>ISO/IEC 17025</span>
+              </div>
+            </div>
+            <div className="compliance-card-action">
+              <Button asChild size="lg" variant="brand" className="compliance-link-btn">
+                <Link to={`/${lang}/supply-chain/compliance`}>
+                  <span>{vi ? 'Tìm hiểu sâu về Quy chuẩn Toàn cầu' : 'Deep dive into Global Standards'}</span>
+                  <ArrowUpRight size={18} />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
           <div className="logistics-proof-banner">
             <div className="proof-metric">
               <strong>100%</strong>
