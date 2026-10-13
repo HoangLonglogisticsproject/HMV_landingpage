@@ -10,10 +10,6 @@ import {
   Sprout,
   Wind,
   Truck,
-  Snowflake,
-  FileCheck,
-  Anchor,
-  Layers,
   PackageCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +20,13 @@ export function Navigation({ lang = 'en' }) {
   const vi = lang === 'vi';
   const [menu, setMenu] = useState(false);
   const [drop, setDrop] = useState(null);
+  const [logisticsOpen, setLogisticsOpen] = useState(false);
+  const [dgOpen, setDgOpen] = useState(false);
+  const [cbOpen, setCbOpen] = useState(false);
+  const [localOpen, setLocalOpen] = useState(false);
+  const [overseaOpen, setOverseaOpen] = useState(false);
+  const [farmingOpen, setFarmingOpen] = useState(false);
+  const [windOpen, setWindOpen] = useState(false);
   const { pathname } = useLocation();
 
   const close = () => {
@@ -89,7 +92,7 @@ export function Navigation({ lang = 'en' }) {
             >
               <div className="nav-group">
                 <Link
-                  className={pathname.startsWith(`/${lang}/supply-chain`) || pathname.startsWith(`/${lang}/products`) ? 'nav-active' : ''}
+                  className={pathname.startsWith(`/${lang}/supply-chain`) || pathname.startsWith(`/${lang}/products`) || pathname.startsWith(`/${lang}/logistics`) || pathname.startsWith(`/${lang}/packaging-logistics`) ? 'nav-active' : ''}
                   to={`/${lang}/supply-chain`}
                   onClick={close}
                 >
@@ -107,210 +110,301 @@ export function Navigation({ lang = 'en' }) {
               </div>
 
               {drop === 'supply-chain' && (
-                <div className="supply-mega-panel" role="region" aria-label={t.supply}>
-                  {/* COLUMN 1: FARMING & EXPORT PRODUCTS (CORE PILLAR) */}
-                  <div className="mega-col mega-col-farming">
-                    <div className="mega-col-header">
-                      <span className="mega-badge badge-green">
-                        <Sprout size={11} />
-                        {vi ? 'TRỌNG TÂM CHỦ LỰC' : 'CORE PILLAR'}
-                      </span>
-                      <h4>{vi ? 'Nông Nghiệp & Nông Sản Xuất Khẩu' : 'Farming & Export Commodities'}</h4>
-                      <p className="mega-col-desc">
-                        {vi
-                          ? 'Nông sản chủ lực đạt chuẩn GlobalGAP, kiểm soát dư lượng MRLs cho thị trường EU & Hoa Kỳ.'
-                          : 'Export-grade agricultural commodities meeting GlobalGAP & MRLs for EU & US.'}
-                      </p>
+                <div className="dropdown-panel logistics-text-dropdown" role="menu">
+                  {/* 1. Farming & Export Commodities */}
+                  <div className="log-text-group">
+                    <div className={`log-text-parent-row ${farmingOpen ? 'is-active-dropdown' : ''}`}>
+                      <Link
+                        to={`/${lang}/supply-chain#commodities`}
+                        onClick={close}
+                        className="log-parent-title"
+                      >
+                        {vi ? 'Nông nghiệp & Nông sản xuất khẩu' : 'Farming & Export Commodities'}
+                      </Link>
+                      <button
+                        type="button"
+                        className={`log-parent-toggle ${farmingOpen ? 'is-open' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setFarmingOpen(!farmingOpen);
+                        }}
+                        aria-label="Toggle Farming Commodities menu"
+                        aria-expanded={farmingOpen}
+                      >
+                        <ChevronDown size={14} />
+                      </button>
                     </div>
 
-                    <div className="mega-products-list">
-                      {products.map((p) => (
+                    {farmingOpen && (
+                      <div className="log-text-sublist">
+                        {products.map((p) => (
+                          <Link
+                            key={p.id}
+                            to={`/${lang}/products/${p.id}`}
+                            onClick={close}
+                          >
+                            {p[lang]}
+                          </Link>
+                        ))}
                         <Link
-                          key={p.id}
-                          to={`/${lang}/products/${p.id}`}
+                          to={`/${lang}/supply-chain#commodities`}
                           onClick={close}
-                          className="mega-product-item"
+                          style={{ fontWeight: 600, color: 'var(--brand, #00297b)', marginTop: '4px' }}
                         >
-                          <span className="mega-product-dot" />
-                          <div className="mega-product-text">
-                            <strong>{p[lang]}</strong>
-                            <span>{vi ? p.subVi.split(' · ')[0] : p.subEn.split(' · ')[0]}</span>
-                          </div>
-                          <ArrowUpRight size={13} className="mega-arrow" />
+                          {vi ? 'Tất cả sản phẩm & quy cách' : 'All products & specifications'}
                         </Link>
-                      ))}
-                    </div>
-
-                    <Link
-                      to={`/${lang}/supply-chain#commodities`}
-                      onClick={close}
-                      className="mega-col-footer-link"
-                    >
-                      <span>{vi ? 'Xem tất cả sản phẩm & quy cách' : 'All products & specifications'}</span>
-                      <ArrowUpRight size={14} />
-                    </Link>
+                      </div>
+                    )}
                   </div>
 
-                  {/* COLUMN 2: WIND ENERGY & INFRASTRUCTURE (CORE PILLAR) */}
-                  <div className="mega-col mega-col-wind">
-                    <div className="mega-col-header">
-                      <span className="mega-badge badge-cyan">
-                        <Wind size={11} />
-                        {vi ? 'TRỌNG TÂM CHIẾN LƯỢC' : 'STRATEGIC PILLAR'}
-                      </span>
-                      <h4>{vi ? 'Dự Án & Năng Lượng Điện Gió' : 'Wind Energy & Clean Horizons'}</h4>
-                      <p className="mega-col-desc">
-                        {vi
-                          ? 'Chuỗi vật tư hạ tầng tuabin, dự án điện gió ngoài khơi & trên bờ trong hệ sinh thái HMV.'
-                          : 'Turbine infrastructure supply chain, offshore & onshore wind projects in HMV ecosystem.'}
-                      </p>
-                    </div>
-
-                    <div className="mega-energy-cards">
+                  {/* 2. Wind Energy & Clean Horizons */}
+                  <div className="log-text-group">
+                    <div className={`log-text-parent-row ${windOpen ? 'is-active-dropdown' : ''}`}>
                       <Link
                         to={`/${lang}/supply-chain#wind-energy`}
                         onClick={close}
-                        className="mega-feature-card"
+                        className="log-parent-title"
                       >
-                        <div className="mega-card-content">
-                          <strong>{vi ? 'Dự Án Điện Gió Trên Bờ & Ngoài Khơi' : 'Onshore & Offshore Wind Projects'}</strong>
-                          <p>{vi ? 'Cung ứng cấu kiện tuabin, thiết bị siêu trường siêu trọng và điều phối hạ tầng kỹ thuật.' : 'Turbine structures, heavy-lift logistics and specialized infrastructure coordination.'}</p>
-                        </div>
-                        <ArrowUpRight size={14} className="mega-arrow" />
+                        {vi ? 'Dự án & Năng lượng điện gió' : 'Wind Energy & Clean Horizons'}
                       </Link>
-
-                      <Link
-                        to={`/${lang}/supply-chain#wind-energy`}
-                        onClick={close}
-                        className="mega-feature-card"
+                      <button
+                        type="button"
+                        className={`log-parent-toggle ${windOpen ? 'is-open' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setWindOpen(!windOpen);
+                        }}
+                        aria-label="Toggle Wind Energy menu"
+                        aria-expanded={windOpen}
                       >
-                        <div className="mega-card-content">
-                          <strong>{vi ? 'Chuyển Đổi Xanh & Mục Tiêu Net Zero' : 'Green Transition & Net Zero Goals'}</strong>
-                          <p>{vi ? 'Giảm phát thải carbon trong chuỗi cung ứng, đáp ứng tiêu chuẩn bền vững CBAM toàn cầu.' : 'Decarbonizing supply chains and fulfilling European CBAM sustainability criteria.'}</p>
-                        </div>
-                        <ArrowUpRight size={14} className="mega-arrow" />
-                      </Link>
+                        <ChevronDown size={14} />
+                      </button>
                     </div>
 
-                    <Link
-                      to={`/${lang}/supply-chain#wind-energy`}
-                      onClick={close}
-                      className="mega-col-footer-link"
-                    >
-                      <span>{vi ? 'Khám phá mảng Điện gió HMV' : 'Explore Wind Energy Horizon'}</span>
-                      <ArrowUpRight size={14} />
-                    </Link>
+                    {windOpen && (
+                      <div className="log-text-sublist">
+                        <Link to={`/${lang}/supply-chain#wind-energy`} onClick={close}>
+                          {vi ? 'Dự án điện gió trên bờ & ngoài khơi' : 'Onshore & Offshore Wind Projects'}
+                        </Link>
+                        <Link to={`/${lang}/supply-chain#wind-energy`} onClick={close}>
+                          {vi ? 'Chuỗi vật tư & cấu kiện tuabin' : 'Turbine & Infrastructure Supply Chain'}
+                        </Link>
+                        <Link to={`/${lang}/supply-chain#wind-energy`} onClick={close}>
+                          {vi ? 'Chuyển đổi xanh & Tiêu chuẩn CBAM' : 'Green Transition & Net Zero Goals'}
+                        </Link>
+                      </div>
+                    )}
                   </div>
 
-                  {/* COLUMN 3: AUXILIARY LOGISTICS BACKBONE & SOLUTIONS */}
-                  <div className="mega-col mega-col-logistics">
-                    <div className="mega-col-header">
-                      <span className="mega-badge badge-navy">
-                        <Truck size={11} />
-                        {vi ? 'VẬN HÀNH PHỤ TRỢ · TRỌN GÓI' : 'AUXILIARY OPERATIONAL BACKBONE'}
-                      </span>
-                      <h4>{vi ? 'Logistics & Giải Pháp Toàn Diện' : 'Logistics & Trade Solutions'}</h4>
-                      <p className="mega-col-desc">
-                        {vi
-                          ? 'Chứng minh năng lực vận hành end-to-end khép kín, làm chủ trọn gói từ nguồn cung đến cảng biển.'
-                          : 'End-to-end operational capacity proving full autonomous execution from origins to global ports.'}
-                      </p>
+                  {/* 3. Logistics (Dropdown parent containing the 4 services) */}
+                  <div className="log-text-group">
+                    <div className={`log-text-parent-row ${logisticsOpen ? 'is-active-dropdown' : ''}`}>
+                      <Link
+                        to={`/${lang}/logistics`}
+                        onClick={close}
+                        className="log-parent-title"
+                      >
+                        Logistics
+                      </Link>
+                      <button
+                        type="button"
+                        className={`log-parent-toggle ${logisticsOpen ? 'is-open' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setLogisticsOpen(!logisticsOpen);
+                        }}
+                        aria-label="Toggle Logistics menu"
+                        aria-expanded={logisticsOpen}
+                      >
+                        <ChevronDown size={14} />
+                      </button>
                     </div>
 
-                    <div className="mega-solutions-list">
-                      <Link
-                        to={`/${lang}/supply-chain#logistics-capacity`}
-                        onClick={close}
-                        className="mega-sol-item"
-                      >
-                        <div className="mega-sol-icon">
-                          <Snowflake size={15} />
-                        </div>
-                        <div className="mega-sol-text">
-                          <strong>{vi ? 'Chuỗi Lạnh Chuyên Sâu (Cold Chain)' : 'Advanced Cold Chain'}</strong>
-                          <span>{vi ? 'Kiểm soát nhiệt độ liên tục từ vườn đến cảng' : 'Continuous temperature control farm-to-port'}</span>
-                        </div>
-                        <ArrowUpRight size={13} className="mega-arrow" />
-                      </Link>
+                    {logisticsOpen && (
+                      <div className="log-text-sublist" style={{ paddingLeft: '12px' }}>
+                        {/* 3.1 Specializing for Dangerous goods handling */}
+                        <div className="log-text-group">
+                          <div className={`log-text-parent-row ${dgOpen ? 'is-active-dropdown' : ''}`}>
+                            <Link
+                              to={`/${lang}/logistics#dangerous-goods`}
+                              onClick={close}
+                              className="log-parent-title"
+                              style={{ fontSize: '13px' }}
+                            >
+                              Specializing for Dangerous goods handling
+                            </Link>
+                            <button
+                              type="button"
+                              className={`log-parent-toggle ${dgOpen ? 'is-open' : ''}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setDgOpen(!dgOpen);
+                              }}
+                              aria-label="Toggle Dangerous Goods menu"
+                              aria-expanded={dgOpen}
+                            >
+                              <ChevronDown size={13} />
+                            </button>
+                          </div>
 
-                      <Link
-                        to={`/${lang}/supply-chain#logistics-capacity`}
-                        onClick={close}
-                        className="mega-sol-item"
-                      >
-                        <div className="mega-sol-icon">
-                          <FileCheck size={15} />
+                          {dgOpen && (
+                            <div className="log-text-sublist">
+                              <Link to={`/${lang}/logistics#dg-air-sea`} onClick={close}>
+                                Dangerous Goods by Air & Sea
+                              </Link>
+                              <Link to={`/${lang}/logistics#special-cargoes`} onClick={close}>
+                                Special cargoes handling
+                              </Link>
+                              <Link to={`/${lang}/logistics#general-cargoes`} onClick={close}>
+                                General Cargoes Handling
+                              </Link>
+                              <Link to={`/${lang}/logistics#factory-tour`} onClick={close}>
+                                Factory Tour
+                              </Link>
+                            </div>
+                          )}
                         </div>
-                        <div className="mega-sol-text">
-                          <strong>{vi ? 'Hải Quan & Chứng Từ Xuất Khẩu' : 'Customs & Export Documentation'}</strong>
-                          <span>{vi ? 'Kiểm dịch thực vật, CO EUR.1, chứng nhận FDA' : 'Phytosanitary, CO EUR.1, FDA compliance'}</span>
-                        </div>
-                        <ArrowUpRight size={13} className="mega-arrow" />
-                      </Link>
 
-                      <Link
-                        to={`/${lang}/supply-chain#logistics-capacity`}
-                        onClick={close}
-                        className="mega-sol-item"
-                      >
-                        <div className="mega-sol-icon">
-                          <Anchor size={15} />
-                        </div>
-                        <div className="mega-sol-text">
-                          <strong>{vi ? 'Vận Tải Biển Đa Phương Thức' : 'Multimodal Ocean Freight'}</strong>
-                          <span>{vi ? 'Hải trình ổn định đến cảng Rotterdam, Hamburg, LA' : 'Direct sea routes to Rotterdam, Hamburg, LA'}</span>
-                        </div>
-                        <ArrowUpRight size={13} className="mega-arrow" />
-                      </Link>
+                        {/* 3.2 Crossed border Vietnam - Cambodia */}
+                        <div className="log-text-group">
+                          <div className={`log-text-parent-row ${cbOpen ? 'is-active-dropdown' : ''}`}>
+                            <Link
+                              to={`/${lang}/logistics#cross-border`}
+                              onClick={close}
+                              className="log-parent-title"
+                              style={{ fontSize: '13px' }}
+                            >
+                              Crossed border Vietnam - Cambodia
+                            </Link>
+                            <button
+                              type="button"
+                              className={`log-parent-toggle ${cbOpen ? 'is-open' : ''}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setCbOpen(!cbOpen);
+                              }}
+                              aria-label="Toggle Cross Border menu"
+                              aria-expanded={cbOpen}
+                            >
+                              <ChevronDown size={13} />
+                            </button>
+                          </div>
 
-                      <Link
-                        to={`/${lang}/supply-chain#supply`}
-                        onClick={close}
-                        className="mega-sol-item"
-                      >
-                        <div className="mega-sol-icon">
-                          <Layers size={15} />
+                          {cbOpen && (
+                            <div className="log-text-sublist">
+                              <Link to={`/${lang}/logistics#cross-border`} onClick={close}>
+                                {vi ? 'Vận tải container liên vận (VN ⇄ KH)' : 'Cross-border container drayage'}
+                              </Link>
+                              <Link to={`/${lang}/logistics#cross-border`} onClick={close}>
+                                {vi ? 'Thông quan 2 đầu cửa khẩu (Mộc Bài, Xa Mát, Hoa Lư)' : 'Dual customs clearance (Moc Bai, Xa Mat, Hoa Lu)'}
+                              </Link>
+                              <Link to={`/${lang}/logistics#cross-border`} onClick={close}>
+                                {vi ? 'Vận chuyển nhanh 12-24h (HCM ⇄ Phnom Penh)' : 'Express 12-24h transit (HCMC ⇄ Phnom Penh)'}
+                              </Link>
+                            </div>
+                          )}
                         </div>
-                        <div className="mega-sol-text">
-                          <strong>{vi ? 'Quy Trình Chuỗi Cung Ứng 6 Bước' : '6-Stage Operational Workflow'}</strong>
-                          <span>{vi ? 'Từ thấu hiểu nhu cầu đến bàn giao thị trường đích' : 'From buyer brief to final delivery handover'}</span>
-                        </div>
-                        <ArrowUpRight size={13} className="mega-arrow" />
-                      </Link>
 
-                      <Link
-                        to={`/${lang}/packaging-logistics`}
-                        onClick={close}
-                        className="mega-sol-item"
-                        style={{ borderLeft: '3px solid #059669', background: 'rgba(5, 150, 105, 0.04)' }}
-                      >
-                        <div className="mega-sol-icon" style={{ background: 'rgba(5, 150, 105, 0.15)', color: '#059669' }}>
-                          <PackageCheck size={15} />
-                        </div>
-                        <div className="mega-sol-text">
-                          <strong style={{ color: '#059669' }}>{vi ? 'Quy Cách Đóng Gói & Vận Chuyển' : 'Packaging & Freight Protocols'}</strong>
-                          <span>{vi ? 'Thực tế đóng pallet, bọc PE màng co & đóng container' : 'ISPM 15 pallets, PE shrink-wrap & container drayage'}</span>
-                        </div>
-                        <ArrowUpRight size={13} className="mega-arrow" />
-                      </Link>
-                    </div>
+                        {/* 3.3 Local agency handling in Vietnam */}
+                        <div className="log-text-group">
+                          <div className={`log-text-parent-row ${localOpen ? 'is-active-dropdown' : ''}`}>
+                            <Link
+                              to={`/${lang}/logistics#local-agency`}
+                              onClick={close}
+                              className="log-parent-title"
+                              style={{ fontSize: '13px' }}
+                            >
+                              Local agency handling in Vietnam
+                            </Link>
+                            <button
+                              type="button"
+                              className={`log-parent-toggle ${localOpen ? 'is-open' : ''}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setLocalOpen(!localOpen);
+                              }}
+                              aria-label="Toggle Local Agency menu"
+                              aria-expanded={localOpen}
+                            >
+                              <ChevronDown size={13} />
+                            </button>
+                          </div>
 
-                    <div className="mega-col-footer-dual">
+                          {localOpen && (
+                            <div className="log-text-sublist">
+                              <Link to={`/${lang}/logistics#local-agency`} onClick={close}>
+                                {vi ? 'Đại lý hàng đến & Phát hành D/O' : 'Inbound consignee desk & D/O release'}
+                              </Link>
+                              <Link to={`/${lang}/logistics#local-agency`} onClick={close}>
+                                {vi ? 'Khai thuê hải quan điện tử VNACCS' : 'VNACCS electronic customs brokerage'}
+                              </Link>
+                              <Link to={`/${lang}/logistics#local-agency`} onClick={close}>
+                                {vi ? 'Vận tải nội địa bao phủ cảng HPH, DAD, SGN, VUT' : 'Inland drayage for HPH, DAD, SGN, VUT hubs'}
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 3.4 Oversea agency networking ( JC Trans Membership ) */}
+                        <div className="log-text-group">
+                          <div className={`log-text-parent-row ${overseaOpen ? 'is-active-dropdown' : ''}`}>
+                            <Link
+                              to={`/${lang}/logistics#oversea-agency`}
+                              onClick={close}
+                              className="log-parent-title"
+                              style={{ fontSize: '13px' }}
+                            >
+                              Oversea agency networking ( JC Trans Membership )
+                            </Link>
+                            <button
+                              type="button"
+                              className={`log-parent-toggle ${overseaOpen ? 'is-open' : ''}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setOverseaOpen(!overseaOpen);
+                              }}
+                              aria-label="Toggle Oversea Agency menu"
+                              aria-expanded={overseaOpen}
+                            >
+                              <ChevronDown size={13} />
+                            </button>
+                          </div>
+
+                          {overseaOpen && (
+                            <div className="log-text-sublist">
+                              <Link to={`/${lang}/logistics#oversea-agency`} onClick={close}>
+                                {vi ? 'Bảo chứng tài chính quốc tế (GCP Protection)' : 'JC Trans GCP financial protection fund'}
+                              </Link>
+                              <Link to={`/${lang}/logistics#oversea-agency`} onClick={close}>
+                                {vi ? 'Dịch vụ DDP, DAP, Ex-Works toàn cầu' : 'Global DDP, DAP & Ex-Works door delivery'}
+                              </Link>
+                              <Link to={`/${lang}/logistics#oversea-agency`} onClick={close}>
+                                {vi ? 'Mạng lưới 10,000+ đại lý tại 160+ quốc gia' : '10,000+ partner forwarders across 160+ countries'}
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 4. Tổng quan Chuỗi cung ứng */}
+                  <div className="log-text-group">
+                    <div className="log-text-parent-row">
                       <Link
-                        to={`/${lang}/supply-chain/compliance`}
+                        to={`/${lang}/supply-chain`}
                         onClick={close}
-                        className="mega-col-footer-link mega-compliance-link"
+                        className="log-parent-title"
+                        style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}
                       >
-                        <span>{vi ? '⚖️ Quy chuẩn Pháp lý & Rào cản (IPPC · EFSA · CBAM)' : '⚖️ Standards & Compliance (IPPC · EFSA · CBAM)'}</span>
-                        <ArrowUpRight size={14} />
-                      </Link>
-                      <Link
-                        to={`/${lang}/supply-chain#logistics-capacity`}
-                        onClick={close}
-                        className="mega-col-footer-link"
-                      >
-                        <span>{vi ? 'Tổng quan năng lực vận hành' : 'Full logistics capacity'}</span>
-                        <ArrowUpRight size={14} />
+                        {vi ? 'Tổng quan chuỗi cung ứng HMV' : 'HMV Supply Chain Overview'}
                       </Link>
                     </div>
                   </div>
@@ -318,7 +412,7 @@ export function Navigation({ lang = 'en' }) {
               )}
             </div>
 
-            {/* 3. EcoNews */}
+            {/* 4. EcoNews */}
             <Link
               className={pathname.startsWith(`/${lang}/insights`) || pathname.startsWith(`/${lang}/blog`) ? 'nav-active' : ''}
               to={`/${lang}/insights`}

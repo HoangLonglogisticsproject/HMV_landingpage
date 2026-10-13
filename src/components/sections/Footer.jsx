@@ -6,8 +6,9 @@ const mapSrc = 'https://www.google.com/maps?q=' + encodeURIComponent('240 Nguyen
 export function Footer({ lang }) {
   const t = copy[lang];
   const links = [
-    ['supply-chain', t.supply],
+    ['logistics', 'Logistics'],
     ['packaging-logistics', lang === 'vi' ? 'Đóng gói & Vận chuyển' : 'Packaging & Freight'],
+    ['supply-chain', t.supply],
     ['trade-solutions', lang === 'vi' ? 'Sản phẩm' : 'Products'],
     ['about', t.about],
     ['activities', t.activities],
