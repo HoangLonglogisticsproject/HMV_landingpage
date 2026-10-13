@@ -4364,4 +4364,434 @@
     gap: 8px;
   }
 }
+/* ==========================================================================
+   ABOUT US - VISION, MISSION, 2028 GOALS & FOUNDING LEADERSHIP
+   ========================================================================== */
+.about-us-container {
+  display: flex;
+  flex-direction: column;
+}
 
+.section-heading-center {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 52px;
+}
+
+.section-heading-center h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 12px 0 16px;
+  line-height: 1.25;
+}
+
+.section-heading-center p {
+  font-size: 1.05rem;
+  color: #64748b;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.team-intro-lead {
+  font-size: 1.1rem !important;
+  color: #334155 !important;
+  font-weight: 500;
+}
+
+/* VISION & MISSION SECTION */
+.vision-mission-section {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.vm-dual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 48px;
+}
+
+.vm-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 36px 32px;
+  box-shadow: 0 4px 20px -2px rgba(0, 41, 123, 0.04);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vm-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px -4px rgba(0, 41, 123, 0.08);
+}
+
+.vm-vision-card {
+  border-top: 4px solid #00297b;
+}
+
+.vm-mission-card {
+  border-top: 4px solid #0284c7;
+}
+
+.vm-card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 41, 123, 0.06);
+  color: #00297b;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 20px;
+  align-self: flex-start;
+}
+
+.vm-mission-card .vm-card-tag {
+  background: rgba(2, 132, 199, 0.08);
+  color: #0284c7;
+}
+
+.vm-vision-card h3 {
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+.vm-mission-card h3 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.vm-mission-body {
+  font-size: 0.96rem;
+  line-height: 1.7;
+  color: #475569;
+  margin-bottom: 24px;
+}
+
+/* 2028 Goal Box inside Vision */
+.vm-goal-box {
+  background: linear-gradient(135deg, rgba(0, 41, 123, 0.03) 0%, rgba(2, 132, 199, 0.05) 100%);
+  border: 1px dashed rgba(0, 41, 123, 0.25);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: auto;
+}
+
+.vm-goal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.goal-icon {
+  color: #0284c7;
+}
+
+.vm-goal-title strong {
+  font-size: 0.95rem;
+  color: #00297b;
+  font-weight: 700;
+}
+
+.vm-goal-desc {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #334155;
+  margin-bottom: 14px;
+}
+
+.market-badges-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.market-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.market-flag {
+  font-size: 14px;
+}
+
+/* Mission Highlights */
+.vm-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: auto;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 18px;
+}
+
+.vm-highlight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.check-icon {
+  color: #059669;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.vm-highlight-item div {
+  display: flex;
+  flex-direction: column;
+}
+
+.vm-highlight-item strong {
+  font-size: 0.92rem;
+  color: #0f172a;
+}
+
+.vm-highlight-item span {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Core Values 4-Grid */
+.core-values-wrap {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+}
+
+.cv-header {
+  margin-bottom: 24px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 12px;
+}
+
+.cv-header h4 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.core-values-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.cv-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.cv-bullet {
+  width: 24px;
+  height: 4px;
+  background: #00297b;
+  border-radius: 2px;
+  margin-bottom: 12px;
+}
+
+.cv-item h5 {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.cv-item p {
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ==========================================================================
+   LEADERSHIP & FOUNDING TEAM
+   ========================================================================== */
+.leadership-section {
+  background: #f8fafc;
+}
+
+.leadership-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.leader-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.leader-card:hover {
+  transform: translateY(-4px);
+  border-color: #00297b;
+  box-shadow: 0 14px 28px -6px rgba(0, 41, 123, 0.1);
+}
+
+.leader-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.leader-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(0, 41, 123, 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00297b;
+}
+
+.leader-exp-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #059669;
+  background: rgba(5, 150, 105, 0.08);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.leader-info {
+  margin-bottom: 14px;
+}
+
+.leader-name {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.leader-role {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0284c7;
+  margin: 0;
+}
+
+.leader-expertise {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #475569;
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.leader-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 16px;
+}
+
+.specialty-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+/* Team Committed Banner */
+.team-committed-banner {
+  background: linear-gradient(135deg, #001d59 0%, #00297b 100%);
+  border-radius: 14px;
+  padding: 36px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  color: #ffffff;
+  box-shadow: 0 10px 30px -4px rgba(0, 41, 123, 0.25);
+}
+
+.banner-left h4 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.banner-left p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+  margin: 0;
+  max-width: 720px;
+}
+
+/* RESPONSIVE FOR ABOUT US */
+@media(max-width: 1080px) {
+  .vm-dual-grid {
+    grid-template-columns: 1fr;
+  }
+  .core-values-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .leadership-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .team-committed-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media(max-width: 640px) {
+  .core-values-grid {
+    grid-template-columns: 1fr;
+  }
+  .leadership-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .vm-card {
+    padding: 24px 20px;
+  }
+  .team-committed-banner {
+    padding: 24px 20px;
+  }
+}
