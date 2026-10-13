@@ -14,6 +14,7 @@ import {
   FileCheck,
   Anchor,
   Layers,
+  PackageCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { copy, products } from '@/data/hmv';
@@ -273,6 +274,22 @@ export function Navigation({ lang = 'en' }) {
                         <div className="mega-sol-text">
                           <strong>{vi ? 'Quy Trình Chuỗi Cung Ứng 6 Bước' : '6-Stage Operational Workflow'}</strong>
                           <span>{vi ? 'Từ thấu hiểu nhu cầu đến bàn giao thị trường đích' : 'From buyer brief to final delivery handover'}</span>
+                        </div>
+                        <ArrowUpRight size={13} className="mega-arrow" />
+                      </Link>
+
+                      <Link
+                        to={`/${lang}/packaging-logistics`}
+                        onClick={close}
+                        className="mega-sol-item"
+                        style={{ borderLeft: '3px solid #059669', background: 'rgba(5, 150, 105, 0.04)' }}
+                      >
+                        <div className="mega-sol-icon" style={{ background: 'rgba(5, 150, 105, 0.15)', color: '#059669' }}>
+                          <PackageCheck size={15} />
+                        </div>
+                        <div className="mega-sol-text">
+                          <strong style={{ color: '#059669' }}>{vi ? 'Quy Cách Đóng Gói & Vận Chuyển' : 'Packaging & Freight Protocols'}</strong>
+                          <span>{vi ? 'Thực tế đóng pallet, bọc PE màng co & đóng container' : 'ISPM 15 pallets, PE shrink-wrap & container drayage'}</span>
                         </div>
                         <ArrowUpRight size={13} className="mega-arrow" />
                       </Link>
