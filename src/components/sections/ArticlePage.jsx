@@ -18,12 +18,20 @@ export function ArticlePage() {
   // browser's restored scroll position can never leave the title under the sticky header.
   useLayoutEffect(() => {
     if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
+    if (location.state?.isLocaleSwitch && typeof location.state?.scrollY === 'number') {
+      const targetY = location.state.scrollY;
+      window.scrollTo({ top: targetY, left: 0, behavior: 'instant' });
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: targetY, left: 0, behavior: 'instant' });
+      });
+      return;
+    }
     const toTop = () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     toTop();
     const raf = requestAnimationFrame(toTop);
     const timer = setTimeout(toTop, 120);
     return () => { cancelAnimationFrame(raf); clearTimeout(timer); };
-  }, [location.pathname]);
+  }, [location.pathname, location.state]);
   if (!['en', 'vi'].includes(lang)) return <Navigate to="/en" replace />;
   const a = findArticle(slug);
   if (!a) return <Navigate to={`/${lang}/insights`} replace />;

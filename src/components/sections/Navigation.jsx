@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { copy, products } from '@/data/hmv';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 
 export function Navigation({ lang = 'en' }) {
   const t = copy[lang];
@@ -459,25 +460,9 @@ export function Navigation({ lang = 'en' }) {
             </div>
           </div>
 
-          {/* RIGHT: ACTIONS (Language Switch & 24/7 Support) */}
+          {/* RIGHT: ACTIONS (Language Switcher & 24/7 Support) */}
           <div className="nav-right">
-            <div className="language-switch" aria-label="Language">
-              <Link
-                onClick={close}
-                aria-current={lang === 'en' ? 'true' : undefined}
-                to={pathname.replace(/^\/(en|vi)/, '/en')}
-              >
-                EN
-              </Link>
-              <span>/</span>
-              <Link
-                onClick={close}
-                aria-current={lang === 'vi' ? 'true' : undefined}
-                to={pathname.replace(/^\/(en|vi)/, '/vi')}
-              >
-                VI
-              </Link>
-            </div>
+            <LanguageSwitcher currentLang={lang} onSelect={close} />
 
             <Button
               variant="brand"
