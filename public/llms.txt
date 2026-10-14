@@ -4,13 +4,13 @@
 HMV connects agricultural sourcing, processing coordination, buyer quality requirements and international trade. Logistics supports the trade. The target buyer markets are Europe and the United States. Target markets are not proof of existing customers or deliveries.
 
 ## Public pages
-- [English overview](https://global-agro-trails.lovable.app/en)
-- [Vietnamese overview](https://global-agro-trails.lovable.app/vi)
-- [Company story](https://global-agro-trails.lovable.app/en/about)
-- [Supply-chain approach](https://global-agro-trails.lovable.app/en/supply-chain)
-- [Trade solutions and agricultural portfolio](https://global-agro-trails.lovable.app/en/trade-solutions)
-- [Activities and supplied photographs](https://global-agro-trails.lovable.app/en/activities)
-- [Business inquiries](https://global-agro-trails.lovable.app/en/contact)
+- [English overview](https://hmv-landingpage.vercel.app/en)
+- [Vietnamese overview](https://hmv-landingpage.vercel.app/vi)
+- [Company story](https://hmv-landingpage.vercel.app/en/about)
+- [Supply-chain approach](https://hmv-landingpage.vercel.app/en/supply-chain)
+- [Trade solutions and agricultural portfolio](https://hmv-landingpage.vercel.app/en/trade-solutions)
+- [Activities and supplied photographs](https://hmv-landingpage.vercel.app/en/activities)
+- [Business inquiries](https://hmv-landingpage.vercel.app/en/contact)
 
 ## Agricultural portfolio
 Yellow and purple passion fruit (fresh, puree and concentrate), Cavendish bananas, white and red flesh dragon fruit, pepper, cinnamon, star anise, cashew nuts and tapioca starch.
