@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { photos } from '@/data/hmv';
-import macroOcean from '@/assets/hmv-macro-ocean.webp.asset.json';
+import macroOcean from '@/assets/hmv-macro-ocean.png';
 import { productPhotos } from '@/data/productPhotos';
 import { LivingLogistics } from '@/components/sections/LivingLogistics';
+import fruitFarmPhoto from '@/assets/fruitFarm.jpg';
+import journeyWeighing from '@/assets/fruitWeighing.jpg';
+import journeyFactory from '@/assets/visitfactory.jfif';
 
 const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -25,8 +27,8 @@ export function CinematicHero({ lang }) {
           </div>
         </div>
         <div className="day-visual">
-          <img className="day-farm" src={photos.farm} alt={vi ? 'Vườn chanh dây dưới nắng tại Việt Nam' : 'Sunlit passion fruit farm in Vietnam'} width={1280} height={960} fetchPriority="high" decoding="async" />
-          <figure className="day-ocean glass"><img src={macroOcean.url} alt={vi ? 'Tàu container chở nông sản trên đại dương xanh' : 'Container ship carrying agricultural cargo across the blue ocean'} width={2400} height={1729} loading="lazy" decoding="async" /><figcaption>{vi ? 'Từ vườn đến cảng' : 'Farm to port'}</figcaption></figure>
+          <img className="day-farm" src={fruitFarmPhoto} alt={vi ? 'Vườn chanh dây dưới nắng tại Việt Nam' : 'Sunlit passion fruit farm in Vietnam'} width={1280} height={960} fetchPriority="high" decoding="async" />
+          <figure className="day-ocean glass"><img src={macroOcean} alt={vi ? 'Tàu container chở nông sản trên đại dương xanh' : 'Container ship carrying agricultural cargo across the blue ocean'} width={2400} height={1729} loading="lazy" decoding="async" /><figcaption>{vi ? 'Từ vườn đến cảng' : 'Farm to port'}</figcaption></figure>
           <div className="day-chip glass"><strong>01</strong>{vi ? 'Vùng trồng Việt Nam' : 'Vietnamese origins'}</div>
         </div>
       </div>
@@ -35,9 +37,9 @@ export function CinematicHero({ lang }) {
 }
 
 const steps = [
-  { src: photos.farm, w: 1280, h: 960, en: ['Origins', 'Direct, farm-level connections with Vietnamese growers.'], vi: ['Vùng trồng', 'Kết nối trực tiếp với người trồng tại vùng nguyên liệu.'] },
-  { src: photos.fruitWeighing, w: 960, h: 1280, en: ['Quality Control', 'Products checked against the buyer’s specification.'], vi: ['Kiểm soát chất lượng', 'Kiểm tra sản phẩm theo quy cách của người mua.'] },
-  { src: photos.factory, w: 768, h: 1024, en: ['Global Trade', 'Processing partners, documentation and delivery coordinated for export.'], vi: ['Thương mại toàn cầu', 'Điều phối đối tác chế biến, chứng từ và giao hàng xuất khẩu.'] },
+  { src: fruitFarmPhoto, w: 1280, h: 960, en: ['Origins', 'Direct, farm-level connections with Vietnamese growers.'], vi: ['Vùng trồng', 'Kết nối trực tiếp với người trồng tại vùng nguyên liệu.'] },
+  { src: journeyWeighing, w: 960, h: 1280, en: ['Quality Control', 'Products checked against the buyer’s specification.'], vi: ['Kiểm soát chất lượng', 'Kiểm tra sản phẩm theo quy cách của người mua.'] },
+  { src: journeyFactory, w: 838, h: 739, en: ['Global Trade', 'Processing partners, documentation and delivery coordinated for export.'], vi: ['Thương mại toàn cầu', 'Điều phối đối tác chế biến, chứng từ và giao hàng xuất khẩu.'] },
 ];
 
 export function ValueJourney({ lang }) {
