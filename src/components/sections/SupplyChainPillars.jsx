@@ -252,34 +252,34 @@ export function SupplyChainPillars({ lang }) {
             })}
           </div>
 
-          {/* Authoritative Deep-Dive Compliance Banner */}
+          {/* Specialized Logistics Banner */}
           <div className="logistics-compliance-card">
             <div className="compliance-card-left">
               <div className="compliance-card-badge">
-                <ShieldCheck size={14} />
-                <span>{vi ? 'BẢO CHỨNG PHÁP LÝ & RÀO CẢN KỸ THUẬT' : 'GLOBAL REGULATORY & LEGAL ARCHITECTURE'}</span>
+                <Truck size={14} />
+                <span>{vi ? 'NĂNG LỰC LOGISTICS & VẬN TẢI QUỐC TẾ' : 'SPECIALIZED LOGISTICS & GLOBAL FREIGHT'}</span>
               </div>
               <h3>
                 {vi
-                  ? 'Quy Chuẩn Kiểm Dịch IPPC/ISPM 15, Dư Lượng EFSA MRLs & Cơ Chế Carbon CBAM'
-                  : 'Deep-Dive Compliance: IPPC/ISPM 15 Phytosanitary, EFSA MRLs & CBAM Carbon Protocols'}
+                  ? 'Logistics Chuyên Biệt: Hàng Nguy Hiểm, Vận Tải Xuyên Biên Giới & Mạng Lưới Đại Lý Toàn Cầu'
+                  : 'Specialized Logistics: Dangerous Goods, Cross-Border Corridors & Global Agency Network'}
               </h3>
               <p>
                 {vi
-                  ? 'Đối với khách hàng B2B quốc tế, năng lực vận hành cần đi kèm bằng chứng pháp lý rõ ràng. Tìm hiểu cách HMV Global kiểm soát rủi ro kiểm dịch thực vật tại cảng đến, lấy mẫu test độc lập ISO 17025 tại vùng trồng và chuẩn bị dữ liệu phát thải Scope 3 cho dự án điện gió.'
-                  : 'For international enterprise buyers, operational excellence requires verifiable legal rigor. Discover how HMV Global eliminates port detentions via ISPM 15, enforces ISO 17025 pre-harvest MRLs testing, and equips EPC contractors with Scope 3 CBAM emission datasets.'}
+                  ? 'HMV Logistics cung cấp giải pháp vận tải toàn diện: chuyên môn sâu về hàng hóa chất & hàng nguy hiểm (DG Air/Sea, Special Cargoes, General Cargoes), hành lang vận tải xuyên biên giới Việt Nam – Campuchia, dịch vụ đại lý nội địa và kết nối toàn cầu qua mạng lưới JC Trans.'
+                  : 'HMV Logistics delivers mission-critical freight forwarding: deep expertise in Dangerous Goods & Chemicals (DG Air/Sea, Special Cargoes, General Cargoes), cross-border Vietnam – Cambodia corridors, local agency handling and verified JC Trans global network coverage.'}
               </p>
               <div className="compliance-trust-tags">
-                <span>EU Directive 2000/29/EC</span>
-                <span>Regulation EC 396/2005</span>
-                <span>Regulation EU 2023/956</span>
-                <span>ISO/IEC 17025</span>
+                <span>{vi ? 'Hàng nguy hiểm DG Air & Sea' : 'Dangerous Goods — Air & Sea'}</span>
+                <span>{vi ? 'Xuyên biên giới VN – Campuchia' : 'Cross-Border VN – Cambodia'}</span>
+                <span>{vi ? 'Đại lý nội địa' : 'Local Agency'}</span>
+                <span>{vi ? 'Mạng lưới JC Trans' : 'JC Trans Network'}</span>
               </div>
             </div>
             <div className="compliance-card-action">
               <Button asChild size="lg" variant="brand" className="compliance-link-btn">
-                <Link to={`/${lang}/supply-chain/compliance`}>
-                  <span>{vi ? 'Tìm hiểu sâu về Quy chuẩn Toàn cầu' : 'Deep dive into Global Standards'}</span>
+                <Link to={`/${lang}/logistics`}>
+                  <span>{vi ? 'Khám phá dịch vụ Logistics' : 'Explore logistics services'}</span>
                   <ArrowUpRight size={18} />
                 </Link>
               </Button>
