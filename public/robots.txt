@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://global-agro-trails.lovable.app/sitemap.xml
+Sitemap: https://hmv-landingpage.vercel.app/sitemap.xml
