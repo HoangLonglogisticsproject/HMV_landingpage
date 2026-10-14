@@ -21,7 +21,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { productPhotos } from '@/data/productPhotos';
-import logo from '@/assets/hmv-official-logo.webp.asset.json';
+import logo from '@/assets/logohmv.png';
 
 export function SupportChatWidget({ lang = 'vi' }) {
   const vi = lang === 'vi';
@@ -304,7 +304,7 @@ export function SupportChatWidget({ lang = 'vi' }) {
             <div className="chat-header-brand">
               <div className="chat-brand-avatar">
                 <img
-                  src={logo.url}
+                  src={logo}
                   alt="HMV Global"
                   className="chat-avatar-img"
                   width={36}
@@ -349,7 +349,7 @@ export function SupportChatWidget({ lang = 'vi' }) {
             {/* 1. Welcome Message (Bot) */}
             <div className="chat-msg-row bot-row">
               <div className="chat-avatar-circle">
-                <img src={logo.url} alt="HMV Bot" className="w-6 h-6 object-contain" />
+                <img src={logo} alt="HMV Bot" className="w-6 h-6 object-contain" />
               </div>
               <div className="chat-bubble bot-bubble welcome-bubble">
                 <p className="welcome-bold">Welcome to HMV Global.</p>
@@ -402,7 +402,7 @@ export function SupportChatWidget({ lang = 'vi' }) {
             {/* 4. Bot Response with Rich Media Product Card */}
             <div className="chat-msg-row bot-row">
               <div className="chat-avatar-circle">
-                <img src={logo.url} alt="HMV Bot" className="w-6 h-6 object-contain" />
+                <img src={logo} alt="HMV Bot" className="w-6 h-6 object-contain" />
               </div>
               <div className="chat-bubble bot-bubble">
                 <p className="bot-response-text">
@@ -456,7 +456,7 @@ export function SupportChatWidget({ lang = 'vi' }) {
                 {m.sender === 'user' && <span className="chat-timestamp">{m.time}</span>}
                 {m.sender === 'bot' && (
                   <div className="chat-avatar-circle">
-                    <img src={logo.url} alt="HMV Bot" className="w-6 h-6 object-contain" />
+                    <img src={logo} alt="HMV Bot" className="w-6 h-6 object-contain" />
                   </div>
                 )}
                 <div
@@ -477,7 +477,7 @@ export function SupportChatWidget({ lang = 'vi' }) {
             {isTyping && (
               <div className="chat-msg-row bot-row">
                 <div className="chat-avatar-circle">
-                  <img src={logo.url} alt="HMV Bot" className="w-6 h-6 object-contain" />
+                  <img src={logo} alt="HMV Bot" className="w-6 h-6 object-contain" />
                 </div>
                 <div className="chat-bubble bot-bubble typing-bubble">
                   <span className="typing-dot" />

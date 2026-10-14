@@ -7,8 +7,8 @@ import { photos } from '@/data/hmv';
 const blocks = [
   { key: 'field', size: 'bento-large', src: photos.farmTeam, w: 1308, h: 1600, en: 'Hands-on approach at the origin.', vi: 'Trực tiếp có mặt tại vùng nguyên liệu.' },
   { key: 'expand', size: 'bento-medium', src: photos.openingFlowers, w: 1199, h: 1600, en: 'Expanding our ecosystem & partnerships.', vi: 'Mở rộng hệ sinh thái & quan hệ đối tác.' },
-  { key: 'network', size: 'bento-medium', src: photos.gathering, w: 1024, h: 768, en: 'Building lasting global relationships.', vi: 'Xây dựng quan hệ lâu dài.' },
-  { key: 'team', size: 'bento-small', src: photos.forest, w: 1058, h: 770, en: 'A driven and united team.', vi: 'Một tập thể gắn kết.' },
+  { key: 'network', size: 'bento-medium', src: photos.gathering, w: 1600, h: 1200, en: 'Building lasting global relationships.', vi: 'Xây dựng quan hệ lâu dài.' },
+  { key: 'team', size: 'bento-small', src: photos.forest, w: 1218, h: 912, en: 'A driven and united team.', vi: 'Một tập thể gắn kết.' },
 ];
 
 export function InAction({ lang }) {
