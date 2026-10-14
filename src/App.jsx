@@ -1,7 +1,4 @@
 import { useEffect } from 'react';
-<<<<<<< HEAD
-import { BrowserRouter,Routes,Route,Navigate,useParams,useLocation,useNavigationType } from 'react-router-dom';
-=======
 import {
   BrowserRouter,
   Routes,
@@ -10,7 +7,6 @@ import {
   useParams,
   useLocation,
 } from 'react-router-dom';
->>>>>>> fb3e3ac456741b2a4889524282337b28554ec26c
 import { HelmetProvider } from 'react-helmet-async';
 import { Navigation } from '@/components/sections/Navigation';
 import { Activities } from '@/components/sections/Activities';
