@@ -5018,3 +5018,26 @@
     transform: none;
   }
 }
+
+/* Supply-chain stage photo: scale the whole frame, never crop it. */
+.chain-panel figure {
+  width: fit-content;
+  max-width: 100%;
+  height: clamp(300px, 32vw, 460px);
+  aspect-ratio: var(--chain-ratio, 4 / 3);
+  overflow: hidden;
+  background: var(--surface);
+}
+.chain-panel figure > img:not(.origin-inset) {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+@media(max-width: 600px) {
+  .chain-panel figure {
+    width: 100%;
+    height: auto;
+  }
+}
