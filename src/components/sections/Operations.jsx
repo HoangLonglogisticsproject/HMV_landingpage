@@ -83,7 +83,9 @@ export function Operations({ lang, full = false }) {
           aria-labelledby={`tab-${item.id}`}
           tabIndex={0}
         >
-          <figure>
+          <figure
+            style={{ '--chain-ratio': `${image.width} / ${image.height}` }}
+          >
             <img
               src={image.src}
               width={image.width}
