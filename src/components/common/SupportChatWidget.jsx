@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   X,
   Minus,
@@ -22,11 +22,11 @@ import {
 } from 'lucide-react';
 import { productPhotos } from '@/data/productPhotos';
 import logo from '@/assets/logohmv.png';
+import { useLanguage } from '@/context/LanguageContext';
 
 export function SupportChatWidget({ lang = 'vi' }) {
   const vi = lang === 'vi';
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { setLang } = useLanguage();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -126,9 +126,7 @@ export function SupportChatWidget({ lang = 'vi' }) {
 
   const handleQuickAction = (actionId) => {
     if (actionId === 'language') {
-      const targetLang = lang === 'vi' ? 'en' : 'vi';
-      const newPath = location.pathname.replace(/^\/(en|vi)/, `/${targetLang}`);
-      navigate(newPath);
+      setLang(lang === 'vi' ? 'en' : 'vi');
       return;
     }
 
@@ -412,7 +410,7 @@ export function SupportChatWidget({ lang = 'vi' }) {
 
                 {/* Inner Product Card */}
                 <Link
-                  to={`/${lang}/products/passion-fruit`}
+                  to="/products/passion-fruit"
                   onClick={() => setIsOpen(false)}
                   className="bot-inner-product-card"
                 >

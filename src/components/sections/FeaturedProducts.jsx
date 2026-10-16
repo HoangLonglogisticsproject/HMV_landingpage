@@ -3,5 +3,138 @@ import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { productPhotos } from '@/data/productPhotos';
 import { photos } from '@/data/hmv';
-const featured=[{id:'passion-fruit',en:'Passion fruit',vi:'Chanh dây',noteEn:'Fresh · Purée · Concentrate',noteVi:'Tươi · Purée · Cô đặc'},{id:'dragon-fruit',en:'Dragon fruit',vi:'Thanh long',noteEn:'White & red flesh',noteVi:'Ruột trắng & ruột đỏ'},{id:'bananas',en:'Bananas',vi:'Chuối',noteEn:'Tropical agricultural origins',noteVi:'Nguồn nguyên liệu nhiệt đới'}];
-export function FeaturedProducts({lang}) {return <section className="featured-products section-pad" id="featured-products"><div className="content-width"><div className="featured-heading"><div><p className="eyebrow">{lang==='vi'?'TỪ VÙNG NGUYÊN LIỆU':'FROM THE ORIGIN'}</p><h2>{lang==='vi'?'Nông sản. Khởi đầu kết nối.':'Produce. Where connection begins.'}</h2></div><Button asChild variant="text" size="text"><Link to={`/${lang}/trade-solutions`}>{lang==='vi'?'Tất cả sản phẩm':'All products'}<ArrowUpRight/></Link></Button></div><div className="featured-grid">{featured.map((p,i)=>{const photo=productPhotos[p.id];return <article key={p.id} className={`featured-product motion-product featured-${p.id}`}><Link to={`/${lang}/products/${p.id}`} className="featured-image" aria-label={p[lang]}><img src={photo.src} alt={lang==='vi'?photo.altVi:photo.altEn} width={photo.width} height={photo.height} loading="lazy" decoding="async"/>{p.id==='passion-fruit'&&<span className="qc-reveal" aria-hidden="true"><img src={photos.fruitWeighing} alt="" width={960} height={1280} loading="lazy" decoding="async"/><span className="qc-overlay">{lang==='vi'?'Kiểm tra chất lượng · Mẫu cân: 107 g':'Quality check | Sample weighed: 107 g'}</span></span>}<span className="featured-index">0{i+1} / HMV SELECTION</span><span className="product-reveal">{lang==='vi'?'Khám phá sản phẩm':'Explore product'}<ArrowUpRight size={18}/></span></Link><div className="motion-product-info"><p className="product-category">{lang==='vi'?'NÔNG SẢN NHIỆT ĐỚI':'TROPICAL PRODUCE'}</p><div className="featured-caption"><div><h3>{p[lang]}</h3><p>{lang==='vi'?p.noteVi:p.noteEn}</p></div><ArrowUpRight size={23}/></div><div className="product-card-actions"><Button asChild variant="outline" size="sm"><Link to={`/${lang}/products/${p.id}`}>{lang==='vi'?'Xem sản phẩm':'Product details'}</Link></Button><Button asChild variant="ghost" size="icon"><Link to={`/${lang}/contact`} aria-label={lang==='vi'?`Trao đổi về ${p.vi}`:`Enquire about ${p.en}`} title={lang==='vi'?'Trao đổi nhu cầu':'Discuss requirements'}><ArrowUpRight size={20}/></Link></Button></div></div></article>;})}</div></div></section>;}
+const featured = [
+  {
+    id: 'passion-fruit',
+    en: 'Passion fruit',
+    vi: 'Chanh dây',
+    noteEn: 'Fresh · Purée · Concentrate',
+    noteVi: 'Tươi · Purée · Cô đặc',
+  },
+  {
+    id: 'dragon-fruit',
+    en: 'Dragon fruit',
+    vi: 'Thanh long',
+    noteEn: 'White & red flesh',
+    noteVi: 'Ruột trắng & ruột đỏ',
+  },
+  {
+    id: 'bananas',
+    en: 'Bananas',
+    vi: 'Chuối',
+    noteEn: 'Tropical agricultural origins',
+    noteVi: 'Nguồn nguyên liệu nhiệt đới',
+  },
+];
+export function FeaturedProducts({ lang }) {
+  return (
+    <section className="featured-products section-pad" id="featured-products">
+      <div className="content-width">
+        <div className="featured-heading">
+          <div>
+            <p className="eyebrow">
+              {lang === 'vi' ? 'TỪ VÙNG NGUYÊN LIỆU' : 'FROM THE ORIGIN'}
+            </p>
+            <h2>
+              {lang === 'vi'
+                ? 'Nông sản. Khởi đầu kết nối.'
+                : 'Produce. Where connection begins.'}
+            </h2>
+          </div>
+          <Button asChild variant="text" size="text">
+            <Link to="/trade-solutions">
+              {lang === 'vi' ? 'Tất cả sản phẩm' : 'All products'}
+              <ArrowUpRight />
+            </Link>
+          </Button>
+        </div>
+        <div className="featured-grid">
+          {featured.map((p, i) => {
+            const photo = productPhotos[p.id];
+            return (
+              <article
+                key={p.id}
+                className={`featured-product motion-product featured-${p.id}`}
+              >
+                <Link
+                  to={`/products/${p.id}`}
+                  className="featured-image"
+                  aria-label={p[lang]}
+                >
+                  <img
+                    src={photo.src}
+                    alt={lang === 'vi' ? photo.altVi : photo.altEn}
+                    width={photo.width}
+                    height={photo.height}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  {p.id === 'passion-fruit' && (
+                    <span className="qc-reveal" aria-hidden="true">
+                      <img
+                        src={photos.fruitWeighing}
+                        alt=""
+                        width={960}
+                        height={1280}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <span className="qc-overlay">
+                        {lang === 'vi'
+                          ? 'Kiểm tra chất lượng · Mẫu cân: 107 g'
+                          : 'Quality check | Sample weighed: 107 g'}
+                      </span>
+                    </span>
+                  )}
+                  <span className="featured-index">
+                    0{i + 1} / HMV SELECTION
+                  </span>
+                  <span className="product-reveal">
+                    {lang === 'vi' ? 'Khám phá sản phẩm' : 'Explore product'}
+                    <ArrowUpRight size={18} />
+                  </span>
+                </Link>
+                <div className="motion-product-info">
+                  <p className="product-category">
+                    {lang === 'vi' ? 'NÔNG SẢN NHIỆT ĐỚI' : 'TROPICAL PRODUCE'}
+                  </p>
+                  <div className="featured-caption">
+                    <div>
+                      <h3>{p[lang]}</h3>
+                      <p>{lang === 'vi' ? p.noteVi : p.noteEn}</p>
+                    </div>
+                    <ArrowUpRight size={23} />
+                  </div>
+                  <div className="product-card-actions">
+                    <Button asChild variant="outline" size="sm">
+                      <Link to={`/products/${p.id}`}>
+                        {lang === 'vi' ? 'Xem sản phẩm' : 'Product details'}
+                      </Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="icon">
+                      <Link
+                        to="/contact"
+                        aria-label={
+                          lang === 'vi'
+                            ? `Trao đổi về ${p.vi}`
+                            : `Enquire about ${p.en}`
+                        }
+                        title={
+                          lang === 'vi'
+                            ? 'Trao đổi nhu cầu'
+                            : 'Discuss requirements'
+                        }
+                      >
+                        <ArrowUpRight size={20} />
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}

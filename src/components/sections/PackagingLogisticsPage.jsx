@@ -91,9 +91,15 @@ export function PackagingLogisticsPage({ lang = 'en' }) {
             <div>
               <div className="pack-badge badge-green">
                 <Boxes size={13} />
-                <span>{vi ? 'TIÊU CHUẨN ĐÓNG KIỆN' : 'PACKAGING & PALLETIZATION'}</span>
+                <span>
+                  {vi ? 'TIÊU CHUẨN ĐÓNG KIỆN' : 'PACKAGING & PALLETIZATION'}
+                </span>
               </div>
-              <h2>{vi ? 'Quy Chuẩn Đóng Gói Bảo Vệ Đa Tầng' : 'Multi-Tiered Protective Packaging Standards'}</h2>
+              <h2>
+                {vi
+                  ? 'Quy Chuẩn Đóng Gói Bảo Vệ Đa Tầng'
+                  : 'Multi-Tiered Protective Packaging Standards'}
+              </h2>
             </div>
             <p>
               {vi
@@ -105,7 +111,10 @@ export function PackagingLogisticsPage({ lang = 'en' }) {
           <div className="pack-grid">
             {standards.map((item, idx) => (
               <article key={item.id} className="pack-card">
-                <div className="pack-card-media" onClick={() => setSelectedImage(item.image)}>
+                <div
+                  className="pack-card-media"
+                  onClick={() => setSelectedImage(item.image)}
+                >
                   <img
                     src={item.image}
                     alt={vi ? item.titleVi : item.titleEn}
@@ -126,7 +135,9 @@ export function PackagingLogisticsPage({ lang = 'en' }) {
                 </div>
                 <div className="pack-card-body">
                   <div className="pack-card-meta">
-                    <span className="pack-card-badge">{vi ? item.badgeVi : item.badgeEn}</span>
+                    <span className="pack-card-badge">
+                      {vi ? item.badgeVi : item.badgeEn}
+                    </span>
                     <span className="pack-card-num">0{idx + 1}</span>
                   </div>
                   <h3>{vi ? item.titleVi : item.titleEn}</h3>
@@ -145,9 +156,17 @@ export function PackagingLogisticsPage({ lang = 'en' }) {
             <div>
               <div className="pack-badge badge-navy">
                 <Truck size={13} />
-                <span>{vi ? 'VẬN HÀNH LOGISTICS THỰC ĐỊA' : 'ON-SITE FREIGHT EXECUTION'}</span>
+                <span>
+                  {vi
+                    ? 'VẬN HÀNH LOGISTICS THỰC ĐỊA'
+                    : 'ON-SITE FREIGHT EXECUTION'}
+                </span>
               </div>
-              <h2>{vi ? 'Quy Trình Xếp Dỡ & Vận Chuyển Container' : 'Cross-Dock Loading & Container Drayage'}</h2>
+              <h2>
+                {vi
+                  ? 'Quy Trình Xếp Dỡ & Vận Chuyển Container'
+                  : 'Cross-Dock Loading & Container Drayage'}
+              </h2>
             </div>
             <p>
               {vi
@@ -158,8 +177,14 @@ export function PackagingLogisticsPage({ lang = 'en' }) {
 
           <div className="transport-stages-list">
             {transportStages.map((stage, idx) => (
-              <div key={stage.id} className={`transport-stage-row ${idx % 2 === 1 ? 'row-reversed' : ''}`}>
-                <div className="stage-media" onClick={() => setSelectedImage(stage.image)}>
+              <div
+                key={stage.id}
+                className={`transport-stage-row ${idx % 2 === 1 ? 'row-reversed' : ''}`}
+              >
+                <div
+                  className="stage-media"
+                  onClick={() => setSelectedImage(stage.image)}
+                >
                   <img
                     src={stage.image}
                     alt={vi ? stage.titleVi : stage.titleEn}
@@ -173,9 +198,13 @@ export function PackagingLogisticsPage({ lang = 'en' }) {
                 </div>
 
                 <div className="stage-content">
-                  <span className="stage-step-tag">{vi ? stage.stageVi : stage.stageEn}</span>
+                  <span className="stage-step-tag">
+                    {vi ? stage.stageVi : stage.stageEn}
+                  </span>
                   <h3>{vi ? stage.titleVi : stage.titleEn}</h3>
-                  <p className="stage-desc">{vi ? stage.descVi : stage.descEn}</p>
+                  <p className="stage-desc">
+                    {vi ? stage.descVi : stage.descEn}
+                  </p>
 
                   <ul className="stage-checklist">
                     <li>
@@ -217,7 +246,11 @@ export function PackagingLogisticsPage({ lang = 'en' }) {
             <div className="assurance-left">
               <div className="pack-badge badge-cyan">
                 <ShieldCheck size={13} />
-                <span>{vi ? 'CAM KẾT CHẤT LƯỢNG HÀNG ĐẦU' : 'QUALITY ASSURANCE GUARANTEE'}</span>
+                <span>
+                  {vi
+                    ? 'CAM KẾT CHẤT LƯỢNG HÀNG ĐẦU'
+                    : 'QUALITY ASSURANCE GUARANTEE'}
+                </span>
               </div>
               <h2>
                 {vi
@@ -231,14 +264,18 @@ export function PackagingLogisticsPage({ lang = 'en' }) {
               </p>
               <div className="assurance-actions">
                 <Button asChild variant="brand" size="lg">
-                  <Link to={`/${lang}/contact`}>
-                    {vi ? 'Yêu Cầu Báo Giá & Quy Cách Vận Chuyển' : 'Request Freight & Packaging Quotation'}
+                  <Link to="/contact">
+                    {vi
+                      ? 'Yêu Cầu Báo Giá & Quy Cách Vận Chuyển'
+                      : 'Request Freight & Packaging Quotation'}
                     <ArrowRight size={16} />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg">
-                  <Link to={`/${lang}/supply-chain`}>
-                    {vi ? 'Xem Toàn Bộ Chuỗi Cung Ứng' : 'Explore Complete Supply Chain'}
+                  <Link to="/supply-chain">
+                    {vi
+                      ? 'Xem Toàn Bộ Chuỗi Cung Ứng'
+                      : 'Explore Complete Supply Chain'}
                     <ArrowUpRight size={16} />
                   </Link>
                 </Button>
@@ -249,7 +286,11 @@ export function PackagingLogisticsPage({ lang = 'en' }) {
               <div className="assurance-feature-box">
                 <ThermometerSnowflake size={26} className="feature-icon" />
                 <div>
-                  <h4>{vi ? 'Giám Sát Chuỗi Lạnh Liên Tục' : 'Telemetry Cold Chain Monitoring'}</h4>
+                  <h4>
+                    {vi
+                      ? 'Giám Sát Chuỗi Lạnh Liên Tục'
+                      : 'Telemetry Cold Chain Monitoring'}
+                  </h4>
                   <p>
                     {vi
                       ? 'Thiết bị ghi nhận nhiệt độ và độ ẩm kỹ thuật số (Datalogger) kèm trong từng container theo dõi hải trình 24/7.'
@@ -261,7 +302,11 @@ export function PackagingLogisticsPage({ lang = 'en' }) {
               <div className="assurance-feature-box">
                 <Container size={26} className="feature-icon" />
                 <div>
-                  <h4>{vi ? 'Đội Xe Container Chuyên Tuyến' : 'Dedicated Ocean Container Fleet'}</h4>
+                  <h4>
+                    {vi
+                      ? 'Đội Xe Container Chuyên Tuyến'
+                      : 'Dedicated Ocean Container Fleet'}
+                  </h4>
                   <p>
                     {vi
                       ? 'Đội xe kéo container 45ft/40ft đạt chuẩn quốc tế, xuất phát thẳng từ kho đến cụm cảng nước sâu không qua trung gian.'
@@ -273,7 +318,11 @@ export function PackagingLogisticsPage({ lang = 'en' }) {
               <div className="assurance-feature-box">
                 <Layers size={26} className="feature-icon" />
                 <div>
-                  <h4>{vi ? 'Đóng Gói Tùy Biến Theo Yêu Cầu (Custom OEM)' : 'Custom OEM & Private Label Packaging'}</h4>
+                  <h4>
+                    {vi
+                      ? 'Đóng Gói Tùy Biến Theo Yêu Cầu (Custom OEM)'
+                      : 'Custom OEM & Private Label Packaging'}
+                  </h4>
                   <p>
                     {vi
                       ? 'Linh hoạt quy cách thùng carton in thương hiệu riêng, đóng túi hút chân không, thùng xốp hoặc phuy 200L.'
@@ -288,8 +337,13 @@ export function PackagingLogisticsPage({ lang = 'en' }) {
 
       {/* FULLSCREEN PHOTO PREVIEW MODAL */}
       {selectedImage && (
-        <div className="pack-lightbox" onClick={() => setSelectedImage(null)} role="dialog" aria-modal="true">
-          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="pack-lightbox"
+          onClick={() => setSelectedImage(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="lightbox-content" onClick={e => e.stopPropagation()}>
             <button
               type="button"
               className="lightbox-close"

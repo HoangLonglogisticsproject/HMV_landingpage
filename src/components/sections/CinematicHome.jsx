@@ -23,7 +23,7 @@ export function CinematicHero({ lang }) {
           <p className="day-sub">{vi ? 'Nông sản cao cấp. Chuỗi cung ứng tích hợp liền mạch.' : 'Premium Agri-Commodities. Seamless Integrated Supply Chain.'}</p>
           <div className="day-actions">
             <Button type="button" size="lg" className="day-cta" onClick={go}>{vi ? 'Khám phá hệ sinh thái' : 'Explore Our Ecosystem'}<ArrowDown size={18} /></Button>
-            <Link className="text-link" to={`/${lang}/contact`}>{vi ? 'Yêu cầu báo giá' : 'Request a quote'}<ArrowUpRight size={18} /></Link>
+            <Link className="text-link" to="/contact">{vi ? 'Yêu cầu báo giá' : 'Request a quote'}<ArrowUpRight size={18} /></Link>
           </div>
         </div>
         <div className="day-visual">
@@ -63,7 +63,7 @@ export function ValueJourney({ lang }) {
               </li>
             ))}
           </ol>
-          <Link className="text-link" to={`/${lang}/supply-chain`}>{lang === 'vi' ? 'Xem toàn bộ chuỗi cung ứng' : 'See the full supply chain'}<ArrowUpRight size={18} /></Link>
+          <Link className="text-link" to="/supply-chain">{lang === 'vi' ? 'Xem toàn bộ chuỗi cung ứng' : 'See the full supply chain'}<ArrowUpRight size={18} /></Link>
         </div>
         <div className="journey-media">
           {steps.map((s, i) => (
@@ -90,13 +90,13 @@ export function CoreCommodities({ lang }) {
       <div className="content-width">
         <div className="section-heading">
           <div><p className="eyebrow">{lang === 'vi' ? 'NÔNG SẢN CHỦ LỰC' : 'CORE COMMODITIES'}</p><h2>{lang === 'vi' ? 'Ít hơn. Nhưng đúng.' : 'Fewer products. Done right.'}</h2></div>
-          <Link className="text-link" to={`/${lang}/trade-solutions`}>{lang === 'vi' ? 'Tất cả sản phẩm' : 'All products'}<ArrowUpRight size={18} /></Link>
+          <Link className="text-link" to="/trade-solutions">{lang === 'vi' ? 'Tất cả sản phẩm' : 'All products'}<ArrowUpRight size={18} /></Link>
         </div>
         <div className="commodity-grid">
           {commodities.map((c) => {
             const p = productPhotos[c.id];
             return (
-              <Link key={c.id} to={`/${lang}/products/${c.id}`} className={`commodity ${c.size}`}>
+              <Link key={c.id} to={`/products/${c.id}`} className={`commodity ${c.size}`}>
                 <img src={p.src} alt={lang === 'vi' ? p.altVi : p.altEn} width={p.width} height={p.height} loading="lazy" decoding="async" />
                 <span className="commodity-label"><strong>{c[lang]}</strong><em>{lang === 'vi' ? 'Xem quy cách' : 'View Specs'}<ArrowUpRight size={16} /></em></span>
               </Link>

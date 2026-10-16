@@ -57,7 +57,7 @@ export function CompanyStory({ lang, full = false }) {
 
             {!full && (
               <Button variant="text" size="text" asChild>
-                <Link to={`/${lang}/about`}>
+                <Link to="/about">
                   {t.more}
                   <ArrowUpRight />
                 </Link>
@@ -241,7 +241,7 @@ export function CompanyStory({ lang, full = false }) {
                   </p>
                 </div>
                 <Button asChild size="lg" variant="brand">
-                  <Link to={`/${lang}/contact`}>
+                  <Link to="/contact">
                     {t.contact}
                     <ArrowUpRight size={16} />
                   </Link>

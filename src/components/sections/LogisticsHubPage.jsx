@@ -20,7 +20,7 @@ import {
   PhoneCall,
   Mail,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageMeta } from '@/components/common/PageMeta';
@@ -28,7 +28,8 @@ import { logisticsServicesData } from '@/data/logisticsServices';
 
 export function LogisticsHubPage({ lang = 'en' }) {
   const vi = lang === 'vi';
-  const { dangerousGoods, crossBorder, localAgency, overseaAgency } = logisticsServicesData;
+  const { dangerousGoods, crossBorder, localAgency, overseaAgency } =
+    logisticsServicesData;
   const [lightboxImg, setLightboxImg] = useState(null);
   const location = useLocation();
 
@@ -75,12 +76,16 @@ export function LogisticsHubPage({ lang = 'en' }) {
             {vi ? (
               <>
                 Dịch Vụ Logistics Chuyên Biệt, <br />
-                <span className="log-title-gradient">Hàng Nguy Hiểm & Vận Tải Quốc Tế</span>
+                <span className="log-title-gradient">
+                  Hàng Nguy Hiểm & Vận Tải Quốc Tế
+                </span>
               </>
             ) : (
               <>
                 Specialized Logistics Solutions, <br />
-                <span className="log-title-gradient">Dangerous Goods & Global Freight</span>
+                <span className="log-title-gradient">
+                  Dangerous Goods & Global Freight
+                </span>
               </>
             )}
           </h1>
@@ -94,23 +99,33 @@ export function LogisticsHubPage({ lang = 'en' }) {
           <div className="log-quick-nav">
             <a href="#dangerous-goods" className="log-nav-pill">
               <Flame size={14} />
-              <span>{vi ? 'Hàng Nguy Hiểm & Hóa Chất' : 'Dangerous Goods'}</span>
+              <span>
+                {vi ? 'Hàng Nguy Hiểm & Hóa Chất' : 'Dangerous Goods'}
+              </span>
             </a>
             <a href="#cross-border" className="log-nav-pill">
               <Truck size={14} />
-              <span>{vi ? 'Xuyên Biên Giới VN - Campuchia' : 'Vietnam - Cambodia'}</span>
+              <span>
+                {vi ? 'Xuyên Biên Giới VN - Campuchia' : 'Vietnam - Cambodia'}
+              </span>
             </a>
             <a href="#local-agency" className="log-nav-pill">
               <Building2 size={14} />
-              <span>{vi ? 'Đại Lý Nội Địa Việt Nam' : 'Local Agency Vietnam'}</span>
+              <span>
+                {vi ? 'Đại Lý Nội Địa Việt Nam' : 'Local Agency Vietnam'}
+              </span>
             </a>
             <a href="#oversea-agency" className="log-nav-pill">
               <Globe2 size={14} />
-              <span>{vi ? 'Mạng Lưới Toàn Cầu JC Trans' : 'JC Trans Membership'}</span>
+              <span>
+                {vi ? 'Mạng Lưới Toàn Cầu JC Trans' : 'JC Trans Membership'}
+              </span>
             </a>
-            <Link to={`/${lang}/packaging-logistics`} className="log-nav-pill highlight">
+            <Link to="/packaging-logistics" className="log-nav-pill highlight">
               <Boxes size={14} />
-              <span>{vi ? 'Quy Cách Đóng Gói Thực Tế' : 'Packaging Protocols'}</span>
+              <span>
+                {vi ? 'Quy Cách Đóng Gói Thực Tế' : 'Packaging Protocols'}
+              </span>
             </Link>
           </div>
         </div>
@@ -125,18 +140,31 @@ export function LogisticsHubPage({ lang = 'en' }) {
               <span>{vi ? 'MẢNG CHUYÊN MÔN CAO' : 'ENGINEERED SPECIALTY'}</span>
             </div>
             <h2>{vi ? dangerousGoods.titleVi : dangerousGoods.titleEn}</h2>
-            <p className="log-section-subtitle">{vi ? dangerousGoods.subtitleVi : dangerousGoods.subtitleEn}</p>
-            <p className="log-section-lead">{vi ? dangerousGoods.leadVi : dangerousGoods.leadEn}</p>
+            <p className="log-section-subtitle">
+              {vi ? dangerousGoods.subtitleVi : dangerousGoods.subtitleEn}
+            </p>
+            <p className="log-section-lead">
+              {vi ? dangerousGoods.leadVi : dangerousGoods.leadEn}
+            </p>
           </div>
 
           {/* 4 SUB-SERVICES GRID / ACCORDION */}
           <div className="dg-subservices-grid">
             {dangerousGoods.subServices.map((sub, idx) => {
               const icons = [
-                <div key="0" className="dg-icon-box airsea"><Plane size={18} /><Ship size={18} /></div>,
-                <div key="1" className="dg-icon-box special"><Compass size={20} /></div>,
-                <div key="2" className="dg-icon-box general"><Boxes size={20} /></div>,
-                <div key="3" className="dg-icon-box factory"><Factory size={20} /></div>
+                <div key="0" className="dg-icon-box airsea">
+                  <Plane size={18} />
+                  <Ship size={18} />
+                </div>,
+                <div key="1" className="dg-icon-box special">
+                  <Compass size={20} />
+                </div>,
+                <div key="2" className="dg-icon-box general">
+                  <Boxes size={20} />
+                </div>,
+                <div key="3" className="dg-icon-box factory">
+                  <Factory size={20} />
+                </div>,
               ];
               return (
                 <div key={sub.id} id={sub.slug} className="dg-card">
@@ -152,12 +180,14 @@ export function LogisticsHubPage({ lang = 'en' }) {
 
                   {/* Highlights checklist */}
                   <ul className="dg-highlights">
-                    {(vi ? sub.highlightsVi : sub.highlightsEn).map((hl, hIdx) => (
-                      <li key={hIdx}>
-                        <CheckCircle2 size={15} className="dg-check" />
-                        <span>{hl}</span>
-                      </li>
-                    ))}
+                    {(vi ? sub.highlightsVi : sub.highlightsEn).map(
+                      (hl, hIdx) => (
+                        <li key={hIdx}>
+                          <CheckCircle2 size={15} className="dg-check" />
+                          <span>{hl}</span>
+                        </li>
+                      ),
+                    )}
                   </ul>
 
                   {/* Photo Gallery for this subservice */}
@@ -193,36 +223,56 @@ export function LogisticsHubPage({ lang = 'en' }) {
               <span>{vi ? 'LIÊN VẬN ĐƯỜNG BỘ' : 'CROSS-BORDER CORRIDOR'}</span>
             </div>
             <h2>{vi ? crossBorder.titleVi : crossBorder.titleEn}</h2>
-            <p className="log-section-subtitle">{vi ? crossBorder.subtitleVi : crossBorder.subtitleEn}</p>
-            <p className="log-section-lead">{vi ? crossBorder.leadVi : crossBorder.leadEn}</p>
+            <p className="log-section-subtitle">
+              {vi ? crossBorder.subtitleVi : crossBorder.subtitleEn}
+            </p>
+            <p className="log-section-lead">
+              {vi ? crossBorder.leadVi : crossBorder.leadEn}
+            </p>
           </div>
 
           <div className="cb-container-layout">
             <div className="cb-features-col">
               <div className="cb-feature-card">
-                <h3>{vi ? 'Ưu Thế Vượt Trội Của Tuyến Vận Tải' : 'Core Corridor Advantages'}</h3>
+                <h3>
+                  {vi
+                    ? 'Ưu Thế Vượt Trội Của Tuyến Vận Tải'
+                    : 'Core Corridor Advantages'}
+                </h3>
                 <ul className="cb-feature-list">
-                  {(vi ? crossBorder.featuresVi : crossBorder.featuresEn).map((feat, fIdx) => (
-                    <li key={fIdx}>
-                      <div className="cb-num">{fIdx + 1}</div>
-                      <span>{feat}</span>
-                    </li>
-                  ))}
+                  {(vi ? crossBorder.featuresVi : crossBorder.featuresEn).map(
+                    (feat, fIdx) => (
+                      <li key={fIdx}>
+                        <div className="cb-num">{fIdx + 1}</div>
+                        <span>{feat}</span>
+                      </li>
+                    ),
+                  )}
                 </ul>
               </div>
 
               <div className="cb-route-card">
-                <h4>{vi ? 'Cửa Khẩu Quốc Tế Trọng Điểm' : 'Key Border Gates Served'}</h4>
+                <h4>
+                  {vi
+                    ? 'Cửa Khẩu Quốc Tế Trọng Điểm'
+                    : 'Key Border Gates Served'}
+                </h4>
                 <div className="cb-gates-badges">
                   <span className="gate-tag">Mộc Bài ⇄ Bavet (Tây Ninh)</span>
                   <span className="gate-tag">Xa Mát ⇄ Trapeang Phlong</span>
-                  <span className="gate-tag">Hoa Lư ⇄ Trapeang Sre (Bình Phước)</span>
-                  <span className="gate-tag">Bình Hiệp ⇄ Prey Voa (Long An)</span>
+                  <span className="gate-tag">
+                    Hoa Lư ⇄ Trapeang Sre (Bình Phước)
+                  </span>
+                  <span className="gate-tag">
+                    Bình Hiệp ⇄ Prey Voa (Long An)
+                  </span>
                 </div>
                 <div className="cb-cta-wrap">
                   <Button asChild variant="brand" size="sm">
-                    <Link to={`/${lang}/contact?service=cross-border`}>
-                      {vi ? 'Yêu Cầu Báo Giá Tuyến VN - Cam' : 'Inquire Vietnam - Cambodia Freight'}
+                    <Link to="/contact?service=cross-border">
+                      {vi
+                        ? 'Yêu Cầu Báo Giá Tuyến VN - Cam'
+                        : 'Inquire Vietnam - Cambodia Freight'}
                       <ArrowRight size={14} style={{ marginLeft: 6 }} />
                     </Link>
                   </Button>
@@ -264,15 +314,24 @@ export function LogisticsHubPage({ lang = 'en' }) {
               <div className="agency-box-header">
                 <div className="log-sub-badge navy">
                   <Building2 size={13} />
-                  <span>{vi ? 'ĐẠI LÝ NỘI ĐỊA VIỆT NAM' : 'LOCAL HUB HANDLING'}</span>
+                  <span>
+                    {vi ? 'ĐẠI LÝ NỘI ĐỊA VIỆT NAM' : 'LOCAL HUB HANDLING'}
+                  </span>
                 </div>
                 <h2>{vi ? localAgency.titleVi : localAgency.titleEn}</h2>
-                <p className="agency-subtitle">{vi ? localAgency.subtitleVi : localAgency.subtitleEn}</p>
-                <p className="agency-lead">{vi ? localAgency.leadVi : localAgency.leadEn}</p>
+                <p className="agency-subtitle">
+                  {vi ? localAgency.subtitleVi : localAgency.subtitleEn}
+                </p>
+                <p className="agency-lead">
+                  {vi ? localAgency.leadVi : localAgency.leadEn}
+                </p>
               </div>
 
               <div className="agency-list">
-                {(vi ? localAgency.capabilitiesVi : localAgency.capabilitiesEn).map((cap, capIdx) => (
+                {(vi
+                  ? localAgency.capabilitiesVi
+                  : localAgency.capabilitiesEn
+                ).map((cap, capIdx) => (
                   <div key={capIdx} className="agency-item">
                     <CheckCircle2 size={17} className="agency-check" />
                     <span>{cap}</span>
@@ -281,7 +340,11 @@ export function LogisticsHubPage({ lang = 'en' }) {
               </div>
 
               <div className="agency-port-tags">
-                <strong>{vi ? 'Bao phủ các cảng biển & ICD:' : 'Covering key ports & ICDs:'}</strong>
+                <strong>
+                  {vi
+                    ? 'Bao phủ các cảng biển & ICD:'
+                    : 'Covering key ports & ICDs:'}
+                </strong>
                 <div className="port-chips">
                   <span>Hải Phòng (HPH)</span>
                   <span>Đà Nẵng (DAD)</span>
@@ -298,19 +361,32 @@ export function LogisticsHubPage({ lang = 'en' }) {
               <div className="agency-box-header">
                 <div className="log-sub-badge cyan">
                   <Award size={13} />
-                  <span>{vi ? 'MẠNG LƯỚI QUỐC TẾ CHÍNH THỨC' : 'GLOBAL ACCREDITATION'}</span>
+                  <span>
+                    {vi
+                      ? 'MẠNG LƯỚI QUỐC TẾ CHÍNH THỨC'
+                      : 'GLOBAL ACCREDITATION'}
+                  </span>
                 </div>
                 <h2>{vi ? overseaAgency.titleVi : overseaAgency.titleEn}</h2>
                 <div className="jctrans-proof-badge">
                   <ShieldCheck size={18} />
-                  <span>JC TRANS VERIFIED MEMBER · GLOBAL CREDIT PROTECTION (GCP)</span>
+                  <span>
+                    JC TRANS VERIFIED MEMBER · GLOBAL CREDIT PROTECTION (GCP)
+                  </span>
                 </div>
-                <p className="agency-subtitle">{vi ? overseaAgency.subtitleVi : overseaAgency.subtitleEn}</p>
-                <p className="agency-lead">{vi ? overseaAgency.leadVi : overseaAgency.leadEn}</p>
+                <p className="agency-subtitle">
+                  {vi ? overseaAgency.subtitleVi : overseaAgency.subtitleEn}
+                </p>
+                <p className="agency-lead">
+                  {vi ? overseaAgency.leadVi : overseaAgency.leadEn}
+                </p>
               </div>
 
               <div className="agency-list">
-                {(vi ? overseaAgency.advantagesVi : overseaAgency.advantagesEn).map((adv, aIdx) => (
+                {(vi
+                  ? overseaAgency.advantagesVi
+                  : overseaAgency.advantagesEn
+                ).map((adv, aIdx) => (
                   <div key={aIdx} className="agency-item">
                     <CheckCircle2 size={17} className="agency-check jc" />
                     <span>{adv}</span>
@@ -321,15 +397,23 @@ export function LogisticsHubPage({ lang = 'en' }) {
               <div className="jctrans-metric-card">
                 <div className="jc-metric">
                   <strong>10,000+</strong>
-                  <span>{vi ? 'Đại Lý Đối Tác Toàn Cầu' : 'Global Partner Agencies'}</span>
+                  <span>
+                    {vi ? 'Đại Lý Đối Tác Toàn Cầu' : 'Global Partner Agencies'}
+                  </span>
                 </div>
                 <div className="jc-metric">
                   <strong>160+</strong>
-                  <span>{vi ? 'Quốc Gia & Lãnh Thổ' : 'Countries & Regions'}</span>
+                  <span>
+                    {vi ? 'Quốc Gia & Lãnh Thổ' : 'Countries & Regions'}
+                  </span>
                 </div>
                 <div className="jc-metric">
                   <strong>GCP</strong>
-                  <span>{vi ? 'Bảo Hiểm Tín Dụng Quốc Tế' : 'Global Credit Protected'}</span>
+                  <span>
+                    {vi
+                      ? 'Bảo Hiểm Tín Dụng Quốc Tế'
+                      : 'Global Credit Protected'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -355,8 +439,10 @@ export function LogisticsHubPage({ lang = 'en' }) {
             </div>
             <div className="log-cta-actions">
               <Button asChild size="lg" variant="brand">
-                <Link to={`/${lang}/contact?service=logistics`}>
-                  {vi ? 'Liên Hệ Chuyên Viên Logistics' : 'Contact Logistics Desk'}
+                <Link to="/contact?service=logistics">
+                  {vi
+                    ? 'Liên Hệ Chuyên Viên Logistics'
+                    : 'Contact Logistics Desk'}
                   <ArrowUpRight size={17} style={{ marginLeft: 6 }} />
                 </Link>
               </Button>
@@ -374,7 +460,10 @@ export function LogisticsHubPage({ lang = 'en' }) {
       {/* INTERACTIVE LIGHTBOX MODAL */}
       {lightboxImg && (
         <div className="pack-lightbox" onClick={() => setLightboxImg(null)}>
-          <div className="pack-lightbox-content" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="pack-lightbox-content"
+            onClick={e => e.stopPropagation()}
+          >
             <button
               className="pack-lightbox-close"
               onClick={() => setLightboxImg(null)}
