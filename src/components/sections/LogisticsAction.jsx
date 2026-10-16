@@ -12,7 +12,9 @@ export function LogisticsAction({ lang }) {
       <div className="content-width">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">{vi ? 'LOGISTICS TRONG THỰC TẾ' : 'LOGISTICS IN ACTION'}</p>
+            <p className="eyebrow">
+              {vi ? 'LOGISTICS TRONG THỰC TẾ' : 'LOGISTICS IN ACTION'}
+            </p>
             <h2>{vi ? 'Hiện trường vận hành.' : 'On the ground.'}</h2>
           </div>
           <div>
@@ -22,7 +24,7 @@ export function LogisticsAction({ lang }) {
                 : 'Real moments from ports, container depots, factories and the planning room — where each shipment is inspected, scanned, packed and scheduled.'}
             </p>
             <Button asChild variant="text" size="text">
-              <Link to={`/${lang}/logistics`}>
+              <Link to="/logistics">
                 {vi ? 'Dịch vụ Logistics' : 'Logistics services'}
                 <ArrowUpRight />
               </Link>

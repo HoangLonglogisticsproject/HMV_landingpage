@@ -1,12 +1,5 @@
 import { useEffect } from 'react';
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-  useParams,
-  useLocation,
-} from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Navigation } from '@/components/sections/Navigation';
 import { Activities } from '@/components/sections/Activities';
@@ -29,8 +22,11 @@ import { LogisticsHubPage } from '@/components/sections/LogisticsHubPage';
 import { PageMeta } from '@/components/common/PageMeta';
 import { copy } from '@/data/hmv';
 import { SupportChatWidget } from '@/components/common/SupportChatWidget';
+import { LanguageProvider, useLang } from '@/context/LanguageContext';
+import { LangQueryBootstrap } from '@/components/common/LangQueryBootstrap';
+import { LegacyLocaleRedirect } from '@/components/common/LegacyLocaleRedirect';
 function Site({ page = 'home' }) {
-  const { lang } = useParams();
+  const lang = useLang();
   const { pathname, hash } = useLocation();
   useEffect(() => {
     if (hash) {
@@ -41,7 +37,6 @@ function Site({ page = 'home' }) {
       );
     } else window.scrollTo({ top: 0, behavior: 'instant' });
   }, [pathname, hash]);
-  if (!['en', 'vi'].includes(lang)) return <Navigate to="/en" replace />;
   const t = copy[lang];
   return (
     <>
@@ -83,55 +78,53 @@ function Site({ page = 'home' }) {
 export default function App() {
   return (
     <HelmetProvider>
-      <BrowserRouter>
-        <a className="skip-link" href="#main-content">
-          Skip to content
-        </a>
-        <Routes>
-          <Route path="/" element={<Navigate to="/en" replace />} />
-          <Route path="/:lang" element={<Site />} />
-          {[
-            'about',
-            'supply-chain',
-            'trade-solutions',
-            'activities',
-            'contact',
-            'insights',
-            'packaging-logistics',
-            'logistics',
-          ].map(page => (
-            <Route
-              key={page}
-              path={`/:lang/${page}`}
-              element={<Site page={page} />}
-            />
-          ))}
-          <Route
-            path="/:lang/blog/:slug"
-            element={
-              <>
-                <ArticlePage />
-              </>
-            }
-          />
-          <Route path="/:lang/products/:id" element={<Site page="product" />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <LanguageProvider>
+        <BrowserRouter>
+          <LangQueryBootstrap />
+          <a className="skip-link" href="#main-content">
+            Skip to content
+          </a>
+          <Routes>
+            <Route path="/" element={<Site />} />
+            {[
+              'about',
+              'supply-chain',
+              'trade-solutions',
+              'activities',
+              'contact',
+              'insights',
+              'packaging-logistics',
+              'logistics',
+            ].map(page => (
+              <Route
+                key={page}
+                path={`/${page}`}
+                element={<Site page={page} />}
+              />
+            ))}
+            <Route path="/blog/:slug" element={<ArticlePage />} />
+            <Route path="/products/:id" element={<Site page="product" />} />
+            <Route path="/en/*" element={<LegacyLocaleRedirect />} />
+            <Route path="/vi/*" element={<LegacyLocaleRedirect />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </LanguageProvider>
     </HelmetProvider>
   );
 }
 function NotFound() {
+  const lang = useLang();
   return (
     <>
       <PageMeta
-        lang="en"
+        lang={lang}
         title="Page not found"
         description="Return to HMV Global."
       />
       <div className="not-found">
         <h1>Page not found</h1>
-        <a href="/en">HMV Global →</a>
+        <a href="/">HMV Global →</a>
       </div>
     </>
   );

@@ -93,3 +93,5 @@ export const articles = [
   },
 ];
 export const findArticle = (slug) => articles.find((a) => a.slug.vi === slug || a.slug.en === slug);
+// Canonical slug: URLs are locale-free, so one slug serves both languages.
+export const articleSlug = (a) => a.slug.en;

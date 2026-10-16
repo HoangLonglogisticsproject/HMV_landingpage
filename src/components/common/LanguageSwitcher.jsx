@@ -1,4 +1,3 @@
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Check, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
@@ -6,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { findArticle } from '@/data/articles';
+import { useLanguage } from '@/context/LanguageContext';
 import gbFlag from 'flag-icons/flags/4x3/gb.svg';
 import vnFlag from 'flag-icons/flags/4x3/vn.svg';
 
@@ -27,48 +26,17 @@ export const LANGUAGES = [
   },
 ];
 
-import { getLocalizedPathname, isSamePageAcrossLocales } from '@/lib/localeRouting';
-
-export { getLocalizedPathname, isSamePageAcrossLocales };
-
 export function LanguageSwitcher({ currentLang, onSelect, className = '' }) {
-  const params = useParams();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const { lang, setLang } = useLanguage();
 
-  // Active locale is determined primarily by URL locale (source of truth)
-  const activeCode = currentLang || params.lang || (location.pathname.startsWith('/vi') ? 'vi' : 'en');
+  const activeCode = currentLang || lang;
   const activeLang = LANGUAGES.find((l) => l.code === activeCode) || LANGUAGES[0];
 
+  // URLs are locale-free, so switching language is a pure re-render: no navigation,
+  // no scroll handling, the current URL stays exactly as it is.
   const handleSelectLanguage = (targetCode) => {
-    if (targetCode === activeCode) {
-      if (onSelect) onSelect();
-      return;
-    }
-
-    // Persist preference to localStorage without overriding direct URL on first load
-    try {
-      localStorage.setItem('hmv_lang', targetCode);
-    } catch {
-      // Ignore if localStorage is restricted
-    }
-
-    const currentScrollY = window.scrollY;
-    const targetPath = getLocalizedPathname(targetCode, location.pathname);
-    const isSamePage = isSamePageAcrossLocales(location.pathname, targetPath);
-    const fullTargetUrl = `${targetPath}${location.search}${location.hash}`;
-
-    // Perform smooth client-side routing with scroll preservation intent
-    navigate(fullTargetUrl, {
-      state: {
-        isLocaleSwitch: isSamePage,
-        scrollY: isSamePage ? currentScrollY : 0,
-      },
-    });
-
-    if (onSelect) {
-      onSelect();
-    }
+    if (targetCode !== activeCode) setLang(targetCode);
+    if (onSelect) onSelect();
   };
 
   return (

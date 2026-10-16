@@ -1,5 +1,15 @@
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Sprout, Wind, Truck, ShieldCheck, Snowflake, FileCheck, Anchor, CheckCircle2 } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Sprout,
+  Wind,
+  Truck,
+  ShieldCheck,
+  Snowflake,
+  FileCheck,
+  Anchor,
+  CheckCircle2,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { products, photos } from '@/data/hmv';
 import { productPhotos } from '@/data/productPhotos';
@@ -56,8 +66,13 @@ export function SupplyChainPillars({ lang }) {
   return (
     <div className="supply-pillars-wrapper">
       {/* Quick jump navigation */}
-      <nav className="content-width pillar-anchors-bar" aria-label={vi ? 'Điều hướng năng lực' : 'Capabilities navigation'}>
-        <span className="pillar-anchors-label">{vi ? 'TRỌNG TÂM CHIẾN LƯỢC:' : 'STRATEGIC FOCUS:'}</span>
+      <nav
+        className="content-width pillar-anchors-bar"
+        aria-label={vi ? 'Điều hướng năng lực' : 'Capabilities navigation'}
+      >
+        <span className="pillar-anchors-label">
+          {vi ? 'TRỌNG TÂM CHIẾN LƯỢC:' : 'STRATEGIC FOCUS:'}
+        </span>
         <div className="pillar-anchor-links">
           <a href="#commodities" className="pillar-pill pillar-pill-green">
             <Sprout size={14} />
@@ -67,7 +82,10 @@ export function SupplyChainPillars({ lang }) {
             <Wind size={14} />
             <span>{vi ? 'Dự án Điện gió ' : 'Wind Energy '}</span>
           </a>
-          <a href="#logistics-capacity" className="pillar-pill pillar-pill-navy">
+          <a
+            href="#logistics-capacity"
+            className="pillar-pill pillar-pill-navy"
+          >
             <Truck size={14} />
             <span>{vi ? 'Vận hành Logistics ' : 'Logistics Backbone '}</span>
           </a>
@@ -78,14 +96,25 @@ export function SupplyChainPillars({ lang }) {
       </nav>
 
       {/* PILLAR 1: FARMING & EXPORT COMMODITIES (MAIN) */}
-      <section id="commodities" className="section-pad pillar-block pillar-farming">
+      <section
+        id="commodities"
+        className="section-pad pillar-block pillar-farming"
+      >
         <div className="content-width">
           <div className="pillar-header">
             <div className="pillar-badge badge-green">
               <Sprout size={13} />
-              <span>{vi ? 'MẢNG KINH DOANH CHÍNH · NÔNG NGHIỆP' : 'CORE BUSINESS PILLAR · AGRICULTURE'}</span>
+              <span>
+                {vi
+                  ? 'MẢNG KINH DOANH CHÍNH · NÔNG NGHIỆP'
+                  : 'CORE BUSINESS PILLAR · AGRICULTURE'}
+              </span>
             </div>
-            <h2>{vi ? 'Năng Lực Vùng Trồng & Nông Sản Xuất Khẩu' : 'Farming Origins & Export Agri-Commodities'}</h2>
+            <h2>
+              {vi
+                ? 'Năng Lực Vùng Trồng & Nông Sản Xuất Khẩu'
+                : 'Farming Origins & Export Agri-Commodities'}
+            </h2>
             <p className="pillar-desc">
               {vi
                 ? 'HMV Global liên kết chặt chẽ với mạng lưới hợp tác xã và nhà vườn chuyên canh tại Tây Nguyên, miền Trung và Đồng bằng sông Cửu Long. Chúng tôi chủ động kiểm soát quy trình canh tác, dư lượng MRLs và chứng nhận GlobalGAP để cung ứng các mặt hàng nông sản cao cấp đáp ứng tiêu chuẩn khắt khe của thị trường châu Âu và Bắc Mỹ.'
@@ -94,7 +123,7 @@ export function SupplyChainPillars({ lang }) {
           </div>
 
           <div className="pillar-products-grid">
-            {products.map((p) => {
+            {products.map(p => {
               const photo = productPhotos[p.id];
               return (
                 <article key={p.id} className="pillar-product-card">
@@ -122,8 +151,13 @@ export function SupplyChainPillars({ lang }) {
                         </li>
                       ))}
                     </ul>
-                    <Button asChild variant="outline" size="sm" className="pillar-card-cta">
-                      <Link to={`/${lang}/products/${p.id}`}>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="pillar-card-cta"
+                    >
+                      <Link to={`/products/${p.id}`}>
                         {vi ? 'Chi tiết quy cách' : 'Specifications'}
                         <ArrowUpRight size={14} />
                       </Link>
@@ -137,15 +171,26 @@ export function SupplyChainPillars({ lang }) {
       </section>
 
       {/* PILLAR 2: WIND ENERGY & INFRASTRUCTURE (MAIN) */}
-      <section id="wind-energy" className="section-pad pillar-block pillar-wind">
+      <section
+        id="wind-energy"
+        className="section-pad pillar-block pillar-wind"
+      >
         <div className="content-width">
           <div className="pillar-wind-grid">
             <div className="pillar-wind-content">
               <div className="pillar-badge badge-cyan">
                 <Wind size={13} />
-                <span>{vi ? 'MẢNG KINH DOANH CHÍNH · NĂNG LƯỢNG TÁI TẠO' : 'CORE BUSINESS PILLAR · RENEWABLE ENERGY'}</span>
+                <span>
+                  {vi
+                    ? 'MẢNG KINH DOANH CHÍNH · NĂNG LƯỢNG TÁI TẠO'
+                    : 'CORE BUSINESS PILLAR · RENEWABLE ENERGY'}
+                </span>
               </div>
-              <h2>{vi ? 'Dự Án Điện Gió & Chuyển Đổi Năng Lượng Xanh' : 'Wind Energy Projects & Renewable Horizons'}</h2>
+              <h2>
+                {vi
+                  ? 'Dự Án Điện Gió & Chuyển Đổi Năng Lượng Xanh'
+                  : 'Wind Energy Projects & Renewable Horizons'}
+              </h2>
               <p className="pillar-desc">
                 {vi
                   ? 'Điện gió là trọng tâm chiến lược dài hạn trong hệ sinh thái mở rộng của HMV Global. Chúng tôi tham gia điều phối chuỗi cung ứng vật tư hạ tầng, kết cấu tuabin và giải pháp hậu cần chuyên dụng cho các dự án điện gió ngoài khơi (Offshore) và trên bờ (Onshore) tại Việt Nam.'
@@ -156,7 +201,11 @@ export function SupplyChainPillars({ lang }) {
                 <div className="wind-point">
                   <div className="wind-point-num">01</div>
                   <div>
-                    <h4>{vi ? 'Chuỗi Cung Ứng Hạ Tầng & Cấu Kiện Tuabin' : 'Turbine & Infrastructure Supply Chain'}</h4>
+                    <h4>
+                      {vi
+                        ? 'Chuỗi Cung Ứng Hạ Tầng & Cấu Kiện Tuabin'
+                        : 'Turbine & Infrastructure Supply Chain'}
+                    </h4>
                     <p>
                       {vi
                         ? 'Cung ứng vật tư thiết bị, tháp tuabin, cánh quạt và hỗ trợ kỹ thuật đồng bộ cho các cụm trang trại điện gió quy mô lớn.'
@@ -168,7 +217,11 @@ export function SupplyChainPillars({ lang }) {
                 <div className="wind-point">
                   <div className="wind-point-num">02</div>
                   <div>
-                    <h4>{vi ? 'Cam Kết Net Zero & Giảm Dấu Chân Carbon' : 'Net Zero Commitment & Decarbonization'}</h4>
+                    <h4>
+                      {vi
+                        ? 'Cam Kết Net Zero & Giảm Dấu Chân Carbon'
+                        : 'Net Zero Commitment & Decarbonization'}
+                    </h4>
                     <p>
                       {vi
                         ? 'Kết hợp chuỗi cung ứng năng lượng tái tạo với định hướng nông nghiệp tuần hoàn, đáp ứng cơ chế CBAM và tiêu chuẩn phát thải khắt khe của EU.'
@@ -180,7 +233,11 @@ export function SupplyChainPillars({ lang }) {
                 <div className="wind-point">
                   <div className="wind-point-num">03</div>
                   <div>
-                    <h4>{vi ? 'Vận Chuyển Thiết Bị Siêu Trường Siêu Trọng' : 'Heavy-Lift & Project Logistics'}</h4>
+                    <h4>
+                      {vi
+                        ? 'Vận Chuyển Thiết Bị Siêu Trường Siêu Trọng'
+                        : 'Heavy-Lift & Project Logistics'}
+                    </h4>
                     <p>
                       {vi
                         ? 'Tích hợp giải pháp logistics hàng dự án đặc thù, đảm bảo an toàn tuyệt đối cho các cấu kiện công nghiệp nặng.'
@@ -192,8 +249,10 @@ export function SupplyChainPillars({ lang }) {
 
               <div className="pillar-wind-actions">
                 <Button asChild variant="brand" size="lg">
-                  <Link to={`/${lang}/contact?product=Wind%20Energy`}>
-                    {vi ? 'Trao đổi về Dự án Điện gió' : 'Discuss Wind Projects'}
+                  <Link to="/contact?product=Wind%20Energy">
+                    {vi
+                      ? 'Trao đổi về Dự án Điện gió'
+                      : 'Discuss Wind Projects'}
                     <ArrowUpRight size={16} />
                   </Link>
                 </Button>
@@ -203,7 +262,11 @@ export function SupplyChainPillars({ lang }) {
             <figure className="pillar-wind-media">
               <img
                 src={photos.wind}
-                alt={vi ? 'Dự án điện gió hiện đại tại Việt Nam' : 'Modern wind energy turbines in Vietnam'}
+                alt={
+                  vi
+                    ? 'Dự án điện gió hiện đại tại Việt Nam'
+                    : 'Modern wind energy turbines in Vietnam'
+                }
                 width={1200}
                 height={800}
                 loading="lazy"
@@ -220,14 +283,25 @@ export function SupplyChainPillars({ lang }) {
       </section>
 
       {/* PILLAR 3: COMPREHENSIVE LOGISTICS BACKBONE (AUXILIARY / OPERATIONAL CAPACITY) */}
-      <section id="logistics-capacity" className="section-pad pillar-block pillar-logistics">
+      <section
+        id="logistics-capacity"
+        className="section-pad pillar-block pillar-logistics"
+      >
         <div className="content-width">
           <div className="pillar-header text-center">
             <div className="pillar-badge badge-navy">
               <Truck size={13} />
-              <span>{vi ? 'NĂNG LỰC VẬN HÀNH PHỤ TRỢ · TOÀN DIỆN' : 'AUXILIARY OPERATIONAL BACKBONE · END-TO-END'}</span>
+              <span>
+                {vi
+                  ? 'NĂNG LỰC VẬN HÀNH PHỤ TRỢ · TOÀN DIỆN'
+                  : 'AUXILIARY OPERATIONAL BACKBONE · END-TO-END'}
+              </span>
             </div>
-            <h2>{vi ? 'Năng Lực Vận Hành Logistics Khép Kín' : 'Integrated Logistics Execution Capacity'}</h2>
+            <h2>
+              {vi
+                ? 'Năng Lực Vận Hành Logistics Khép Kín'
+                : 'Integrated Logistics Execution Capacity'}
+            </h2>
             <div className="logistics-statement-box">
               <p>
                 {vi
@@ -257,7 +331,11 @@ export function SupplyChainPillars({ lang }) {
             <div className="compliance-card-left">
               <div className="compliance-card-badge">
                 <Truck size={14} />
-                <span>{vi ? 'NĂNG LỰC LOGISTICS & VẬN TẢI QUỐC TẾ' : 'SPECIALIZED LOGISTICS & GLOBAL FREIGHT'}</span>
+                <span>
+                  {vi
+                    ? 'NĂNG LỰC LOGISTICS & VẬN TẢI QUỐC TẾ'
+                    : 'SPECIALIZED LOGISTICS & GLOBAL FREIGHT'}
+                </span>
               </div>
               <h3>
                 {vi
@@ -270,16 +348,33 @@ export function SupplyChainPillars({ lang }) {
                   : 'HMV Logistics delivers mission-critical freight forwarding: deep expertise in Dangerous Goods & Chemicals (DG Air/Sea, Special Cargoes, General Cargoes), cross-border Vietnam – Cambodia corridors, local agency handling and verified JC Trans global network coverage.'}
               </p>
               <div className="compliance-trust-tags">
-                <span>{vi ? 'Hàng nguy hiểm DG Air & Sea' : 'Dangerous Goods — Air & Sea'}</span>
-                <span>{vi ? 'Xuyên biên giới VN – Campuchia' : 'Cross-Border VN – Cambodia'}</span>
+                <span>
+                  {vi
+                    ? 'Hàng nguy hiểm DG Air & Sea'
+                    : 'Dangerous Goods — Air & Sea'}
+                </span>
+                <span>
+                  {vi
+                    ? 'Xuyên biên giới VN – Campuchia'
+                    : 'Cross-Border VN – Cambodia'}
+                </span>
                 <span>{vi ? 'Đại lý nội địa' : 'Local Agency'}</span>
                 <span>{vi ? 'Mạng lưới JC Trans' : 'JC Trans Network'}</span>
               </div>
             </div>
             <div className="compliance-card-action">
-              <Button asChild size="lg" variant="brand" className="compliance-link-btn">
-                <Link to={`/${lang}/logistics`}>
-                  <span>{vi ? 'Khám phá dịch vụ Logistics' : 'Explore logistics services'}</span>
+              <Button
+                asChild
+                size="lg"
+                variant="brand"
+                className="compliance-link-btn"
+              >
+                <Link to="/logistics">
+                  <span>
+                    {vi
+                      ? 'Khám phá dịch vụ Logistics'
+                      : 'Explore logistics services'}
+                  </span>
                   <ArrowUpRight size={18} />
                 </Link>
               </Button>
@@ -289,26 +384,44 @@ export function SupplyChainPillars({ lang }) {
           <div className="logistics-proof-banner">
             <div className="proof-metric">
               <strong>100%</strong>
-              <span>{vi ? 'Chủ động điều phối chuỗi cung ứng' : 'Autonomous Supply Coordination'}</span>
+              <span>
+                {vi
+                  ? 'Chủ động điều phối chuỗi cung ứng'
+                  : 'Autonomous Supply Coordination'}
+              </span>
             </div>
             <div className="proof-metric">
               <strong>24–35 {vi ? 'Ngày' : 'Days'}</strong>
-              <span>{vi ? 'Tuyến hải trình thẳng đến EU & Mỹ' : 'Direct Ocean Routes to EU & USA'}</span>
+              <span>
+                {vi
+                  ? 'Tuyến hải trình thẳng đến EU & Mỹ'
+                  : 'Direct Ocean Routes to EU & USA'}
+              </span>
             </div>
             <div className="proof-metric">
               <strong>24/7</strong>
-              <span>{vi ? 'Giám sát chuỗi lạnh & Hỗ trợ đối tác' : 'Cold Chain & Client Desk Standby'}</span>
+              <span>
+                {vi
+                  ? 'Giám sát chuỗi lạnh & Hỗ trợ đối tác'
+                  : 'Cold Chain & Client Desk Standby'}
+              </span>
             </div>
             <div className="proof-metric">
               <strong>01</strong>
-              <span>{vi ? 'Đầu mối duy nhất xuyên suốt' : 'Single Point of Accountability'}</span>
+              <span>
+                {vi
+                  ? 'Đầu mối duy nhất xuyên suốt'
+                  : 'Single Point of Accountability'}
+              </span>
             </div>
           </div>
 
           <div style={{ marginTop: '28px', textAlign: 'center' }}>
             <Button asChild size="lg" variant="brand">
-              <Link to={`/${lang}/packaging-logistics`}>
-                {vi ? 'Xem Tiêu Chuẩn Thực Tế Đóng Gói & Đóng Container' : 'View Real Packaging & Container Freight Protocols'}
+              <Link to="/packaging-logistics">
+                {vi
+                  ? 'Xem Tiêu Chuẩn Thực Tế Đóng Gói & Đóng Container'
+                  : 'View Real Packaging & Container Freight Protocols'}
                 <ArrowUpRight size={18} style={{ marginLeft: 8 }} />
               </Link>
             </Button>

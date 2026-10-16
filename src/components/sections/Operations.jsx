@@ -116,7 +116,7 @@ export function Operations({ lang, full = false }) {
             <p>{lang === 'vi' ? item.viText : item.enText}</p>
             {!full && (
               <Button asChild variant="text" size="text">
-                <Link to={`/${lang}/supply-chain`}>
+                <Link to="/supply-chain">
                   {t.detail}
                   <ArrowUpRight />
                 </Link>

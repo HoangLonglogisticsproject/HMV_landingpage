@@ -18,7 +18,7 @@ export const photoCopy = {
  en:{farm:'Passion fruit growing on the vine',grower:'A visit to a passion fruit growing area',farmTeam:'Conversations at the growing area',weighing:'A closer look at the fruit',opening:'Meeting in person',openingGroup:'People & shared occasions',flowers:'A congratulatory floral display',hero:'Vietnamese agricultural origins · Connecting to Europe & the United States',organic:'Organic requirements and certification are reviewed for the specific grower, product and lot before quotation.',wind:'Wind energy infrastructure & renewable supply chain in Vietnam'},
  vi:{farm:'Chanh dây trên giàn trồng',grower:'Chuyến thăm vùng trồng chanh dây',farmTeam:'Trao đổi tại vùng nguyên liệu',weighing:'Quan sát và cân mẫu trái',opening:'Gặp gỡ trực tiếp',openingGroup:'Con người & những dịp gặp gỡ',flowers:'Hoa chúc mừng tại buổi gặp mặt',hero:'Nguồn nguyên liệu Việt Nam · Kết nối châu Âu & Hoa Kỳ',organic:'Yêu cầu organic và chứng nhận được đối chiếu với vùng trồng, sản phẩm và lô hàng cụ thể trước khi báo giá.',wind:'Hạ tầng điện gió & chuỗi cung ứng năng lượng tái tạo tại Việt Nam'}
 };
-export const baseUrl = 'https://hmv-landingpage.vercel.app';
+export const baseUrl = 'https://www.hmv-global.com';
 export const address = 'Floor 5, 240 Nguyen Dinh Chinh St., Phu Nhuan Ward, Ho Chi Minh City, Vietnam';
 export const products = [
  {id:'passion-fruit', en:'Passion fruit', vi:'Chanh dây', subEn:'Yellow & purple · Fresh, purée & concentrate', subVi:'Vàng & tím · Tươi, purée & cô đặc', category:'01', specs:['Product form / Dạng hàng','Brix & acidity / Brix & độ axit','Packaging / Quy cách đóng gói','Temperature / Nhiệt độ bảo quản']},

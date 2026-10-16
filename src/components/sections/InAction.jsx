@@ -5,10 +5,42 @@ import { photos } from '@/data/hmv';
 
 // Bento grid of real HMV photographs; a unified grade keeps mixed lighting cohesive.
 const blocks = [
-  { key: 'field', size: 'bento-large', src: photos.farmTeam, w: 1308, h: 1600, en: 'Hands-on approach at the origin.', vi: 'Trực tiếp có mặt tại vùng nguyên liệu.' },
-  { key: 'expand', size: 'bento-medium', src: photos.openingFlowers, w: 1199, h: 1600, en: 'Expanding our ecosystem & partnerships.', vi: 'Mở rộng hệ sinh thái & quan hệ đối tác.' },
-  { key: 'network', size: 'bento-medium', src: photos.gathering, w: 1600, h: 1200, en: 'Building lasting global relationships.', vi: 'Xây dựng quan hệ lâu dài.' },
-  { key: 'team', size: 'bento-small', src: photos.forest, w: 1218, h: 912, en: 'A driven and united team.', vi: 'Một tập thể gắn kết.' },
+  {
+    key: 'field',
+    size: 'bento-large',
+    src: photos.farmTeam,
+    w: 1308,
+    h: 1600,
+    en: 'Hands-on approach at the origin.',
+    vi: 'Trực tiếp có mặt tại vùng nguyên liệu.',
+  },
+  {
+    key: 'expand',
+    size: 'bento-medium',
+    src: photos.openingFlowers,
+    w: 1199,
+    h: 1600,
+    en: 'Expanding our ecosystem & partnerships.',
+    vi: 'Mở rộng hệ sinh thái & quan hệ đối tác.',
+  },
+  {
+    key: 'network',
+    size: 'bento-medium',
+    src: photos.gathering,
+    w: 1600,
+    h: 1200,
+    en: 'Building lasting global relationships.',
+    vi: 'Xây dựng quan hệ lâu dài.',
+  },
+  {
+    key: 'team',
+    size: 'bento-small',
+    src: photos.forest,
+    w: 1218,
+    h: 912,
+    en: 'A driven and united team.',
+    vi: 'Một tập thể gắn kết.',
+  },
 ];
 
 export function InAction({ lang }) {
@@ -17,20 +49,42 @@ export function InAction({ lang }) {
       <div className="content-width">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">{lang === 'vi' ? 'HMV GLOBAL TRONG THỰC TẾ' : 'HMV GLOBAL IN ACTION'}</p>
-            <h2>{lang === 'vi' ? 'Người thật. Việc thật.' : 'Real people. Real work.'}</h2>
+            <p className="eyebrow">
+              {lang === 'vi'
+                ? 'HMV GLOBAL TRONG THỰC TẾ'
+                : 'HMV GLOBAL IN ACTION'}
+            </p>
+            <h2>
+              {lang === 'vi'
+                ? 'Người thật. Việc thật.'
+                : 'Real people. Real work.'}
+            </h2>
           </div>
-          <Button asChild variant="text" size="text"><Link to={`/${lang}/activities`}>{lang === 'vi' ? 'Tìm hiểu thêm' : 'Learn more'}<ArrowUpRight /></Link></Button>
+          <Button asChild variant="text" size="text">
+            <Link to="/activities">
+              {lang === 'vi' ? 'Tìm hiểu thêm' : 'Learn more'}
+              <ArrowUpRight />
+            </Link>
+          </Button>
         </div>
         <div className="bento-grid">
-          {blocks.map((b) => (
+          {blocks.map(b => (
             <figure key={b.key} className={`bento-item ${b.size}`}>
-              <img src={b.src} alt={b[lang]} width={b.w} height={b.h} loading="lazy" decoding="async" />
+              <img
+                src={b.src}
+                alt={b[lang]}
+                width={b.w}
+                height={b.h}
+                loading="lazy"
+                decoding="async"
+              />
               <figcaption>{b[lang]}</figcaption>
             </figure>
           ))}
         </div>
-        <p className="commercial-note">{lang === 'vi' ? 'Ảnh do HMV cung cấp.' : 'Photos supplied by HMV.'}</p>
+        <p className="commercial-note">
+          {lang === 'vi' ? 'Ảnh do HMV cung cấp.' : 'Photos supplied by HMV.'}
+        </p>
       </div>
     </section>
   );
