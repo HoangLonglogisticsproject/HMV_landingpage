@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { Navigation } from '@/components/sections/Navigation';
 import { Activities } from '@/components/sections/Activities';
 import { InAction } from '@/components/sections/InAction';
 import {
@@ -15,13 +14,12 @@ import { LatestInsights } from '@/components/sections/LatestInsights';
 import { ArticlePage } from '@/components/sections/ArticlePage';
 import { TradeRfq } from '@/components/sections/TradeRfq';
 import { Contact } from '@/components/sections/Contact';
-import { Footer } from '@/components/sections/Footer';
 import { DetailPage } from '@/components/sections/DetailPage';
 import { PackagingLogisticsPage } from '@/components/sections/PackagingLogisticsPage';
 import { LogisticsHubPage } from '@/components/sections/LogisticsHubPage';
 import { PageMeta } from '@/components/common/PageMeta';
 import { copy } from '@/data/hmv';
-import { SupportChatWidget } from '@/components/common/SupportChatWidget';
+import { SiteShell } from '@/components/layout/SiteShell';
 import { LanguageProvider, useLang } from '@/i18n/LanguageContext';
 import { LangQueryBootstrap } from '@/i18n/LangQueryBootstrap';
 import { LegacyLocaleRedirect } from '@/i18n/LegacyLocaleRedirect';
@@ -39,9 +37,7 @@ function Site({ page = 'home' }) {
   }, [pathname, hash]);
   const t = copy[lang];
   return (
-    <>
-      <Navigation lang={lang} />
-      <main id="main-content">
+    <SiteShell lang={lang}>
         {page === 'home' ? (
           <>
             <PageMeta
@@ -69,10 +65,7 @@ function Site({ page = 'home' }) {
         ) : (
           <DetailPage lang={lang} page={page} />
         )}
-      </main>
-      <Footer lang={lang} />
-      <SupportChatWidget lang={lang} />
-    </>
+    </SiteShell>
   );
 }
 export default function App() {

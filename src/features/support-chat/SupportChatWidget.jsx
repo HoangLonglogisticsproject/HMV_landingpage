@@ -15,14 +15,16 @@ import {
   Globe,
   Mail,
   User,
-  CheckCheck,
-  ArrowUpRight,
-  Sparkles,
-  MessageSquare
+  CheckCheck
 } from 'lucide-react';
 import { productPhotos } from '@/data/productPhotos';
 import logo from '@/assets/logohmv.png';
 import { useLanguage } from '@/i18n/LanguageContext';
+
+const OPEN_EVENT = 'open-hmv-support-chat';
+
+// Opens the widget from anywhere (e.g. the nav "24/7 Support" button) without sharing state.
+export const openSupportChat = () => window.dispatchEvent(new CustomEvent(OPEN_EVENT));
 
 export function SupportChatWidget({ lang = 'vi' }) {
   const vi = lang === 'vi';
@@ -56,8 +58,8 @@ export function SupportChatWidget({ lang = 'vi' }) {
       setIsOpen(true);
       setIsMinimized(false);
     };
-    window.addEventListener('open-hmv-support-chat', handleOpenChat);
-    return () => window.removeEventListener('open-hmv-support-chat', handleOpenChat);
+    window.addEventListener(OPEN_EVENT, handleOpenChat);
+    return () => window.removeEventListener(OPEN_EVENT, handleOpenChat);
   }, []);
 
   // Quick Action Buttons Data

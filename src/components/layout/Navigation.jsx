@@ -7,14 +7,11 @@ import {
   X,
   ArrowUpRight,
   Headphones,
-  Sprout,
-  Wind,
-  Truck,
-  PackageCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { copy, products } from '@/data/hmv';
-import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
+import { openSupportChat } from '@/features/support-chat/SupportChatWidget';
 import { regulationCopy } from '@/data/regulations';
 
 export function Navigation({ lang = 'en' }) {
@@ -602,7 +599,7 @@ export function Navigation({ lang = 'en' }) {
               className="nav-support-btn"
               onClick={() => {
                 close();
-                window.dispatchEvent(new CustomEvent('open-hmv-support-chat'));
+                openSupportChat();
               }}
               title={
                 vi

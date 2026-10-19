@@ -3,12 +3,10 @@ import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-route
 import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Navigation } from '@/components/sections/Navigation';
-import { Footer } from '@/components/sections/Footer';
+import { SiteShell } from '@/components/layout/SiteShell';
 import { PageMeta } from '@/components/common/PageMeta';
 import { photos } from '@/data/hmv';
 import { articleSlug, findArticle } from '@/data/articles';
-import { SupportChatWidget } from '@/components/common/SupportChatWidget';
 import { useLang } from '@/i18n/LanguageContext';
 
 export function ArticlePage() {
@@ -36,8 +34,7 @@ export function ArticlePage() {
     <>
       <PageMeta lang={lang} title={a.title[lang]} description={a.description[lang]} />
       <Helmet><script type="application/ld+json">{JSON.stringify({ '@context': 'https://schema.org', '@type': 'Article', headline: a.title[lang], datePublished: a.iso, inLanguage: lang, image: img, author: { '@type': 'Organization', name: 'HMV Global Co., LTD' }, publisher: { '@type': 'Organization', name: 'HMV Global Co., LTD' } })}</script></Helmet>
-      <Navigation lang={lang} />
-      <main id="main-content" className="article-page">
+      <SiteShell lang={lang} className="article-page">
         <div className="article-col">
           <Button type="button" variant="ghost" className="article-back" onClick={back}><ArrowLeft size={16} />{vi ? 'Quay lại' : 'Back'}</Button>
           <p className="article-meta"><span>{a.category[lang]}</span><time dateTime={a.iso}>{a.date[lang]}</time></p>
@@ -51,9 +48,7 @@ export function ArticlePage() {
             <Button asChild size="lg" className="day-cta"><Link to="/#initiate-trade">{vi ? 'Gửi yêu cầu báo giá' : 'Request a quotation'}<ArrowUpRight size={18} /></Link></Button>
           </aside>
         </article>
-      </main>
-      <Footer lang={lang} />
-      <SupportChatWidget lang={lang} />
+      </SiteShell>
     </>
   );
 }
