@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { copy, products } from '@/data/hmv';
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
+import { regulationCopy } from '@/data/regulations';
 
 export function Navigation({ lang = 'en' }) {
   const t = copy[lang];
@@ -538,7 +539,18 @@ export function Navigation({ lang = 'en' }) {
               EcoNews
             </Link>
 
-            {/* 4. Về HMV / About Us (Dropdown) */}
+            {/* 5. Thông tư & Quy định */}
+            <Link
+              className={
+                pathname.startsWith('/regulations') ? 'nav-active' : ''
+              }
+              to="/regulations"
+              onClick={close}
+            >
+              {regulationCopy[lang].nav}
+            </Link>
+
+            {/* 6. Về HMV / About Us (Dropdown) */}
             <div
               className="nav-dropdown"
               onMouseEnter={() => setDrop('about')}

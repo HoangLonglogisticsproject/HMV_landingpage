@@ -9,6 +9,8 @@ import { Features } from './Features';
 import { Activities } from './Activities';
 import { LogisticsAction } from './LogisticsAction';
 import { Contact } from './Contact';
+import { Regulations } from './Regulations';
+import { regulationCopy } from '@/data/regulations';
 import { copy, products, stages } from '@/data/hmv';
 import { productPhotos } from '@/data/productPhotos';
 import { photoCopy } from '@/data/hmv';
@@ -32,7 +34,9 @@ export function DetailPage({ lang, page }) {
               ? t.contact
               : page === 'insights'
                 ? 'EcoNews'
-                : product?.[lang] || t.notfound;
+                : page === 'regulations'
+                  ? regulationCopy[lang].title
+                  : product?.[lang] || t.notfound;
   const description =
     page === 'activities'
       ? t.fieldText
@@ -40,15 +44,17 @@ export function DetailPage({ lang, page }) {
         ? t.contactText
         : page === 'about'
           ? t.storyText
-          : page === 'insights'
-            ? lang === 'vi'
-              ? 'Bản tin EcoNews: Góc nhìn về chuỗi cung ứng xanh, năng lượng điện gió và nông nghiệp xuất khẩu bền vững.'
-              : 'EcoNews: Perspectives on green supply chains, clean energy, and sustainable agriculture.'
-            : page === 'product' && product
+          : page === 'regulations'
+            ? regulationCopy[lang].intro
+            : page === 'insights'
               ? lang === 'vi'
-                ? product.subVi
-                : product.subEn
-              : t.chainText;
+                ? 'Bản tin EcoNews: Góc nhìn về chuỗi cung ứng xanh, năng lượng điện gió và nông nghiệp xuất khẩu bền vững.'
+                : 'EcoNews: Perspectives on green supply chains, clean energy, and sustainable agriculture.'
+              : page === 'product' && product
+                ? lang === 'vi'
+                  ? product.subVi
+                  : product.subEn
+                : t.chainText;
   return (
     <>
       <PageMeta lang={lang} title={title} description={description} />
@@ -123,6 +129,8 @@ export function DetailPage({ lang, page }) {
           </div>
         </section>
       )}
+      {page === 'insights' && <Regulations lang={lang} limit={3} />}
+      {page === 'regulations' && <Regulations lang={lang} />}
       {page === 'activities' && (
         <>
           <Activities lang={lang} full />
