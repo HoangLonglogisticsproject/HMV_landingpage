@@ -9,7 +9,7 @@ import { PageMeta } from '@/components/common/PageMeta';
 import { photos } from '@/data/hmv';
 import { articleSlug, findArticle } from '@/data/articles';
 import { SupportChatWidget } from '@/components/common/SupportChatWidget';
-import { useLang } from '@/context/LanguageContext';
+import { useLang } from '@/i18n/LanguageContext';
 
 export function ArticlePage() {
   const lang = useLang();

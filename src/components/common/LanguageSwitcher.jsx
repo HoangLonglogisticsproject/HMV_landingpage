@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useLanguage } from '@/context/LanguageContext';
+import { useLanguage } from '@/i18n/LanguageContext';
 import gbFlag from 'flag-icons/flags/4x3/gb.svg';
 import vnFlag from 'flag-icons/flags/4x3/vn.svg';
 

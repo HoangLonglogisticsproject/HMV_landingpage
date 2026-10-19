@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { productPhotos } from '@/data/productPhotos';
 import logo from '@/assets/logohmv.png';
-import { useLanguage } from '@/context/LanguageContext';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export function SupportChatWidget({ lang = 'vi' }) {
   const vi = lang === 'vi';

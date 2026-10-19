@@ -1,6 +1,6 @@
 import { useLayoutEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { SUPPORTED_LANGS, useLanguage } from '@/context/LanguageContext';
+import { SUPPORTED_LANGS, useLanguage } from '@/i18n/LanguageContext';
 
 /**
  * Applies a `?lang=` query param then strips it from the URL.

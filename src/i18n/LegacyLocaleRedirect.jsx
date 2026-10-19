@@ -1,6 +1,6 @@
 import { useLayoutEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { SUPPORTED_LANGS, useLanguage } from '@/context/LanguageContext';
+import { SUPPORTED_LANGS, useLanguage } from '@/i18n/LanguageContext';
 import { articleSlug, findArticle } from '@/data/articles';
 
 function cleanTarget(rest) {

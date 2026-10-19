@@ -22,9 +22,9 @@ import { LogisticsHubPage } from '@/components/sections/LogisticsHubPage';
 import { PageMeta } from '@/components/common/PageMeta';
 import { copy } from '@/data/hmv';
 import { SupportChatWidget } from '@/components/common/SupportChatWidget';
-import { LanguageProvider, useLang } from '@/context/LanguageContext';
-import { LangQueryBootstrap } from '@/components/common/LangQueryBootstrap';
-import { LegacyLocaleRedirect } from '@/components/common/LegacyLocaleRedirect';
+import { LanguageProvider, useLang } from '@/i18n/LanguageContext';
+import { LangQueryBootstrap } from '@/i18n/LangQueryBootstrap';
+import { LegacyLocaleRedirect } from '@/i18n/LegacyLocaleRedirect';
 function Site({ page = 'home' }) {
   const lang = useLang();
   const { pathname, hash } = useLocation();
