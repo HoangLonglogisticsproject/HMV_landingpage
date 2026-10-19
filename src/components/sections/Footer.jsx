@@ -2,6 +2,7 @@ import { BrandLogo } from '@/components/common/BrandLogo';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Mail, MapPin } from 'lucide-react';
 import { copy, address } from '@/data/hmv';
+import { regulationCopy } from '@/data/regulations';
 const mapSrc =
   'https://www.google.com/maps?q=' +
   encodeURIComponent(
@@ -21,6 +22,7 @@ export function Footer({ lang }) {
     ['about', t.about],
     ['activities', t.activities],
     ['insights', 'EcoNews'],
+    ['regulations', regulationCopy[lang].nav],
     ['contact', t.contact],
   ];
   return (

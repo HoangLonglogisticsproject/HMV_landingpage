@@ -93,6 +93,7 @@ export default function App() {
               'activities',
               'contact',
               'insights',
+              'regulations',
               'packaging-logistics',
               'logistics',
             ].map(page => (
