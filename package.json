@@ -8,8 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test",
-    "test:e2e": "npx playwright test --ignore-snapshots",
-    "test:visual": "npx playwright test tests/visual.spec.js",
+    "test:e2e": "npm run build && npx playwright test",
+    "test:e2e:fast": "npx playwright test",
+    "test:visual": "npm run build && npx playwright test tests/visual.spec.js",
     "lint": "eslint .",
     "build:dev": "vite build --mode development"
   },
