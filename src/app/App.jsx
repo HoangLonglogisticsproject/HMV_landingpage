@@ -12,8 +12,8 @@ import {
 } from '@/components/sections/CinematicHome';
 import { LatestInsights } from '@/components/sections/LatestInsights';
 import { ArticlePage } from '@/components/sections/ArticlePage';
-import { TradeRfq } from '@/components/sections/TradeRfq';
-import { Contact } from '@/components/sections/Contact';
+import { TradeRfq } from '@/features/inquiries/TradeRfq';
+import { Contact } from '@/features/inquiries/Contact';
 import { DetailPage } from '@/components/sections/DetailPage';
 import { PackagingLogisticsPage } from '@/components/sections/PackagingLogisticsPage';
 import { LogisticsHubPage } from '@/components/sections/LogisticsHubPage';

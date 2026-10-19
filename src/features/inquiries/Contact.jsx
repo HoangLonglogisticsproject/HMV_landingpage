@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { copy, products, address } from '@/data/hmv';
-import { createInquiryMailto } from '@/lib/inquiry';
+import { createInquiryMailto } from './inquiry';
 export function Contact({ lang, full = false }) {
   const t = copy[lang];
   const vi = lang === 'vi';

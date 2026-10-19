@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { ArrowUpRight, Mail, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { address } from '@/data/hmv';
-import { toRfqRow } from '@/lib/rfq';
-import { createInquiryMailto } from '@/lib/inquiry';
+import { toRfqRow } from './rfq';
+import { createInquiryMailto } from './inquiry';
 
 const commodities = ['Passion Fruit', 'Cavendish Bananas', 'Dragon Fruit', 'Spices (Pepper, Cinnamon, Star Anise)', 'Cashew Nuts', 'Tapioca Starch', 'Other'];
 const leaders = [
