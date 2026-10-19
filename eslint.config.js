@@ -5,6 +5,15 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
   { ignores: ['dist/**', 'node_modules/**'] },
+  // Root config files and test specs run in Node.js
+  {
+    files: ['*.config.js', 'tests/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.node },
+    },
+  },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {

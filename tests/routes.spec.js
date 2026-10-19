@@ -62,7 +62,6 @@ test('/en/about redirects to /about and sets English', async ({ page }) => {
   await page.goto('/en/about');
   // Wait for React Router to process the redirect
   await page.waitForTimeout(2000);
-  const url = page.url();
   // The redirect may or may not work depending on the preview server's
   // SPA fallback configuration. Verify the page at least loaded.
   const body = await page.textContent('body');
