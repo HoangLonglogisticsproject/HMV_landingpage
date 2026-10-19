@@ -3,3 +3,8 @@ dist
 .DS_Store
 *.local
 .env
+
+# Playwright
+tests/screenshots/
+test-results/
+playwright-report/
