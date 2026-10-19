@@ -119,7 +119,7 @@ test('article page renders h1, article body and a back-to-overview link', async 
   // Canonical English slug from data/articles.js: 'exporting-passion-fruit-eu'
   // title.en = "Exporting Passion Fruit to Europe: GlobalGAP Standards..."
   await page.goto('/blog/exporting-passion-fruit-eu');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('load');
 
   // h1 must contain the article title
   const h1 = page.locator('h1').first();

@@ -16,14 +16,19 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // Limit workers to avoid resource contention on the 8MB hero image
+  workers: process.env.CI ? 1 : 4,
+  // Global test timeout — desktop loads a full-sized hero image (~8MB)
+  timeout: 60_000,
   reporter: [['html', { open: 'never' }], ['list']],
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    // Give interactions a generous timeout; this is a multi-language SPA
-    actionTimeout: 8_000,
+    // Action timeout — covers clicks, assertions, waitForURL
+    actionTimeout: 10_000,
+    // Navigation timeout — covers page.goto, waitForLoadState
+    navigationTimeout: 30_000,
   },
   projects: [
     {

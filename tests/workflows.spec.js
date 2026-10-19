@@ -35,31 +35,65 @@ test('contact page renders the inquiry form with expected fields', async ({ page
   await expect(form.locator('textarea[name="message"]')).toBeAttached();
 });
 
-test('?product=passion-fruit preselects "Passion fruit" in the contact select', async ({ page }) => {
-  // Contact.jsx: <select defaultValue={params.get('product') || ''}>
-  // products[0] = { id: 'passion-fruit', en: 'Passion fruit', ... }
-  // Option values are p.en strings, so "passion-fruit" param maps to value "Passion fruit"
-  // BUT: params.get('product') returns 'passion-fruit' (the ID, not the label)
-  // defaultValue='passion-fruit' → no option has value='passion-fruit' (they have p.en)
-  // So the select falls back to the empty default option.
-  // This is an existing product design decision — the test must reflect reality.
-  await page.goto('/contact?product=passion-fruit');
+// ─── Product → Contact E2E flow ────────────────────────────────────
+//
+// Source facts:
+//  - ProductDetailPage inquiry button: <Link to={`/contact?product=${encodeURIComponent(product.en)}`}>
+//  - product.en values: 'Passion fruit', 'Cavendish bananas', etc. (from data/hmv.js)
+//  - Contact select: <option value={p.en}> — value IS p.en, not p.id
+//  - select defaultValue={params.get('product') || ''}
+//  - URL param 'Passion fruit' → defaultValue 'Passion fruit' → matches option → preselected
+
+test('ProductDetailPage inquiry button navigates to /contact with correct product preselected (EN)', async ({ page }) => {
+  // Start in English so product.en labels are rendered
+  await page.goto('/products/passion-fruit?lang=en');
+  await expect(page).toHaveURL(/\/products\/passion-fruit/, { timeout: 5000 });
   await page.waitForLoadState('networkidle');
 
+  // The inquiry button: <Link to="/contact?product=Passion%20fruit">
+  // Rendered text = copy[lang].ask = "Discuss this product"
+  const inquiryBtn = page.locator('a[href*="/contact?product="]').first();
+  await expect(inquiryBtn).toBeVisible({ timeout: 5000 });
+
+  // Click and follow the navigation
+  await Promise.all([
+    page.waitForURL(/\/contact/, { timeout: 5000 }),
+    inquiryBtn.click(),
+  ]);
+
+  // 1. URL must contain ?product=Passion%20fruit (or decoded equivalent)
+  const url = page.url();
+  const params = new URL(url).searchParams;
+  expect(params.get('product')).toBe('Passion fruit');
+
+  // 2. The select must be preselected to 'Passion fruit'
+  await page.waitForLoadState('networkidle');
   const select = page.locator('form.inquiry-form select[name="product"]');
-  await expect(select).toBeAttached({ timeout: 8000 });
-
-  // The select must be rendered. The value may or may not be preselected
-  // depending on whether the URL param matches an option value.
-  // Record the actual selected value for documentation purposes.
+  await expect(select).toBeAttached({ timeout: 5000 });
   const selectedValue = await select.evaluate((el) => el.value);
-  // The select is present and functional — that is the testable contract.
-  // If the product ID is ever made to match option values, update this assertion.
-  expect(typeof selectedValue).toBe('string');
+  expect(selectedValue).toBe('Passion fruit');
+});
 
-  // No option should be undefined or errored
-  const optionCount = await select.locator('option').count();
-  expect(optionCount).toBeGreaterThan(1);
+test('ProductDetailPage inquiry button for bananas preselects "Cavendish bananas"', async ({ page }) => {
+  await page.goto('/products/bananas?lang=en');
+  await expect(page).toHaveURL(/\/products\/bananas/, { timeout: 5000 });
+  await page.waitForLoadState('networkidle');
+
+  const inquiryBtn = page.locator('a[href*="/contact?product="]').first();
+  await expect(inquiryBtn).toBeVisible({ timeout: 5000 });
+
+  await Promise.all([
+    page.waitForURL(/\/contact/, { timeout: 5000 }),
+    inquiryBtn.click(),
+  ]);
+
+  const params = new URL(page.url()).searchParams;
+  expect(params.get('product')).toBe('Cavendish bananas');
+
+  await page.waitForLoadState('networkidle');
+  const select = page.locator('form.inquiry-form select[name="product"]');
+  const selectedValue = await select.evaluate((el) => el.value);
+  expect(selectedValue).toBe('Cavendish bananas');
 });
 
 // ─── RFQ form on home page ───────────────────────────────────────────
