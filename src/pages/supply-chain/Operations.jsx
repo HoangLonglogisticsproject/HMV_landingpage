@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Check, ChevronRight } from 'lucide-react';
+import { ArrowUpRight, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { copy, stages, photos, photoCopy } from '@/data/hmv';
 export function Operations({ lang, full = false }) {

@@ -17,16 +17,16 @@ import {
   Award,
   Maximize2,
   X,
-  PhoneCall,
   Mail,
   ShieldCheck,
-  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageMeta } from '@/components/common/PageMeta';
 import { logisticsServicesData } from '@/data/logisticsServices';
+import { useLang } from '@/i18n/LanguageContext';
 
-export function LogisticsHubPage({ lang = 'en' }) {
+export function LogisticsHubPage() {
+  const lang = useLang();
   const vi = lang === 'vi';
   const { dangerousGoods, crossBorder, localAgency, overseaAgency } =
     logisticsServicesData;

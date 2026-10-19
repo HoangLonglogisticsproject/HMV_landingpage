@@ -1,42 +1,23 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { ArticlePage } from '@/components/sections/ArticlePage';
-import { HomePage } from '@/pages/home/HomePage';
-import { DetailPage } from '@/components/sections/DetailPage';
-import { PackagingLogisticsPage } from '@/components/sections/PackagingLogisticsPage';
-import { LogisticsHubPage } from '@/components/sections/LogisticsHubPage';
-import { PageMeta } from '@/components/common/PageMeta';
-import { SiteShell } from '@/components/layout/SiteShell';
-import { LanguageProvider, useLang } from '@/i18n/LanguageContext';
+import { LanguageProvider } from '@/i18n/LanguageContext';
 import { LangQueryBootstrap } from '@/i18n/LangQueryBootstrap';
 import { LegacyLocaleRedirect } from '@/i18n/LegacyLocaleRedirect';
-function Site({ page = 'home' }) {
-  const lang = useLang();
-  const { pathname, hash } = useLocation();
-  useEffect(() => {
-    if (hash) {
-      requestAnimationFrame(() =>
-        document
-          .getElementById(decodeURIComponent(hash.slice(1)))
-          ?.scrollIntoView({ behavior: 'auto' }),
-      );
-    } else window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [pathname, hash]);
-  return (
-    <SiteShell lang={lang}>
-        {page === 'home' ? (
-          <HomePage />
-        ) : page === 'packaging-logistics' ? (
-          <PackagingLogisticsPage lang={lang} />
-        ) : page === 'logistics' ? (
-          <LogisticsHubPage lang={lang} />
-        ) : (
-          <DetailPage lang={lang} page={page} />
-        )}
-    </SiteShell>
-  );
-}
+import { SiteLayout } from '@/app/SiteLayout';
+import { HomePage } from '@/pages/home/HomePage';
+import { AboutPage } from '@/pages/about/AboutPage';
+import { SupplyChainPage } from '@/pages/supply-chain/SupplyChainPage';
+import { TradeSolutionsPage } from '@/pages/trade-solutions/TradeSolutionsPage';
+import { ActivitiesPage } from '@/pages/activities/ActivitiesPage';
+import { ContactPage } from '@/pages/contact/ContactPage';
+import { InsightsPage } from '@/pages/insights/InsightsPage';
+import { RegulationsPage } from '@/pages/regulations/RegulationsPage';
+import { PackagingLogisticsPage } from '@/pages/packaging-logistics/PackagingLogisticsPage';
+import { LogisticsHubPage } from '@/pages/logistics/LogisticsHubPage';
+import { ProductDetailPage } from '@/pages/products/ProductDetailPage';
+import { ArticlePage } from '@/pages/article/ArticlePage';
+import { NotFoundPage } from '@/pages/not-found/NotFoundPage';
+
 export default function App() {
   return (
     <HelmetProvider>
@@ -47,48 +28,28 @@ export default function App() {
             Skip to content
           </a>
           <Routes>
-            <Route path="/" element={<Site />} />
-            {[
-              'about',
-              'supply-chain',
-              'trade-solutions',
-              'activities',
-              'contact',
-              'insights',
-              'regulations',
-              'packaging-logistics',
-              'logistics',
-            ].map(page => (
-              <Route
-                key={page}
-                path={`/${page}`}
-                element={<Site page={page} />}
-              />
-            ))}
+            <Route element={<SiteLayout />}>
+              <Route index element={<HomePage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/supply-chain" element={<SupplyChainPage />} />
+              <Route path="/trade-solutions" element={<TradeSolutionsPage />} />
+              <Route path="/activities" element={<ActivitiesPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/insights" element={<InsightsPage />} />
+              <Route path="/regulations" element={<RegulationsPage />} />
+              <Route path="/packaging-logistics" element={<PackagingLogisticsPage />} />
+              <Route path="/logistics" element={<LogisticsHubPage />} />
+              <Route path="/products/:id" element={<ProductDetailPage />} />
+            </Route>
+            {/* Outside SiteLayout on purpose: articles render their own SiteShell
+                and scroll handling, so the chrome (incl. chat) remounts on entry. */}
             <Route path="/blog/:slug" element={<ArticlePage />} />
-            <Route path="/products/:id" element={<Site page="product" />} />
             <Route path="/en/*" element={<LegacyLocaleRedirect />} />
             <Route path="/vi/*" element={<LegacyLocaleRedirect />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </BrowserRouter>
       </LanguageProvider>
     </HelmetProvider>
-  );
-}
-function NotFound() {
-  const lang = useLang();
-  return (
-    <>
-      <PageMeta
-        lang={lang}
-        title="Page not found"
-        description="Return to HMV Global."
-      />
-      <div className="not-found">
-        <h1>Page not found</h1>
-        <a href="/">HMV Global →</a>
-      </div>
-    </>
   );
 }

@@ -8,11 +8,10 @@ import {
   Flower2,
   Layers,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { copy, products } from '@/data/hmv';
 import { productPhotos } from '@/data/productPhotos';
 const icons = [Flower2, Leaf, Sprout, Wheat, CircleDot, Layers];
-export function Features({ lang }) {
+export function ProductPortfolio({ lang }) {
   const t = copy[lang];
   return (
     <section className="section-pad portfolio-section" id="products">

@@ -11,15 +11,16 @@ import {
   Container,
   Layers,
   ArrowRight,
-  Sparkles,
   Maximize2,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageMeta } from '@/components/common/PageMeta';
 import { packagingData } from '@/data/operationalLogistics';
+import { useLang } from '@/i18n/LanguageContext';
 
-export function PackagingLogisticsPage({ lang = 'en' }) {
+export function PackagingLogisticsPage() {
+  const lang = useLang();
   const vi = lang === 'vi';
   const { standards, transportStages, stats } = packagingData;
   const [selectedImage, setSelectedImage] = useState(null);
