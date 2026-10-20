@@ -1,10 +1,10 @@
 # CMS integration
 
-Status on 2026-10-20: EcoNews (Home "Latest Insights", `/insights`, `/blog/:slug`) can read the HMV CMS public API in **CMS mode**. The default build, production included, still renders the bundled articles in `src/data/articles.js`. Enabling CMS mode in production is blocked on the items under [Before enabling in production](#before-enabling-in-production).
+Status on 2026-10-20: EcoNews (Home "Latest Insights", `/insights`, `/blog/:slug`) and the About page (`/about`) can read the HMV CMS public API in **CMS mode**. The default build, production included, still renders the bundled copy in `src/data/articles.js` and `src/data/about.js`. Enabling CMS mode in production is blocked on the items under [Before enabling in production](#before-enabling-in-production).
 
 Verified end to end on 2026-10-20 against a local CMS (`main` 488e05d, real PostgreSQL): `[TEST]` articles were created, approved, published and archived through the CMS admin UI, then checked on the public API and on this site in CMS mode (listing, detail, rich text, cover and inline media, EN↔VI slugs, unpublished translation, draft, archived, empty and error states). `src/features/articles/fixtures/cms-article.json` is the real published payload from that run.
 
-Everything else (pages, products, supply-chain stories, RFQ) is still static; see [Domain status](#domain-status).
+Everything else (other pages, products, supply-chain stories, RFQ) is still static; see [Domain status](#domain-status).
 
 ## CMS public API used
 
@@ -33,7 +33,8 @@ Contract sources: `CMS_HMV/docs/api/public-content-contract.md`, `CMS_HMV/docs/a
 |---|---|
 | Mode flag | `.env.cms` sets `VITE_CMS_CONTENT=true`; it is loaded only by `--mode cms` (`npm run dev:cms`, `npm run build:cms` → `dist-cms/`). With the flag off, the CMS client is tree-shaken out of the bundle. |
 | Same-origin access | `vite.config.js` proxies **only** `/api/v1/public` to `CMS_API_ORIGIN` (shell variable, default `http://localhost:4000`) for `vite` and `vite preview`, and strips the `Cookie` header (localhost cookies ignore the port, so the admin `hmv_session` would otherwise be forwarded). |
-| API client | `src/features/articles/api.js`: relative `/api/v1/public/...` URLs, `credentials: 'omit'`, only an `Accept` header. Maps CMS DTOs to the view shape the pages render. |
+| Shared client | `src/lib/cms.js` (`getJson`: relative `/api/v1/public/...` URLs, `credentials: 'omit'`, only an `Accept` header) and `src/lib/useFetched.js` (`CMS_CONTENT` flag, keyed fetch hook with abort). Used by every CMS-backed feature. |
+| API client | `src/features/articles/api.js`: maps CMS article DTOs to the view shape the pages render. |
 | Data hooks | `src/features/articles/hooks.js`: `useArticleList(lang, { pageSize })`, `useArticle(slug, lang)`. In static mode they map the bundled articles to the same shape. States: `loading`, `ready`, `empty`, `error`, `not-found`, `unavailable`, `redirect`. |
 | Cards and states | `src/features/articles/ArticleGrid.jsx` (Home shows 3, `/insights` shows up to 100: no pagination UI yet). |
 | Rich text | `src/features/articles/RichText.js` (see [Rich text](#rich-text)). |
@@ -73,6 +74,26 @@ Each localized slug is its own URL with its own canonical link. Static mode keep
 | Passion fruit EU | `exporting-passion-fruit-eu` | `xuat-khau-chanh-day-eu` |
 | Tropical logistics | `optimizing-tropical-logistics` | `toi-uu-hoa-logistics` |
 | Circular agriculture | `circular-agriculture` | `nong-nghiep-khep-kin` |
+
+## Pages (About)
+
+`GET /api/v1/public/pages/about?locale=` returns the published copy of one locale as typed JSON (CMS_HMV
+`AboutPageContent`: hero, purpose, vision, mission, values, team), plus `seo`. Locales are published
+independently in the CMS (submit → approve → publish per locale).
+
+| Piece | File |
+|---|---|
+| Client | `src/features/pages/api.js` (`fetchPage`: 200 → `ready`, 404 → `not-found`, anything else → error) |
+| Hook | `src/features/pages/usePage.js` (`usePage(key, lang)`; bundled copy per key in static mode) |
+| Bundled copy | `src/data/about.js`, EN + VI in the CMS shape (the CMS was seeded from it) |
+| Rendering | `pages/about/AboutPage.jsx` + `CompanyStory.jsx`: same markup for both sources; icons, grids and the `/contact` link stay in code |
+
+- The h1 and lead come from `hero`; `seo` sets the meta title/description (`DetailLayout` `seo` prop).
+- CMS mode states: loading, error (no noindex), and "not published in this language" (noindex). The bundled copy
+  is never shown in CMS mode, and the other language is never shown automatically.
+- Lists are rendered as the CMS sends them. The layout expects about 3 highlights, 4 values and 4 team members;
+  other counts wrap in the existing grids (team icons repeat `Award` after the fourth member).
+- Site chrome keeps its own labels: the nav/footer "About HMV" label and the shared contact CTA stay in `data/hmv.js`.
 
 ## Rich text
 
@@ -117,7 +138,7 @@ Styles for elements the bundled articles never used (`h3`, `ol`, `blockquote`, `
 |---|---|---|
 | EcoNews articles | Implemented, public | CMS mode: public API. Default: `data/articles.js`. |
 | Media assets | Admin API only; public URLs arrive inside article payloads | Bundled `src/assets`, plus CMS media inside articles in CMS mode |
-| Pages / localized content | Planned: Prisma scaffold only, no endpoint | `copy` in `data/hmv.js` |
+| Website pages | About: implemented, public (`/public/pages/about`). Other pages: not modelled | About: CMS mode via `features/pages`, default `data/about.js`. Others: `copy` in `data/hmv.js` |
 | Supply chain stories | Absent: mock UI in the admin app only | `stages` in `data/hmv.js` |
 | Commodities / products | Planned: scaffold schema, no endpoint | `products` in `data/hmv.js`, `data/productPhotos.js` |
 | RFQ / contact | Absent: no endpoint, model, spam protection or public rate limit | mailto drafts (`features/inquiries`) |

@@ -1,23 +1,9 @@
-// Client for the CMS public article API (CMS_HMV docs/api/public-content-contract.md).
-// Same-origin path: the dev/preview server proxies it (vite.config.js); production needs a host rewrite.
+// EcoNews from the CMS public article API (CMS_HMV docs/api/public-content-contract.md).
 // Plain .js with relative imports so `node --test` can load it.
+import { getJson, malformed } from '../../lib/cms.js';
 import { isSafeSrc } from './RichText.js';
 
-const BASE = '/api/v1/public';
-
-async function getJson(path, params, signal) {
-  const res = await fetch(`${BASE}${path}?${new URLSearchParams(params)}`, {
-    // Public content needs no identity: never send the admin session cookie (localhost cookies ignore the port).
-    credentials: 'omit',
-    headers: { Accept: 'application/json' },
-    signal,
-  });
-  if (!res.ok) throw Object.assign(new Error(`CMS ${res.status} for ${path}`), { status: res.status });
-  return res.json();
-}
-
 const isArticle = a => typeof a?.slug === 'string' && typeof a?.title === 'string';
-const malformed = () => Object.assign(new Error('Malformed CMS response'), { status: 0 });
 
 const MONTH = { month: 'long', year: 'numeric', timeZone: 'Asia/Ho_Chi_Minh' };
 // Matches the static article labels: "October 2026" / "Tháng 10, 2026".
