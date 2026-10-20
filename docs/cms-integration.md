@@ -2,6 +2,8 @@
 
 Status on 2026-10-20: EcoNews (Home "Latest Insights", `/insights`, `/blog/:slug`) can read the HMV CMS public API in **CMS mode**. The default build, production included, still renders the bundled articles in `src/data/articles.js`. Enabling CMS mode in production is blocked on the items under [Before enabling in production](#before-enabling-in-production).
 
+Verified end to end on 2026-10-20 against a local CMS (`main` 488e05d, real PostgreSQL): `[TEST]` articles were created, approved, published and archived through the CMS admin UI, then checked on the public API and on this site in CMS mode (listing, detail, rich text, cover and inline media, EN↔VI slugs, unpublished translation, draft, archived, empty and error states). `src/features/articles/fixtures/cms-article.json` is the real published payload from that run.
+
 Everything else (pages, products, supply-chain stories, RFQ) is still static; see [Domain status](#domain-status).
 
 ## CMS public API used

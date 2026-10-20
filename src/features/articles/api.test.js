@@ -1,4 +1,5 @@
 import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { fetchArticles, resolveArticle } from './api.js';
 
@@ -141,4 +142,24 @@ test('detail: the slug is encoded into a single path segment', async () => {
   await resolveArticle({ slug: '../admin/articles?x=1', lang: 'en' });
   assert.equal(calls[0].url, '/api/v1/public/articles/..%2Fadmin%2Farticles%3Fx%3D1?locale=en');
   assert.ok(calls.every(c => c.url.startsWith('/api/v1/public/articles/')));
+});
+
+test('detail: maps a real published CMS payload (fixtures/cms-article.json)', async () => {
+  const { en, vi } = JSON.parse(readFileSync(new URL('./fixtures/cms-article.json', import.meta.url), 'utf8'));
+  mockFetch({
+    [`/api/v1/public/articles/${en.slug}?locale=en`]: en,
+    [`/api/v1/public/articles/${vi.slug}?locale=vi`]: vi,
+  });
+  const r = await resolveArticle({ slug: en.slug, lang: 'en' });
+  assert.equal(r.status, 'ready');
+  assert.deepEqual({ ...r.article, content: undefined }, {
+    key: en.id, slug: 'test-econews-integration-e2e1020', title: '[TEST e2e1020] EcoNews CMS → Landing integration',
+    metaTitle: '[TEST e2e1020] EcoNews CMS → Landing integration',
+    description: 'Integration test article: content published in the CMS appears on the Landing site.',
+    category: 'Supply Chain Insights', date: { iso: '2026-10-20T07:41:54.331Z', label: 'October 2026' },
+    image: { src: 'http://localhost:4000/media-files/media/2026/10/da6e8adc-71ea-4e4e-86bc-55ef060bdbba.png', width: 1600, height: 900, alt: 'Test cover image' },
+    content: undefined, cta: null,
+  });
+  // Opening the English slug in Vietnamese follows the real alternates.
+  assert.deepEqual(await resolveArticle({ slug: vi.slug, lang: 'en' }), { status: 'redirect', to: '/blog/test-econews-integration-e2e1020' });
 });

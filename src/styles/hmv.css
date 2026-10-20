@@ -4233,7 +4233,8 @@ article[id] {
   color: var(--ink-muted)
 }
 
-.article-body a {
+/* Links inside text only: the CTA button below the body is also an <a>. */
+.article-body :is(p, li, blockquote, h2, h3) a {
   color: var(--ocean-blue);
   text-decoration: underline;
   text-underline-offset: 3px

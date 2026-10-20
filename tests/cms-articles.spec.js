@@ -102,7 +102,12 @@ test('listing card opens the article detail with rich content and metadata', asy
   const link = body.locator('a[href="https://example.com/report"]');
   await expect(link).toHaveAttribute('target', '_blank');
   await expect(link).toHaveAttribute('rel', /noopener/);
-  await expect(body.locator('a[href="/#initiate-trade"]')).toBeVisible();
+  const cta = body.locator('a[href="/#initiate-trade"]');
+  await expect(cta).toBeVisible();
+  // Content-link styling must not leak onto the CTA button (it would turn its label blue on blue).
+  const decoration = el => getComputedStyle(el).textDecorationLine;
+  expect(await link.evaluate(decoration)).toContain('underline');
+  expect(await cta.evaluate(decoration)).not.toContain('underline');
 
   const jsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
   expect(jsonLd.some(s => s.includes('"headline":"[TEST] EcoNews integration"'))).toBe(true);

@@ -1,4 +1,5 @@
 import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -89,4 +90,26 @@ test('empty or missing content renders nothing', () => {
   assert.equal(html(null), '');
   assert.equal(html({ type: 'doc' }), '');
   assert.equal(html({ type: 'doc', content: 'nope' }), '');
+});
+
+// Real payload: article created, approved and published through the CMS admin UI (see fixtures/cms-article.json).
+const real = JSON.parse(readFileSync(new URL('./fixtures/cms-article.json', import.meta.url), 'utf8'));
+
+test('renders a real published CMS article exactly', () => {
+  assert.equal(html(real.en.content), [
+    '<p>Test intro paragraph with <strong>bold text</strong>, <em>italic text</em>, <u>underlined text</u>, <s>struck text</s>, and a ',
+    '<a href="https://www.example.com/hmv-econews-test" target="_blank" rel="noopener noreferrer nofollow">source link</a></p>',
+    '<h2>Test level-2 heading</h2><p>Paragraph under the level-2 heading.</p><h3>Test level-3 heading</h3>',
+    '<ul><li>Bullet item one</li><li>Bullet item two</li></ul><ol><li>Step one</li><li>Step two</li></ol>',
+    '<blockquote><p>A test quotation from the CMS.</p></blockquote><hr/><p>Closing paragraph, right before the inline image.</p>',
+    '<img src="http://localhost:4000/media-files/media/2026/10/66ca803e-e83c-4c06-b93f-3cdea523a292.png" alt="Test inline illustration" loading="lazy" decoding="async"/><p></p>',
+  ].join(''));
+});
+
+test('the Vietnamese version has the same structure with its own text and alt', () => {
+  const tags = h => h.match(/<\/?[a-z0-9]+/g).join('');
+  const vi = html(real.vi.content);
+  assert.equal(tags(vi), tags(html(real.en.content)));
+  assert.ok(vi.includes('<a href="https://www.example.com/hmv-econews-test" target="_blank" rel="noopener noreferrer nofollow">liên kết nguồn</a>'));
+  assert.match(vi, /alt="Ảnh minh họa kiểm thử"/);
 });
