@@ -119,7 +119,7 @@ Styles for elements the bundled articles never used (`h3`, `ol`, `blockquote`, `
 ## Before enabling in production
 
 1. A deployed CMS API, with media on https (`MEDIA_PUBLIC_BASE_URL`).
-2. A same-origin host rewrite for `/api/v1/public/*` only (the Vite proxy is development/preview only). Do not add the site to the CMS `CORS_ORIGIN`.
+2. A same-origin host rewrite for `/api/v1/public/*` only (the Vite proxy is development/preview only). Do not add the site to the CMS `CORS_ORIGIN`. In `vercel.json` it must be listed **before** the SPA fallback rewrite, which sends every extension-less path (`/api/...` included) to `index.html`.
 3. A CDN or rate limit in front of the public API (the CMS has none on public routes).
 4. An SEO decision: pre-rendering or server rendering, a generated sitemap, and `hreflang`/locale URLs. These are URL and SEO changes that need approval.
 5. The three bundled articles recreated in the CMS with their legacy slugs (table above).
