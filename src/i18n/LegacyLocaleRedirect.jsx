@@ -1,16 +1,10 @@
 import { useLayoutEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { SUPPORTED_LANGS, useLanguage } from '@/i18n/LanguageContext';
-import { articleSlug, findArticle } from '@/data/articles';
 
-function cleanTarget(rest) {
-  const target = rest.replace(/\/$/, '') || '/';
-  // Legacy Vietnamese blog slugs map onto the canonical slug
-  const blogMatch = target.match(/^\/blog\/([^/?#]+)$/);
-  if (!blogMatch) return target;
-  const article = findArticle(blogMatch[1]);
-  return article ? `/blog/${articleSlug(article)}` : '/insights';
-}
+// /blog/<slug> passes through: ArticlePage resolves the slug (static: VI → EN canonical, unknown → /insights;
+// CMS: localized slug via alternates).
+const cleanTarget = rest => rest.replace(/\/$/, '') || '/';
 
 /**
  * Handles legacy locale-prefixed URLs (/en/..., /vi/...) client-side.

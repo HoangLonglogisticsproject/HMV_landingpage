@@ -1,22 +1,11 @@
 import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
-import { photos } from '@/data/hmv';
-import { articles, articleSlug } from '@/data/articles';
-const dims = {
-  farm: [1280, 960],
-  factory: [768, 1024],
-  farmTeam: [1308, 1600],
-};
-
-const posts = articles.map(a => ({
-  ...a,
-  img: photos[a.image],
-  w: dims[a.image][0],
-  h: dims[a.image][1],
-}));
+import { ArticleGrid } from '@/features/articles/ArticleGrid';
+import { useArticleList } from '@/features/articles/hooks';
 
 export function LatestInsights({ lang }) {
   const vi = lang === 'vi';
+  const state = useArticleList(lang, { pageSize: 3 });
   return (
     <section
       className="insights-home section-pad"
@@ -33,35 +22,7 @@ export function LatestInsights({ lang }) {
             <ArrowUpRight size={18} />
           </Link>
         </div>
-        <div className="insight-grid">
-          {posts.map(p => (
-            <Link
-              key={p.id}
-              to={`/blog/${articleSlug(p)}`}
-              className="insight-card"
-            >
-              <figure>
-                <img
-                  src={p.img}
-                  alt={p.alt[lang]}
-                  width={p.w}
-                  height={p.h}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </figure>
-              <div className="insight-meta">
-                <span>{p.category[lang]}</span>
-                <time dateTime={p.iso}>{p.date[lang]}</time>
-              </div>
-              <h3>{p.title[lang]}</h3>
-              <em>
-                {vi ? 'Đọc thêm' : 'Read more'}
-                <ArrowUpRight size={16} />
-              </em>
-            </Link>
-          ))}
-        </div>
+        <ArticleGrid state={state} lang={lang} />
       </div>
     </section>
   );

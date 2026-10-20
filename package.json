@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:cms": "vite --mode cms",
     "build": "vite build",
+    "build:cms": "vite build --mode cms --outDir dist-cms",
     "preview": "vite preview",
     "test": "node --test",
-    "test:e2e": "npm run build && npx playwright test",
+    "test:e2e": "npm run build && npm run build:cms && npx playwright test && npx playwright test -c playwright.cms.config.js",
     "test:e2e:fast": "npx playwright test",
+    "test:e2e:cms": "npm run build:cms && npx playwright test -c playwright.cms.config.js",
     "test:visual": "npm run build && npx playwright test tests/visual.spec.js",
     "lint": "eslint .",
     "build:dev": "vite build --mode development"

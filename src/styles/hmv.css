@@ -4205,6 +4205,83 @@ article[id] {
   color: var(--farm-green)
 }
 
+/* CMS rich content (Tiptap): elements the bundled articles never used. Pending design review. */
+.article-body h3 {
+  font-family: 'Plus Jakarta Sans';
+  font-size: 21px;
+  font-weight: 700;
+  margin: 36px 0 12px;
+  line-height: 1.35
+}
+
+.article-body ol {
+  list-style: decimal;
+  padding-left: 26px;
+  margin: 0 0 28px;
+  display: grid;
+  gap: 14px
+}
+
+.article-body li > p {
+  margin: 0
+}
+
+.article-body blockquote {
+  margin: 0 0 26px;
+  padding-left: 20px;
+  border-left: 3px solid var(--farm-green);
+  color: var(--ink-muted)
+}
+
+.article-body a {
+  color: var(--ocean-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px
+}
+
+.article-body img {
+  max-width: 100%;
+  height: auto;
+  margin: 8px auto 30px;
+  border-radius: 14px
+}
+
+.article-body pre {
+  margin: 0 0 26px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: var(--surface);
+  overflow-x: auto;
+  font-size: 15px;
+  line-height: 1.6
+}
+
+.article-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .9em
+}
+
+.article-body hr {
+  margin: 40px 0;
+  border: 0;
+  border-top: 1px solid var(--border)
+}
+
+.article-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px
+}
+
+.insight-card figure:empty {
+  background: var(--surface)
+}
+
+.insight-status {
+  color: var(--muted-foreground)
+}
+
 @media(max-width:1100px) {
   .insight-grid {
     grid-template-columns: repeat(2, 1fr)

@@ -2,7 +2,7 @@
 
 React 19 + Vite 6 single-page app. Routing uses React Router 7 in declarative mode (`<BrowserRouter>`). Styling is Tailwind 4 plus the hand-written `src/styles/hmv.css`. Page head tags come from react-helmet-async, primitives are Radix via shadcn, and icons are lucide-react.
 
-There is no backend. Content is static bilingual data in `src/data/`, and forms open a pre-filled email draft (mailto).
+There is no backend of its own. Content is static bilingual data in `src/data/`, and forms open a pre-filled email draft (mailto). The one exception is EcoNews in CMS mode (`--mode cms`), which reads the HMV CMS public API; see `docs/cms-integration.md`. The default build, production included, stays static.
 
 ## Folders
 
@@ -13,6 +13,7 @@ src/
   pages/<route>/       <Name>Page.jsx + sections used only by that page
     home/sections/     the eight home sections, in render order in HomePage.jsx
   features/<name>/     business functionality used by more than one page or the shell
+    articles/          EcoNews data access (bundled or CMS public API), ArticleGrid, Tiptap RichText (+ tests)
     inquiries/         Contact, TradeRfq, mailto builder, RFQ validation (+ tests)
     regulations/       Regulations list (insights + regulations pages)
     support-chat/      SupportChatWidget + openSupportChat()
@@ -48,12 +49,12 @@ src/
 | `/trade-solutions` | `pages/trade-solutions/TradeSolutionsPage` | DetailLayout |
 | `/activities` | `pages/activities/ActivitiesPage` | DetailLayout |
 | `/contact` | `pages/contact/ContactPage` | DetailLayout with no trailing CTA. `?product=` preselects the product. |
-| `/insights` | `pages/insights/InsightsPage` | DetailLayout. EcoNews list plus the first 3 regulations, in data order. |
+| `/insights` | `pages/insights/InsightsPage` | DetailLayout. EcoNews list (`features/articles`) plus the first 3 regulations, in data order. |
 | `/regulations` | `pages/regulations/RegulationsPage` | DetailLayout |
 | `/products/:id` | `pages/products/ProductDetailPage` | DetailLayout. An unknown id shows the "not found" title and the CTA only. |
 | `/logistics` | `pages/logistics/LogisticsHubPage` | Its own hero. Adds its own delayed smooth `#hash` scroll on top of SiteLayout's. |
 | `/packaging-logistics` | `pages/packaging-logistics/PackagingLogisticsPage` | Its own hero |
-| `/blog/:slug` | `pages/article/ArticlePage` | Outside SiteLayout (see below). A Vietnamese slug redirects to the English canonical slug; an unknown slug goes to `/insights`. |
+| `/blog/:slug` | `pages/article/ArticlePage` | Outside SiteLayout (see below). Static mode: a Vietnamese slug redirects to the English canonical slug; an unknown slug goes to `/insights`. CMS mode: slugs are per locale and resolved through `alternates`; unknown slugs show a not-found state (noindex). |
 | `/en/*`, `/vi/*` | `i18n/LegacyLocaleRedirect` | Sets the language and redirects to the locale-free URL. |
 | `*` | `pages/not-found/NotFoundPage` | No site chrome |
 
@@ -88,6 +89,9 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 | `components/ui/*` | Radix-based shadcn primitives (Button, Dialog, DropdownMenu) — business-agnostic |
 | `features/inquiries/inquiry.js` | Shared mailto builder; used by Contact and TradeRfq |
 | `features/inquiries/rfq.js` | RFQ field validation; used by TradeRfq |
+| `features/articles/hooks` | `useArticleList` / `useArticle`: bundled articles, or the CMS public API in CMS mode, as one view shape |
+| `features/articles/ArticleGrid` | EcoNews cards plus loading/empty/error states; used by LatestInsights and InsightsPage |
+| `features/articles/RichText` | Whitelist renderer for CMS Tiptap JSON (no raw HTML); also renders the bundled articles |
 | `features/regulations/Regulations` | Regulation card list; used by InsightsPage and RegulationsPage |
 | `features/support-chat/SupportChatWidget` | Floating chat widget; mounted once in SiteShell |
 
@@ -109,9 +113,11 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 ## Checks
 
 - `npm run build` — Vite production build; must pass before any commit.
-- `npm test` — node:test unit tests for inquiry + RFQ logic (co-located `*.test.js` files).
+- `npm test` — node:test unit tests for inquiry + RFQ logic and the articles API client / rich-text renderer (co-located `*.test.js` files).
 - `npm run lint` — ESLint flat config (React Hooks + React Refresh checks). Baseline has 0 errors / 10 warnings.
-- `npm run test:e2e` — Playwright smoke tests (routes, i18n, navigation, workflows, visual). Runs against `vite preview` on port 4173.
+- `npm run test:e2e` — Playwright smoke tests (routes, i18n, navigation, workflows, visual) against `vite preview` on port 4173, then the CMS-mode suite (`tests/cms-*.spec.js`, mocked API) against `dist-cms` on port 4174.
+- `npm run test:e2e:cms` — CMS-mode suite only (builds `dist-cms` first).
+- `npm run dev:cms` / `npm run build:cms` — EcoNews from the CMS public API (proxied to `CMS_API_ORIGIN`, default `http://localhost:4000`).
 - `npm run test:visual` — Visual screenshot smoke tests only.
 
 ---
