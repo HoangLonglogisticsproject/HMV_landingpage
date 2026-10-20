@@ -6,7 +6,8 @@ This directory contains the reproducible smoke test suite for HMV Global landing
 
 | Layer | Tool | Command |
 |---|---|---|
-| Unit (inquiry/RFQ logic) | `node:test` (built-in) | `npm test` |
+| Unit (inquiry/RFQ logic, articles API client, rich-text renderer) | `node:test` (built-in) | `npm test` |
+| E2E, EcoNews in CMS mode (mocked public API) | Playwright (Chromium) | `npm run test:e2e:cms` |
 | E2E smoke | Playwright (Chromium) | `npm run test:e2e` |
 | Visual smoke screenshots | Playwright (Chromium) | `npm run test:visual` |
 | Lint | ESLint flat config | `npm run lint` |
@@ -26,7 +27,7 @@ npm run build                 # Build the production bundle
 npm test
 ```
 
-Runs `node --test`, which picks up all `*.test.js` files under `src/`. Currently covers inquiry mailto builder and RFQ field validation.
+Runs `node --test`, which picks up all `*.test.js` files under `src/`. Covers the inquiry mailto builder, RFQ field validation, the CMS public API client (URLs, no credentials, DTO mapping, locale/slug resolution) and the Tiptap rich-text renderer (whitelist and XSS cases).
 
 ### E2E smoke tests
 
@@ -45,6 +46,9 @@ Playwright spins up `vite preview` on port 4173 automatically. Tests cover:
 | `navigation.spec.js` | Desktop nav; mobile hamburger; footer; browser back/forward; product/article pages |
 | `workflows.spec.js` | Contact form; RFQ section; support chat; mailto-draft-only assertion |
 | `visual.spec.js` | Full-page screenshots; zero JS errors on 8 key pages |
+| `cms-articles.spec.js` | CMS mode only (`playwright.cms.config.js`, `dist-cms` on port 4174, API mocked with `page.route`): list → detail, rich content, loading/empty/error/not-found, EN↔VI slugs via `alternates`, unavailable-in-locale, legacy `/vi/blog`, no cookie/CSRF on requests, bundle scan for admin markers |
+
+`npm run test:e2e` builds both bundles and runs both suites. The default config ignores `cms-*.spec.js`, so `test:e2e:fast` and `test:visual` need only `dist`.
 
 Both desktop (1280×720) and mobile (375×667) viewports are tested.
 

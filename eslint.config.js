@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
-  { ignores: ['dist/**', 'node_modules/**'] },
+  { ignores: ['dist/**', 'dist-cms/**', 'node_modules/**'] },
   // Root config files and test specs run in Node.js
   {
     files: ['*.config.js', 'tests/**/*.js'],

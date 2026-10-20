@@ -13,6 +13,8 @@ import { defineConfig } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
+  // CMS-mode specs need the dist-cms bundle: they run via playwright.cms.config.js
+  testIgnore: /cms-.*\.spec\.js/,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

@@ -1,13 +1,13 @@
-import { Link } from 'react-router-dom';
-import { ArrowUpRight } from 'lucide-react';
 import { DetailLayout } from '@/components/layout/DetailLayout';
 import { Regulations } from '@/features/regulations/Regulations';
-import { photos } from '@/data/hmv';
-import { articles, articleSlug } from '@/data/articles';
+import { ArticleGrid } from '@/features/articles/ArticleGrid';
+import { useArticleList } from '@/features/articles/hooks';
 import { useLang } from '@/i18n/LanguageContext';
 
 export function InsightsPage() {
   const lang = useLang();
+  // ponytail: first 100 (the CMS maximum page size); add pagination UI when EcoNews outgrows it.
+  const state = useArticleList(lang, { pageSize: 100 });
   return (
     <DetailLayout
       lang={lang}
@@ -20,33 +20,7 @@ export function InsightsPage() {
     >
       <section className="section-pad">
         <div className="content-width">
-          <div className="insight-grid">
-            {articles.map(p => (
-              <Link
-                key={p.id}
-                to={`/blog/${articleSlug(p)}`}
-                className="insight-card"
-              >
-                <figure>
-                  <img
-                    src={photos[p.image]}
-                    alt={p.alt[lang]}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </figure>
-                <div className="insight-meta">
-                  <span>{p.category[lang]}</span>
-                  <time dateTime={p.iso}>{p.date[lang]}</time>
-                </div>
-                <h3>{p.title[lang]}</h3>
-                <em>
-                  {lang === 'vi' ? 'Đọc tiếp' : 'Read more'}
-                  <ArrowUpRight size={16} />
-                </em>
-              </Link>
-            ))}
-          </div>
+          <ArticleGrid state={state} lang={lang} />
         </div>
       </section>
       <Regulations lang={lang} limit={3} />

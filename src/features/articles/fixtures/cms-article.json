@@ -1,0 +1,517 @@
+{
+  "_source": "GET /api/v1/public/articles/:slug from the local HMV CMS (main 488e05d) on 2026-10-20, [TEST e2e1020] article A, created and published through the CMS admin UI",
+  "en": {
+    "id": "01a15842-57f3-7873-9bac-b8b4f52f8906",
+    "locale": "en",
+    "slug": "test-econews-integration-e2e1020",
+    "title": "[TEST e2e1020] EcoNews CMS → Landing integration",
+    "excerpt": "Integration test article: content published in the CMS appears on the Landing site.",
+    "category": {
+      "code": "SUPPLY_CHAIN_INSIGHTS",
+      "name": "Supply Chain Insights"
+    },
+    "cover": {
+      "url": "http://localhost:4000/media-files/media/2026/10/da6e8adc-71ea-4e4e-86bc-55ef060bdbba.png",
+      "width": 1600,
+      "height": 900,
+      "alt": "Test cover image"
+    },
+    "isFeatured": false,
+    "authorName": "HMV Administrator",
+    "authorRole": null,
+    "readTimeMinutes": 1,
+    "publishedAt": "2026-10-20T07:41:54.331Z",
+    "updatedAt": "2026-10-20T07:43:21.220Z",
+    "content": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Test intro paragraph with ",
+              "type": "text"
+            },
+            {
+              "text": "bold text",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "italic text",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "underlined text",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "underline"
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "struck text",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "strike"
+                }
+              ]
+            },
+            {
+              "text": ", and a ",
+              "type": "text"
+            },
+            {
+              "text": "source link",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "rel": "noopener noreferrer nofollow",
+                    "href": "https://www.example.com/hmv-econews-test",
+                    "title": null,
+                    "target": "_blank"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "Test level-2 heading",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Paragraph under the level-2 heading.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "text": "Test level-3 heading",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Bullet item one",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Bullet item two",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "orderedList",
+          "attrs": {
+            "type": null,
+            "start": 1
+          },
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Step one",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Step two",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "blockquote",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "text": "A test quotation from the CMS.",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "horizontalRule"
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Closing paragraph, right before the inline image.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "attrs": {
+            "alt": "Test inline illustration",
+            "title": null,
+            "width": null,
+            "height": null,
+            "mediaId": "01a15842-6751-7a42-8163-618284f13d0e",
+            "src": "http://localhost:4000/media-files/media/2026/10/66ca803e-e83c-4c06-b93f-3cdea523a292.png"
+          }
+        },
+        {
+          "type": "paragraph"
+        }
+      ]
+    },
+    "seo": {
+      "title": "[TEST e2e1020] EcoNews CMS → Landing integration",
+      "description": "Integration test article: content published in the CMS appears on the Landing site."
+    },
+    "alternates": [
+      {
+        "locale": "vi",
+        "slug": "test-econews-tich-hop-e2e1020"
+      }
+    ]
+  },
+  "vi": {
+    "id": "01a15842-57f3-7873-9bac-b8b4f52f8906",
+    "locale": "vi",
+    "slug": "test-econews-tich-hop-e2e1020",
+    "title": "[TEST e2e1020] Tích hợp EcoNews CMS → Landing",
+    "excerpt": "Bài kiểm thử tích hợp: nội dung xuất bản từ CMS hiển thị trên trang Landing.",
+    "category": {
+      "code": "SUPPLY_CHAIN_INSIGHTS",
+      "name": "Thông Tin Chuỗi Cung Ứng"
+    },
+    "cover": {
+      "url": "http://localhost:4000/media-files/media/2026/10/da6e8adc-71ea-4e4e-86bc-55ef060bdbba.png",
+      "width": 1600,
+      "height": 900,
+      "alt": "Ảnh bìa kiểm thử"
+    },
+    "isFeatured": false,
+    "authorName": "HMV Administrator",
+    "authorRole": null,
+    "readTimeMinutes": 1,
+    "publishedAt": "2026-10-20T07:41:54.331Z",
+    "updatedAt": "2026-10-20T07:43:21.220Z",
+    "content": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Đoạn mở đầu kiểm thử với ",
+              "type": "text"
+            },
+            {
+              "text": "chữ đậm",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "chữ nghiêng",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "gạch chân",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "underline"
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "gạch ngang",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "strike"
+                }
+              ]
+            },
+            {
+              "text": ", và ",
+              "type": "text"
+            },
+            {
+              "text": "liên kết nguồn",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "rel": "noopener noreferrer nofollow",
+                    "href": "https://www.example.com/hmv-econews-test",
+                    "title": null,
+                    "target": "_blank"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "Tiêu đề cấp 2 kiểm thử",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Đoạn văn dưới tiêu đề cấp 2.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "text": "Tiêu đề cấp 3 kiểm thử",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Mục danh sách một",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Mục danh sách hai",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "orderedList",
+          "attrs": {
+            "type": null,
+            "start": 1
+          },
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Bước một",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Bước hai",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "blockquote",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "text": "Trích dẫn kiểm thử từ CMS.",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "horizontalRule"
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Đoạn kết thúc, ngay trước ảnh minh họa.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "attrs": {
+            "alt": "Ảnh minh họa kiểm thử",
+            "title": null,
+            "width": null,
+            "height": null,
+            "mediaId": "01a15842-6751-7a42-8163-618284f13d0e",
+            "src": "http://localhost:4000/media-files/media/2026/10/66ca803e-e83c-4c06-b93f-3cdea523a292.png"
+          }
+        },
+        {
+          "type": "paragraph"
+        }
+      ]
+    },
+    "seo": {
+      "title": "[TEST e2e1020] Tích hợp EcoNews CMS → Landing",
+      "description": "Bài kiểm thử tích hợp: nội dung xuất bản từ CMS hiển thị trên trang Landing."
+    },
+    "alternates": [
+      {
+        "locale": "en",
+        "slug": "test-econews-integration-e2e1020"
+      }
+    ]
+  }
+}
