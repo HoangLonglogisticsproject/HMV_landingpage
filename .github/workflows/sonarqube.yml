@@ -1,0 +1,69 @@
+# SonarQube Cloud analysis (CI-based) for pushes to main and pull requests into main.
+# Analysis only: read-only repository access, no build artifacts, no deployment. The token comes from the
+# SONAR_TOKEN repository secret. Automatic Analysis must be off in SonarQube Cloud, or CI analyses are rejected.
+# Project settings (key, organization, sources, tests): sonar-project.properties.
+name: SonarQube
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonarqube-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }} # a new push to a PR supersedes; main runs complete
+
+jobs:
+  sonarqube:
+    name: SonarQube Cloud
+    # Pull requests from forks get no repository secrets (no SONAR_TOKEN): they run fork-checks instead.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0 # full history: SCM blame and new-code detection
+          persist-credentials: false
+      - name: Cache SonarQube packages
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: SonarQube Cloud scan
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # Fork pull requests: unprivileged lint + unit tests only. No secrets are referenced here, and the token is
+  # read-only (pull_request event, never pull_request_target), so fork code never runs with credentials.
+  fork-checks:
+    name: Fork PR checks (SonarQube skipped)
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Report that SonarQube analysis was skipped
+        run: |
+          echo "::warning title=SonarQube analysis skipped::Pull requests from forks get no SONAR_TOKEN, so SonarQube Cloud did not analyse this PR. This is not a pass."
+          {
+            echo "### SonarQube analysis skipped"
+            echo "This pull request comes from a fork, which GitHub gives no repository secrets, so SonarQube Cloud did not analyse it."
+            echo "Only lint and unit tests ran. This is **not** a SonarQube pass."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.18.0 # same Node.js as development
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
