@@ -46,6 +46,7 @@ Playwright spins up `vite preview` on port 4173 automatically. Tests cover:
 | `navigation.spec.js` | Desktop nav; mobile hamburger; footer; browser back/forward; product/article pages |
 | `workflows.spec.js` | Contact form; RFQ section; support chat; mailto-draft-only assertion |
 | `visual.spec.js` | Full-page screenshots; zero JS errors on 8 key pages |
+| `cms-pages.spec.js` | CMS mode only: About renders the CMS copy in the existing layout (h1, lead, SEO, lists of any length), EN/VI, loading, error and not-published states (no bundled copy), no cookie/CSRF on requests |
 | `cms-articles.spec.js` | CMS mode only (`playwright.cms.config.js`, `dist-cms` on port 4174, API mocked with `page.route`): list → detail, rich content, loading/empty/error/not-found, EN↔VI slugs via `alternates`, unavailable-in-locale, legacy `/vi/blog`, no cookie/CSRF on requests, bundle scan for admin markers |
 
 `npm run test:e2e` builds both bundles and runs both suites. The default config ignores `cms-*.spec.js`, so `test:e2e:fast` and `test:visual` need only `dist`.

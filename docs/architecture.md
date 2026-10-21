@@ -2,7 +2,7 @@
 
 React 19 + Vite 6 single-page app. Routing uses React Router 7 in declarative mode (`<BrowserRouter>`). Styling is Tailwind 4 plus the hand-written `src/styles/hmv.css`. Page head tags come from react-helmet-async, primitives are Radix via shadcn, and icons are lucide-react.
 
-There is no backend of its own. Content is static bilingual data in `src/data/`, and forms open a pre-filled email draft (mailto). The one exception is EcoNews in CMS mode (`--mode cms`), which reads the HMV CMS public API; see `docs/cms-integration.md`. The default build, production included, stays static.
+There is no backend of its own. Content is static bilingual data in `src/data/`, and forms open a pre-filled email draft (mailto). The exceptions are EcoNews and the About page in CMS mode (`--mode cms`), which read the HMV CMS public API; see `docs/cms-integration.md`. The default build, production included, stays static.
 
 ## Folders
 
@@ -14,6 +14,7 @@ src/
     home/sections/     the eight home sections, in render order in HomePage.jsx
   features/<name>/     business functionality used by more than one page or the shell
     articles/          EcoNews data access (bundled or CMS public API), ArticleGrid, Tiptap RichText (+ tests)
+    pages/             usePage(key, lang): website page copy, bundled or from the CMS public pages API (+ tests)
     inquiries/         Contact, TradeRfq, mailto builder, RFQ validation (+ tests)
     regulations/       Regulations list (insights + regulations pages)
     support-chat/      SupportChatWidget + openSupportChat()
@@ -23,7 +24,7 @@ src/
     ui/                shadcn primitives: business-agnostic, regenerate with the shadcn CLI
   i18n/                language state (localStorage `hmv_lang`), ?lang= and /en|/vi URL handling
   data/                static bilingual content and photo registries (future CMS seam)
-  lib/                 generic helpers (cn)
+  lib/                 generic helpers (cn), CMS public-API client (cms.js) and fetch hook + CMS flag (useFetched.js)
   styles/              index.css (Tailwind + tokens), hmv.css (all layout/editorial CSS)
   assets/              bundled images
 ```
@@ -44,7 +45,7 @@ src/
 | URL | Module | Notes |
 |---|---|---|
 | `/` | `pages/home/HomePage` | Section order is defined in `HomePage.jsx`. `#initiate-trade` targets the RFQ form. |
-| `/about` | `pages/about/AboutPage` | DetailLayout |
+| `/about` | `pages/about/AboutPage` | DetailLayout. Copy from `features/pages` (`data/about.js`, or the CMS in CMS mode). |
 | `/supply-chain` | `pages/supply-chain/SupplyChainPage` | DetailLayout. Deep links: `#commodities`, `#wind-energy`, `#logistics-capacity`, stage ids. |
 | `/trade-solutions` | `pages/trade-solutions/TradeSolutionsPage` | DetailLayout |
 | `/activities` | `pages/activities/ActivitiesPage` | DetailLayout |
