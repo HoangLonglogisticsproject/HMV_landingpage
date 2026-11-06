@@ -22,4 +22,14 @@ export default defineConfig({
       },
     },
   },
+  // Unit tests (`npm test`, Vitest): Node environment; React component and hook tests opt into jsdom with a
+  // `// @vitest-environment jsdom` comment. `npm run test:coverage` writes coverage/lcov.info for SonarQube.
+  test: {
+    include: ['src/**/*.test.{js,jsx}'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{js,jsx}'],
+      reporter: ['text-summary', 'lcovonly'],
+    },
+  },
 });
