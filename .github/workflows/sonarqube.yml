@@ -36,7 +36,7 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-      # Unit tests with coverage first: the scan imports lcov.info (sonar-project.properties).
+      # Unit tests with coverage first: the scan imports coverage/lcov.info (sonar-project.properties).
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.18.0 # same Node.js as development

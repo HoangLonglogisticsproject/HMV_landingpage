@@ -4,7 +4,7 @@ dist-cms
 .DS_Store
 *.local
 .env
-lcov.info
+coverage/
 
 # Playwright
 tests/screenshots/
