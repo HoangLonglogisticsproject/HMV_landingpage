@@ -114,7 +114,7 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 ## Checks
 
 - `npm run build` — Vite production build; must pass before any commit.
-- `npm test` — node:test unit tests for inquiry + RFQ logic and the articles API client / rich-text renderer (co-located `*.test.js` files).
+- `npm test` — Vitest unit tests (co-located `*.test.js` files): inquiry + RFQ logic, CMS API clients, rich-text renderer, About page and its data hooks. `npm run test:coverage` writes `coverage/lcov.info` for SonarQube.
 - `npm run lint` — ESLint flat config (React Hooks + React Refresh checks). Baseline has 0 errors / 10 warnings.
 - `npm run test:e2e` — Playwright smoke tests (routes, i18n, navigation, workflows, visual) against `vite preview` on port 4173, then the CMS-mode suite (`tests/cms-*.spec.js`, mocked API) against `dist-cms` on port 4174.
 - `npm run test:e2e:cms` — CMS-mode suite only (builds `dist-cms` first).

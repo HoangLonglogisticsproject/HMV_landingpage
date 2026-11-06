@@ -6,7 +6,7 @@ This directory contains the reproducible smoke test suite for HMV Global landing
 
 | Layer | Tool | Command |
 |---|---|---|
-| Unit (inquiry/RFQ logic, articles API client, rich-text renderer) | `node:test` (built-in) | `npm test` |
+| Unit (inquiry/RFQ logic, CMS API clients, rich-text renderer, About page and its data hooks) | Vitest (Node; jsdom for React) | `npm test` |
 | E2E, EcoNews in CMS mode (mocked public API) | Playwright (Chromium) | `npm run test:e2e:cms` |
 | E2E smoke | Playwright (Chromium) | `npm run test:e2e` |
 | Visual smoke screenshots | Playwright (Chromium) | `npm run test:visual` |
@@ -27,9 +27,11 @@ npm run build                 # Build the production bundle
 npm test
 ```
 
-Runs `node --test`, which picks up all `*.test.js` files under `src/`. Covers the inquiry mailto builder, RFQ field validation, the CMS public API client (URLs, no credentials, DTO mapping, locale/slug resolution) and the Tiptap rich-text renderer (whitelist and XSS cases).
+Runs Vitest (`vitest run`, configured in `vite.config.js`, so the `@/` alias and `import.meta.env` work as in the app) on all `*.test.js` files under `src/`. Covers the inquiry mailto builder, RFQ field validation, the CMS public API clients (URLs, no credentials, DTO mapping, locale/slug resolution), the Tiptap rich-text renderer (whitelist and XSS cases), the keyed fetch hook (`useFetched`: loading, errors, abort, stale responses), `usePage` in static and CMS mode, and the About page (EN/VI copy, list rendering, SEO, loading/error/not-published states).
 
-`npm run test:coverage` runs the same tests with Node's built-in coverage and writes `lcov.info` (gitignored), which the SonarQube workflow imports. Node only reports modules the tests load: React components and hooks (`.jsx`, `@/` imports, `import.meta.env`) cannot run under `node --test`, so SonarQube counts them as uncovered.
+Tests run in Node; React component and hook tests start with `// @vitest-environment jsdom`. Tests that depend on CMS mode set `VITE_CMS_CONTENT` with `vi.stubEnv` and import the module fresh.
+
+`npm run test:coverage` also writes `coverage/lcov.info` (V8 provider, gitignored), which the SonarQube workflow imports.
 
 ### E2E smoke tests
 
