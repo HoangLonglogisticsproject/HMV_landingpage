@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 const leaderIcons = [ShieldCheck, Briefcase, GraduationCap, Plane];
 
 // `content` is the About page copy for one language (data/about.js, or the CMS `about` page).
+// The CMS page contract has no item ids: list items are keyed by their name/title/text, unique within each list.
 export function CompanyStory({ content }) {
   const { purpose, vision, mission, values, team } = content;
 
@@ -54,8 +55,8 @@ export function CompanyStory({ content }) {
                 </div>
                 <p className="vm-goal-desc">{vision.goalText}</p>
                 <div className="market-badges-wrap">
-                  {vision.markets.map((m, i) => (
-                    <span key={i} className="market-badge">
+                  {vision.markets.map(m => (
+                    <span key={m.name} className="market-badge">
                       <span className="market-flag">{m.flag}</span>
                       <span>{m.name}</span>
                     </span>
@@ -74,8 +75,8 @@ export function CompanyStory({ content }) {
               <p className="vm-mission-body">{mission.text}</p>
 
               <div className="vm-highlights">
-                {mission.highlights.map((h, i) => (
-                  <div key={i} className="vm-highlight-item">
+                {mission.highlights.map(h => (
+                  <div key={h.title} className="vm-highlight-item">
                     <CheckCircle2 size={18} className="check-icon" />
                     <div>
                       <strong>{h.title}</strong>
@@ -93,8 +94,8 @@ export function CompanyStory({ content }) {
               <h4>{values.title}</h4>
             </div>
             <div className="core-values-grid">
-              {values.items.map((cv, i) => (
-                <div key={i} className="cv-item">
+              {values.items.map(cv => (
+                <div key={cv.title} className="cv-item">
                   <span className="cv-bullet" />
                   <h5>{cv.title}</h5>
                   <p>{cv.text}</p>
@@ -121,7 +122,7 @@ export function CompanyStory({ content }) {
             {team.members.map((leader, idx) => {
               const Icon = leaderIcons[idx] ?? Award;
               return (
-                <div key={idx} className="leader-card">
+                <div key={leader.name} className="leader-card">
                   <div className="leader-card-top">
                     <div className="leader-icon-circle">
                       <Icon size={20} className="leader-icon" />
@@ -137,8 +138,8 @@ export function CompanyStory({ content }) {
                   <p className="leader-expertise">{leader.bio}</p>
 
                   <div className="leader-tags">
-                    {leader.specialties.map((s, i) => (
-                      <span key={i} className="specialty-tag">
+                    {leader.specialties.map(s => (
+                      <span key={s} className="specialty-tag">
                         {s}
                       </span>
                     ))}
