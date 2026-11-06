@@ -9705,3 +9705,8 @@ article[id] {
     grid-template-columns: 1fr
   }
 }
+
+/* Loading / error / not-published message of a CMS-backed page (CMS mode only). Pending design review. */
+.cms-status {
+  color: var(--muted-foreground)
+}

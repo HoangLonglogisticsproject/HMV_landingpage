@@ -1,27 +1,9 @@
-import { useEffect, useState } from 'react';
 import { photos } from '@/data/hmv';
 import { articles, articleSlug, findArticle } from '@/data/articles';
+import { CMS_CONTENT, useFetched } from '@/lib/useFetched';
 import { fetchArticles, resolveArticle } from './api.js';
 
-// `vite --mode cms` / `vite build --mode cms` (.env.cms) switch EcoNews to the CMS public API.
-// Every other build, production included, keeps the bundled articles in data/articles.js.
-// With the CMS on there is no fallback to bundled articles: failures render error states.
-const CMS_CONTENT = import.meta.env.VITE_CMS_CONTENT === 'true';
-
 // States: loading | ready | empty | error | not-found | unavailable | redirect
-function useFetched(key, load) {
-  const [state, setState] = useState({ key: null });
-  useEffect(() => {
-    const ctrl = new AbortController();
-    load(ctrl.signal).then(
-      result => { if (!ctrl.signal.aborted) setState({ key, ...result }); },
-      error => { if (!ctrl.signal.aborted) setState({ key, status: 'error', error }); },
-    );
-    return () => ctrl.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` encodes every input of `load`
-  }, [key]);
-  return state.key === key ? state : { status: 'loading' };
-}
 
 function useCmsList(lang, { pageSize }) {
   return useFetched(`${lang}|${pageSize}`, signal =>

@@ -6,7 +6,7 @@ This directory contains the reproducible smoke test suite for HMV Global landing
 
 | Layer | Tool | Command |
 |---|---|---|
-| Unit (inquiry/RFQ logic, articles API client, rich-text renderer) | `node:test` (built-in) | `npm test` |
+| Unit (inquiry/RFQ logic, CMS API clients, rich-text renderer, About page and its data hooks) | Vitest (Node; jsdom for React) | `npm test` |
 | E2E, EcoNews in CMS mode (mocked public API) | Playwright (Chromium) | `npm run test:e2e:cms` |
 | E2E smoke | Playwright (Chromium) | `npm run test:e2e` |
 | Visual smoke screenshots | Playwright (Chromium) | `npm run test:visual` |
@@ -27,7 +27,11 @@ npm run build                 # Build the production bundle
 npm test
 ```
 
-Runs `node --test`, which picks up all `*.test.js` files under `src/`. Covers the inquiry mailto builder, RFQ field validation, the CMS public API client (URLs, no credentials, DTO mapping, locale/slug resolution) and the Tiptap rich-text renderer (whitelist and XSS cases).
+Runs Vitest (`vitest run`, configured in `vite.config.js`, so the `@/` alias and `import.meta.env` work as in the app) on all `*.test.js` files under `src/`. Covers the inquiry mailto builder, RFQ field validation, the CMS public API clients (URLs, no credentials, DTO mapping, locale/slug resolution), the Tiptap rich-text renderer (whitelist and XSS cases), the keyed fetch hook (`useFetched`: loading, errors, abort, stale responses), `usePage` in static and CMS mode, and the About page (EN/VI copy, list rendering, SEO, loading/error/not-published states).
+
+Tests run in Node; React component and hook tests start with `// @vitest-environment jsdom`. Tests that depend on CMS mode set `VITE_CMS_CONTENT` with `vi.stubEnv` and import the module fresh.
+
+`npm run test:coverage` also writes `coverage/lcov.info` (V8 provider, gitignored), which the SonarQube workflow imports.
 
 ### E2E smoke tests
 
@@ -46,6 +50,7 @@ Playwright spins up `vite preview` on port 4173 automatically. Tests cover:
 | `navigation.spec.js` | Desktop nav; mobile hamburger; footer; browser back/forward; product/article pages |
 | `workflows.spec.js` | Contact form; RFQ section; support chat; mailto-draft-only assertion |
 | `visual.spec.js` | Full-page screenshots; zero JS errors on 8 key pages |
+| `cms-pages.spec.js` | CMS mode only: About renders the CMS copy in the existing layout (h1, lead, SEO, lists of any length), EN/VI, loading, error and not-published states (no bundled copy), no cookie/CSRF on requests |
 | `cms-articles.spec.js` | CMS mode only (`playwright.cms.config.js`, `dist-cms` on port 4174, API mocked with `page.route`): list → detail, rich content, loading/empty/error/not-found, EN↔VI slugs via `alternates`, unavailable-in-locale, legacy `/vi/blog`, no cookie/CSRF on requests, bundle scan for admin markers |
 
 `npm run test:e2e` builds both bundles and runs both suites. The default config ignores `cms-*.spec.js`, so `test:e2e:fast` and `test:visual` need only `dist`.

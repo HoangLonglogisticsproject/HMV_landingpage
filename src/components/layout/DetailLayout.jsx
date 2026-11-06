@@ -5,11 +5,12 @@ import { Contact } from '@/features/inquiries/Contact';
 import { copy } from '@/data/hmv';
 
 // Inner-page frame: meta tags, heading band, page content, then the contact CTA.
-export function DetailLayout({ lang, title, description, contactCta = true, children }) {
+// `seo` overrides the meta title/description when they differ from the visible heading (CMS pages).
+export function DetailLayout({ lang, title, description, seo, contactCta = true, children }) {
   const t = copy[lang];
   return (
     <>
-      <PageMeta lang={lang} title={title} description={description} />
+      <PageMeta lang={lang} title={seo?.title || title} description={seo?.description || description} />
       <header className="detail-heading">
         <div className="content-width">
           <Link className="back-link" to="/">
