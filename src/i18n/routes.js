@@ -1,9 +1,13 @@
 // Locale URL contract (docs/architecture/SEO_I18N_GEO_SPEC.md §2), shared by the Vite app, the Next.js app
 // (pages, proxy, next.config) and the tests. Pure: no React, no framework, relative imports only, so every
 // runtime can load it as-is.
-import { articles } from '../data/articles.js';
+import { findArticle } from '../data/articles.js';
 
 export const LOCALES = ['en', 'vi'];
+
+// Every page's English key path. Products and articles add one key path per item (/products/<id>, /blog/<slug>).
+export const PAGES = ['/', '/about', '/supply-chain', '/trade-solutions', '/activities', '/contact', '/insights',
+  '/regulations', '/logistics', '/packaging-logistics'];
 
 // English product id (unchanged URLs) → Vietnamese slug, transliterated from the names in data/hmv.js.
 export const PRODUCT_SLUG_VI = {
@@ -23,8 +27,7 @@ export const localeOf = pathname => (pathname === '/vi' || pathname.startsWith('
 
 // Bundled articles have a known slug pair, so links and redirects go straight to the alternate.
 // CMS slugs are not known here: they keep their slug and the article route resolves them.
-const articleSlug = (slug, locale) =>
-  articles.find(a => a.slug.en === slug || a.slug.vi === slug)?.slug[locale] ?? slug;
+const articleSlug = (slug, locale) => findArticle(slug)?.slug[locale] ?? slug;
 
 /** URL of an English key path ('/about', '/products/<id>', '/blog/<slug>') in `locale`. */
 export function localizePath(path, locale) {

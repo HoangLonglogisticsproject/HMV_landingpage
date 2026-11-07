@@ -1,18 +1,11 @@
-// Client for the HMV CMS public API (docs/cms-integration.md), shared by every CMS-backed feature.
-// Same-origin path: the dev/preview server proxies it (vite.config.js); production needs a host rewrite.
+// HMV CMS public API contract (docs/cms-integration.md), shared by the transports and the response mappers.
+// A transport is `get(path, params) → Promise<body>` that rejects with `{ status }` (the HTTP status, 0 when the body
+// is malformed): the browser one in the Vite app (src/app/cms.js), a server one in Next.js (CMS PR). Mappers
+// (features/*/api.js) take the transport as an argument, so they never touch fetch, caching or the environment.
 // Plain .js with no aliases or import.meta so `node --test` can load it.
 
-const BASE = '/api/v1/public';
+export const cmsUrl = (path, params) => `/api/v1/public${path}?${new URLSearchParams(params)}`;
 
-export async function getJson(path, params, signal) {
-  const res = await fetch(`${BASE}${path}?${new URLSearchParams(params)}`, {
-    // Public content needs no identity: never send the admin session cookie (localhost cookies ignore the port).
-    credentials: 'omit',
-    headers: { Accept: 'application/json' },
-    signal,
-  });
-  if (!res.ok) throw Object.assign(new Error(`CMS ${res.status} for ${path}`), { status: res.status });
-  return res.json();
-}
+export const cmsError = (status, message) => Object.assign(new Error(message), { status });
 
-export const malformed = () => Object.assign(new Error('Malformed CMS response'), { status: 0 });
+export const malformed = () => cmsError(0, 'Malformed CMS response');

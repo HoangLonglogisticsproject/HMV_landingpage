@@ -1,12 +1,13 @@
 // Website pages from the CMS public pages API (CMS_HMV docs/api/public-content-contract.md, "Pages").
 // Plain .js with relative imports so `node --test` can load it.
-import { getJson, malformed } from '../../lib/cms.js';
+import { malformed } from '../../lib/cms.js';
 
-/** `{ status: 'ready', page }` or `{ status: 'not-found' }` (unknown page, or not published in this locale). */
-export async function fetchPage({ key, locale, signal }) {
+/** `{ status: 'ready', page }` or `{ status: 'not-found' }` (unknown page, or not published in this locale).
+ *  `get`: a CMS transport (lib/cms.js). */
+export async function fetchPage(get, { key, locale }) {
   let p;
   try {
-    p = await getJson(`/pages/${encodeURIComponent(key)}`, { locale }, signal);
+    p = await get(`/pages/${encodeURIComponent(key)}`, { locale });
   } catch (e) {
     if (e.status === 404) return { status: 'not-found' };
     throw e;

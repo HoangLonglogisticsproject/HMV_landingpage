@@ -1,12 +1,11 @@
 import { DetailLayout } from '@/components/layout/DetailLayout';
 import { Contact } from '@/features/inquiries/Contact';
-import { copy } from '@/data/hmv';
+import { contactMeta } from '../meta';
 
 // Contact page body, shared by both builds.
 export function ContactView({ lang }) {
-  const t = copy[lang];
   return (
-    <DetailLayout lang={lang} title={t.contact} description={t.contactText} contactCta={false}>
+    <DetailLayout lang={lang} {...contactMeta(lang)} contactCta={false}>
       <Contact lang={lang} full />
     </DetailLayout>
   );

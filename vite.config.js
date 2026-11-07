@@ -6,9 +6,9 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
-    // Shared components import `@/lib/navigation` (the Next.js adapter); the Vite build swaps in the React Router one.
+    // `@/lib/navigation` is a port with one implementation per build (Next.js: tsconfig.json `paths`). MIGRATION-ONLY.
     alias: [
-      { find: /^@\/lib\/navigation$/, replacement: path.resolve(import.meta.dirname, './src/lib/navigation.vite.jsx') },
+      { find: /^@\/lib\/navigation$/, replacement: path.resolve(import.meta.dirname, './src/app/navigation.jsx') },
       { find: '@', replacement: path.resolve(import.meta.dirname, './src') },
     ],
   },

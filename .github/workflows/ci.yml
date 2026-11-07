@@ -1,0 +1,40 @@
+# Build and test gate for both builds during the migration (docs/architecture/MIGRATION_ROADMAP.md, PR-02): the Vite
+# site that production serves today, and the Next.js site. Read-only: no secrets, no deployment, no indexing switch
+# (SITE_INDEXABLE is unset, so the Next.js suite also checks the noindex fail-safe).
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: ['feat/nextjs-**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, unit, builds and E2E (Vite and Next.js)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.18.0 # same Node.js as development
+          cache: npm
+      - run: npm ci
+      - run: npm run lint # ESLint, then the layer boundaries (scripts/check-boundaries.js)
+      - run: npm test
+      - run: npm run next:build
+      - run: npx playwright install --with-deps chromium
+      # With CI set, the Vite configs build their bundle before serving it (playwright*.config.js).
+      - run: npx playwright test
+      - run: npx playwright test -c playwright.cms.config.js
+      - run: npx playwright test -c playwright.next.config.js

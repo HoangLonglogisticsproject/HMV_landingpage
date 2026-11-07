@@ -2,6 +2,10 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { fetchPage } from './api.js';
 import { about } from '../../data/about.js';
+import { browserCms } from '../../app/cms.js';
+
+// The browser transport (src/app/cms.js) against a mocked global fetch.
+const get = browserCms();
 
 // Shape follows CMS_HMV docs/api/openapi-spec.json (PublicPage).
 const publicPage = (over = {}) => ({
@@ -22,7 +26,7 @@ function mockFetch(respond) {
 
 test('requests the public page with the locale only, no credentials, no custom headers', async () => {
   const calls = mockFetch(() => Response.json(publicPage()));
-  const r = await fetchPage({ key: 'about', locale: 'en' });
+  const r = await fetchPage(get, { key: 'about', locale: 'en' });
   assert.equal(calls[0].url, '/api/v1/public/pages/about?locale=en');
   assert.equal(calls[0].init.credentials, 'omit');
   assert.deepEqual(calls[0].init.headers, { Accept: 'application/json' });
@@ -31,24 +35,24 @@ test('requests the public page with the locale only, no credentials, no custom h
 
 test('missing SEO falls back to the page title and an empty description', async () => {
   mockFetch(() => Response.json(publicPage({ seo: undefined })));
-  assert.deepEqual((await fetchPage({ key: 'about', locale: 'en' })).page.seo, { title: 'About HMV', description: '' });
+  assert.deepEqual((await fetchPage(get, { key: 'about', locale: 'en' })).page.seo, { title: 'About HMV', description: '' });
 });
 
 test('404 (unknown page or locale not published) is not-found, never bundled content', async () => {
   mockFetch(() => Response.json({ statusCode: 404, code: 'PAGE_NOT_FOUND', message: 'Page not found' }, { status: 404 }));
-  assert.deepEqual(await fetchPage({ key: 'about', locale: 'vi' }), { status: 'not-found' });
+  assert.deepEqual(await fetchPage(get, { key: 'about', locale: 'vi' }), { status: 'not-found' });
 });
 
 test('server errors and malformed bodies reject', async () => {
   mockFetch(() => Response.json({}, { status: 503 }));
-  await assert.rejects(fetchPage({ key: 'about', locale: 'en' }), { status: 503 });
+  await assert.rejects(fetchPage(get, { key: 'about', locale: 'en' }), { status: 503 });
   mockFetch(() => Response.json({ title: 'x' }));
-  await assert.rejects(fetchPage({ key: 'about', locale: 'en' }), { status: 0 });
+  await assert.rejects(fetchPage(get, { key: 'about', locale: 'en' }), { status: 0 });
 });
 
 test('the key is encoded into one path segment', async () => {
   const calls = mockFetch(() => Response.json(publicPage()));
-  await fetchPage({ key: '../admin/pages', locale: 'en' });
+  await fetchPage(get, { key: '../admin/pages', locale: 'en' });
   assert.equal(calls[0].url, '/api/v1/public/pages/..%2Fadmin%2Fpages?locale=en');
 });
 

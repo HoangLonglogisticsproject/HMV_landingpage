@@ -11,6 +11,9 @@
     "strict": false,
     "esModuleInterop": true,
     "paths": {
+      "@/lib/navigation": [
+        "./src/next/navigation.jsx"
+      ],
       "@/*": [
         "./src/*"
       ]

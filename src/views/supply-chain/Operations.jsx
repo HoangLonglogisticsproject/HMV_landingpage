@@ -1,5 +1,6 @@
+'use client';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/navigation';
 import { ArrowUpRight, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { copy, stages, photos, photoCopy } from '@/data/hmv';

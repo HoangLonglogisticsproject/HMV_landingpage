@@ -1,12 +1,13 @@
 import type { NextConfig } from 'next';
-import { canonicalUrl } from './src/i18n/routes.js';
+import { INDEX_ALIASES, LOCALES, canonicalUrl, localizePath } from './src/i18n/routes.js';
 
 // Fail-safe: every response carries noindex unless the deployment is explicitly the public production site.
 // Set SITE_INDEXABLE=true on the production environment only, at cutover (docs/architecture/MIGRATION_ROADMAP.md).
 const indexable = process.env.SITE_INDEXABLE === 'true';
 
-// Collection URLs without a page of their own. Requests with ?lang= skip these: proxy.ts resolves them in one hop.
-const INDEX_URLS = ['/products', '/blog', '/vi/san-pham', '/vi/tin-tuc'];
+// Collection URLs without a page of their own, in every locale. Requests with ?lang= skip these: proxy.ts resolves
+// them in one hop.
+const INDEX_URLS = Object.keys(INDEX_ALIASES).flatMap(path => LOCALES.map(locale => localizePath(path, locale)));
 
 const nextConfig: NextConfig = {
   // `next dev` would otherwise write its agent instructions into AGENTS.md, which the team owns.

@@ -1,13 +1,13 @@
-import { ViteDetailLayout as DetailLayout } from '@/app/ViteDetailLayout';
+import { DetailLayout } from '@/components/layout/DetailLayout';
 import { copy, stages } from '@/data/hmv';
-import { useLang } from '@/i18n/LanguageContext';
+import { tradeSolutionsMeta } from '../meta';
 import { ProductPortfolio } from './ProductPortfolio';
 
-export function TradeSolutionsPage() {
-  const lang = useLang();
+// Trade solutions page body, shared by both builds.
+export function TradeSolutionsView({ lang }) {
   const t = copy[lang];
   return (
-    <DetailLayout lang={lang} title={t.trade} description={t.chainText}>
+    <DetailLayout lang={lang} {...tradeSolutionsMeta(lang)}>
       <section className="section-pad">
         <div className="content-width">
           <p className="eyebrow">{t.businessLabel}</p>

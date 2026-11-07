@@ -1,9 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { PRODUCT_SLUG_VI, canonicalUrl, delocalizePath, legacyRedirect, localizePath, switchHref } from './routes.js';
-
-const PAGES = ['/', '/about', '/supply-chain', '/trade-solutions', '/activities', '/contact', '/insights',
-  '/regulations', '/logistics', '/packaging-logistics'];
+import { PAGES, PRODUCT_SLUG_VI, canonicalUrl, delocalizePath, legacyRedirect, localizePath, switchHref } from './routes.js';
 
 test('every page and product round-trips between locales', () => {
   const keys = [...PAGES, ...Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`), '/blog/exporting-passion-fruit-eu'];
@@ -82,4 +79,10 @@ test('the language switch drops `lang` and keeps meaningful parameters', () => {
     '/contact?product=Passion+fruit&utm_campaign=q4',
   );
   assert.equal(switchHref('/vi', '', 'en'), '/');
+});
+
+test('every product has exactly one Vietnamese slug, and the slugs are unique', async () => {
+  const { products } = await import('../data/hmv.js');
+  assert.deepEqual(Object.keys(PRODUCT_SLUG_VI).sort(), products.map(p => p.id).sort());
+  assert.equal(new Set(Object.values(PRODUCT_SLUG_VI)).size, products.length);
 });

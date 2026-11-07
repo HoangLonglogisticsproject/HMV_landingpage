@@ -1,10 +1,16 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
+import { articles } from '../../src/data/articles.js';
+import { LOCALES, PAGES, PRODUCT_SLUG_VI, localizePath } from '../../src/i18n/routes.js';
 
 /**
- * Next.js foundation (home, about, contact, 404 in EN and VI): server HTML, status codes, redirects, noindex and the
- * language switch. Run with playwright.next.config.js (never against the production domain).
+ * Next.js site in EN and VI: server HTML, status codes, redirects, noindex, client islands and the language switch.
+ * Run with playwright.next.config.js (never against the production domain).
  */
+
+// Every indexable URL, from the route contract: each page, product and article in each language.
+const KEYS = [...PAGES, ...Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`), ...articles.map(a => `/blog/${a.slug.en}`)];
+const URLS = LOCALES.flatMap(lang => KEYS.map(key => ({ key, lang, path: localizePath(key, lang) })));
 
 const SITE = 'https://www.hmv-global.com';
 // Next.js writes the root URL without the trailing slash; sitemap and links must use the same string.
@@ -13,7 +19,9 @@ const abs = path => (path === '/' ? SITE : `${SITE}${path}`);
 const tags = (html, name) =>
   [...html.matchAll(new RegExp(`<${name}\\b[^>]*>`, 'gi'))].map(([tag]) =>
     Object.fromEntries([...tag.matchAll(/([\w:-]+)="([^"]*)"/g)].map(([, k, v]) => [k.toLowerCase(), v])));
-const text = (html, re) => (html.match(re)?.[1] ?? '').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').trim();
+const ENTITIES = { '&amp;': '&', '&#x27;': "'", '&quot;': '"', '&lt;': '<', '&gt;': '>' };
+const text = (html, re) =>
+  (html.match(re)?.[1] ?? '').replace(/<[^>]+>/g, '').replace(/&(amp|#x27|quot|lt|gt);/g, e => ENTITIES[e]).trim();
 const head = html => {
   const links = tags(html, 'link');
   const metas = tags(html, 'meta');
@@ -29,32 +37,58 @@ const head = html => {
 };
 
 // Server-rendered pages: everything a crawler or link preview needs is in the HTML, before any JavaScript.
-const PAGES = [
-  { path: '/', lang: 'en', h1: 'Rooted in the land.Connecting the world.', title: 'Agricultural Supply Chain & Global Trading | HMV Global', en: '/', vi: '/vi' },
-  { path: '/vi', lang: 'vi', h1: 'Bám rễ từ đất lành.Vươn tầm ra thế giới.', title: 'Chuỗi cung ứng nông nghiệp & thương mại quốc tế | HMV Global', en: '/', vi: '/vi' },
-  { path: '/about', lang: 'en', h1: 'About HMV', title: 'About HMV | HMV Global', en: '/about', vi: '/vi/about' },
-  { path: '/vi/about', lang: 'vi', h1: 'Về HMV', title: 'Về HMV | HMV Global', en: '/about', vi: '/vi/about' },
-  { path: '/contact', lang: 'en', h1: 'Partner with us', title: 'Partner with us | HMV Global', en: '/contact', vi: '/vi/contact' },
-  { path: '/vi/contact', lang: 'vi', h1: 'Kết nối hợp tác', title: 'Kết nối hợp tác | HMV Global', en: '/contact', vi: '/vi/contact' },
-];
-
-for (const p of PAGES) {
-  test(`server HTML ${p.path}`, async ({ request }) => {
-    const res = await request.get(p.path, { maxRedirects: 0 });
+for (const { key, lang, path } of URLS) {
+  test(`server HTML ${path}`, async ({ request }) => {
+    const res = await request.get(path, { maxRedirects: 0 });
     expect(res.status()).toBe(200);
     const html = await res.text();
     const h = head(html);
-    expect(h.lang).toBe(p.lang);
-    expect(h.h1).toBe(p.h1);
-    expect(h.title).toBe(p.title);
+    expect(h.lang).toBe(lang);
+    expect(html.match(/<h1\b/g)).toHaveLength(1);
+    expect(h.h1).toBeTruthy();
+    expect(h.title).toMatch(/. \| HMV Global$/);
     expect(h.description).toBeTruthy();
-    expect(h.canonical).toBe(abs(p[p.lang]));
-    expect(h.hreflang).toEqual({ en: abs(p.en), vi: abs(p.vi), 'x-default': abs(p.en) });
+    expect(h.canonical).toBe(abs(path));
+    const en = abs(localizePath(key, 'en'));
+    expect(h.hreflang).toEqual({ en, vi: abs(localizePath(key, 'vi')), 'x-default': en });
     // This is the Next.js build, not the Vite SPA shell.
     expect(html).toContain('/_next/static/');
     expect(html).not.toContain('<div id="root"></div>');
   });
 }
+
+// Spot checks of the visible copy (the full Vite/Next parity check compares every page).
+const COPY = [
+  { path: '/', h1: 'Rooted in the land.Connecting the world.', title: 'Agricultural Supply Chain & Global Trading | HMV Global' },
+  { path: '/vi', h1: 'Bám rễ từ đất lành.Vươn tầm ra thế giới.', title: 'Chuỗi cung ứng nông nghiệp & thương mại quốc tế | HMV Global' },
+  { path: '/about', h1: 'About HMV', title: 'About HMV | HMV Global' },
+  { path: '/vi/about', h1: 'Về HMV', title: 'Về HMV | HMV Global' },
+  { path: '/contact', h1: 'Partner with us', title: 'Partner with us | HMV Global' },
+  { path: '/vi/contact', h1: 'Kết nối hợp tác', title: 'Kết nối hợp tác | HMV Global' },
+  { path: '/vi/supply-chain', h1: 'Chuỗi cung ứng', title: 'Chuỗi cung ứng | HMV Global' },
+  { path: '/vi/san-pham/hat-dieu', h1: 'Hạt điều', title: 'Hạt điều | HMV Global' },
+  { path: '/products/nuts', h1: 'Cashew nuts', title: 'Cashew nuts | HMV Global' },
+  { path: '/vi/tin-tuc/xuat-khau-chanh-day-eu', title: 'Xuất khẩu Chanh dây sang Châu Âu: Tiêu chuẩn GlobalGAP và câu chuyện của HMV Global. | HMV Global' },
+  // Parity with today's titles, including the embedded brand suffix that decision D-06 would remove.
+  { path: '/logistics', title: 'International Logistics & Dangerous Goods Handling | HMV Logistics | HMV Global' },
+];
+
+for (const p of COPY) {
+  test(`copy ${p.path}`, async ({ request }) => {
+    const h = head(await (await request.get(p.path)).text());
+    expect(h.title).toBe(p.title);
+    if (p.h1) expect(h.h1).toBe(p.h1);
+  });
+}
+
+test('articles carry Article structured data in their language', async ({ request }) => {
+  for (const { key, lang, path } of URLS.filter(u => u.key.startsWith('/blog/'))) {
+    const html = await (await request.get(path)).text();
+    const json = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1];
+    const data = JSON.parse(json ?? 'null');
+    expect(data, key).toMatchObject({ '@type': 'Article', inLanguage: lang, headline: head(html).h1 });
+  }
+});
 
 test('the home page HTML contains every section, client components included', async ({ request }) => {
   const html = await (await request.get('/')).text();
@@ -70,12 +104,16 @@ test('internal links in Vietnamese pages point to Vietnamese URLs', async ({ req
   expect(hrefs).toContain('/vi/about');
   expect(hrefs).toContain('/vi/contact');
   expect(hrefs).toContain('/vi/san-pham/chanh-day');
+  expect(hrefs).toContain('/vi/tin-tuc/xuat-khau-chanh-day-eu');
+  expect(hrefs).toContain('/vi/logistics');
   expect(hrefs).not.toContain('/about');
 });
 
 // Unknown URLs: a real 404 (not the SPA's 200), noindex, and the same chrome-less English 404 page as the Vite site,
-// server-rendered (app/global-not-found.tsx).
-for (const path of ['/this-page-does-not-exist', '/vi/trang-khong-ton-tai', '/about/extra']) {
+// server-rendered (app/global-not-found.tsx). Unknown products and articles are not generated (dynamicParams = false).
+const NOT_FOUND = ['/this-page-does-not-exist', '/vi/trang-khong-ton-tai', '/about/extra', '/products/unknown',
+  '/vi/san-pham/unknown', '/blog/unknown', '/vi/tin-tuc/unknown'];
+for (const path of NOT_FOUND) {
   test(`404 ${path}`, async ({ request }) => {
     const res = await request.get(path, { maxRedirects: 0 });
     expect(res.status()).toBe(404);
@@ -118,6 +156,9 @@ const CHAINS = [
   ['/products/nuts?lang=vi', ['/vi/san-pham/hat-dieu']],
   ['/blog/exporting-passion-fruit-eu?lang=vi', ['/vi/tin-tuc/xuat-khau-chanh-day-eu']],
   ['/vi/blog/exporting-passion-fruit-eu', ['/vi/tin-tuc/xuat-khau-chanh-day-eu']],
+  // The other language's article slug: the article route answers (prerendered redirect).
+  ['/blog/xuat-khau-chanh-day-eu', ['/blog/exporting-passion-fruit-eu']],
+  ['/vi/tin-tuc/exporting-passion-fruit-eu', ['/vi/tin-tuc/xuat-khau-chanh-day-eu']],
 ];
 
 for (const [from, hops] of CHAINS) {
@@ -139,11 +180,31 @@ for (const [from, hops] of CHAINS) {
 // Fail-safe for test deployments: every page and 404 is noindex (header and meta) unless SITE_INDEXABLE=true.
 // Redirect responses have no indexable body; their targets are covered here.
 test('pages and 404s are noindex until SITE_INDEXABLE=true', async ({ request }) => {
-  for (const path of ['/', '/vi', '/about', '/vi/about', '/contact', '/vi/contact', '/this-page-does-not-exist']) {
+  for (const path of [...URLS.map(u => u.path), ...NOT_FOUND]) {
     const res = await request.get(path, { maxRedirects: 0 });
     expect(res.headers()['x-robots-tag'], path).toBe('noindex, nofollow');
     expect(head(await res.text()).robots, path).toContain('noindex');
   }
+});
+
+// Client islands on server-rendered pages: the photo preview opens and closes without a page-level client component.
+for (const path of ['/logistics', '/vi/packaging-logistics']) {
+  test(`photo preview ${path}`, async ({ page }) => {
+    await page.goto(path);
+    await page.locator('.dg-img-thumb, .pack-card-media').first().click();
+    const preview = page.locator('.pack-lightbox');
+    await expect(preview).toBeVisible();
+    await preview.click({ position: { x: 5, y: 5 } });
+    await expect(preview).toHaveCount(0);
+  });
+}
+
+test('the article back button returns to the previous page', async ({ page }) => {
+  await page.goto('/vi/insights');
+  await page.locator('a[href="/vi/tin-tuc/xuat-khau-chanh-day-eu"]').first().click();
+  await expect(page).toHaveURL(/\/vi\/tin-tuc\/xuat-khau-chanh-day-eu$/);
+  await page.locator('button.article-back').click();
+  await expect(page).toHaveURL(/\/vi\/insights$/);
 });
 
 // Language switch regressions: the old `lang` parameter must never bring the visitor back to the old language,

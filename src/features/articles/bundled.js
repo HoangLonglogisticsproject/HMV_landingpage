@@ -34,10 +34,17 @@ export const listBundledArticles = (lang, { pageSize }) => ({
   items: articles.slice(0, pageSize).map(a => staticView(a, lang)),
 });
 
+/** The article with this slug (in either language) as rendered in `lang`, or null. */
+export function bundledArticle(slug, lang) {
+  const a = findArticle(slug);
+  return a ? staticView(a, lang) : null;
+}
+
+// MIGRATION-ONLY (Vite): URLs are locale-free, so one canonical (English) slug serves both languages. Next.js resolves
+// slugs per locale (src/next/article.tsx).
 export function resolveBundledArticle(slug, lang) {
   const a = findArticle(slug);
   if (!a) return { status: 'redirect', to: '/insights' };
-  // One canonical (English) slug serves both languages.
   if (articleSlug(a) !== slug) return { status: 'redirect', to: `/blog/${articleSlug(a)}` };
   return { status: 'ready', article: staticView(a, lang) };
 }

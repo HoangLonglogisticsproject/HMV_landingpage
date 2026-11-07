@@ -4,7 +4,7 @@ import { Contact } from '@/features/inquiries/Contact';
 import { copy } from '@/data/hmv';
 
 // Inner-page frame: heading band, page content, then the contact CTA. Presentational and shared by both builds:
-// head tags come from the framework adapter (Vite: app/ViteDetailLayout.jsx; Next.js: route metadata).
+// head tags come from the framework adapter (Vite: PageMeta in the page adapter; Next.js: route metadata).
 export function DetailLayout({ lang, title, description, contactCta = true, children }) {
   const t = copy[lang];
   return (

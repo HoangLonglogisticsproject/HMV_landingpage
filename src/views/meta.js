@@ -1,6 +1,9 @@
 // Page titles and descriptions, shared by the Vite head tags (PageMeta) and Next.js route metadata, so both
-// builds emit the same values. Titles are without the " | HMV Global" suffix that both add.
+// builds emit the same values. Titles are without the " | HMV Global" suffix that both add. Pages framed by
+// DetailLayout also use them as their visible heading.
 import { copy } from '@/data/hmv';
+import { regulationCopy } from '@/data/regulations';
+import { articleCopy } from './article/copy';
 
 export const homeMeta = lang => ({
   title: lang === 'vi' ? 'Chuỗi cung ứng nông nghiệp & thương mại quốc tế' : 'Agricultural Supply Chain & Global Trading',
@@ -17,5 +20,67 @@ export const aboutMeta = (lang, state) =>
     : { title: copy[lang].about, description: '' };
 
 export const contactMeta = lang => ({ title: copy[lang].contact, description: copy[lang].contactText });
+export const supplyChainMeta = lang => ({ title: copy[lang].supply, description: copy[lang].chainText });
+export const tradeSolutionsMeta = lang => ({ title: copy[lang].trade, description: copy[lang].chainText });
+export const activitiesMeta = lang => ({ title: copy[lang].activities, description: copy[lang].fieldText });
+export const regulationsMeta = lang => ({ title: regulationCopy[lang].title, description: regulationCopy[lang].intro });
+
+const INSIGHTS = {
+  en: 'EcoNews: Perspectives on green supply chains, clean energy, and sustainable agriculture.',
+  vi: 'Bản tin EcoNews: Góc nhìn về chuỗi cung ứng xanh, năng lượng điện gió và nông nghiệp xuất khẩu bền vững.',
+};
+export const insightsMeta = lang => ({ title: 'EcoNews', description: INSIGHTS[lang] });
+
+// The embedded brand suffixes are today's titles, kept for parity until decision D-06 removes them.
+const LOGISTICS = {
+  en: {
+    title: 'International Logistics & Dangerous Goods Handling | HMV Logistics',
+    description: 'Specialized Dangerous Goods handling (Air & Sea), chemical transport, special & general cargoes, Vietnam-Cambodia cross-border drayage, local agency handling and JC Trans global networking.',
+  },
+  vi: {
+    title: 'Dịch Vụ Logistics Quốc Tế & Vận Chuyển Hàng Nguy Hiểm | HMV Logistics',
+    description: 'Chuyên xử lý hàng nguy hiểm Dangerous Goods (Air & Sea), hàng hóa chất, hàng đặc biệt, tuyến xuyên biên giới Việt Nam - Campuchia, đại lý nội địa và mạng lưới toàn cầu JC Trans.',
+  },
+};
+export const logisticsMeta = lang => LOGISTICS[lang];
+
+const PACKAGING = {
+  en: {
+    title: 'Packaging & Ocean Freight Logistics | HMV Global',
+    description: 'Operational evidence of export packaging standards, ISPM 15 palletization, mechanized forklift cross-docking, and container transport to EU & US ports.',
+  },
+  vi: {
+    title: 'Quy Cách Đóng Gói & Vận Chuyển Xuất Khẩu | HMV Global',
+    description: 'Thực tế năng lực đóng gói hàng hóa, bọc màng co pallet ISPM 15, xếp dỡ cơ giới và vận chuyển container đường biển an toàn xuất khẩu sang EU & Mỹ.',
+  },
+};
+export const packagingMeta = lang => PACKAGING[lang];
+
+// `product` is undefined for an unknown id on the Vite site, which renders a not-found heading (Next.js: 404).
+export const productMeta = (lang, product) =>
+  product
+    ? { title: product[lang], description: lang === 'vi' ? product.subVi : product.subEn }
+    : { title: copy[lang].notfound, description: copy[lang].chainText };
 
 export const notFoundMeta = { title: 'Page not found', description: 'Return to HMV Global.' };
+
+// `state` is an article resolution; without an article the title is the status message (CMS mode on Vite).
+/** @param {'en' | 'vi'} lang @param {{ status: string, article?: object }} state */
+export const articleMeta = (lang, { status, article }) =>
+  article
+    ? { title: article.metaTitle, description: article.description }
+    : { title: articleCopy[lang].status[status]?.[0] || 'EcoNews', description: '' };
+
+const ORG = { '@type': 'Organization', name: 'HMV Global Co., LTD' };
+/** Article structured data as a JSON string that is safe inside <script>. */
+export const articleJsonLd = (lang, a) =>
+  JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: a.title,
+    datePublished: a.date.iso,
+    inLanguage: lang,
+    image: a.image?.src,
+    author: ORG,
+    publisher: ORG,
+  }).replace(/</g, '\\u003c');

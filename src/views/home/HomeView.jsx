@@ -7,6 +7,9 @@ import { InAction } from './sections/InAction';
 import { GlobalReach } from './sections/GlobalReach';
 import { LatestInsights } from './sections/LatestInsights';
 
+// EcoNews articles in LatestInsights.
+export const LATEST_ARTICLES = 3;
+
 // Home page body, shared by both builds. `articles` is the EcoNews list state for LatestInsights.
 export function HomeView({ lang, articles }) {
   return (

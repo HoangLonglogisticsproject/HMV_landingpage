@@ -12,6 +12,7 @@ const cleanTarget = path => path.replace(/\/$/, '') || '/';
  * Production returns this SPA shell (HTTP 200) for them; there is no server-side redirect (vercel.json has none).
  * It also maps the Next.js Vietnamese URLs (/vi/san-pham/<slug>, /vi/tin-tuc/<slug>) through the shared route
  * contract, so a rollback to this build keeps them working (MIGRATION_ROADMAP.md, rollback contract).
+ * MIGRATION-ONLY: the rollback target needs it until cutover is final; deleted with the Vite app (PR-12).
  */
 export function LegacyLocaleRedirect() {
   const { pathname, search, hash } = useLocation();

@@ -1,6 +1,6 @@
 // EcoNews from the CMS public article API (CMS_HMV docs/api/public-content-contract.md).
 // Plain .js with relative imports so `node --test` can load it.
-import { getJson, malformed } from '../../lib/cms.js';
+import { malformed } from '../../lib/cms.js';
 import { isSafeSrc } from './RichText.js';
 
 const isArticle = a => typeof a?.slug === 'string' && typeof a?.title === 'string';
@@ -32,14 +32,15 @@ function toView(a, lang) {
   };
 }
 
-export async function fetchArticles({ locale, pageSize, signal }) {
-  const body = await getJson('/articles', { locale, pageSize }, signal);
+// `get` in every function below: a CMS transport (lib/cms.js).
+export async function fetchArticles(get, { locale, pageSize }) {
+  const body = await get('/articles', { locale, pageSize });
   if (!Array.isArray(body?.items) || !body.items.every(isArticle)) throw malformed();
   return body.items.map(a => toView(a, locale));
 }
 
-async function fetchArticle(slug, locale, signal) {
-  const a = await getJson(`/articles/${encodeURIComponent(slug)}`, { locale }, signal);
+async function fetchArticle(get, slug, locale) {
+  const a = await get(`/articles/${encodeURIComponent(slug)}`, { locale });
   if (!isArticle(a)) throw malformed();
   return a;
 }
@@ -47,16 +48,16 @@ async function fetchArticle(slug, locale, signal) {
 // URLs are locale-free (/blog/:slug) but CMS slugs differ per locale, so a slug may belong to the other
 // language (a shared link, or the visitor just switched). Resolve it through `alternates`; never show
 // the other language's content on its own.
-export async function resolveArticle({ slug, lang, signal }) {
+export async function resolveArticle(get, { slug, lang }) {
   try {
-    return { status: 'ready', article: toView(await fetchArticle(slug, lang, signal), lang) };
+    return { status: 'ready', article: toView(await fetchArticle(get, slug, lang), lang) };
   } catch (e) {
     if (e.status !== 404) throw e;
   }
   const other = lang === 'vi' ? 'en' : 'vi';
   let found;
   try {
-    found = await fetchArticle(slug, other, signal);
+    found = await fetchArticle(get, slug, other);
   } catch (e) {
     if (e.status === 404) return { status: 'not-found' };
     throw e;

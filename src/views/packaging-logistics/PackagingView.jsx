@@ -1,5 +1,3 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   PackageCheck,
   Truck,
@@ -12,34 +10,21 @@ import {
   Layers,
   ArrowRight,
   Maximize2,
-  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { PageMeta } from '@/components/common/PageMeta';
+import { Lightbox, ZoomTrigger } from '@/components/common/Lightbox';
+import { Link } from '@/lib/navigation';
 import { packagingData } from '@/data/operationalLogistics';
-import { useLang } from '@/i18n/LanguageContext';
+import { ImagePreview } from './ImagePreview';
 
-export function PackagingLogisticsPage() {
-  const lang = useLang();
+// Packaging page body, shared by both builds. Server-rendered; the photo preview is the only client island.
+export function PackagingView({ lang }) {
   const vi = lang === 'vi';
   const { standards, transportStages, stats } = packagingData;
-  const [selectedImage, setSelectedImage] = useState(null);
 
   return (
     <div className="pack-logistics-page">
-      <PageMeta
-        lang={lang}
-        title={
-          vi
-            ? 'Quy Cách Đóng Gói & Vận Chuyển Xuất Khẩu | HMV Global'
-            : 'Packaging & Ocean Freight Logistics | HMV Global'
-        }
-        description={
-          vi
-            ? 'Thực tế năng lực đóng gói hàng hóa, bọc màng co pallet ISPM 15, xếp dỡ cơ giới và vận chuyển container đường biển an toàn xuất khẩu sang EU & Mỹ.'
-            : 'Operational evidence of export packaging standards, ISPM 15 palletization, mechanized forklift cross-docking, and container transport to EU & US ports.'
-        }
-      />
+      <Lightbox>
 
       {/* HERO SECTION */}
       <section className="pack-hero-section">
@@ -112,10 +97,7 @@ export function PackagingLogisticsPage() {
           <div className="pack-grid">
             {standards.map((item, idx) => (
               <article key={item.id} className="pack-card">
-                <div
-                  className="pack-card-media"
-                  onClick={() => setSelectedImage(item.image)}
-                >
+                <ZoomTrigger image={item.image} className="pack-card-media">
                   <img
                     src={item.image}
                     alt={vi ? item.titleVi : item.titleEn}
@@ -133,7 +115,7 @@ export function PackagingLogisticsPage() {
                   >
                     <Maximize2 size={15} />
                   </button>
-                </div>
+                </ZoomTrigger>
                 <div className="pack-card-body">
                   <div className="pack-card-meta">
                     <span className="pack-card-badge">
@@ -182,10 +164,7 @@ export function PackagingLogisticsPage() {
                 key={stage.id}
                 className={`transport-stage-row ${idx % 2 === 1 ? 'row-reversed' : ''}`}
               >
-                <div
-                  className="stage-media"
-                  onClick={() => setSelectedImage(stage.image)}
-                >
+                <ZoomTrigger image={stage.image} className="stage-media">
                   <img
                     src={stage.image}
                     alt={vi ? stage.titleVi : stage.titleEn}
@@ -196,7 +175,7 @@ export function PackagingLogisticsPage() {
                     <strong>{stage.statNumber}</strong>
                     <span>{vi ? stage.statLabelVi : stage.statLabelEn}</span>
                   </div>
-                </div>
+                </ZoomTrigger>
 
                 <div className="stage-content">
                   <span className="stage-step-tag">
@@ -337,26 +316,8 @@ export function PackagingLogisticsPage() {
       </section>
 
       {/* FULLSCREEN PHOTO PREVIEW MODAL */}
-      {selectedImage && (
-        <div
-          className="pack-lightbox"
-          onClick={() => setSelectedImage(null)}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="lightbox-content" onClick={e => e.stopPropagation()}>
-            <button
-              type="button"
-              className="lightbox-close"
-              onClick={() => setSelectedImage(null)}
-              aria-label={vi ? 'Đóng cửa sổ' : 'Close modal'}
-            >
-              <X size={20} />
-            </button>
-            <img src={selectedImage} alt="Packaging & Freight Evidence" />
-          </div>
-        </div>
-      )}
+      <ImagePreview lang={lang} />
+      </Lightbox>
     </div>
   );
 }
