@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | Revision 4, 2026-11-08. PR-01 to PR-06 are implemented on `feat/nextjs-foundation` (not merged; D-18 not approved). Production runs Vite with `CMS_CONTENT` off. No cutover, and no CMS in production. Test and CI numbers: [architecture §12](NEXTJS_TARGET_ARCHITECTURE.md#12-coexistence-evidence-branch-featnextjs-foundation). |
-| Remaining estimate | About 10.5 engineer-days (2 weeks for one engineer; 3–4 calendar weeks with review), plus owner and content actions |
+| Status | Revision 5, 2026-11-08. PR-01 to PR-07 are implemented on `feat/nextjs-foundation` (not merged; D-18 not approved). Production runs Vite with `CMS_CONTENT` off. No cutover, and no CMS in production. Test and CI numbers: [architecture §12](NEXTJS_TARGET_ARCHITECTURE.md#12-coexistence-evidence-branch-featnextjs-foundation). |
+| Remaining estimate | About 9 engineer-days (2 weeks for one engineer; 3 calendar weeks with review), plus owner and content actions |
 | Related | [Audit](NEXTJS_MIGRATION_AUDIT.md) · [Architecture](NEXTJS_TARGET_ARCHITECTURE.md) · [SEO spec](SEO_I18N_GEO_SPEC.md) · [URL matrix](URL_MIGRATION_MATRIX.md) |
 
 ## 1. Rules for every PR
@@ -16,7 +16,7 @@
 6. Each PR has its own tests and acceptance criteria.
 7. **Review workflow.** No draft PRs during development: the branch CI and the architecture review are the gates. To merge into `main`, open a normal PR so SonarQube Cloud and CodeRabbit run as the final automated review; fix the findings that have real value (architecture §16.4), then merge once D-18 is approved.
 
-## 2. Status on branch `feat/nextjs-foundation` (PR-01 to PR-06)
+## 2. Status on branch `feat/nextjs-foundation` (PR-01 to PR-07)
 
 Evidence is named here; the numbers are only in [architecture §12](NEXTJS_TARGET_ARCHITECTURE.md#12-coexistence-evidence-branch-featnextjs-foundation).
 
@@ -36,6 +36,7 @@ Evidence is named here; the numbers are only in [architecture §12](NEXTJS_TARGE
 | PR-04: products in EN and VI, `dynamicParams = false` | Unknown id or slug → server-rendered global 404 |
 | PR-05: bundled articles in EN and VI; other-locale slug → 308; Article JSON-LD on the server; back button island | Next E2E: chains, 404s, JSON-LD parses with `inLanguage` and `headline` |
 | PR-06: CMS server layer (architecture §7, §9.3): server transport, content loader, slug validation, `CMS_BLOCKED_SLUGS`, `POST /api/revalidate`, generated sitemap (moved forward from PR-07), `/tin-tuc/[slug]` (M-56), mock CMS suite; TypeScript `strict` | `tests/next-cms/` against the mock CMS; `tests/next/` for the sitemap, M-56 and the endpoint in bundled mode |
+| PR-07: `app/robots.ts`; the sitemap as a route handler with the one URL formatter (canonical, hreflang, `og:url` and sitemap are the same strings); `Organization` and `WebSite` JSON-LD with confirmed facts only (SEO spec §8 fact register); Vite's `sitemap.xml` and `robots.txt` moved to `src/app/`, unchanged, served again by `vite` (dev). Review follow-ups: stale-on-error automated, CMS dependency diagram corrected, 404 browser assertions, raw `Location` assertions | `tests/next/` (exact strings, robots, JSON-LD, one raw `Location` per hop, the 404 a visitor sees); `tests/next-cms/stale.spec.js` (2 s interval); `tests/seo-files.spec.js` (Vite); `src/views/meta.test.js` |
 
 
 ## 3. Decisions requiring approval
@@ -56,7 +57,7 @@ Evidence is named here; the numbers are only in [architecture §12](NEXTJS_TARGE
 | D-14 | Commit visual baselines for the migration period | **Approved 2026-11-08**; first step of PR-08, before any image or font change |
 | D-15 | AI crawlers: allow all, as today | Business |
 | D-16 | Optional: limit browser caching of proxy 308s (`Cache-Control: max-age=86400`) for the first 28 days after cutover | Optional; the compatibility mapping already covers rollback |
-| D-17 | 404 page: keep Vite parity (one English, server-rendered 404 via the **experimental** `globalNotFound`), or add a Vietnamese 404 (design approval). Accept that `notFound()` inside pages (unknown, unpublished or blocked article slugs) gives a correct 404 status and noindex with Next.js's default body rendered on the client (architecture §10). | Keep parity; accept |
+| D-17 | 404 page: keep Vite parity (one English, server-rendered 404 via the **experimental** `globalNotFound`), or add a Vietnamese 404 (design approval). Accept that `notFound()` inside pages (unknown, unpublished or blocked article slugs) gives a correct 404 status and noindex, while the visitor sees Next.js's default 404 page, rendered on the client (architecture §10): an accepted UX exception, asserted in a browser, not a solved problem. | Keep parity; accept the exception |
 | D-18 | Merging the branch into `main` deploys Vite production with the refactor, the rollback mapping and D-06 (the only visible change: two titles). This is the first production change of the migration. | **Not approved yet (2026-11-08)**: development continues on the branch until the final review |
 | D-19 | `hmv-landingpage.vercel.app` publicly duplicates production (F-33): redirect it to `www` in the Vercel domain settings | Owner, independent of the migration |
 
@@ -71,7 +72,7 @@ graph LR
   PR02 --> PR05[PR-05 articles EN+VI ✓ branch]
   PR03 --> PR06[PR-06 CMS server layer, flag off ✓ branch]
   PR05 --> PR06
-  PR03 --> PR07[PR-07 SEO surfaces]
+  PR03 --> PR07[PR-07 SEO surfaces ✓ branch]
   PR04 --> PR07
   PR05 --> PR07
   PR03 --> PR08[PR-08 images, fonts, CWV]
@@ -98,13 +99,13 @@ graph LR
 | PR-04 | Products in EN and VI: `dynamicParams = false`, so unknown slugs get the global 404 | PR-02 | done on the branch |
 | PR-05 | Bundled articles in EN and VI: route-level slug resolution (`permanentRedirect`), server Article JSON-LD, direct alternate links | PR-02 | done on the branch |
 | PR-06 | CMS server layer behind `CMS_CONTENT` (off): server transport for the existing mappers, mock CMS HTTP server, `/api/revalidate` (secret), `CMS_BLOCKED_SLUGS`, slug validation, takedown runbook, the `/tin-tuc/[slug]` handler (M-56), and the generated sitemap | PR-03, PR-05 | done on the branch |
-| PR-07 | SEO surfaces: `robots.ts` (the Vite `robots.txt` stays static), Organization and WebSite JSON-LD per the D-12 outcome, `llms.txt`, `/regulations` in the Vite sitemap (F-08) | PR-03–05 | 2 |
-| PR-08 | First the visual baselines (D-14), generated in CI's Linux environment; then `next/image`, re-exported image sources, `next/font` with Vietnamese coverage, optional lazy chat | PR-03 | 3 |
+| PR-07 | SEO surfaces: `robots.ts`, the sitemap with one URL formatter, Organization and WebSite JSON-LD with confirmed facts only. `llms.txt` moved to the D-12 content PRs; the Vite sitemap stays as in production (F-08 is fixed by the Next.js sitemap at cutover). | PR-03–05 | done on the branch |
+| PR-08 | **First, a separate commit:** the D-14 visual baselines, generated on Linux CI, green before any change below. Then `next/image`, re-exported image sources, `next/font` with Vietnamese coverage, optional lazy chat | PR-03 | 3 |
 | PR-09 | Rollback readiness: extend the rollback-compatibility spec to every Next URL target, the production acceptance suite (read-only), the rehearsal (§8.5) | PR-01 merged (D-18), PR-04, PR-05 | 1.5 |
 | PR-10 | Cutover readiness: every gate (§7.3) green on the preview; D-12 content PRs merged; sign-offs | PR-06–09, OA-1 | 2 |
 | PR-11 | Cutover (§9) | PR-10 | 0.5 + monitoring |
 | PR-12 | Cleanup: remove the Vite adapters, React Router, Helmet and the Vite navigation port (`src/app/navigation.jsx`); update docs and `AGENTS.md` rules | PR-11 plus 2 stable weeks | 1 |
-| PR-13 | `CMS_CONTENT=true` in production. Prerequisites: CMS API and media over HTTPS, the CMS-side rate limit or CDN, the bundled articles recreated with their legacy slugs, the takedown runbook rehearsed. | PR-11, approval | 0.5 |
+| PR-13 | `CMS_CONTENT=true` in production. Prerequisites: CMS API and media over HTTPS, the CMS-side rate limit or CDN, the bundled articles recreated with their legacy slugs, the takedown runbook rehearsed, and an **integration check against the real CMS and CDN** (the mock only proves the application's behaviour): their response and cache headers as the provider documents them, a publish and an unpublish followed by the revalidation endpoint, and whether the CDN honours the request's `Cache-Control: no-cache` (it asks for revalidation; it purges nothing). | PR-11, approval | 1 |
 
 ## 5. Acceptance criteria per PR
 
@@ -115,7 +116,7 @@ graph LR
 | PR-04 | M-21–M-36; unknown product → server-rendered 404 |
 | PR-05 | M-37–M-49 ✓ (M-48: 404 with Next.js's default body since PR-06, D-17); Article JSON-LD parses ✓; no client chunk for `RichText` ✓ (checked in `.next/static/chunks`); switch links to the alternate slug directly ✓ |
 | PR-06 | ✓ M-56 (`/tin-tuc/<slug>`). ✓ With the flag off, server HTML is unchanged (the bundled suite). ✓ With the flag on, against the mock: EN and VI About and articles, not-published states (noindex), cross-locale 308s, 404, 5xx on an uncached failure, **takedown: content gone from detail, lists and sitemap on the next request after the endpoint call**, blocked slugs, zero browser requests to the CMS, no secret or origin in client bundles or server output. Not automated: stale-on-error after the 300 s window (needs time travel; the Next.js docs are the evidence, architecture §9.2). |
-| PR-07 | Sitemap valid against the XSD (same URLs and alternates as the pages' `hreflang`: ✓ since PR-06); robots content as specified in both builds; JSON-LD contains only confirmed facts |
+| PR-07 | ✓ Same URLs and alternates as the pages' `hreflang`, as exact strings, `og:url` included. ✓ Robots content as specified in both builds. ✓ JSON-LD contains only the fact register's facts (unit test and Next E2E). Still open for G-4: validation against the sitemap XSD. |
 | PR-08 | Gate G-10; visual diff within threshold or design sign-off |
 | PR-09 | Rollback spec green against the rollback target; rehearsal R-A to R-D recorded (§8.5) |
 | PR-10 | Every gate (§7.3) on the preview |
@@ -195,6 +196,7 @@ Without CI, the same can be run locally: `npx vercel@65.2.0 build --local-config
 | G-12 Security | No browser requests to the CMS; no secrets in bundles |
 | G-13 Indexing | Preview: noindex on 100% of pages and 404s. Production: 0 noindex on indexable pages. |
 | G-14 Rollback | Preconditions RB-1 to RB-3 met; rehearsal recorded (§8) |
+| G-15 Hosted redirect headers | On the Vercel preview, every redirect sends exactly one raw `Location` header: the bundled suite asserts it on every hop, and a CMS-mode check repeats it on an article redirect right after a revalidation (architecture §10, Next.js 16.4.5 sends two on `next start`). If Vercel also sends two, investigate a patch or the framework behaviour before cutover; browser tolerance is not enough. |
 
 ## 8. Rollback contract
 

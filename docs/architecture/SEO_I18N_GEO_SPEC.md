@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Revision 3, 2026-11-08. Implemented on `feat/nextjs-foundation` for every page: §2–§5, §6 (behind `CMS_CONTENT`), §7.1–§7.3 and §7.5. Still specification: article Open Graph (§7.4: `og:type=article`, cover image), sitemap `lastmod`, `robots.ts` (§7.6) and structured data beyond `Article` (§8), all in the SEO PR. |
+| Status | Revision 4, 2026-11-08. Implemented on `feat/nextjs-foundation` for every page: §2–§5, §6 (behind `CMS_CONTENT`), §7.1–§7.3, §7.5, §7.6 and §8 (`Organization`, `WebSite`, `Article`). Still specification: article Open Graph (§7.4: `og:type=article`, cover image) and sitemap `lastmod`. `llms.txt` moves to the D-12 content PRs (§9). |
 | Related | [Audit](NEXTJS_MIGRATION_AUDIT.md) · [Architecture](NEXTJS_TARGET_ARCHITECTURE.md) · [URL matrix](URL_MIGRATION_MATRIX.md) · [Roadmap](MIGRATION_ROADMAP.md) |
 
 Base URL: `https://www.hmv-global.com` (`baseUrl`, `src/data/hmv.js`). The apex domain already 308s to `www`.
@@ -109,7 +109,7 @@ These come from `src/views/meta.js` (ported pages) or the page module, with the 
 
 ### 7.2 Canonical
 
-Absolute, `https://www.hmv-global.com`, no query, no fragment, no trailing slash. The root is `https://www.hmv-global.com`: Next.js normalizes it that way, and it is the same URL as `…/`. `hreflang` and `og:url` use the canonical string. The sitemap writes the root as `https://www.hmv-global.com/` (Next.js), which is the same URL (RFC 3986). The canonical is self-referencing on every indexable page and omitted on noindex pages. Tested on every ported page.
+Absolute, `https://www.hmv-global.com`, no query, no fragment, no trailing slash. The root is `https://www.hmv-global.com`: Next.js normalizes it that way, and it is the same URL as `…/`. Canonical, `hreflang`, `og:url` and the sitemap come from one formatter (`absoluteUrl()` in `src/next/seo.ts`) and are the same strings, the root included. The sitemap is written by a route handler because Next.js's sitemap convention would rewrite the root as `…/`. Tests compare the strings exactly. The canonical is self-referencing on every indexable page and omitted on noindex pages. Tested on every ported page.
 
 ### 7.3 Hreflang
 
@@ -119,11 +119,11 @@ Absolute, `https://www.hmv-global.com`, no query, no fragment, no trailing slash
 
 `og:title` and `twitter:title` are the full title, as Vite does today. `og:url` is the canonical. `og:locale` is `en_US`/`vi_VN` with `og:locale:alternate`. `og:image` is `/og-image.jpg` (1200×630) or the article cover. `twitter:card` is `summary_large_image`. Articles also get `og:type=article` with the published and modified times. All of this is server-rendered, which fixes link previews (audit F-01).
 
-### 7.5 XML sitemap (implemented in PR-06)
+### 7.5 XML sitemap (implemented)
 
-`app/sitemap.ts`: every indexable page in every live locale (38 URLs in bundled mode), with `xhtml:link` alternates built by the same function as the head `hreflang` (`alternateUrls`), so both list the same set; none for a single-locale article. Articles come from the content loader, so unpublished and blocked slugs leave it. It excludes noindex states, redirects, 404s and query variants. `lastmod` (CMS `updatedAt`) is not emitted yet (SEO PR).
+`app/sitemap.xml/route.ts`: every indexable page in every live locale (38 URLs in bundled mode), with `xhtml:link` alternates built by the same function as the head `hreflang` (`alternateUrls`), so both list the same set; none for a single-locale article. Articles come from the content loader, so unpublished and blocked slugs leave it. It excludes noindex states, redirects, 404s and query variants. `lastmod` (CMS `updatedAt`) is not emitted yet (SEO PR).
 
-**Coexistence:** Next cannot have `app/sitemap.ts` and a `public/sitemap.xml` at the same path. Vite's sitemap therefore moved to `src/app/sitemap.xml`, and a small Vite plugin emits it unchanged (`dist/sitemap.xml` is byte-identical to `main`'s). `public/robots.txt` stays shared until `app/robots.ts` (SEO PR) needs the same treatment.
+**Coexistence:** Next.js generates `/sitemap.xml` and `/robots.txt`, so the same paths cannot stay in `public/`. Vite's two files moved to `src/app/`; a small Vite plugin emits them unchanged in the build and serves them in `vite` (dev). A Vite E2E test checks that the built site serves them unchanged.
 
 ### 7.6 Robots and noindex
 
@@ -131,6 +131,8 @@ Absolute, `https://www.hmv-global.com`, no query, no fragment, no trailing slash
 |---|---|---|
 | Production (after cutover) | `Allow: /` plus `Sitemap:` | indexable (`SITE_INDEXABLE=true`, production environment only) |
 | Every preview or test domain | **Not used as the control.** `Disallow` stops crawling, not indexing, and hides the noindex from crawlers. | `X-Robots-Tag: noindex, nofollow` plus `<meta name="robots" content="noindex, nofollow">` (app fail-safe), the platform header from `deploy/vercel.next.json`, and Vercel Authentication (architecture §15.2). Not dependent on `VERCEL_ENV`. |
+
+Implemented in `app/robots.ts`: `User-Agent: *`, `Allow: /`, `Sitemap: https://www.hmv-global.com/sitemap.xml`, the same in every environment. Vite keeps its unchanged `robots.txt`.
 
 AI crawler policy (D-15): allow all, as today.
 
@@ -157,7 +159,7 @@ Every row in the URL matrix is asserted with `maxRedirects: 0`.
 
 | Type | Decision | Rule |
 |---|---|---|
-| `Organization` (on `/` and `/vi`) | Yes | Port from `index.html` only the facts every source agrees on. `employee`, `telephone`, `founder` and any certification claim wait for the D-12 outcome. |
+| `Organization` (on `/` and `/vi`) | Yes, implemented | Only the facts in the register below. `employee`, `founder`, `telephone`, `email`, `address`, certifications, facilities and testimonials wait for the D-12 outcome. |
 | `WebSite` | Yes | `name`, `url`, `inLanguage`, `publisher`. No `SearchAction`. |
 | `Article` | Yes, indexable articles only | CMS `authorName` as `Person` if present, else the organization `@id` |
 | `BreadcrumbList` | Deferred | Together with visible breadcrumbs |
@@ -165,6 +167,23 @@ Every row in the URL matrix is asserted with `maxRedirects: 0`.
 | `Review`, `AggregateRating` | Never | The only "reviews" are placeholders (C-01) |
 | `FAQPage`, `LocalBusiness`, `WebPage` | No | No matching content or value |
 | `Service` | Optional, later | Only with wording visible on the page |
+
+Fact register for structured data (`src/views/meta.js`; a unit test rejects the unverified values):
+
+| Fact | Value | In JSON-LD | Basis |
+|---|---|---|---|
+| Legal name | HMV Global Co., LTD | Yes | Footer copyright; not part of C-01 to C-06 |
+| Brand | HMV Global | Yes (`alternateName`, `WebSite.name`) | Site title on every page |
+| Website | `https://www.hmv-global.com` | Yes | The site itself |
+| Logo | `/favicon.png` | Yes | The site's own asset |
+| People and titles | Chairman, Managing Director, General Manager, co-founders | No | C-02 |
+| Telephone, 24/7 desk, support mailbox | +84 numbers, `support@…` | No | C-05 |
+| Email domain | `hmvglobal.com` | No | C-04 (which domains HMV owns) |
+| "HMV Logistics" as a second name | | No | C-04 |
+| Certifications, facilities, guarantees, testimonials | | No | C-03, C-06, C-01 |
+| Postal address | Floor 5, 240 Nguyen Dinh Chinh St. | No, until HMV confirms it | Not a D-12 row, but not confirmed either |
+
+The Vite site's `index.html` JSON-LD still contains several of the excluded items; it is production content and changes only through the D-12 content PRs.
 
 **Leaving a claim out of JSON-LD does not fix the visible page.** If a visible statement is wrong or unverified, the D-12 outcome changes the visible text (content PR). Structured data must then match the corrected visible content.
 
@@ -181,5 +200,5 @@ The order of priority:
 - **Entity:** legal name "HMV Global Co., LTD", brand "HMV Global", home `www.hmv-global.com`, entity page `/about`. A single fact register (one data module feeding JSON-LD, footer, contact, RFQ and `llms.txt`) is built only from facts HMV has confirmed.
 - **Topic coverage:** each topic HMV wants understood already has a page and anchor: who HMV is, markets, the six-stage coordination model, sourcing, processing coordination, quality and packaging, trade and export, supporting logistics. The open issues are consistency (C-02, C-03, C-04, C-06), not missing pages.
 - **Factual-boundary notes** (`copy.confirmed`, `copy.specNote`, `copy.processNote`, photo-provenance captions) stay next to the claims they qualify. They tell AI systems what not to infer.
-- **`llms.txt`** (SEO PR): list EN and VI URLs, remove the `?lang=vi` sentence, point to the sitemap, keep the boundaries section, and update facts only after D-12. A test checks that every URL in it returns 200 and is in the sitemap.
+- **`llms.txt`**: moved from the SEO PR to the D-12 content PRs. Its "Verified contact information" lists people and titles under review (C-02), so it changes together with the visible content; until then both builds serve the current file from `public/`. The plan stays: list EN and VI URLs, remove the `?lang=vi` sentence, point to the sitemap, keep the boundaries section, and test that every URL in it returns 200.
 - **Measurement:** Search Console, Bing Webmaster Tools, and periodic brand-query checks in AI assistants. No new tracking script is required.

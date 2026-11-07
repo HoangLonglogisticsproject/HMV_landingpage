@@ -115,7 +115,7 @@ The Next.js build reads the CMS on the server when `CMS_CONTENT=true` (server en
 
 | Piece | File |
 |---|---|
-| Server transport | `src/next/cms.ts`: `CMS_API_ORIGIN`, 300 s data cache under the tag `cms`, `Cache-Control: no-cache` on requests, 8 s timeout, normalized errors |
+| Server transport | `src/next/cms.ts`: `CMS_API_ORIGIN`, 300 s data cache under the tag `cms` (`CMS_REVALIDATE_SECONDS` overrides it in tests), `Cache-Control: no-cache` on requests (asks caches in front of the CMS to revalidate; purges nothing), 8 s timeout, normalized errors |
 | Source selection, takedown list | `src/next/content.ts`: bundled or CMS, `CMS_BLOCKED_SLUGS` |
 | Mappers | `src/features/*/api.js`, shared with the Vite CMS mode |
 | Operator endpoint | `POST /api/revalidate` with `x-revalidate-secret: <REVALIDATE_SECRET>` |

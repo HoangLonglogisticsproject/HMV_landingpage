@@ -55,7 +55,7 @@ Playwright spins up `vite preview` on port 4173 automatically. Tests cover:
 
 `npm run test:e2e` builds both bundles and runs both suites. The default config ignores `cms-*.spec.js`, so `test:e2e:fast` and `test:visual` need only `dist`.
 
-Next.js (migration branch): `npm run test:e2e:next` builds and tests the Next.js site (`tests/next/`, port 4175). `npm run test:e2e:next-cms` starts a mock CMS (port 4400), builds Next.js with `CMS_CONTENT=true` against it and runs `tests/next-cms/` (port 4176); that build replaces `.next`, so run it last. `scripts/check-boundaries.test.js` runs with `npm test`.
+Next.js (migration branch): `npm run test:e2e:next` builds and tests the Next.js site (`tests/next/`, port 4175). `npm run test:e2e:next-cms` starts a mock CMS (port 4400), builds Next.js with `CMS_CONTENT=true` against it and runs `tests/next-cms/` (port 4176), then rebuilds with a 2 s revalidation interval for the stale-on-error test (`playwright.next-cms-stale.config.js`); those builds replace `.next`, so run them last. `scripts/check-boundaries.test.js` runs with `npm test`.
 
 Both desktop (1280×720) and mobile (375×667) viewports are tested.
 

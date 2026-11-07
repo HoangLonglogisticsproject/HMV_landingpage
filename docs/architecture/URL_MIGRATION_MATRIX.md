@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Revision 3, 2026-11-08. Implemented on `feat/nextjs-foundation`, CMS rows behind `CMS_CONTENT`. Rows marked **✓** are verified by tests. |
+| Status | Revision 4, 2026-11-08. Implemented on `feat/nextjs-foundation`, CMS rows behind `CMS_CONTENT`. Rows marked **✓** are verified by tests. |
 | Today's behavior | `vercel.json`, `src/app/App.jsx`, and live checks of `https://www.hmv-global.com` (2026-11-06) |
 | Implementation | `src/i18n/routes.js` (shared contract), `proxy.ts`, `next.config.ts` `redirects()`, Next's built-in trailing-slash redirect; data-dependent article redirects in route code (`src/next/article.tsx`); `app/tin-tuc/[slug]/route.ts` (M-56) |
 | Tests | `src/i18n/routes.test.js` (unit: every static rule, idempotence, switch links) `tests/next/next.spec.js` (HTTP: exact hop chains with `maxRedirects: 0`, Location host) and `tests/next-cms/cms.spec.js` (CMS rows, against a mock CMS) |
@@ -10,7 +10,7 @@
 
 ## 1. Contract
 
-- `B` = `https://www.hmv-global.com`. Canonicals are absolute, with no query, no fragment and no trailing slash. The root is `B`: Next.js writes it as `B` in head tags and as `B/` in the sitemap, the same URL (RFC 3986).
+- `B` = `https://www.hmv-global.com`. Canonicals are absolute, with no query, no fragment and no trailing slash. The root is `B`, the same string in canonical, hreflang, `og:url` and the sitemap (one formatter, `absoluteUrl()`; tests compare exact strings).
 - **English URLs do not change.** Vietnamese lives under `/vi` with English segments for site pages and Vietnamese segments for products (`san-pham`) and articles (`tin-tuc`), as decided in D-02.
 - **`?lang=` is legacy.** Wherever it appears it (a) decides the target language, overriding the path, (b) is removed, and (c) every other parameter (`product`, `utm_*`, `gclid`…) is kept. Invalid values are removed and the path's language is used.
 - **Hops as implemented.** Next removes a trailing slash first (one hop). The proxy then resolves every other statically known legacy form in **one** hop. An article slug that belongs to the other language, when the pair is not known statically (CMS), adds **one** hop in the article route. Maximum: 3 hops, and only for combinations of a trailing slash, a legacy form and a CMS slug from the other language.
@@ -52,7 +52,7 @@ Today, every extension-less path returns **200** with the same SPA shell (`verce
 | M-43…M-45 | `/blog/{vi-slug}` (today: browser redirect to the English slug) | `/blog/{en-slug}` | en | 308, 1 hop, article route (pairs known; prerendered) | target | L | ✓ |
 | M-46 | `/vi/blog/{slug}` | `/vi/tin-tuc/{vi-slug}`, directly to the Vietnamese slug when the pair is known | vi | 308, proxy, 1 hop | target | M | ✓ |
 | M-47 | `/en/blog/{slug}` | `/blog/{en-slug}` (pair known) | en | 308, proxy, 1 hop | target | L | unit ✓ |
-| M-48 | `/blog/{unknown}` (today: browser redirect to `/insights`) | none | n/a | **404** (D-09) with noindex; since PR-06 the body is Next.js's default 404, client-rendered (D-17) | none | M | ✓ |
+| M-48 | `/blog/{unknown}` (today: browser redirect to `/insights`) | none | n/a | **404** (D-09) with noindex. The visitor sees Next.js's default 404 page (client-rendered): an accepted UX exception (D-17), asserted in a browser | none | M | ✓ |
 | M-49 | `/blog`, `/vi/tin-tuc`, `/vi/blog` | `/insights`, `/vi/insights` | en/vi | 308, 1 hop | target | L | ✓ |
 
 If the CMS goes live, the three articles must exist in the CMS with exactly these per-locale slugs (CMS PR gate).
@@ -70,7 +70,7 @@ M-50 to M-57 are verified against the mock CMS (`tests/next-cms/`). A slug that 
 | M-54 | `/vi/tin-tuc/{en-slug}`, Vietnamese alternate exists | `/vi/tin-tuc/{vi-alt}` | 308, route, +1 hop | target |
 | M-55 | `/vi/tin-tuc/{en-slug}`, no Vietnamese version | "not available in Vietnamese" page with a link to the English article | 200 **noindex** | none |
 | M-56 | `/tin-tuc/{slug}` (the CMS admin's link format) | `/vi/tin-tuc/{slug}` if the slug is Vietnamese, else `/blog/{slug}` if English, else 404 | 308, route handler | target |
-| M-57 | Unknown, draft, unapproved or archived slug | none | **404** (body rendered on the client, architecture §10) | none |
+| M-57 | Unknown, draft, unapproved, archived or blocked slug | none | **404** with noindex; Next.js's default 404 page, client-rendered (accepted exception D-17, asserted in a browser) | none |
 
 ### 2.5 Query parameters
 
@@ -113,7 +113,7 @@ M-50 to M-57 are verified against the mock CMS (`tests/next-cms/`). A slug that 
 | M-82 | `/{unknown}`, `/vi/{unknown}`, `/about/extra` (today 200) | **404**: the server-rendered global 404 (English, chrome-less, as the Vite 404 today) | M (intended) ✓ |
 | M-83 | Mixed case such as `/About` (today 200; React Router matches case-insensitively) | 404 (Next.js matches case-sensitively). Add redirects only if the Search Console export lists such URLs. | L |
 | M-84 | `/api/v1/public/*` (today 200 `text/html` from the SPA fallback) | 404 | L |
-| M-85 | `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/og-image.jpg`, `/favicon.png` | Same paths. Until cutover, Next serves the shared `public/` files; generated `robots`/`sitemap` replace them in the SEO PR. | L / M (sitemap content) |
+| M-85 | `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/og-image.jpg`, `/favicon.png` | Same paths. Next.js generates `/robots.txt` and `/sitemap.xml` (38 URLs with alternates); Vite keeps serving its unchanged files from `src/app/`; `/llms.txt`, `/og-image.jpg` and `/favicon.png` stay shared in `public/`. | L / M (sitemap content) ✓ |
 | M-86 | `/assets/{name}-{hash}.{ext}` (Vite build output) | 404 after cutover (hashes change on every build anyway) | L |
 
 ### 2.8 Hash anchors
@@ -190,6 +190,6 @@ None of the 308s sends `Cache-Control`. Browsers keep permanent redirects, which
 ## 6. Verification
 
 1. **Unit, on every commit:** the static rules, the idempotence of every target, and switch-link construction (`src/i18n/routes.test.js`).
-2. **Preview acceptance:** `tests/next/next.spec.js` against `next start` locally and against the Next preview deployment (`PLAYWRIGHT_BASE_URL`); `tests/next-cms/cms.spec.js` for the CMS rows, locally and in CI. The config refuses production hosts. Each hop asserts status 308, the exact next URL and the same host. Rows still marked "PR" join the suite in the PR that creates their target pages.
+2. **Preview acceptance:** `tests/next/next.spec.js` against `next start` locally and against the Next preview deployment (`PLAYWRIGHT_BASE_URL`); `tests/next-cms/cms.spec.js` for the CMS rows, locally and in CI. The config refuses production hosts. Each hop asserts status 308, exactly one raw `Location` header, the exact next URL and the same host. Rows still marked "PR" join the suite in the PR that creates their target pages.
 3. **Production acceptance, after cutover only:** a separate read-only suite against `B` (roadmap §7.2). It asserts the same chains, no noindex, and the Next.js build marker.
 4. **Completeness:** before cutover, the Search Console and Bing exports plus a crawl of today's sitemap and internal links must match the matrix.

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Revision 4, 2026-11-08. On branch `feat/nextjs-foundation`: every page, product and article in EN and VI, the CMS server layer behind `CMS_CONTENT` (off), the generated sitemap, the revalidation endpoint, layer rules enforced and tested, TypeScript `strict`, and CI. Not merged; production runs Vite. Images, fonts, the remaining SEO surfaces and cutover are still designs. Review: §16. |
+| Status | Revision 5, 2026-11-08. On branch `feat/nextjs-foundation`: every page, product and article in EN and VI, the CMS server layer behind `CMS_CONTENT` (off), sitemap, robots and confirmed-facts structured data, the revalidation endpoint, stale-on-error tested, layer rules enforced and tested, TypeScript `strict`, and CI. Not merged; production runs Vite. Images, fonts and cutover are still designs. Review: §16. |
 | Pinned versions | `next` **16.4.5** (exact), `react`/`react-dom` 19.3.0 (installed), Tailwind 4.3.3, TypeScript 5.9.3 (new `.ts`/`.tsx` files only) |
 | API source | The documentation shipped with the pinned version, `node_modules/next/dist/docs/` (the same pages as `https://nextjs.org/docs/…`). Citations below give the path under `01-app/`. Where the docs were ambiguous, the 16.4.5 source code was read and is cited instead. |
 | Related | [Audit](NEXTJS_MIGRATION_AUDIT.md) · [SEO, i18n and GEO spec](SEO_I18N_GEO_SPEC.md) · [URL matrix](URL_MIGRATION_MATRIX.md) · [Roadmap](MIGRATION_ROADMAP.md) |
@@ -198,15 +198,24 @@ In Next, the static page contains the fallback form and the client renders the p
 
 ## 7. Data fetching and the CMS layer
 
+Source dependencies (who imports whom):
+
+```mermaid
+graph LR
+  R[route, app/**] --> L[content loader<br>src/next/content.ts]
+  L --> M[mappers and resolver<br>features/*/api.js]
+  L --> T[server transport cmsGet<br>src/next/cms.ts]
+  M --> C[transport contract<br>src/lib/cms.js]
+  T --> C
 ```
-route (app/**)  →  content loader (src/next/content.ts)  →  mapper (features/*/api.js)  →  transport (src/next/cms.ts)
-                    picks bundled or CMS, applies            validates DTOs, maps to the       HTTP, origin, cache and
-                    CMS_BLOCKED_SLUGS                        view shape, resolves slugs        revalidation, timeout, errors
-```
+
+- The **loader** imports both the mappers and the concrete transport, and passes the transport in: `fetchArticles(cmsGet, …)`.
+- The **mappers** import only the contract module (`src/lib/cms.js`: URL builder, error helpers, slug rule) and receive the transport as a function argument, `get(path, params) → Promise<body>`. They never import `src/next/cms.ts`: the mappers are shared code and the transport is Next code, so `scripts/check-boundaries.js` rejects that import.
+- At run time the call goes route → loader → mapper → transport, but that is not a source dependency of the mapper.
 
 | Piece | Owns | Never touches |
 |---|---|---|
-| **Transport** `cmsGet` (`src/next/cms.ts`, `server-only`) | The origin (`CMS_API_ORIGIN`); `fetch(…, { next: { revalidate: 300, tags: ['cms'] } })`; `Cache-Control: no-cache` on the request, so an HTTP cache in front of the CMS revalidates with it; an 8 s timeout; errors normalized to `{ status }` (HTTP status, 503 unreachable, 504 timeout, 0 malformed); no logging | Response shapes |
+| **Transport** `cmsGet` (`src/next/cms.ts`, `server-only`) | The origin (`CMS_API_ORIGIN`); `fetch(…, { next: { revalidate, tags: ['cms'] } })` with `revalidate` = `CMS_REVALIDATE_SECONDS` or 300; `Cache-Control: no-cache` on the request, which requires an HTTP cache in front of the CMS to revalidate with the CMS before reusing a stored copy (it purges nothing); an 8 s timeout; errors normalized to `{ status }` (HTTP status, 503 unreachable, 504 timeout, 0 malformed); no logging | Response shapes |
 | **Mappers** `fetchPage`, `fetchArticles`, `fetchArticleIndex`, `resolveArticle` (`features/*/api.js`) | DTO validation, the view shape (`Article`, with `alternates` per locale), pairing translations by their shared CMS id, cross-locale slug resolution. JSDoc types (`Article`, `ArticleResolution`) are the contract for any consumer. | `fetch`, Next.js, React, environment, cache APIs, `server-only` (checker-enforced; the URL checks moved to `lib/safeUrl.js` so mappers no longer import the React renderer) |
 | **Content loader** (`src/next/content.ts`, `server-only`) | `CMS_CONTENT` (bundled or CMS), `CMS_BLOCKED_SLUGS`, list sizes | Rendering |
 | **Routes** | Locale, params, metadata, the shared view; 404 and 308 | Data sources |
@@ -227,7 +236,7 @@ Caching rules (no Cache Components): "By default, `fetch` requests are not cache
 | Product detail | SSG, `generateStaticParams`, `dynamicParams = false` ("Dynamic route segments not included in `generateStaticParams` will return a 404", `dynamicParams.md`) | 6 fixed products |
 | Articles listing | SSG; ISR with the CMS on | Up to 100 items |
 | Article detail | Known slugs of both locales prerendered (`generateStaticParams` from the index); `dynamicParams = true`, so a new CMS article renders on its first request and is then cached (ISR) | Segment config must be a literal, so one setting serves both modes |
-| Sitemap (`app/sitemap.ts`) | Static; ISR with the CMS on | Built from the route contract and the article index, so it lists exactly what the pages' `hreflang` lists |
+| Sitemap (`app/sitemap.xml/route.ts`), robots (`app/robots.ts`) | Static; the sitemap is ISR with the CMS on | The sitemap is written by a route handler, not the `sitemap.ts` convention, which rewrites the root as `B/`: every URL comes from `absoluteUrl()`, the formatter of canonical, hreflang and `og:url` |
 | Contact / RFQ | SSG shell plus client form island | No server data; `mailto:` only |
 | Logistics, Packaging, Activities, Regulations | SSG | Bundled |
 
@@ -252,7 +261,7 @@ The docs describe stale-while-revalidate (`02-guides/incremental-static-regenera
 | CMS HTTP caching | The CMS sends `public, max-age=60, stale-while-revalidate=300` on every public response, **404s included**. Any HTTP cache between the site's functions and the CMS (for example a CDN in front of the CMS) can add up to about 360 s. |
 | Next data cache, per fetch | Each distinct request is its own entry with its own 300 s window: the article detail, the home list (`pageSize=3`), the insights list (`pageSize=100`), the sitemap pages, About per locale. They expire and refresh **independently**, so for a while a new article can be in the list but not the sitemap, or an unpublished one can stay in the list after its detail returns 404. |
 | Page (ISR) | Revalidates at the lowest fetch window, on the **first request after** the window. That request still gets the stale page; the next one gets the new page once regeneration succeeds. A page with no traffic stays stale until someone requests it. |
-| Errors | "If an error is thrown while attempting to revalidate data, the last successfully generated data will continue to be served from the cache. On the next subsequent request, Next.js will retry" (ISR guide). During a CMS outage, neither updates nor takedowns reach the site. |
+| Errors | "If an error is thrown while attempting to revalidate data, the last successfully generated data will continue to be served from the cache. On the next subsequent request, Next.js will retry" (ISR guide). During a CMS outage, neither updates nor takedowns reach the site. Automated: `tests/next-cms/stale.spec.js` runs with a 2 s interval, makes the CMS answer 500 after the interval, and checks that About, a list and an article keep their last good content with 200 and no noindex, while the regeneration did reach the CMS. |
 
 Expectation to communicate to editors: with traffic, typically within about 5–11 minutes, with no guaranteed upper bound. For anything urgent, use §9.3.
 
@@ -264,15 +273,15 @@ Expectation to communicate to editors: with traffic, typically within about 5–
 4. **If the CMS cannot unpublish it, or is unreachable:** set `CMS_BLOCKED_SLUGS` (comma-separated slugs, per locale; list both translations' slugs to remove both) and redeploy (Vercel environment changes need a new deployment). A blocked slug is a 404 under every URL form that resolves to it (`/blog/…`, `/vi/tin-tuc/…`, the other locale's route, `/tin-tuc/…`; legacy aliases redirect to one of those), and it leaves the lists, the alternates and the sitemap. Do not use rollback for this: older deployments contain the same content.
 5. **Images:** CMS media files are served by the CMS media host. Optimized copies (`next/image`, after the images PR) are cached for `images.minimumCacheTTL`. Removal = delete the media in the CMS, revalidate, then purge the image cache in Vercel (owner), or wait for the TTL.
 
-What the CMS suite (`tests/next-cms/`) shows: a cached article is served without a CMS request after it is unpublished; a missing or wrong secret changes nothing; after the endpoint call the detail is 404, the lists and the sitemap drop it, and the refetch reached the CMS despite its `max-age=60` answer, with `Cache-Control: no-cache` on the request; the other translation stays. Not automated: a CDN in front of the CMS that ignores `no-cache` would still serve its copy for up to `max-age` + `stale-while-revalidate` (about 360 s); that is the CMS/infra owner's configuration.
+What the CMS suite (`tests/next-cms/`) shows: a cached article is served without a CMS request after it is unpublished; a missing or wrong secret changes nothing; after the endpoint call the detail is 404, the lists and the sitemap drop it, and the refetch reached the CMS despite its `max-age=60` answer, with `Cache-Control: no-cache` on the request; the other translation stays. What the mock cannot show: how a real CDN or cache in front of the CMS behaves. `no-cache` asks it to revalidate before reusing a stored copy; it does not remove that copy, and a CDN configured to ignore request directives can still serve it for up to `max-age` + `stale-while-revalidate` (about 360 s). Before `CMS_CONTENT=true`, the production-CMS gate (roadmap PR-13) checks this against the real CMS and CDN, including their response and cache headers.
 
 ## 10. Errors, loading and 404 (verified on the branch)
 
 | Situation | Implementation | Observed (`next start`, 16.4.5) |
 |---|---|---|
 | URL without a route (EN or VI), including an unknown product id (`dynamicParams = false`) | `app/global-not-found.tsx` with `experimental.globalNotFound: true`. Same markup as the Vite 404 (`NotFoundView`: chrome-less, "Page not found", link to `/`, English for every URL as on Vite today). | **404**, static, fully server-rendered, `<html lang="en">`, `noindex` (meta tag and header) |
-| `notFound()` thrown inside a page: an unknown, unpublished or blocked article slug (`dynamicParams = true`) | No custom file works: a `not-found.tsx` in the group or in the article segment is not used | **Status 404 and noindex are correct; the server HTML is an error shell (`<html id="__next_error__">`) and the browser renders Next.js's default 404 ("404: This page could not be found.", chrome-less).** The cause is that there is no single layout above both root layouts (`03-file-conventions/not-found.md`: `global-not-found.js` is "useful when… your app has multiple root layouts"). Decision D-17. |
-| A redirect rendered by an ISR page (the other locale's article slug) | `permanentRedirect()` | 308. **On the first request after the page is regenerated (cache MISS), Next.js 16.4.5 sends the `Location` header twice, with the same value**: the render sets it and the cached entry's headers are appended (`next/dist/build/templates/app-page-runtime.js`). Later hits send it once. Browsers accept identical duplicates; recheck on every Next.js upgrade and on the Vercel preview (OA-1), whose cache path differs. |
+| `notFound()` thrown inside a page: an unknown, unpublished or blocked article slug (`dynamicParams = true`) | No custom file works: a `not-found.tsx` in the group or in the article segment is not used | **Status 404 and noindex are correct; the server HTML is an error shell (`<html id="__next_error__">`) and the visitor sees Next.js's default 404 ("404 / This page could not be found.", no site navigation), asserted in a browser by both Next.js suites. Accepted UX exception (D-17), not a solved problem.** The cause is that there is no single layout above both root layouts (`03-file-conventions/not-found.md`: `global-not-found.js` is "useful when… your app has multiple root layouts"). Decision D-17. |
+| A redirect rendered by an ISR page (the other locale's article slug) | `permanentRedirect()` | 308. **On the first request after the page is regenerated (cache MISS), Next.js 16.4.5 sends the `Location` header twice, with the same value**: the render sets it and the cached entry's headers are appended (`next/dist/build/templates/app-page-runtime.js`). Later hits send it once. The bundled suite asserts exactly one raw `Location` on every redirect, and runs on the hosted preview (OA-1); a CMS-mode hosted check after a revalidation is a cutover gate (roadmap §7.3, G-15). If Vercel also sends two, investigate a patch or the framework behaviour before cutover; browser tolerance is not enough. |
 | CMS error on a URL never generated | `error.tsx` (client, localized) | 5xx: crawlers retry, and a live page is not deindexed |
 | Streaming | No `loading.tsx` and no Suspense above `notFound()` or redirects: "After streaming starts, the status code remains `200`" (`not-found.md`) | n/a |
 
@@ -292,19 +301,19 @@ Consequences for later PRs:
 
 The only place these numbers are kept; the other documents link here.
 
-| Check | `main` (baseline) | Branch (revision 4) |
+| Check | `main` (baseline) | Branch (revision 5) |
 |---|---|---|
-| `npm run build` (Vite) JS / CSS | 620.42 kB / 156.50 kB `index-CUg3tHd_.css` | 624.49 kB / **156.50 kB, same file hash**; `dist/sitemap.xml` byte-identical to `main`'s |
+| `npm run build` (Vite) JS / CSS | 620.42 kB / 156.50 kB `index-CUg3tHd_.css` | 624.65 kB / **156.50 kB, same file hash**; `dist/sitemap.xml` and `dist/robots.txt` are `main`'s files (line endings follow the checkout) |
 | `npm run build:cms` | passes | passes |
-| `npm test` (Vitest) | 49/49 | 66/66: +9 layer checker, +4 route contract, +1 product slugs, +3 CMS mappers |
+| `npm test` (Vitest) | 49/49 | 68/68: +9 layer checker, +4 route contract, +1 product slugs, +3 CMS mappers, +2 structured data |
 | `npm run lint` | 0 errors, 9 warnings | 0 errors, 9 warnings; layer boundaries OK |
 | `tsc --noEmit`, `next build` type check | n/a | pass with `strict: true` |
-| Playwright, Vite | 89 passed, 3 skipped | 111 passed, 7 skipped |
+| Playwright, Vite | 89 passed, 3 skipped | 115 passed, 7 skipped (+4: the built site serves the unchanged `sitemap.xml` and `robots.txt`) |
 | Playwright, CMS mode (Vite) | 35 passed, 1 skipped | 35 passed, 1 skipped |
-| `next build` | n/a | 48 prerendered pages (static and SSG), proxy, sitemap, two route handlers, global 404 |
-| Playwright, Next (`tests/next/`) | n/a | 193 passed, 3 skipped (switcher cases on mobile): all 38 indexable URLs, 404s, 28 redirect chains, sitemap = page `hreflang`, noindex everywhere, Article JSON-LD, islands, switcher |
-| Playwright, Next with the CMS (`tests/next-cms/`, mock CMS) | n/a | 12 passed: About and lists from the CMS, not-published states, alternates, M-52 to M-57, takedown, blocked slugs, 5xx on an uncached failure, no browser request to the CMS, no secret or origin in client bundles or server output |
-| GitHub CI (`ci.yml`, Linux) | n/a | green on `3591cc3` (Actions run 42400650297), the same totals as above for lint, layers and all four Playwright suites |
+| `next build` | n/a | 49 prerendered routes (static and SSG), proxy, robots, sitemap route, two more route handlers, global 404 |
+| Playwright, Next (`tests/next/`) | n/a | 199 passed, 3 skipped (switcher cases on mobile): all 38 indexable URLs, 404s and what a visitor sees on an article 404, 28 redirect chains with one raw `Location` per hop, sitemap = canonical, `og:url` and `hreflang` as exact strings, robots, Organization/WebSite JSON-LD, noindex everywhere, Article JSON-LD, islands, switcher |
+| Playwright, Next with the CMS (`tests/next-cms/`, mock CMS) | n/a | 13 passed: About and lists from the CMS, not-published states, alternates, M-52 to M-57, takedown, blocked slugs, 5xx on an uncached failure, the 404 a visitor sees, no browser request to the CMS, no secret or origin in client bundles or server output. Stale-on-error (2 s interval): 1 passed |
+| GitHub CI (`ci.yml`, Linux) | n/a | Runs all of the above on every push of the branch; each revision is reported green with its run |
 
 ## 13. Environment variables and security
 
@@ -316,6 +325,7 @@ The only place these numbers are kept; the other documents link here.
 | `CMS_MEDIA_HOST` | `next.config` | `images.remotePatterns` allow-list (images PR) |
 | `REVALIDATE_SECRET` | Next server | Required by `POST /api/revalidate`; unset disables it (§9.3). Never logged; the CMS suite checks bundles and server output for it. |
 | `CMS_BLOCKED_SLUGS` | Next server | Comma-separated slugs answered with 404 everywhere (§9.3) |
+| `CMS_REVALIDATE_SECONDS` | Next server, tests only | Overrides the 300 s revalidation interval; the stale-on-error suite sets 2. Unset in every deployment. |
 | `VITE_CMS_CONTENT` | Vite (`.env.cms`) | Unchanged until cleanup |
 
 ## 14. TypeScript and linting
@@ -432,7 +442,7 @@ Dispositions for automated suggestions:
 
 ### 16.5 Revision 4 (CMS server layer)
 
-No new P0. Dependency graph: one more Next module chain, `route → src/next/content.ts → features/*/api.js → src/next/cms.ts` (§7); shared code is unchanged in direction.
+No new P0. Dependency graph: new Next modules `src/next/content.ts` (imports the mappers and the transport) and `src/next/cms.ts` (imports the contract); see §7 for the source dependencies (corrected in revision 5). Shared code is unchanged in direction.
 
 | ID | Kind | Finding | Change |
 |---|---|---|---|
@@ -443,9 +453,9 @@ No new P0. Dependency graph: one more Next module chain, `route → src/next/con
 | R4-5 | P1 | Status numbers were copied between documents and drifted (53/53 vs 54/54; §15.1 said no workflow ran on branches) | Numbers only in §12; §15.1 and the roadmap corrected |
 | R4-6 | Upstream | Duplicate identical `Location` on the first response after an ISR redirect page regenerates (Next.js 16.4.5) | Documented in §10; recheck on upgrade and on the Vercel preview |
 | R4-7 | Upstream | Unknown article slugs show Next.js's default 404 body, rendered on the client; status and noindex are correct | D-17; a custom `not-found.tsx` is not used under two root layouts |
-| R4-8 | P2 | Next.js writes the root as `B` in head tags and `B/` in the sitemap | The same URL (RFC 3986); tests compare normalized URLs |
+| R4-8 | P2 | Next.js writes the root as `B` in head tags and `B/` in the sitemap | Fixed in revision 5: one formatter, exact strings |
 | R4-9 | P2 | The language switcher on a CMS article links to the same slug in the other locale; the route answers one 308 to the alternate (M-54) | Accepted; a direct link would need the alternates passed to the switcher |
-| R4-10 | P2 | `vite` (dev server) no longer serves `/sitemap.xml`; `vite build` and `vite preview` do | Accepted until cleanup |
+| R4-10 | P2 | `vite` (dev server) no longer serves `/sitemap.xml`; `vite build` and `vite preview` do | Fixed in revision 5 |
 
 What is already reusable by future modules (a trade tool, a contextual assistant), without building for them:
 
@@ -454,3 +464,20 @@ What is already reusable by future modules (a trade tool, a contextual assistant
 - the article index (translations paired by CMS id) and the URL model (`localizePath`, `alternateUrls`).
 
 Not built, because nothing needs it yet: a repository or service layer, per-item cache tags, a CMS webhook client, a plain-text or search projection of articles.
+
+### 16.6 Revision 5 (PR-07 and review follow-ups)
+
+No new P0. The CMS dependency diagram in §7 was wrong, not the code: it showed a chain into the transport. It now shows the source dependencies (the loader imports the mappers and the concrete transport; the mappers import only the contract); the layer checker already rejected a mapper importing `src/next/cms.ts`.
+
+| ID | Kind | Finding | Change |
+|---|---|---|---|
+| R5-1 | P1 | Canonical, hreflang and `og:url` wrote the root as `B`, the sitemap as `B/` | One formatter, `absoluteUrl()`; the sitemap is a route handler that writes its strings; tests compare exact strings, `og:url` included |
+| R5-2 | P1 | Stale-on-error was documented but untested (300 s interval) | `CMS_REVALIDATE_SECONDS` override (tests only); `tests/next-cms/stale.spec.js` with 2 s |
+| R5-3 | P1 (doc) | `Cache-Control: no-cache` was described as if it cleared upstream caches | Corrected: it asks for revalidation before reuse and purges nothing; a real CMS/CDN check joins the production-CMS gate |
+| R5-4 | P2 | `vite` (dev) did not serve `/sitemap.xml` | The Vite plugin serves `/sitemap.xml` and `/robots.txt` in dev and emits them in the build, unchanged |
+| R5-5 | Accepted exception | Unknown or blocked article slug: Next.js's default 404 page | Browser assertions in both Next.js suites; D-17 |
+| R5-6 | Gate | Duplicate `Location` (R4-6) | One raw `Location` asserted on every redirect in the bundled suite, which also runs on the hosted preview; CMS-mode hosted check before cutover (G-15) |
+| R5-7 | P2 | The Vite `index.html` Organization JSON-LD still lists people, emails and an address under D-12 review; `llms.txt` lists the same people as "verified" | Not changed by the migration: production content, corrected through the D-12 content PRs. The Next.js structured data holds confirmed facts only, so the two builds differ on purpose. |
+| R5-8 | P2 | The shared `articleJsonLd` now carries the organization node (`@id`, `url`, `logo`) and the CMS author: Vite's article JSON-LD changes with the next merge | Accepted: confirmed facts only |
+
+Kept as directed: one global CMS cache tag (`cms`), which meets the takedown requirement at the scale of About and EcoNews; per-article tags only when a real need appears.
