@@ -304,7 +304,7 @@ The only place these numbers are kept; the other documents link here.
 | `next build` | n/a | 48 prerendered pages (static and SSG), proxy, sitemap, two route handlers, global 404 |
 | Playwright, Next (`tests/next/`) | n/a | 193 passed, 3 skipped (switcher cases on mobile): all 38 indexable URLs, 404s, 28 redirect chains, sitemap = page `hreflang`, noindex everywhere, Article JSON-LD, islands, switcher |
 | Playwright, Next with the CMS (`tests/next-cms/`, mock CMS) | n/a | 12 passed: About and lists from the CMS, not-published states, alternates, M-52 to M-57, takedown, blocked slugs, 5xx on an uncached failure, no browser request to the CMS, no secret or origin in client bundles or server output |
-| GitHub CI (`ci.yml`) | n/a | green; the run URL is in the roadmap status |
+| GitHub CI (`ci.yml`, Linux) | n/a | green on `3591cc3` (Actions run 42400650297), the same totals as above for lint, layers and all four Playwright suites |
 
 ## 13. Environment variables and security
 
