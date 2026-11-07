@@ -1,4 +1,4 @@
-import portVisit from '@/assets/logistic/visit.jfif';
+import portVisit from '@/assets/logistic/visit.jpg';
 import groundbreaking from '@/assets/logistic/logis2.jpg';
 import factoryVisit from '@/assets/logistic/visitfactory.jpg';
 import containerDepot from '@/assets/logistic/logis3.jpg';

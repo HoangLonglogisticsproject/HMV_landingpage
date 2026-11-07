@@ -4,12 +4,13 @@ import dragonFruit from '@/assets/dragonFruit.png';
 import pepper from '@/assets/phu-quoc-pepper.png';
 import cashews from '@/assets/cashew-kernels-unbranded.png';
 import tapioca from '@/assets/tapioca-starch-reference.png';
+import { assetSrc } from '@/lib/utils';
 
 // Only verified photographs belong here. Missing categories stay unfilled
 // until an authentic, correctly identified photograph is available.
 export const productPhotos = {
   'passion-fruit': {
-    src: passionFruit,
+    src: assetSrc(passionFruit),
     width: 960,
     height: 1280,
     altEn: 'Cut passion fruit showing the pulp and seeds',
@@ -18,7 +19,7 @@ export const productPhotos = {
     sourceVi: 'Ảnh do HMV cung cấp',
   },
   bananas: {
-    src: bananas,
+    src: assetSrc(bananas),
     width: 1400,
     height: 1050,
     altEn: 'Bananas growing on a plantation in Vietnam',
@@ -33,7 +34,7 @@ export const productPhotos = {
     licenseUrl: 'https://creativecommons.org/licenses/by/2.0/',
   },
   'dragon-fruit': {
-    src: dragonFruit,
+    src: assetSrc(dragonFruit),
     width: 1254,
     height: 1254,
     altEn: 'Whole pink-skinned dragon fruit on a clean background',
@@ -48,7 +49,7 @@ export const productPhotos = {
     licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
   },
   spices: {
-    src: pepper,
+    src: assetSrc(pepper),
     width: 1400,
     height: 1050,
     altEn: 'Pepper vines growing in Phu Quoc, Vietnam',
@@ -63,7 +64,7 @@ export const productPhotos = {
     licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/',
   },
   nuts: {
-    src: cashews,
+    src: assetSrc(cashews),
     width: 1054,
     height: 1400,
     altEn: 'Unbranded cashew kernels',
@@ -77,7 +78,7 @@ export const productPhotos = {
     licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
   },
   'tapioca-starch': {
-    src: tapioca,
+    src: assetSrc(tapioca),
     width: 830,
     height: 558,
     altEn: 'Tapioca starch powder with cassava root and leaves',

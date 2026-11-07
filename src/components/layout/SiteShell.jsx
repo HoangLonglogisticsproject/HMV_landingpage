@@ -3,6 +3,7 @@ import { Footer } from '@/components/layout/Footer';
 import { SupportChatWidget } from '@/features/support-chat/SupportChatWidget';
 
 // Site chrome around page content: navigation, <main>, footer and the support chat.
+/** @param {{ lang: 'en' | 'vi', className?: string, children: import('react').ReactNode }} props */
 export function SiteShell({ lang, className, children }) {
   return (
     <>

@@ -1,5 +1,5 @@
+'use client';
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
   X,
   Minus,
@@ -18,9 +18,11 @@ import {
   CheckCheck
 } from 'lucide-react';
 import { productPhotos } from '@/data/productPhotos';
-import logo from '@/assets/logohmv.png';
-import { useLanguage } from '@/i18n/LanguageContext';
+import logoImage from '@/assets/logohmv.png';
+import { Link, useLanguageSwitch } from '@/lib/navigation';
+import { assetSrc } from '@/lib/utils';
 
+const logo = assetSrc(logoImage);
 const OPEN_EVENT = 'open-hmv-support-chat';
 
 // Opens the widget from anywhere (e.g. the nav "24/7 Support" button) without sharing state.
@@ -28,7 +30,7 @@ export const openSupportChat = () => window.dispatchEvent(new CustomEvent(OPEN_E
 
 export function SupportChatWidget({ lang = 'vi' }) {
   const vi = lang === 'vi';
-  const { setLang } = useLanguage();
+  const { select: selectLanguage } = useLanguageSwitch();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -128,7 +130,7 @@ export function SupportChatWidget({ lang = 'vi' }) {
 
   const handleQuickAction = (actionId) => {
     if (actionId === 'language') {
-      setLang(lang === 'vi' ? 'en' : 'vi');
+      selectLanguage(vi ? 'en' : 'vi');
       return;
     }
 

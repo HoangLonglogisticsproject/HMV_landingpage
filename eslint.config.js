@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
-  { ignores: ['dist/**', 'dist-cms/**', 'node_modules/**'] },
+  { ignores: ['dist/**', 'dist-cms/**', 'node_modules/**', '.next/**', 'next-env.d.ts'] },
   // Root config files and test specs run in Node.js
   {
     files: ['*.config.js', 'tests/**/*.js'],
@@ -36,5 +36,10 @@ export default [
       // Keep these as warnings — existing codebase has many; not from refactor
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
+  },
+  // Navigation adapters export hooks next to Link by design (one import path for both builds).
+  {
+    files: ['src/lib/navigation.jsx', 'src/lib/navigation.vite.jsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
   },
 ];

@@ -1,3 +1,4 @@
+'use client';
 import { Check, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
@@ -5,7 +6,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useLanguage } from '@/i18n/LanguageContext';
+import { useLanguageSwitch } from '@/lib/navigation';
+import { assetSrc } from '@/lib/utils';
 import gbFlag from 'flag-icons/flags/4x3/gb.svg';
 import vnFlag from 'flag-icons/flags/4x3/vn.svg';
 
@@ -14,28 +16,28 @@ export const LANGUAGES = [
     code: 'en',
     label: 'English',
     shortLabel: 'EN',
-    flag: gbFlag,
+    flag: assetSrc(gbFlag),
     flagAlt: 'Great Britain Flag',
   },
   {
     code: 'vi',
     label: 'Tiếng Việt',
     shortLabel: 'VI',
-    flag: vnFlag,
+    flag: assetSrc(vnFlag),
     flagAlt: 'Vietnam Flag',
   },
 ];
 
 export function LanguageSwitcher({ currentLang, onSelect, className = '' }) {
-  const { lang, setLang } = useLanguage();
+  const { lang, hrefFor, select } = useLanguageSwitch();
 
   const activeCode = currentLang || lang;
   const activeLang = LANGUAGES.find((l) => l.code === activeCode) || LANGUAGES[0];
 
-  // URLs are locale-free, so switching language is a pure re-render: no navigation,
-  // no scroll handling, the current URL stays exactly as it is.
+  // Vite: URLs are locale-free and switching is a re-render (no href). Next.js: each option is a real link to the
+  // same page in that language; `select` adds the query and #hash, so the click is handled here.
   const handleSelectLanguage = (targetCode) => {
-    if (targetCode !== activeCode) setLang(targetCode);
+    if (targetCode !== activeCode) select(targetCode);
     if (onSelect) onSelect();
   };
 
@@ -77,14 +79,9 @@ export function LanguageSwitcher({ currentLang, onSelect, className = '' }) {
         >
           {LANGUAGES.map((lang) => {
             const isActive = lang.code === activeCode;
-            return (
-              <DropdownMenuItem
-                key={lang.code}
-                onSelect={() => handleSelectLanguage(lang.code)}
-                className={`hmv-lang-menu-item ${isActive ? 'is-active' : ''}`}
-                aria-current={isActive ? 'true' : undefined}
-                role="menuitem"
-              >
+            const href = hrefFor(lang.code);
+            const content = (
+              <>
                 <div className="hmv-lang-item-left">
                   <img
                     src={lang.flag}
@@ -108,6 +105,32 @@ export function LanguageSwitcher({ currentLang, onSelect, className = '' }) {
                   />
                 ) : (
                   <span className="hmv-lang-check-placeholder" aria-hidden="true" />
+                )}
+              </>
+            );
+            return (
+              <DropdownMenuItem
+                key={lang.code}
+                asChild={Boolean(href)}
+                onSelect={href ? undefined : () => handleSelectLanguage(lang.code)}
+                className={`hmv-lang-menu-item ${isActive ? 'is-active' : ''}`}
+                aria-current={isActive ? 'true' : undefined}
+                role="menuitem"
+              >
+                {href ? (
+                  <a
+                    href={href}
+                    hrefLang={lang.code}
+                    lang={lang.code}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSelectLanguage(lang.code);
+                    }}
+                  >
+                    {content}
+                  </a>
+                ) : (
+                  content
                 )}
               </DropdownMenuItem>
             );

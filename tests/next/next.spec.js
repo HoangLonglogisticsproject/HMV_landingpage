@@ -1,0 +1,187 @@
+// @ts-check
+import { test, expect } from '@playwright/test';
+
+/**
+ * Next.js foundation (home, about, contact, 404 in EN and VI): server HTML, status codes, redirects, noindex and the
+ * language switch. Run with playwright.next.config.js (never against the production domain).
+ */
+
+const SITE = 'https://www.hmv-global.com';
+// Next.js writes the root URL without the trailing slash; sitemap and links must use the same string.
+const abs = path => (path === '/' ? SITE : `${SITE}${path}`);
+
+const tags = (html, name) =>
+  [...html.matchAll(new RegExp(`<${name}\\b[^>]*>`, 'gi'))].map(([tag]) =>
+    Object.fromEntries([...tag.matchAll(/([\w:-]+)="([^"]*)"/g)].map(([, k, v]) => [k.toLowerCase(), v])));
+const text = (html, re) => (html.match(re)?.[1] ?? '').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').trim();
+const head = html => {
+  const links = tags(html, 'link');
+  const metas = tags(html, 'meta');
+  return {
+    lang: html.match(/<html[^>]*\blang="([^"]+)"/)?.[1],
+    title: text(html, /<title>([\s\S]*?)<\/title>/),
+    h1: text(html, /<h1[^>]*>([\s\S]*?)<\/h1>/),
+    description: metas.find(m => m.name === 'description')?.content,
+    robots: metas.find(m => m.name === 'robots')?.content,
+    canonical: links.find(l => l.rel === 'canonical')?.href,
+    hreflang: Object.fromEntries(links.filter(l => l.rel === 'alternate' && l.hreflang).map(l => [l.hreflang, l.href])),
+  };
+};
+
+// Server-rendered pages: everything a crawler or link preview needs is in the HTML, before any JavaScript.
+const PAGES = [
+  { path: '/', lang: 'en', h1: 'Rooted in the land.Connecting the world.', title: 'Agricultural Supply Chain & Global Trading | HMV Global', en: '/', vi: '/vi' },
+  { path: '/vi', lang: 'vi', h1: 'Bám rễ từ đất lành.Vươn tầm ra thế giới.', title: 'Chuỗi cung ứng nông nghiệp & thương mại quốc tế | HMV Global', en: '/', vi: '/vi' },
+  { path: '/about', lang: 'en', h1: 'About HMV', title: 'About HMV | HMV Global', en: '/about', vi: '/vi/about' },
+  { path: '/vi/about', lang: 'vi', h1: 'Về HMV', title: 'Về HMV | HMV Global', en: '/about', vi: '/vi/about' },
+  { path: '/contact', lang: 'en', h1: 'Partner with us', title: 'Partner with us | HMV Global', en: '/contact', vi: '/vi/contact' },
+  { path: '/vi/contact', lang: 'vi', h1: 'Kết nối hợp tác', title: 'Kết nối hợp tác | HMV Global', en: '/contact', vi: '/vi/contact' },
+];
+
+for (const p of PAGES) {
+  test(`server HTML ${p.path}`, async ({ request }) => {
+    const res = await request.get(p.path, { maxRedirects: 0 });
+    expect(res.status()).toBe(200);
+    const html = await res.text();
+    const h = head(html);
+    expect(h.lang).toBe(p.lang);
+    expect(h.h1).toBe(p.h1);
+    expect(h.title).toBe(p.title);
+    expect(h.description).toBeTruthy();
+    expect(h.canonical).toBe(abs(p[p.lang]));
+    expect(h.hreflang).toEqual({ en: abs(p.en), vi: abs(p.vi), 'x-default': abs(p.en) });
+    // This is the Next.js build, not the Vite SPA shell.
+    expect(html).toContain('/_next/static/');
+    expect(html).not.toContain('<div id="root"></div>');
+  });
+}
+
+test('the home page HTML contains every section, client components included', async ({ request }) => {
+  const html = await (await request.get('/')).text();
+  for (const heading of ['THE VALUE JOURNEY', 'CORE COMMODITIES', 'PARTNER COMMUNITY', 'HMV GLOBAL IN ACTION',
+    'GLOBAL REACH', 'HMV ECONEWS', 'Initiate Trade', 'Exporting Passion Fruit']) {
+    expect(html, heading).toContain(heading);
+  }
+});
+
+test('internal links in Vietnamese pages point to Vietnamese URLs', async ({ request }) => {
+  const html = await (await request.get('/vi')).text();
+  const hrefs = tags(html, 'a').map(a => a.href);
+  expect(hrefs).toContain('/vi/about');
+  expect(hrefs).toContain('/vi/contact');
+  expect(hrefs).toContain('/vi/san-pham/chanh-day');
+  expect(hrefs).not.toContain('/about');
+});
+
+// Unknown URLs: a real 404 (not the SPA's 200), noindex, and the same chrome-less English 404 page as the Vite site,
+// server-rendered (app/global-not-found.tsx).
+for (const path of ['/this-page-does-not-exist', '/vi/trang-khong-ton-tai', '/about/extra']) {
+  test(`404 ${path}`, async ({ request }) => {
+    const res = await request.get(path, { maxRedirects: 0 });
+    expect(res.status()).toBe(404);
+    const html = await res.text();
+    const h = head(html);
+    expect(h.lang).toBe('en');
+    expect(h.title).toBe('Page not found | HMV Global');
+    expect(h.h1).toBe('Page not found');
+    expect(h.robots).toContain('noindex');
+    expect(html).toContain('class="not-found"');
+    expect(html).not.toContain('class="site-nav"');
+    expect(tags(html, 'a').some(a => a.href === '/')).toBe(true);
+  });
+}
+
+// Redirect chains as implemented: the proxy resolves legacy forms in one hop without `lang`; a trailing slash costs
+// one extra hop (Next.js removes it before the proxy runs). Location must stay on the tested host.
+const CHAINS = [
+  ['/about?lang=vi', ['/vi/about']],
+  ['/?lang=vi', ['/vi']],
+  ['/vi/about?lang=en', ['/about']],
+  ['/about/', ['/about']],
+  ['/vi/', ['/vi']],
+  ['/en/about', ['/about']],
+  ['/en', ['/']],
+  ['/en/about/?lang=vi', ['/en/about?lang=vi', '/vi/about']],
+  ['/en/about/', ['/en/about', '/about']],
+  ['/about/?lang=vi', ['/about?lang=vi', '/vi/about']],
+  ['/products/?lang=vi', ['/products?lang=vi', '/vi/trade-solutions']],
+  ['/blog', ['/insights']],
+  ['/vi/tin-tuc', ['/vi/insights']],
+  ['/vi/blog', ['/vi/insights']],
+  ['/vi/products', ['/vi/trade-solutions']],
+  ['/index.html', ['/']],
+  ['/contact?product=Passion%20fruit&utm_source=li&lang=vi', ['/vi/contact?product=Passion+fruit&utm_source=li']],
+  ['/products?lang=vi', ['/vi/trade-solutions']],
+  ['/products', ['/trade-solutions']],
+  ['/vi/san-pham', ['/vi/trade-solutions']],
+  ['/vi/products/passion-fruit', ['/vi/san-pham/chanh-day']],
+  ['/products/nuts?lang=vi', ['/vi/san-pham/hat-dieu']],
+  ['/blog/exporting-passion-fruit-eu?lang=vi', ['/vi/tin-tuc/xuat-khau-chanh-day-eu']],
+  ['/vi/blog/exporting-passion-fruit-eu', ['/vi/tin-tuc/xuat-khau-chanh-day-eu']],
+];
+
+for (const [from, hops] of CHAINS) {
+  test(`redirect ${from}`, async ({ request, baseURL }) => {
+    let url = from;
+    for (const expected of hops) {
+      const res = await request.get(url, { maxRedirects: 0 });
+      expect(res.status(), url).toBe(308);
+      const location = new URL(res.headers().location, baseURL);
+      expect(location.host).toBe(new URL(String(baseURL)).host);
+      url = location.pathname + location.search;
+      expect(url).toBe(expected);
+    }
+    const final = await request.get(url, { maxRedirects: 0 });
+    expect(final.status(), `${url} must not redirect again`).not.toBe(308);
+  });
+}
+
+// Fail-safe for test deployments: every page and 404 is noindex (header and meta) unless SITE_INDEXABLE=true.
+// Redirect responses have no indexable body; their targets are covered here.
+test('pages and 404s are noindex until SITE_INDEXABLE=true', async ({ request }) => {
+  for (const path of ['/', '/vi', '/about', '/vi/about', '/contact', '/vi/contact', '/this-page-does-not-exist']) {
+    const res = await request.get(path, { maxRedirects: 0 });
+    expect(res.headers()['x-robots-tag'], path).toBe('noindex, nofollow');
+    expect(head(await res.text()).robots, path).toContain('noindex');
+  }
+});
+
+// Language switch regressions: the old `lang` parameter must never bring the visitor back to the old language,
+// while product, UTM and #hash survive the switch.
+test.describe('language switch', () => {
+  test.beforeEach(() => test.skip(test.info().project.name === 'chromium-mobile', 'Switcher is inside the mobile drawer'));
+
+  const switchTo = async (page, label) => {
+    await page.locator('button.hmv-lang-trigger').first().click();
+    await page.locator(`[role="menuitem"]:has-text("${label}")`).first().click();
+  };
+
+  test('/about?lang=vi, then English, stays English', async ({ page }) => {
+    await page.goto('/about?lang=vi');
+    await expect(page).toHaveURL(/\/vi\/about$/);
+    await expect(page.locator('h1').first()).toHaveText('Về HMV');
+    await switchTo(page, 'English');
+    await expect(page).toHaveURL(/\/about$/);
+    await expect(page.locator('h1').first()).toHaveText('About HMV');
+    await page.reload();
+    await expect(page.locator('h1').first()).toHaveText('About HMV');
+  });
+
+  test('contact keeps the product and UTM parameters across the switch', async ({ page }) => {
+    await page.goto('/contact?product=Passion%20fruit&utm_source=li&lang=vi');
+    await expect(page).toHaveURL(/\/vi\/contact\?product=Passion\+fruit&utm_source=li$/);
+    const select = page.locator('form.inquiry-form select[name="product"]');
+    await expect(select).toHaveValue('Passion fruit');
+    await switchTo(page, 'English');
+    await expect(page).toHaveURL(/\/contact\?product=Passion\+fruit&utm_source=li$/);
+    await expect(page.locator('h1').first()).toHaveText('Partner with us');
+    await expect(select).toHaveValue('Passion fruit');
+  });
+
+  test('the #hash survives the switch', async ({ page }) => {
+    await page.goto('/vi#initiate-trade');
+    await switchTo(page, 'English');
+    await expect(page).toHaveURL(/\/#initiate-trade$/);
+    await expect(page.locator('h1').first()).toContainText('Rooted in the land');
+  });
+});

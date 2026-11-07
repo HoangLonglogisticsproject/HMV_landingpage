@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+/* Utilities come from the code only: prose in docs/ must not change the generated CSS. */
+@source not "../../docs";
+
 @custom-variant dark (&:is(.dark *));
 
 /* ---------------------------------------------------------------

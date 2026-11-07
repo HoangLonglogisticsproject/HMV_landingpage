@@ -6,10 +6,14 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
-    alias: {
-      '@': path.resolve(import.meta.dirname, './src'),
-    },
+    // Shared components import `@/lib/navigation` (the Next.js adapter); the Vite build swaps in the React Router one.
+    alias: [
+      { find: /^@\/lib\/navigation$/, replacement: path.resolve(import.meta.dirname, './src/lib/navigation.vite.jsx') },
+      { find: '@', replacement: path.resolve(import.meta.dirname, './src') },
+    ],
   },
+  // Tailwind runs through @tailwindcss/vite here; postcss.config.mjs is for the Next.js build only.
+  css: { postcss: {} },
   // CMS mode (`--mode cms`): same-origin access to the CMS public API, for `vite` and `vite preview`.
   // Only /api/v1/public is forwarded, so admin routes are unreachable through this origin.
   server: {

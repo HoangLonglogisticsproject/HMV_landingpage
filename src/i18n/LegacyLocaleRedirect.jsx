@@ -1,15 +1,17 @@
 import { useLayoutEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { SUPPORTED_LANGS, useLanguage } from '@/i18n/LanguageContext';
+import { INDEX_ALIASES, delocalizePath } from '@/i18n/routes';
 
 // /blog/<slug> passes through: ArticlePage resolves the slug (static: VI → EN canonical, unknown → /insights;
 // CMS: localized slug via alternates).
-const cleanTarget = rest => rest.replace(/\/$/, '') || '/';
+const cleanTarget = path => path.replace(/\/$/, '') || '/';
 
 /**
- * Handles legacy locale-prefixed URLs (/en/..., /vi/...) client-side.
- * On Vercel these are already 301'd by vercel.json; this is the safety net for
- * `vite preview`, local dev, and any other host.
+ * Handles locale-prefixed URLs (/en/..., /vi/...) client-side: sets the language, then goes to the locale-free URL.
+ * Production returns this SPA shell (HTTP 200) for them; there is no server-side redirect (vercel.json has none).
+ * It also maps the Next.js Vietnamese URLs (/vi/san-pham/<slug>, /vi/tin-tuc/<slug>) through the shared route
+ * contract, so a rollback to this build keeps them working (MIGRATION_ROADMAP.md, rollback contract).
  */
 export function LegacyLocaleRedirect() {
   const { pathname, search, hash } = useLocation();
@@ -24,5 +26,6 @@ export function LegacyLocaleRedirect() {
   }, [legacyLang, setLang]);
 
   if (!match) return <Navigate to="/" replace />;
-  return <Navigate to={`${cleanTarget(match[2] ?? '')}${search}${hash}`} replace />;
+  const { path } = delocalizePath(cleanTarget(pathname));
+  return <Navigate to={`${INDEX_ALIASES[path] ?? path}${search}${hash}`} replace />;
 }

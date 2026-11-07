@@ -4,19 +4,19 @@ import { LanguageProvider } from '@/i18n/LanguageContext';
 import { LangQueryBootstrap } from '@/i18n/LangQueryBootstrap';
 import { LegacyLocaleRedirect } from '@/i18n/LegacyLocaleRedirect';
 import { SiteLayout } from '@/app/SiteLayout';
-import { HomePage } from '@/pages/home/HomePage';
-import { AboutPage } from '@/pages/about/AboutPage';
-import { SupplyChainPage } from '@/pages/supply-chain/SupplyChainPage';
-import { TradeSolutionsPage } from '@/pages/trade-solutions/TradeSolutionsPage';
-import { ActivitiesPage } from '@/pages/activities/ActivitiesPage';
-import { ContactPage } from '@/pages/contact/ContactPage';
-import { InsightsPage } from '@/pages/insights/InsightsPage';
-import { RegulationsPage } from '@/pages/regulations/RegulationsPage';
-import { PackagingLogisticsPage } from '@/pages/packaging-logistics/PackagingLogisticsPage';
-import { LogisticsHubPage } from '@/pages/logistics/LogisticsHubPage';
-import { ProductDetailPage } from '@/pages/products/ProductDetailPage';
-import { ArticlePage } from '@/pages/article/ArticlePage';
-import { NotFoundPage } from '@/pages/not-found/NotFoundPage';
+import { HomePage } from '@/views/home/HomePage';
+import { AboutPage } from '@/views/about/AboutPage';
+import { SupplyChainPage } from '@/views/supply-chain/SupplyChainPage';
+import { TradeSolutionsPage } from '@/views/trade-solutions/TradeSolutionsPage';
+import { ActivitiesPage } from '@/views/activities/ActivitiesPage';
+import { ContactPage } from '@/views/contact/ContactPage';
+import { InsightsPage } from '@/views/insights/InsightsPage';
+import { RegulationsPage } from '@/views/regulations/RegulationsPage';
+import { PackagingLogisticsPage } from '@/views/packaging-logistics/PackagingLogisticsPage';
+import { LogisticsHubPage } from '@/views/logistics/LogisticsHubPage';
+import { ProductDetailPage } from '@/views/products/ProductDetailPage';
+import { ArticlePage } from '@/views/article/ArticlePage';
+import { NotFoundPage } from '@/views/not-found/NotFoundPage';
 
 export default function App() {
   return (

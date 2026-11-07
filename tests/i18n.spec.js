@@ -91,3 +91,34 @@ test('language choice persists when navigating between pages', async ({ page }) 
   const lang2 = await page.evaluate(() => localStorage.getItem('hmv_lang'));
   expect(lang2).toBe('vi');
 });
+
+// ─── URL contract regression: ?lang=vi, then "English", must end on English ───
+// The legacy `lang` parameter must not bring the visitor back to Vietnamese; product survives the switch.
+// The Next.js build has the same cases in tests/next/next.spec.js.
+
+for (const { path, vi, en } of [
+  { path: '/about?lang=vi', vi: 'Về HMV', en: 'About HMV' },
+  { path: '/products/passion-fruit?lang=vi', vi: 'Chanh dây', en: 'Passion fruit' },
+  { path: '/blog/exporting-passion-fruit-eu?lang=vi', vi: /^Xuất khẩu Chanh dây/, en: /^Exporting Passion Fruit/ },
+  { path: '/contact?product=Passion%20fruit&lang=vi', vi: 'Kết nối hợp tác', en: 'Partner with us' },
+]) {
+  test(`${path}, then English, stays English`, async ({ page }) => {
+    test.skip(test.info().project.name === 'chromium-mobile', 'Switcher hidden inside drawer on mobile');
+    await page.goto(path);
+    await expect(page).not.toHaveURL(/lang=/, { timeout: 5000 });
+    const h1 = page.locator('h1').first();
+    await expect(h1).toHaveText(vi, { timeout: 5000 });
+
+    await page.locator('button.hmv-lang-trigger').first().click();
+    await page.locator('[role="menuitem"]:has-text("English")').first().click();
+    await expect(h1).toHaveText(en, { timeout: 5000 });
+    await page.reload();
+    await expect(h1).toHaveText(en, { timeout: 5000 });
+    await expect(page).not.toHaveURL(/lang=/);
+
+    if (path.startsWith('/contact')) {
+      expect(new URL(page.url()).searchParams.get('product')).toBe('Passion fruit');
+      await expect(page.locator('form.inquiry-form select[name="product"]')).toHaveValue('Passion fruit');
+    }
+  });
+}

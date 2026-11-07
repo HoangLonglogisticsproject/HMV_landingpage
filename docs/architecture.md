@@ -10,7 +10,8 @@ There is no backend of its own. Content is static bilingual data in `src/data/`,
 src/
   main.jsx             mounts <App/>, imports global CSS (index.css before hmv.css)
   app/                 App.jsx (providers + route table), SiteLayout.jsx (layout route)
-  pages/<route>/       <Name>Page.jsx + sections used only by that page
+  views/<route>/       <Name>Page.jsx (Vite page adapter) + <Name>View.jsx (shared body) + sections
+                       (renamed from src/pages: Next.js reserves that name; see docs/architecture/)
     home/sections/     the eight home sections, in render order in HomePage.jsx
   features/<name>/     business functionality used by more than one page or the shell
     articles/          EcoNews data access (bundled or CMS public API), ArticleGrid, Tiptap RichText (+ tests)
@@ -44,20 +45,20 @@ src/
 
 | URL | Module | Notes |
 |---|---|---|
-| `/` | `pages/home/HomePage` | Section order is defined in `HomePage.jsx`. `#initiate-trade` targets the RFQ form. |
-| `/about` | `pages/about/AboutPage` | DetailLayout. Copy from `features/pages` (`data/about.js`, or the CMS in CMS mode). |
-| `/supply-chain` | `pages/supply-chain/SupplyChainPage` | DetailLayout. Deep links: `#commodities`, `#wind-energy`, `#logistics-capacity`, stage ids. |
-| `/trade-solutions` | `pages/trade-solutions/TradeSolutionsPage` | DetailLayout |
-| `/activities` | `pages/activities/ActivitiesPage` | DetailLayout |
-| `/contact` | `pages/contact/ContactPage` | DetailLayout with no trailing CTA. `?product=` preselects the product. |
-| `/insights` | `pages/insights/InsightsPage` | DetailLayout. EcoNews list (`features/articles`) plus the first 3 regulations, in data order. |
-| `/regulations` | `pages/regulations/RegulationsPage` | DetailLayout |
-| `/products/:id` | `pages/products/ProductDetailPage` | DetailLayout. An unknown id shows the "not found" title and the CTA only. |
-| `/logistics` | `pages/logistics/LogisticsHubPage` | Its own hero. Adds its own delayed smooth `#hash` scroll on top of SiteLayout's. |
-| `/packaging-logistics` | `pages/packaging-logistics/PackagingLogisticsPage` | Its own hero |
-| `/blog/:slug` | `pages/article/ArticlePage` | Outside SiteLayout (see below). Static mode: a Vietnamese slug redirects to the English canonical slug; an unknown slug goes to `/insights`. CMS mode: slugs are per locale and resolved through `alternates`; unknown slugs show a not-found state (noindex). |
+| `/` | `views/home/HomePage` | Section order is defined in `HomeView.jsx`. `#initiate-trade` targets the RFQ form. |
+| `/about` | `views/about/AboutPage` | DetailLayout. Copy from `features/pages` (`data/about.js`, or the CMS in CMS mode). |
+| `/supply-chain` | `views/supply-chain/SupplyChainPage` | DetailLayout. Deep links: `#commodities`, `#wind-energy`, `#logistics-capacity`, stage ids. |
+| `/trade-solutions` | `views/trade-solutions/TradeSolutionsPage` | DetailLayout |
+| `/activities` | `views/activities/ActivitiesPage` | DetailLayout |
+| `/contact` | `views/contact/ContactPage` | DetailLayout with no trailing CTA. `?product=` preselects the product. |
+| `/insights` | `views/insights/InsightsPage` | DetailLayout. EcoNews list (`features/articles`) plus the first 3 regulations, in data order. |
+| `/regulations` | `views/regulations/RegulationsPage` | DetailLayout |
+| `/products/:id` | `views/products/ProductDetailPage` | DetailLayout. An unknown id shows the "not found" title and the CTA only. |
+| `/logistics` | `views/logistics/LogisticsHubPage` | Its own hero. Adds its own delayed smooth `#hash` scroll on top of SiteLayout's. |
+| `/packaging-logistics` | `views/packaging-logistics/PackagingLogisticsPage` | Its own hero |
+| `/blog/:slug` | `views/article/ArticlePage` | Outside SiteLayout (see below). Static mode: a Vietnamese slug redirects to the English canonical slug; an unknown slug goes to `/insights`. CMS mode: slugs are per locale and resolved through `alternates`; unknown slugs show a not-found state (noindex). |
 | `/en/*`, `/vi/*` | `i18n/LegacyLocaleRedirect` | Sets the language and redirects to the locale-free URL. |
-| `*` | `pages/not-found/NotFoundPage` | No site chrome |
+| `*` | `views/not-found/NotFoundPage` | No site chrome |
 
 URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the language and is then removed from the address bar (`i18n/LangQueryBootstrap`).
 
@@ -70,8 +71,8 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 | Navigation (desktop + mobile) | `components/layout/Navigation` (~592 lines — see tech debt) |
 | Footer | `components/layout/Footer` |
 | Language switcher | `components/layout/LanguageSwitcher` (Radix DropdownMenu) |
-| Inner-page layout (hero + body + CTA) | `components/layout/DetailLayout` |
-| Blog page chrome | `pages/article/ArticlePage` (its own SiteShell — intentional remount) |
+| Inner-page layout (hero + body + CTA) | `components/layout/DetailLayout` (shared, no head tags); Vite pages use `app/ViteDetailLayout`, which adds `PageMeta` |
+| Blog page chrome | `views/article/ArticlePage` (its own SiteShell — intentional remount) |
 
 ## i18n rules
 
@@ -106,8 +107,9 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 
 ## Adding things
 
-- **New route:** create `pages/<route>/<Name>Page.jsx` and add one `<Route>` inside `SiteLayout` in `app/App.jsx`. Then update the nav/footer links and `public/sitemap.xml`.
-- **Inner page:** wrap the content in `<DetailLayout lang title description>`.
+- **New route:** create `views/<route>/<Name>Page.jsx` and add one `<Route>` inside `SiteLayout` in `app/App.jsx`. Then update the nav/footer links and `public/sitemap.xml`.
+- **Inner page:** wrap the content in `<DetailLayout lang title description>` (import `ViteDetailLayout as DetailLayout` from `@/app/ViteDetailLayout` in a Vite page module, so the head tags are set).
+- **Next.js migration (in progress):** see `docs/architecture/`. Shared components import links and router hooks from `@/lib/navigation` only, never from `react-router-dom` or `next/*`.
 - **New section:** if only one page uses it, put it in that page's folder. If it is business-specific and used by two or more pages, put it in `features/<name>/`. If it is generic UI, put it in `components/ui/`.
 - **Styles:** `hmv.css` is one global stylesheet with no scoping. Keep class names stable; renaming a class silently unstyles markup.
 

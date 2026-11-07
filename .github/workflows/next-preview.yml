@@ -1,0 +1,52 @@
+# Next.js preview deployments, migration period only (docs/architecture/MIGRATION_ROADMAP.md, "Next.js preview").
+# Builds with deploy/vercel.next.json instead of the root vercel.json (its SPA rewrite belongs to the Vite production
+# project), deploys to the separate, protected Vercel project, then runs the preview acceptance tests against it.
+# Inert until the account owner creates that project and sets the repository variable NEXT_PREVIEW_ENABLED=true plus
+# the secrets below. Production is untouched: it is a different Vercel project, and this workflow never deploys --prod.
+name: Next.js preview
+
+on:
+  push:
+    branches: ['feat/nextjs-**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: next-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    if: vars.NEXT_PREVIEW_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_NEXT_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_CLI: vercel@65.2.0
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.18.0
+          cache: npm
+      - run: npm ci
+      - name: Refuse the production project
+        run: test -n "$VERCEL_PROJECT_ID" && test "$VERCEL_PROJECT_ID" != "${{ vars.VERCEL_PRODUCTION_PROJECT_ID }}"
+      - run: npx "$VERCEL_CLI" pull --yes --environment=preview --token "$VERCEL_TOKEN"
+      - run: npx "$VERCEL_CLI" build --local-config deploy/vercel.next.json --token "$VERCEL_TOKEN"
+      - name: The Vite SPA rewrite must not be in the build output
+        run: node -e "const c=require('./.vercel/output/config.json'); if ((c.routes||[]).some(r => r.dest === '/index.html')) process.exit(1)"
+      - id: deploy
+        run: echo "url=$(npx "$VERCEL_CLI" deploy --prebuilt --local-config deploy/vercel.next.json --token "$VERCEL_TOKEN")" >> "$GITHUB_OUTPUT"
+      - run: npx playwright install --with-deps chromium
+      - name: Preview acceptance tests
+        run: npx playwright test -c playwright.next.config.js
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ steps.deploy.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_NEXT_BYPASS_SECRET }}

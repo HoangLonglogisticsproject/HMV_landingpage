@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Suspense } from 'react';
 import {
   ArrowUpRight,
   Mail,
@@ -8,19 +7,12 @@ import {
   PhoneCall,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { copy, products, address } from '@/data/hmv';
-import { createInquiryMailto } from './inquiry';
+import { Link } from '@/lib/navigation';
+import { copy, address } from '@/data/hmv';
+import { ContactForm, ContactFormFromUrl } from './ContactForm';
 export function Contact({ lang, full = false }) {
   const t = copy[lang];
   const vi = lang === 'vi';
-  const [params] = useSearchParams();
-  const [prepared, setPrepared] = useState(false);
-  const submit = e => {
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(e.currentTarget));
-    window.location.href = createInquiryMailto(data);
-    setPrepared(true);
-  };
   return (
     <section
       className={`section-pad contact-section ${full ? 'contact-full' : ''}`}
@@ -44,68 +36,9 @@ export function Contact({ lang, full = false }) {
         </div>
         {full && (
           <div className="contact-grid">
-            <form onSubmit={submit} className="inquiry-form">
-              <div className="form-grid">
-                {[
-                  { key: 'name', label: t.name, type: 'text' },
-                  { key: 'email', label: t.email, type: 'email' },
-                  { key: 'company', label: t.company, type: 'text' },
-                  { key: 'destination', label: t.destination, type: 'text' },
-                ].map(f => (
-                  <label key={f.key}>
-                    {f.label}
-                    <input
-                      name={f.key}
-                      type={f.type}
-                      required
-                      maxLength={200}
-                      autoComplete={
-                        f.key === 'name'
-                          ? 'name'
-                          : f.key === 'email'
-                            ? 'email'
-                            : f.key === 'company'
-                              ? 'organization'
-                              : 'off'
-                      }
-                    />
-                  </label>
-                ))}
-              </div>
-              <label>
-                {t.product}
-                <select
-                  name="product"
-                  defaultValue={params.get('product') || ''}
-                  required
-                >
-                  <option value="">{t.select}</option>
-                  {products.map(p => (
-                    <option key={p.id} value={p.en}>
-                      {p[lang]}
-                    </option>
-                  ))}
-                  <option value="Wind Energy">
-                    {vi ? 'Dự án Điện gió' : 'Wind Energy Project'}
-                  </option>
-                  <option value="Logistics">
-                    {vi
-                      ? 'Giải pháp Logistics / Vận chuyển'
-                      : 'Logistics & Freight Solutions'}
-                  </option>
-                </select>
-              </label>
-              <label>
-                {t.message}
-                <textarea name="message" rows={5} required maxLength={5000} />
-              </label>
-              <Button variant="brand" size="lg" type="submit">
-                {t.emailAction}
-                <ArrowUpRight />
-              </Button>
-              <p className="form-note">{t.emailNote}</p>
-              {prepared && <p role="status">{t.draftReady}</p>}
-            </form>
+            <Suspense fallback={<ContactForm lang={lang} />}>
+              <ContactFormFromUrl lang={lang} />
+            </Suspense>
             <aside>
               <div className="office-block support-desk-card">
                 <div className="support-live-badge">

@@ -86,7 +86,7 @@ independently in the CMS (submit → approve → publish per locale).
 | Client | `src/features/pages/api.js` (`fetchPage`: 200 → `ready`, 404 → `not-found`, anything else → error) |
 | Hook | `src/features/pages/usePage.js` (`usePage(key, lang)`; bundled copy per key in static mode) |
 | Bundled copy | `src/data/about.js`, EN + VI in the CMS shape (the CMS was seeded from it) |
-| Rendering | `pages/about/AboutPage.jsx` + `CompanyStory.jsx`: same markup for both sources; icons, grids and the `/contact` link stay in code |
+| Rendering | `views/about/AboutView.jsx` + `CompanyStory.jsx` (Vite adapter: `AboutPage.jsx`): same markup for both sources; icons, grids and the `/contact` link stay in code |
 
 - The h1 and lead come from `hero`; `seo` sets the meta title/description (`DetailLayout` `seo` prop).
 - CMS mode states: loading, error (no noindex), and "not published in this language" (noindex). The bundled copy
