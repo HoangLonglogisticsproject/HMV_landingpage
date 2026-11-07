@@ -154,3 +154,15 @@ test('no secret or CMS origin in client bundles or server output', () => {
   }
   expect(readFileSync(SERVER_LOG, 'utf8')).not.toContain(REVALIDATE_SECRET);
 });
+
+// What the visitor sees for an unknown or blocked CMS slug: Next.js's default 404 page. Accepted UX exception (D-17),
+// with correct 404 and noindex semantics; not counted as solved.
+test('unknown or blocked slug in a browser: Next.js default 404 (accepted exception, D-17)', async ({ page }) => {
+  for (const path of ['/blog/cms-unknown', '/vi/tin-tuc/cms-bi-chan']) {
+    const res = await page.goto(path);
+    expect(res?.status(), path).toBe(404);
+    await expect(page.locator('h1'), path).toHaveText('404');
+    await expect(page.getByText('This page could not be found.'), path).toBeVisible();
+    await expect(page.locator('meta[name="robots"]').first(), path).toHaveAttribute('content', /noindex/);
+  }
+});

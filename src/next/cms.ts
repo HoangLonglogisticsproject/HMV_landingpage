@@ -4,13 +4,14 @@ import { cmsError, cmsUrl, malformed } from '@/lib/cms';
 // CMS transport (contract: src/lib/cms.js) for server rendering. It owns everything the mappers must not know:
 // - the origin, from the server environment (CMS_API_ORIGIN never reaches a client bundle);
 // - caching: the Next.js data cache keeps each 200 response for REVALIDATE_SECONDS under CMS_TAG, which
-//   /api/revalidate expires on demand;
-// - `Cache-Control: no-cache` on the request, so an HTTP cache in front of the CMS revalidates with it instead of
-//   serving the CMS's own `max-age=60, stale-while-revalidate=300` copy after a takedown;
+//   /api/revalidate expires on demand. CMS_REVALIDATE_SECONDS overrides the 300 s default; only the stale-on-error
+//   suite sets it (2 s), production leaves it unset;
+// - `Cache-Control: no-cache` on the request: an HTTP cache in front of the CMS must revalidate with the CMS before
+//   reusing a stored copy. It purges nothing; whether a given CDN honours it is checked before CMS_CONTENT=true;
 // - a timeout, and errors normalized to `{ status }`: the HTTP status, 503 unreachable, 504 timeout, 0 malformed.
 // Nothing is logged: error messages carry the API path only.
 export const CMS_TAG = 'cms';
-const REVALIDATE_SECONDS = 300;
+const REVALIDATE_SECONDS = Number(process.env.CMS_REVALIDATE_SECONDS) || 300;
 const TIMEOUT_MS = 8_000;
 
 export async function cmsGet(path: string, params: Record<string, string | number>) {

@@ -40,3 +40,4 @@ jobs:
       - run: npx playwright test -c playwright.next.config.js
       # Last: it rebuilds .next with CMS_CONTENT=true against the mock CMS (tests/next-cms/serve.js).
       - run: npx playwright test -c playwright.next-cms.config.js
+      - run: npx playwright test -c playwright.next-cms-stale.config.js

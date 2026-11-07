@@ -1,7 +1,7 @@
 // Page titles and descriptions, shared by the Vite head tags (PageMeta) and Next.js route metadata, so both
 // builds emit the same values. Titles are without the " | HMV Global" suffix that both add. Pages framed by
 // DetailLayout also use them as their visible heading.
-import { copy } from '@/data/hmv';
+import { baseUrl, copy } from '@/data/hmv';
 import { regulationCopy } from '@/data/regulations';
 import { articleCopy } from './article/copy';
 
@@ -71,16 +71,38 @@ export const articleMeta = (lang, { status, article }) =>
     ? { title: article.metaTitle, description: article.description }
     : { title: articleCopy[lang].status[status]?.[0] || 'EcoNews', description: '' };
 
-const ORG = { '@type': 'Organization', name: 'HMV Global Co., LTD' };
-/** Article structured data as a JSON string that is safe inside <script>. */
+// Structured data holds only facts outside the D-12 review (fact register: SEO spec §8). No people or titles, phone
+// numbers, emails, postal address, certifications, facilities or testimonials until HMV confirms them; the visible
+// pages are corrected first, and this follows them.
+const ORGANIZATION = {
+  '@type': 'Organization',
+  '@id': `${baseUrl}/#organization`,
+  name: 'HMV Global Co., LTD',
+  alternateName: 'HMV Global',
+  url: baseUrl,
+  logo: `${baseUrl}/favicon.png`,
+};
+
+/** JSON-LD as a string that is safe inside <script>. */
+const jsonLd = data => JSON.stringify({ '@context': 'https://schema.org', ...data }).replace(/</g, '\\u003c');
+
+/** Organization and WebSite, for the home page of each language. */
+export const siteJsonLd = () =>
+  jsonLd({
+    '@graph': [
+      ORGANIZATION,
+      { '@type': 'WebSite', '@id': `${baseUrl}/#website`, name: 'HMV Global', url: baseUrl, inLanguage: ['en', 'vi'], publisher: { '@id': ORGANIZATION['@id'] } },
+    ],
+  });
+
+/** Article structured data: the CMS author when there is one, else the organization. */
 export const articleJsonLd = (lang, a) =>
-  JSON.stringify({
-    '@context': 'https://schema.org',
+  jsonLd({
     '@type': 'Article',
     headline: a.title,
     datePublished: a.date.iso,
     inLanguage: lang,
-    image: a.image?.src,
-    author: ORG,
-    publisher: ORG,
-  }).replace(/</g, '\\u003c');
+    image: a.image ? new URL(a.image.src, baseUrl).href : undefined,
+    author: a.author ? { '@type': 'Person', name: a.author } : ORGANIZATION,
+    publisher: ORGANIZATION,
+  });

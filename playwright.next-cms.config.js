@@ -9,7 +9,8 @@ import { NEXT_PORT } from './tests/next-cms/env.js';
 export default defineConfig({
   ...base,
   testDir: './tests/next-cms',
-  testIgnore: undefined,
+  // stale.spec.js needs a short revalidation interval: playwright.next-cms-stale.config.js.
+  testIgnore: /stale\.spec\.js/,
   fullyParallel: false,
   workers: 1,
   projects: [base.projects[0]],

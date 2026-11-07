@@ -23,6 +23,7 @@ function staticView(a, lang) {
     metaTitle: a.title[lang],
     description: a.description[lang],
     category: a.category[lang],
+    author: null,
     date: { iso: a.iso, label: a.date[lang] },
     image: photos[a.image] ? { src: photos[a.image], width, height, alt: a.alt[lang], position: a.imagePosition } : null,
     content: toDoc(a.body[lang]),

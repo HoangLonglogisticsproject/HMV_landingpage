@@ -46,7 +46,7 @@ test('list: maps DTOs to the view shape', async () => {
   mockFetch({ '/api/v1/public/articles?locale=en&pageSize=3': { items: [summary()], page: 1, pageSize: 3, total: 1 } });
   const [a] = await fetchArticles(get, { locale: 'en', pageSize: 3 });
   assert.deepEqual(a, {
-    key: '0199f3a0-0000-7000-8000-0000000000aa', slug: 'test-econews-integration', alternates: { en: 'test-econews-integration' }, title: '[TEST] EcoNews integration',
+    key: '0199f3a0-0000-7000-8000-0000000000aa', slug: 'test-econews-integration', alternates: { en: 'test-econews-integration' }, author: null, title: '[TEST] EcoNews integration',
     metaTitle: '[TEST] EcoNews integration', description: 'Excerpt', category: 'Supply Chain Insights',
     date: { iso: '2026-10-13T10:00:00.000Z', label: 'October 2026' },
     image: { src: 'http://localhost:4000/media-files/media/2026/10/cover.webp', width: 1600, height: 900, alt: 'Cover alt' },
@@ -156,7 +156,7 @@ test('detail: maps a real published CMS payload (fixtures/cms-article.json)', as
   const r = await resolveArticle(get, { slug: en.slug, lang: 'en' });
   assert.equal(r.status, 'ready');
   assert.deepEqual({ ...r.article, content: undefined }, {
-    key: en.id, slug: 'test-econews-integration-e2e1020', alternates: { en: en.slug, vi: vi.slug }, title: '[TEST e2e1020] EcoNews CMS → Landing integration',
+    key: en.id, slug: 'test-econews-integration-e2e1020', alternates: { en: en.slug, vi: vi.slug }, author: 'HMV Administrator', title: '[TEST e2e1020] EcoNews CMS → Landing integration',
     metaTitle: '[TEST e2e1020] EcoNews CMS → Landing integration',
     description: 'Integration test article: content published in the CMS appears on the Landing site.',
     category: 'Supply Chain Insights', date: { iso: '2026-10-20T07:41:54.331Z', label: 'October 2026' },

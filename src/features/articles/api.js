@@ -30,6 +30,7 @@ function toView(a, lang) {
     metaTitle: a.seo?.title ?? a.title,
     description: a.seo?.description ?? a.excerpt ?? '',
     category: a.category?.name ?? '',
+    author: a.authorName || null,
     date: { iso: a.publishedAt ?? undefined, label: dateLabel(a.publishedAt, lang) },
     image: cover && { src: cover.url, width: cover.width, height: cover.height, alt: cover.alt ?? '' },
     content: a.content ?? null,

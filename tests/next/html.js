@@ -20,6 +20,7 @@ export const head = html => {
     description: metas.find(m => m.name === 'description')?.content,
     robots: metas.find(m => m.name === 'robots')?.content,
     canonical: links.find(l => l.rel === 'canonical')?.href,
+    ogUrl: metas.find(m => m.property === 'og:url')?.content,
     hreflang: Object.fromEntries(links.filter(l => l.rel === 'alternate' && l.hreflang).map(l => [l.hreflang, l.href])),
   };
 };

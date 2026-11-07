@@ -120,6 +120,19 @@ for (const path of ARTICLE_NOT_FOUND) {
   });
 }
 
+// What the visitor actually sees there: Next.js's default 404, not the site's. Accepted UX exception (D-17) with correct
+// 404 and noindex semantics; not a solved problem.
+test('unknown article slug in a browser: Next.js default 404 page (accepted exception, D-17)', async ({ page }) => {
+  for (const path of ARTICLE_NOT_FOUND) {
+    const res = await page.goto(path);
+    expect(res?.status(), path).toBe(404);
+    await expect(page.locator('h1'), path).toHaveText('404');
+    await expect(page.getByText('This page could not be found.'), path).toBeVisible();
+    await expect(page.locator('meta[name="robots"]').first(), path).toHaveAttribute('content', /noindex/);
+    await expect(page.locator('.site-nav'), path).toHaveCount(0);
+  }
+});
+
 // Redirect chains as implemented: the proxy resolves legacy forms in one hop without `lang`; a trailing slash costs
 // one extra hop (Next.js removes it before the proxy runs). Location must stay on the tested host.
 const CHAINS = [
@@ -159,20 +172,37 @@ test('/tin-tuc/<unknown> is a 404', async ({ request }) => {
   expect((await request.get('/tin-tuc/unknown', { maxRedirects: 0 })).status()).toBe(404);
 });
 
-// The sitemap lists every indexable URL once, with the same alternates (hreflang set) as the page itself. URLs are
-// compared normalized: Next.js writes the root as `B` in head tags and `B/` in the sitemap, the same URL.
-const sameUrls = obj => Object.fromEntries(Object.entries(obj ?? {}).map(([k, v]) => [k, new URL(v).href]));
-test('sitemap: every indexable URL, with the page hreflang as alternates', async ({ request }) => {
+// One canonical formatter for every surface: the sitemap's <loc> is the page's canonical and og:url, string for string,
+// and its alternates are the page's hreflang set, string for string.
+test('sitemap: every indexable URL, with exactly the page canonical, og:url and hreflang strings', async ({ request }) => {
   const xml = await (await request.get('/sitemap.xml')).text();
   const entries = [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(([, body]) => ({
     loc: body.match(/<loc>([^<]+)<\/loc>/)?.[1],
     alternates: Object.fromEntries([...body.matchAll(/hreflang="([^"]+)" href="([^"]+)"/g)].map(([, l, h]) => [l, h])),
   }));
-  expect(entries.map(e => new URL(e.loc).href).sort()).toEqual(URLS.map(u => new URL(abs(u.path)).href).sort());
+  expect(entries.map(e => e.loc).sort()).toEqual(URLS.map(u => abs(u.path)).sort());
   for (const { path } of URLS) {
+    const h = head(await (await request.get(path)).text());
+    const entry = entries.find(e => e.loc === h.canonical);
+    expect(entry, path).toBeDefined();
+    expect(h.ogUrl, path).toBe(h.canonical);
+    expect(entry?.alternates, path).toEqual(h.hreflang);
+  }
+});
+
+test('robots.txt allows crawling and points to the sitemap', async ({ request }) => {
+  const robots = await (await request.get('/robots.txt')).text();
+  expect(robots).toMatch(/User-Agent: \*\s+Allow: \//i);
+  expect(robots).toContain('Sitemap: https://www.hmv-global.com/sitemap.xml');
+});
+
+test('home pages carry Organization and WebSite structured data with confirmed facts only', async ({ request }) => {
+  for (const path of ['/', '/vi']) {
     const html = await (await request.get(path)).text();
-    const entry = entries.find(e => new URL(e.loc).href === new URL(abs(path)).href);
-    expect(sameUrls(entry?.alternates), path).toEqual(sameUrls(head(html).hreflang));
+    const json = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1] ?? 'null';
+    const [org, site] = JSON.parse(json)['@graph'];
+    expect(Object.keys(org).sort(), path).toEqual(['@id', '@type', 'alternateName', 'logo', 'name', 'url']);
+    expect(site, path).toMatchObject({ '@type': 'WebSite', url: 'https://www.hmv-global.com', publisher: { '@id': org['@id'] } });
   }
 });
 
@@ -187,6 +217,8 @@ for (const [from, hops] of CHAINS) {
     for (const expected of hops) {
       const res = await request.get(url, { maxRedirects: 0 });
       expect(res.status(), url).toBe(308);
+      // Raw headers: exactly one Location (Next.js 16.4.5 can send two after an ISR regeneration; architecture §10).
+      expect(res.headersArray().filter(h => h.name.toLowerCase() === 'location'), url).toHaveLength(1);
       const location = new URL(res.headers().location, baseURL);
       expect(location.host).toBe(new URL(String(baseURL)).host);
       url = location.pathname + location.search;

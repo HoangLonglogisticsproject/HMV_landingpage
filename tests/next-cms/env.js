@@ -8,6 +8,8 @@ export const REVALIDATE_SECRET = 'test-only-revalidate-secret-7f3a';
 // next build and next start output, checked for leaked secrets.
 export const SERVER_LOG = path.join(os.tmpdir(), 'hmv-next-cms-server.log');
 
+// Merged over the process environment by serve.js, so a config's webServer.env (CMS_REVALIDATE_SECONDS, SITE_INDEXABLE)
+// reaches both next build and next start.
 export const CMS_ENV = {
   CMS_CONTENT: 'true',
   CMS_API_ORIGIN: `http://localhost:${MOCK_PORT}`,

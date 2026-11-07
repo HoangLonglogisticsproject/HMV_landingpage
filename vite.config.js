@@ -4,17 +4,28 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
-// The Vite site's static sitemap, emitted unchanged. It lives in src/app because Next.js generates /sitemap.xml
-// (app/sitemap.ts) and a public/ file at the same path would conflict. MIGRATION-ONLY.
-const viteSitemap = {
-  name: 'hmv-vite-sitemap',
+// The Vite site's static SEO files, emitted unchanged by `vite build` and served by `vite` (dev), as public/ files
+// would be. They live in src/app because Next.js generates /sitemap.xml and /robots.txt, and public/ files at those
+// paths would conflict. MIGRATION-ONLY.
+const SEO_FILES = { '/sitemap.xml': 'application/xml', '/robots.txt': 'text/plain' };
+const seoFile = urlPath => readFileSync(path.resolve(import.meta.dirname, `src/app${urlPath}`));
+const viteSeoFiles = {
+  name: 'hmv-vite-seo-files',
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      const type = SEO_FILES[req.url];
+      if (!type) return next();
+      res.setHeader('Content-Type', type);
+      res.end(seoFile(req.url));
+    });
+  },
   generateBundle() {
-    this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: readFileSync(path.resolve(import.meta.dirname, 'src/app/sitemap.xml')) });
+    for (const urlPath of Object.keys(SEO_FILES)) this.emitFile({ type: 'asset', fileName: urlPath.slice(1), source: seoFile(urlPath) });
   },
 };
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), viteSitemap],
+  plugins: [react(), tailwindcss(), viteSeoFiles],
   resolve: {
     // `@/lib/navigation` is a port with one implementation per build (Next.js: tsconfig.json `paths`). MIGRATION-ONLY.
     alias: [

@@ -11,10 +11,15 @@ const indexable = process.env.SITE_INDEXABLE === 'true';
 const NOINDEX = { index: false, follow: false };
 
 const SITE_NAME = 'HMV Global';
-const absolute = (path: string) => `${baseUrl}${path}`;
 
-/** Absolute URL of the page at English key path `path` in `lang`. */
-export const absoluteUrl = (path: string, lang: Lang) => absolute(localizePath(path, lang));
+/**
+ * The one formatter for absolute page URLs: canonical, hreflang, og:url and the sitemap all use it, so they are the
+ * same strings. The root is the bare origin, which is also how Next.js writes it in head tags.
+ */
+export function absoluteUrl(path: string, lang: Lang) {
+  const localized = localizePath(path, lang);
+  return localized === '/' ? baseUrl : `${baseUrl}${localized}`;
+}
 const OG_LOCALE = { en: 'en_US', vi: 'vi_VN' };
 const OG_IMAGE = { url: '/og-image.jpg', width: 1200, height: 630, alt: 'HMV Global — Rooted in the land. Connecting the world.' };
 
