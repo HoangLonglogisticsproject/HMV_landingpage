@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Revision 2, 2026-11-07. §2–§4 are implemented on `feat/nextjs-foundation` for home, about, contact and the 404. The rest is the specification for the following PRs. |
+| Status | Revision 3, 2026-11-08. Implemented on `feat/nextjs-foundation` for every page: §2–§5, §6 (behind `CMS_CONTENT`), §7.1–§7.3 and §7.5. Still specification: article Open Graph (§7.4: `og:type=article`, cover image), sitemap `lastmod`, `robots.ts` (§7.6) and structured data beyond `Article` (§8), all in the SEO PR. |
 | Related | [Audit](NEXTJS_MIGRATION_AUDIT.md) · [Architecture](NEXTJS_TARGET_ARCHITECTURE.md) · [URL matrix](URL_MIGRATION_MATRIX.md) · [Roadmap](MIGRATION_ROADMAP.md) |
 
 Base URL: `https://www.hmv-global.com` (`baseUrl`, `src/data/hmv.js`). The apex domain already 308s to `www`.
@@ -109,7 +109,7 @@ These come from `src/views/meta.js` (ported pages) or the page module, with the 
 
 ### 7.2 Canonical
 
-Absolute, `https://www.hmv-global.com`, no query, no fragment, no trailing slash. The root is `https://www.hmv-global.com`: Next.js normalizes it that way, and it is the same URL as `…/`. The sitemap, `hreflang` and `og:url` must use exactly the canonical string. The canonical is self-referencing on every indexable page and omitted on noindex pages. Tested on every ported page.
+Absolute, `https://www.hmv-global.com`, no query, no fragment, no trailing slash. The root is `https://www.hmv-global.com`: Next.js normalizes it that way, and it is the same URL as `…/`. `hreflang` and `og:url` use the canonical string. The sitemap writes the root as `https://www.hmv-global.com/` (Next.js), which is the same URL (RFC 3986). The canonical is self-referencing on every indexable page and omitted on noindex pages. Tested on every ported page.
 
 ### 7.3 Hreflang
 
@@ -119,11 +119,11 @@ Absolute, `https://www.hmv-global.com`, no query, no fragment, no trailing slash
 
 `og:title` and `twitter:title` are the full title, as Vite does today. `og:url` is the canonical. `og:locale` is `en_US`/`vi_VN` with `og:locale:alternate`. `og:image` is `/og-image.jpg` (1200×630) or the article cover. `twitter:card` is `summary_large_image`. Articles also get `og:type=article` with the published and modified times. All of this is server-rendered, which fixes link previews (audit F-01).
 
-### 7.5 XML sitemap (SEO PR)
+### 7.5 XML sitemap (implemented in PR-06)
 
-`app/sitemap.ts`: every indexable page in every live locale (38 URLs in bundled mode), `xhtml:link` alternates including `x-default`, and `lastmod` only where known (CMS `updatedAt`). It excludes noindex states, redirects, 404s and query variants.
+`app/sitemap.ts`: every indexable page in every live locale (38 URLs in bundled mode), with `xhtml:link` alternates built by the same function as the head `hreflang` (`alternateUrls`), so both list the same set; none for a single-locale article. Articles come from the content loader, so unpublished and blocked slugs leave it. It excludes noindex states, redirects, 404s and query variants. `lastmod` (CMS `updatedAt`) is not emitted yet (SEO PR).
 
-**Coexistence constraint:** `public/sitemap.xml` and `public/robots.txt` are shared files. Next cannot have `app/sitemap.ts` and a `public/sitemap.xml` at the same path. The SEO PR therefore moves Vite's two files out of `public/` and generates them in the Vite build (a small Vite plugin) from the same builder functions. Both builds keep serving `/sitemap.xml` and `/robots.txt`, with Vite's content unchanged.
+**Coexistence:** Next cannot have `app/sitemap.ts` and a `public/sitemap.xml` at the same path. Vite's sitemap therefore moved to `src/app/sitemap.xml`, and a small Vite plugin emits it unchanged (`dist/sitemap.xml` is byte-identical to `main`'s). `public/robots.txt` stays shared until `app/robots.ts` (SEO PR) needs the same treatment.
 
 ### 7.6 Robots and noindex
 

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Revision 2, 2026-11-07. Production is unchanged: it runs the Vite build with `CMS_CONTENT` off. A coexistence foundation is implemented on branch `feat/nextjs-foundation` and is not merged. |
+| Status | Revision 2, 2026-11-07: the audit of `main`; its baseline numbers describe `main` and do not change. Implementation status: [roadmap §2](MIGRATION_ROADMAP.md#2-status-on-branch-featnextjs-foundation-pr-01-to-pr-06); current test numbers: [architecture §12](NEXTJS_TARGET_ARCHITECTURE.md#12-coexistence-evidence-branch-featnextjs-foundation). |
 | Repository | `HMV_landingpage` (GitHub `HoangLonglogisticsproject/HMV_landingpage`, formerly `global-agro-trails`), `main` at `a93fcc4` |
 | Also inspected (read-only) | `CMS_HMV` `main` at `f53874b`; live `https://www.hmv-global.com`, Vercel previews and the GitHub deployment history (HTTP GET/HEAD only) |
 | Companion documents | [Target architecture](NEXTJS_TARGET_ARCHITECTURE.md) · [SEO, i18n and GEO spec](SEO_I18N_GEO_SPEC.md) · [URL matrix](URL_MIGRATION_MATRIX.md) · [Roadmap](MIGRATION_ROADMAP.md) |

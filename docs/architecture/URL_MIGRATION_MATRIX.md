@@ -2,15 +2,15 @@
 
 | | |
 |---|---|
-| Status | Revision 2, 2026-11-07. The URL contract, proxy and redirects are implemented on `feat/nextjs-foundation`. Rows marked **✓** are verified by tests. |
+| Status | Revision 3, 2026-11-08. Implemented on `feat/nextjs-foundation`, CMS rows behind `CMS_CONTENT`. Rows marked **✓** are verified by tests. |
 | Today's behavior | `vercel.json`, `src/app/App.jsx`, and live checks of `https://www.hmv-global.com` (2026-11-06) |
-| Implementation | `src/i18n/routes.js` (shared contract), `proxy.ts`, `next.config.ts` `redirects()`, Next's built-in trailing-slash redirect; data-dependent article redirects in route code (articles PR) |
-| Tests | `src/i18n/routes.test.js` (unit: every static rule, idempotence, switch links) and `tests/next/next.spec.js` (HTTP: exact hop chains with `maxRedirects: 0`, Location host) |
+| Implementation | `src/i18n/routes.js` (shared contract), `proxy.ts`, `next.config.ts` `redirects()`, Next's built-in trailing-slash redirect; data-dependent article redirects in route code (`src/next/article.tsx`); `app/tin-tuc/[slug]/route.ts` (M-56) |
+| Tests | `src/i18n/routes.test.js` (unit: every static rule, idempotence, switch links) `tests/next/next.spec.js` (HTTP: exact hop chains with `maxRedirects: 0`, Location host) and `tests/next-cms/cms.spec.js` (CMS rows, against a mock CMS) |
 | Related | [SEO spec](SEO_I18N_GEO_SPEC.md) §1–§4 · [Architecture](NEXTJS_TARGET_ARCHITECTURE.md) §4.3 · [Roadmap](MIGRATION_ROADMAP.md) |
 
 ## 1. Contract
 
-- `B` = `https://www.hmv-global.com`. Canonicals are absolute, with no query, no fragment and no trailing slash. The root is written `B` (Next.js emits it without the slash; the sitemap must use the same string).
+- `B` = `https://www.hmv-global.com`. Canonicals are absolute, with no query, no fragment and no trailing slash. The root is `B`: Next.js writes it as `B` in head tags and as `B/` in the sitemap, the same URL (RFC 3986).
 - **English URLs do not change.** Vietnamese lives under `/vi` with English segments for site pages and Vietnamese segments for products (`san-pham`) and articles (`tin-tuc`), as decided in D-02.
 - **`?lang=` is legacy.** Wherever it appears it (a) decides the target language, overriding the path, (b) is removed, and (c) every other parameter (`product`, `utm_*`, `gclid`…) is kept. Invalid values are removed and the path's language is used.
 - **Hops as implemented.** Next removes a trailing slash first (one hop). The proxy then resolves every other statically known legacy form in **one** hop. An article slug that belongs to the other language, when the pair is not known statically (CMS), adds **one** hop in the article route. Maximum: 3 hops, and only for combinations of a trailing slash, a legacy form and a CMS slug from the other language.
@@ -52,12 +52,14 @@ Today, every extension-less path returns **200** with the same SPA shell (`verce
 | M-43…M-45 | `/blog/{vi-slug}` (today: browser redirect to the English slug) | `/blog/{en-slug}` | en | 308, 1 hop, article route (pairs known; prerendered) | target | L | ✓ |
 | M-46 | `/vi/blog/{slug}` | `/vi/tin-tuc/{vi-slug}`, directly to the Vietnamese slug when the pair is known | vi | 308, proxy, 1 hop | target | M | ✓ |
 | M-47 | `/en/blog/{slug}` | `/blog/{en-slug}` (pair known) | en | 308, proxy, 1 hop | target | L | unit ✓ |
-| M-48 | `/blog/{unknown}` (today: browser redirect to `/insights`) | none | n/a | **404** (D-09; global 404, server-rendered) | none | M | ✓ |
+| M-48 | `/blog/{unknown}` (today: browser redirect to `/insights`) | none | n/a | **404** (D-09) with noindex; since PR-06 the body is Next.js's default 404, client-rendered (D-17) | none | M | ✓ |
 | M-49 | `/blog`, `/vi/tin-tuc`, `/vi/blog` | `/insights`, `/vi/insights` | en/vi | 308, 1 hop | target | L | ✓ |
 
 If the CMS goes live, the three articles must exist in the CMS with exactly these per-locale slugs (CMS PR gate).
 
-### 2.4 Articles: CMS patterns (after the CMS is enabled; the route resolves through `alternates`, the same logic as `src/features/articles/api.js:50-67`)
+### 2.4 Articles: CMS patterns (after the CMS is enabled; the route resolves through `alternates`, `resolveArticle()` in `src/features/articles/api.js`)
+
+M-50 to M-57 are verified against the mock CMS (`tests/next-cms/`). A slug that the CMS cannot have (its own rule: lowercase letters, digits, single hyphens, ≤ 200 characters) is a 404 without any CMS request.
 
 | ID | Request | Result | Redirect | Canonical |
 |---|---|---|---|---|
@@ -136,14 +138,15 @@ The switcher and the chat's language action link **directly** to the target URL.
 | `/vi#initiate-trade` | `/#initiate-trade` | n/a | ✓ browser |
 | `/vi/san-pham/chanh-day` | `/products/passion-fruit` | n/a | unit ✓ |
 | `/blog/exporting-passion-fruit-eu` | n/a | `/vi/tin-tuc/xuat-khau-chanh-day-eu` (known pair, direct) | unit ✓ |
-| `/blog/{cms-slug}` | n/a | Server HTML: `/vi/tin-tuc/{cms-slug}` (the route resolves it with one 308). After hydration, the page's `alternates` replace it with the direct Vietnamese URL (CMS PR). | CMS PR |
+| `/blog/{cms-slug}` | n/a | `/vi/tin-tuc/{cms-slug}`; the route answers one 308 to the Vietnamese alternate (M-54). A direct link would need the alternates passed to the switcher (architecture §16.5, R4-9). | ✓ (the 308) |
 
 ## 4. Implementation
 
 ### 4.1 `next.config.ts`, exact collection URLs without `?lang`
 
 ```ts
-const INDEX_URLS = ['/products', '/blog', '/vi/san-pham', '/vi/tin-tuc'];
+// /products, /vi/san-pham, /blog, /vi/tin-tuc: derived from the route contract, not listed by hand
+const INDEX_URLS = Object.keys(INDEX_ALIASES).flatMap(path => LOCALES.map(locale => localizePath(path, locale)));
 redirects: () => INDEX_URLS.map(source => ({
   source, destination: canonicalUrl(source), permanent: true,
   missing: [{ type: 'query', key: 'lang' }],          // with ?lang the proxy resolves it in one hop
@@ -187,6 +190,6 @@ None of the 308s sends `Cache-Control`. Browsers keep permanent redirects, which
 ## 6. Verification
 
 1. **Unit, on every commit:** the static rules, the idempotence of every target, and switch-link construction (`src/i18n/routes.test.js`).
-2. **Preview acceptance:** `tests/next/next.spec.js` against `next start` locally and against the Next preview deployment (`PLAYWRIGHT_BASE_URL`). The config refuses production hosts. Each hop asserts status 308, the exact next URL and the same host. Rows still marked "PR" join the suite in the PR that creates their target pages.
+2. **Preview acceptance:** `tests/next/next.spec.js` against `next start` locally and against the Next preview deployment (`PLAYWRIGHT_BASE_URL`); `tests/next-cms/cms.spec.js` for the CMS rows, locally and in CI. The config refuses production hosts. Each hop asserts status 308, the exact next URL and the same host. Rows still marked "PR" join the suite in the PR that creates their target pages.
 3. **Production acceptance, after cutover only:** a separate read-only suite against `B` (roadmap §7.2). It asserts the same chains, no noindex, and the Next.js build marker.
 4. **Completeness:** before cutover, the Search Console and Bing exports plus a crawl of today's sitemap and internal links must match the matrix.

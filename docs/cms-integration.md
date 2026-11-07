@@ -109,7 +109,22 @@ independently in the CMS (submit → approve → publish per locale).
 
 Styles for elements the bundled articles never used (`h3`, `ol`, `blockquote`, `a`, `img`, `pre`, `hr`) are minimal placeholders in `hmv.css` pending design review.
 
-## SEO limitations (CMS mode)
+## Next.js (migration branch `feat/nextjs-foundation`)
+
+The Next.js build reads the CMS on the server when `CMS_CONTENT=true` (server environment): no browser request, no CORS, no same-origin rewrite. Design and takedown runbook: [architecture §7 and §9.3](architecture/NEXTJS_TARGET_ARCHITECTURE.md#7-data-fetching-and-the-cms-layer).
+
+| Piece | File |
+|---|---|
+| Server transport | `src/next/cms.ts`: `CMS_API_ORIGIN`, 300 s data cache under the tag `cms`, `Cache-Control: no-cache` on requests, 8 s timeout, normalized errors |
+| Source selection, takedown list | `src/next/content.ts`: bundled or CMS, `CMS_BLOCKED_SLUGS` |
+| Mappers | `src/features/*/api.js`, shared with the Vite CMS mode |
+| Operator endpoint | `POST /api/revalidate` with `x-revalidate-secret: <REVALIDATE_SECRET>` |
+| CMS admin links | `/tin-tuc/<slug>` redirects to `/vi/tin-tuc/<slug>` or `/blog/<slug>` (URL matrix M-56) |
+| Tests | `tests/next-cms/` against a mock CMS server (`npm run test:e2e:next-cms`) |
+
+The limitations below apply to the Vite CMS mode; the Next.js build renders on the server, has per-locale URLs with `hreflang`, and a generated sitemap that includes CMS articles.
+
+## SEO limitations (Vite CMS mode)
 
 - **Client-side rendering.** Article content, titles and meta tags are fetched and set in the browser. Crawlers that do not run JavaScript see only `index.html`'s static fallback tags. Crawlability of the rendered HTML has **not** been verified.
 - **Language outside the URL.** A visitor or crawler without a stored preference gets English. Vietnamese content is reachable only via `?lang=vi` or a stored preference, and Vietnamese slugs opened in English redirect to the English slug. There are no `hreflang` alternates.
