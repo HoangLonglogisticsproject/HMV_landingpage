@@ -116,6 +116,7 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 ## Checks
 
 - `npm run build` — Vite production build; must pass before any commit.
+- `package-lock.json` — regenerate it on Linux (CI, or Docker `node:24.18.0`). npm on Windows leaves out `@emnapi/core` and `@emnapi/runtime` (optional dependencies of the wasm builds of `sharp` and Tailwind's oxide), and `npm ci` on Linux then fails.
 - `npm test` — Vitest unit tests (co-located `*.test.js` files): inquiry + RFQ logic, CMS API clients, rich-text renderer, About page and its data hooks. `npm run test:coverage` writes `coverage/lcov.info` for SonarQube.
 - `npm run lint` — ESLint flat config (React Hooks + React Refresh checks), then the layer boundary check (`scripts/check-boundaries.js`). Baseline has 0 errors / 9 warnings.
 - `npm run test:e2e` — Playwright smoke tests (routes, i18n, navigation, workflows, visual) against `vite preview` on port 4173, then the CMS-mode suite (`tests/cms-*.spec.js`, mocked API) against `dist-cms` on port 4174.
