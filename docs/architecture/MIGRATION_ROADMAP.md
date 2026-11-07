@@ -2,24 +2,25 @@
 
 | | |
 |---|---|
-| Status | Revision 2, 2026-11-07. PR-01 (foundation) is implemented on `feat/nextjs-foundation` and is not merged. Production runs Vite with `CMS_CONTENT` off. No cutover, and no CMS in production. |
-| Remaining estimate | About 22.5 engineer-days after the foundation (5 weeks for one engineer; 6–7 calendar weeks with review), plus owner and content actions |
+| Status | Revision 3, 2026-11-07. PR-01 to PR-05 are implemented on `feat/nextjs-foundation` (not merged), after the architecture review (architecture §16). Production runs Vite with `CMS_CONTENT` off. No cutover, and no CMS in production. |
+| Remaining estimate | About 15 engineer-days (3 weeks for one engineer; 4–5 calendar weeks with review), plus owner and content actions |
 | Related | [Audit](NEXTJS_MIGRATION_AUDIT.md) · [Architecture](NEXTJS_TARGET_ARCHITECTURE.md) · [SEO spec](SEO_I18N_GEO_SPEC.md) · [URL matrix](URL_MIGRATION_MATRIX.md) |
 
 ## 1. Rules for every PR
 
 1. **Production stays on Vite until PR-11.** Merging any earlier PR into `main` deploys a *Vite* production build, which must behave as today. Merging is still a production event and needs the reviewer's approval (D-18).
-2. **Every change to shared code is shown not to affect Vite.** Vite build output (CSS byte-identical unless intended), `build:cms`, unit tests, lint, and both Vite Playwright suites are compared with `main`. PR-02 automates this.
-3. **A page ships in both locales in the same PR.** Route twins are thin. No test targets a Vietnamese route before that route exists.
-4. **One SEO variable at a time.** Copy changes come only from approved content PRs (D-12).
-5. Each PR has its own tests and acceptance criteria.
+2. **Every change to shared code is shown not to affect Vite.** Vite build output (CSS byte-identical unless intended), `build:cms`, unit tests, lint, and both Vite Playwright suites are compared with `main`. The CI workflow (`.github/workflows/ci.yml`) runs them on every PR and `feat/nextjs-**` push.
+3. **Layer rules hold.** `npm run lint` fails on a forbidden import between shared, Vite and Next code (architecture §2).
+4. **A page ships in both locales in the same PR.** Route twins are thin. No test targets a Vietnamese route before that route exists.
+5. **One SEO variable at a time.** Copy changes come only from approved content PRs (D-12).
+6. Each PR has its own tests and acceptance criteria.
 
-## 2. Status of the foundation (PR-01, branch `feat/nextjs-foundation`)
+## 2. Status on branch `feat/nextjs-foundation` (PR-01 to PR-05)
 
 | Delivered | Evidence |
 |---|---|
 | `src/pages` renamed to `src/views` (F-22); `.jfif` renamed to `.jpg` (F-23) | `next build` passes; Vite unchanged |
-| Coexistence boundaries: shared views and pure functions, Vite and Next adapters, navigation adapter, `ViteDetailLayout`, `assetSrc`, data passed as props | Vite CSS byte-identical to `main`; Vite E2E 111 passed and 7 skipped (baseline 89/3 plus 18 new tests); CMS E2E 35/1 as on `main`; unit tests 53/53; lint 0 errors, 9 warnings |
+| Layers and the navigation port, enforced by `scripts/check-boundaries.js` in `npm run lint`; shared views and pure functions; `assetSrc`; data passed as props; CMS mappers that take a transport | Vite CSS byte-identical to `main`; Vite E2E 111 passed and 7 skipped (baseline 89/3 plus 18 new tests); CMS E2E 35/1 as on `main`; unit tests 53/53; lint 0 errors, 9 warnings |
 | URL contract (`src/i18n/routes.js`), `proxy.ts`, collection redirects | Unit tests; Next E2E: exact chains, same host |
 | Next pages: `/`, `/about`, `/contact` and `/vi`, `/vi/about`, `/vi/contact`; server metadata, `hreflang`, canonical | Next E2E: server HTML assertions |
 | Global 404 (server-rendered, Vite parity) | Next E2E: 404 status, noindex, markup |
@@ -27,8 +28,12 @@
 | Language switch contract (`lang` dropped; `product`, UTM and hash kept) | Browser tests on Next and on Vite |
 | Rollback compatibility in Vite (new Vietnamese URLs render on Vite) | `tests/rollback-compat.spec.js` (Vite) |
 | Preview deployment config (`deploy/vercel.next.json`, `next-preview.yml`, inert) | **Not executed.** It needs the owner setup in §6.2. |
+| PR-02: CI workflow `ci.yml` (lint and layers, unit, `next build`, Vite, CMS and Next Playwright suites) | Pushed with this revision; visual baselines (D-14) not committed yet |
+| PR-03: supply-chain, trade-solutions, activities, insights, regulations, logistics, packaging-logistics in EN and VI; Logistics and Packaging as server views with a photo-preview island; D-06 **not** applied (titles kept for parity) | Next E2E: server HTML of every URL; Vite/Next parity check: title, description, `h1`, full `<main>` text identical on all 38 URLs |
+| PR-04: products in EN and VI, `dynamicParams = false` | Unknown id or slug → server-rendered global 404 |
+| PR-05: bundled articles in EN and VI; other-locale slug → prerendered 308; Article JSON-LD on the server; back button island | Next E2E: chains, 404s, JSON-LD parses with `inLanguage` and `headline`. The `/tin-tuc/[slug]` handler (M-56) moved to PR-06: only CMS admin links use that form. |
 
-The Next E2E suite (`tests/next/`) has 75 passed and 3 skipped; the skips are the switcher cases on the mobile project, as in the existing Vite i18n spec.
+The Next E2E suite (`tests/next/`) has 181 passed and 3 skipped; the skips are the switcher cases on the mobile project, as in the existing Vite i18n spec. Full numbers: architecture §12.
 
 ## 3. Decisions requiring approval
 
@@ -82,14 +87,14 @@ graph LR
 
 | PR | Scope | Depends on | Days |
 |---|---|---|---:|
-| PR-00 | These documents (revision 2) | n/a | done |
+| PR-00 | These documents (revision 3) | n/a | done |
 | PR-01 | Foundation (§2) | PR-00 | done |
-| PR-02 | CI gate: on every PR, run the Vite builds, unit tests, lint, both Vite Playwright suites, `next build` and the Next suite; commit visual baselines (D-14) | PR-01 | 1.5 |
+| PR-02 | CI gate: on every PR, run the Vite builds, unit tests, lint, both Vite Playwright suites, `next build` and the Next suite; commit visual baselines (D-14) | PR-01 | done on the branch, except the baselines (0.5) |
 | OA-1 | Owner: Next preview project and secrets (§6.2); the first preview run | PR-01 | owner |
-| PR-03 | Remaining site pages in EN and VI: supply-chain, trade-solutions, activities, insights (bundled), regulations, logistics, packaging-logistics. View/adapter split, client islands, D-06. | PR-02 | 3.5 |
-| PR-04 | Products in EN and VI: `dynamicParams = false`, so unknown slugs get the global 404 | PR-02 | 1.5 |
-| PR-05 | Bundled articles in EN and VI: route-level slug resolution (`permanentRedirect`), the `/tin-tuc/[slug]` compatibility handler, server Article JSON-LD, direct alternate links | PR-02 | 2.5 |
-| PR-06 | CMS server layer behind `CMS_CONTENT` (off): server transport, `api.js` taking the transport as a parameter, mock CMS HTTP server, `/api/revalidate` (secret), `CMS_BLOCKED_SLUGS`, slug validation, takedown runbook | PR-03, PR-05 | 3.5 |
+| PR-03 | Remaining site pages in EN and VI: supply-chain, trade-solutions, activities, insights (bundled), regulations, logistics, packaging-logistics. View/adapter split, client islands. D-06 waits for approval (one line per title in `views/meta.js`). | PR-02 | done on the branch |
+| PR-04 | Products in EN and VI: `dynamicParams = false`, so unknown slugs get the global 404 | PR-02 | done on the branch |
+| PR-05 | Bundled articles in EN and VI: route-level slug resolution (`permanentRedirect`), server Article JSON-LD, direct alternate links | PR-02 | done on the branch |
+| PR-06 | CMS server layer behind `CMS_CONTENT` (off): server transport for the existing mappers (they already take the transport as an argument), mock CMS HTTP server, `/api/revalidate` (secret), `CMS_BLOCKED_SLUGS`, slug validation, takedown runbook, the `/tin-tuc/[slug]` handler (M-56) | PR-03, PR-05 | 4 |
 | PR-07 | SEO surfaces: `sitemap.ts` and `robots.ts` (the Vite files are generated by a Vite plugin from the same builders; SEO spec §7.5), Organization and WebSite JSON-LD per the D-12 outcome, `llms.txt` | PR-03–05 | 2.5 |
 | PR-08 | `next/image`, re-exported image sources, `next/font` with Vietnamese coverage, optional lazy chat | PR-03 | 2.5 |
 | PR-09 | Rollback readiness: extend the rollback-compatibility spec to every Next URL target, the production acceptance suite (read-only), the rehearsal (§8.5) | PR-01 merged (D-18), PR-04, PR-05 | 1.5 |
@@ -105,8 +110,8 @@ graph LR
 | PR-02 | Pipeline green on `main`; a deliberately broken shared component fails both the Vite and Next jobs |
 | PR-03 | Matrix rows M-02–M-20 (Next E2E: status, server `<html lang>`, `h1`, title, canonical, `hreflang`); the Vite suites unchanged; visual diff within threshold |
 | PR-04 | M-21–M-36; unknown product → server-rendered 404 |
-| PR-05 | M-37–M-49 and M-56; Article JSON-LD parses; no client chunk for `RichText`; switch links to the alternate slug directly |
-| PR-06 | With the flag off, server HTML is unchanged. With the flag on, against the mock: EN and VI About and articles, not-published states (noindex), cross-locale 308s, 404, 5xx on an uncached failure, stale-on-error, **takedown: content gone on the next request after the endpoint call**, zero browser requests to the CMS, no secret in client bundles |
+| PR-05 | M-37–M-49 ✓; Article JSON-LD parses ✓; no client chunk for `RichText` ✓ (checked in `.next/static/chunks`); switch links to the alternate slug directly ✓ |
+| PR-06 | M-56 (`/tin-tuc/<slug>`). With the flag off, server HTML is unchanged. With the flag on, against the mock: EN and VI About and articles, not-published states (noindex), cross-locale 308s, 404, 5xx on an uncached failure, stale-on-error, **takedown: content gone on the next request after the endpoint call**, zero browser requests to the CMS, no secret in client bundles |
 | PR-07 | Sitemap valid against the XSD, with the same URLs and alternates as the pages' `hreflang`; robots content as specified in both builds; JSON-LD contains only confirmed facts |
 | PR-08 | Gate G-10; visual diff within threshold or design sign-off |
 | PR-09 | Rollback spec green against the rollback target; rehearsal R-A to R-D recorded (§8.5) |

@@ -71,7 +71,7 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 | Navigation (desktop + mobile) | `components/layout/Navigation` (~592 lines — see tech debt) |
 | Footer | `components/layout/Footer` |
 | Language switcher | `components/layout/LanguageSwitcher` (Radix DropdownMenu) |
-| Inner-page layout (hero + body + CTA) | `components/layout/DetailLayout` (shared, no head tags); Vite pages use `app/ViteDetailLayout`, which adds `PageMeta` |
+| Inner-page layout (hero + body + CTA) | `components/layout/DetailLayout` (shared, no head tags); the page's adapter adds the head tags (Vite: `PageMeta`, Next.js: route `metadata`) |
 | Blog page chrome | `views/article/ArticlePage` (its own SiteShell — intentional remount) |
 
 ## i18n rules
@@ -107,9 +107,9 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 
 ## Adding things
 
-- **New route:** create `views/<route>/<Name>Page.jsx` and add one `<Route>` inside `SiteLayout` in `app/App.jsx`. Then update the nav/footer links and `public/sitemap.xml`.
-- **Inner page:** wrap the content in `<DetailLayout lang title description>` (import `ViteDetailLayout as DetailLayout` from `@/app/ViteDetailLayout` in a Vite page module, so the head tags are set).
-- **Next.js migration (in progress):** see `docs/architecture/`. Shared components import links and router hooks from `@/lib/navigation` only, never from `react-router-dom` or `next/*`.
+- **New route:** create the shared body `views/<route>/<Name>View.jsx` and its title in `views/meta.js`; add a `<Route>` with `<StaticPage view meta>` inside `SiteLayout` in `app/App.jsx` (or a `<Name>Page.jsx` adapter if it needs hooks); add the two Next.js route files (`app/(en)/(site)/<route>/page.tsx`, `app/(vi)/vi/(site)/<route>/page.tsx`) and the key path to `PAGES` in `i18n/routes.js`. Then update the nav/footer links and `public/sitemap.xml`.
+- **Inner page:** wrap the view in `<DetailLayout lang {...<name>Meta(lang)}>`; the adapters set the head tags.
+- **Next.js migration (in progress):** see `docs/architecture/`. Shared code imports links and router hooks from the port `@/lib/navigation` only, never from `react-router-dom` or `next/*`; `npm run lint` enforces the layer rules (`scripts/check-boundaries.js`).
 - **New section:** if only one page uses it, put it in that page's folder. If it is business-specific and used by two or more pages, put it in `features/<name>/`. If it is generic UI, put it in `components/ui/`.
 - **Styles:** `hmv.css` is one global stylesheet with no scoping. Keep class names stable; renaming a class silently unstyles markup.
 
@@ -117,7 +117,7 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 
 - `npm run build` — Vite production build; must pass before any commit.
 - `npm test` — Vitest unit tests (co-located `*.test.js` files): inquiry + RFQ logic, CMS API clients, rich-text renderer, About page and its data hooks. `npm run test:coverage` writes `coverage/lcov.info` for SonarQube.
-- `npm run lint` — ESLint flat config (React Hooks + React Refresh checks). Baseline has 0 errors / 10 warnings.
+- `npm run lint` — ESLint flat config (React Hooks + React Refresh checks), then the layer boundary check (`scripts/check-boundaries.js`). Baseline has 0 errors / 9 warnings.
 - `npm run test:e2e` — Playwright smoke tests (routes, i18n, navigation, workflows, visual) against `vite preview` on port 4173, then the CMS-mode suite (`tests/cms-*.spec.js`, mocked API) against `dist-cms` on port 4174.
 - `npm run test:e2e:cms` — CMS-mode suite only (builds `dist-cms` first).
 - `npm run dev:cms` / `npm run build:cms` — EcoNews from the CMS public API (proxied to `CMS_API_ORIGIN`, default `http://localhost:4000`).

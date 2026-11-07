@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Revision 2, 2026-11-07. The coexistence foundation is implemented and verified on branch `feat/nextjs-foundation` (home, about, contact and 404, EN and VI). Everything else is still a design. |
+| Status | Revision 3, 2026-11-07. On branch `feat/nextjs-foundation`: every page, product and bundled article in EN and VI, the 404, layer rules enforced by `npm run lint`, and a CI workflow. Not merged; production runs Vite. The CMS server layer, SEO surfaces, images and cutover are still designs. Review findings: §16. |
 | Pinned versions | `next` **16.4.5** (exact), `react`/`react-dom` 19.3.0 (installed), Tailwind 4.3.3, TypeScript 5.9.3 (new `.ts`/`.tsx` files only) |
 | API source | The documentation shipped with the pinned version, `node_modules/next/dist/docs/` (the same pages as `https://nextjs.org/docs/…`). Citations below give the path under `01-app/`. Where the docs were ambiguous, the 16.4.5 source code was read and is cited instead. |
 | Related | [Audit](NEXTJS_MIGRATION_AUDIT.md) · [SEO, i18n and GEO spec](SEO_I18N_GEO_SPEC.md) · [URL matrix](URL_MIGRATION_MATRIX.md) · [Roadmap](MIGRATION_ROADMAP.md) |
@@ -15,28 +15,57 @@
 4. **Reuse before rewrite.** Same markup, CSS classes, copy and behavior. A component is split only where a framework boundary runs through it.
 5. **CMS boundaries unchanged.** The site uses public `GET /api/v1/public/*` endpoints only. No CMS, schema, auth or contract change.
 
-## 2. Coexistence boundaries
+## 2. Layers and dependency direction
 
-Five kinds of module. "Imports allowed" is the rule a reviewer checks.
+Three layers and one port. The only allowed directions are **shared → shared**, **vite → shared** and **next → shared**. `npm run lint` runs `scripts/check-boundaries.js`, which resolves every import (relative and `@/`) and fails on:
 
-| Kind | Where | What it may import | Examples (implemented) |
-|---|---|---|---|
-| **Shared presentational** | `src/views/**/*View.jsx`, sections under `src/views/<route>/sections/`, `src/components/layout/*`, `src/components/ui/*`, `src/features/**/*.jsx` | React, other shared modules, `@/lib/navigation` (the adapter interface), shared pure functions. **Not** `react-router-dom`, `next/*`, `react-helmet-async`, `LanguageContext`, `PageMeta`, data hooks or transports. | `HomeView`, `AboutView`, `ContactView`, `NotFoundView`, `DetailLayout` (no longer renders `PageMeta`), `Contact`, `ContactForm`, `Navigation`, `LanguageSwitcher`, `Footer`, `SiteShell` |
-| **Shared pure functions** | `src/i18n/routes.js`, `src/views/meta.js`, `src/features/*/bundled.js`, `src/features/*/api.js` (mapping and resolution), `src/data/*`, `src/lib/utils.js` | Other pure modules. No React hooks, no `import.meta.env`, no `window`. `src/i18n/routes.js` uses relative imports only, because `next.config.ts` and `proxy.ts` load it too. | URL contract, page titles and descriptions, bundled article and page mapping, `assetSrc` |
-| **Vite adapters** (deleted at cleanup) | `src/main.jsx`, `index.html`, `src/app/*` (`App.jsx`, `SiteLayout.jsx`, `ViteDetailLayout.jsx`), `src/views/**/*Page.jsx`, `src/components/common/PageMeta.jsx`, `src/i18n/LanguageContext.jsx`, `LangQueryBootstrap.jsx`, `LegacyLocaleRedirect.jsx`, `src/lib/navigation.vite.jsx`, `src/features/*/hooks.js`, `usePage.js`, `src/lib/useFetched.js` | Anything shared, plus React Router, Helmet, `import.meta.env` and the browser CMS transport | `HomePage` = `useLang()` + `useArticleList()` + `<PageMeta>` + `<HomeView>` |
-| **Next adapters** | `app/**`, `proxy.ts`, `next.config.ts`, `src/next/*` (`seo.ts`, `Document.tsx`), `src/lib/navigation.jsx` (Next implementation of the adapter interface) | Anything shared, plus `next/*`, server-only modules and the server CMS transport | Route files that pick a locale and render a shared view; `pageMetadata()` |
-| **CMS transports** | Browser: `src/lib/cms.js` (relative `/api/v1/public`, `credentials: 'omit'`), used only by the Vite hooks. Server: `src/next/cms.server.js` (to be added in the CMS PR; `import 'server-only'`, absolute `CMS_API_ORIGIN`, `next: { revalidate, tags }`). | Each transport is imported only by its own framework's adapters | `features/*/api.js` keeps the DTO mapping and slug resolution. The CMS PR changes it to take the transport (`getJson`) as a parameter, so one mapping serves both transports. |
+- an import from a layer that the importer may not use (shared → vite or next, vite → next, next → vite);
+- a framework package in the wrong layer (`next`, `next/*`, `server-only` outside Next; `react-router-dom`, `react-helmet-async` outside Vite);
+- shared code that reads `import.meta.env` or `process.env`, or calls `fetch`. Configuration and I/O belong to adapters, which pass data or a transport in.
+
+| Layer | Files (the checker's list is authoritative) | May import |
+|---|---|---|
+| **Shared** | Everything in `src/` not listed below: views (`*View.jsx`, sections), `components/`, `features/` UI, and the pure modules `i18n/routes.js`, `views/meta.js`, `data/*`, `features/*/api.js` (CMS mappers), `features/*/bundled.js`, `lib/cms.js` (CMS contract), `lib/utils.js` | Shared modules and the port `@/lib/navigation` |
+| **Vite** (deleted at cleanup) | `src/main.jsx`, `src/app/**` (`App`, `SiteLayout`, `StaticPage`, `navigation.jsx`, `cms.js`), `src/views/**/*Page.jsx`, `components/common/PageMeta.jsx`, `i18n/LanguageContext.jsx`, `LangQueryBootstrap.jsx`, `LegacyLocaleRedirect.jsx`, `lib/useFetched.js`, `features/articles/hooks.js`, `features/pages/usePage.js` | Shared, plus React Router, Helmet, `import.meta.env`, the browser CMS transport |
+| **Next** | `app/**`, `src/next/**`, `proxy.ts`, `next.config.ts` | Shared, plus `next/*`, `server-only`, the server CMS transport (CMS PR) |
+| **Port** `@/lib/navigation` | No file at that path. Vite maps it to `src/app/navigation.jsx` (`vite.config.js` alias); Next maps it to `src/next/navigation.jsx` (`tsconfig.json` `paths`, honored by Turbopack). | n/a |
+
+```mermaid
+graph LR
+  subgraph Next[Next adapters]
+    R[app/** route files] --> NL[src/next: seo, Document, article, navigation]
+    P[proxy.ts, next.config.ts]
+  end
+  subgraph Vite[Vite adapters]
+    A[src/app: App, SiteLayout, StaticPage, navigation, cms] --> VP[views/**/*Page.jsx]
+    H[hooks.js, usePage.js, useFetched.js]
+  end
+  subgraph Shared
+    V[views/*View.jsx, sections, components, feature UI] --> U[routes.js, meta.js, data, api.js mappers, bundled.js, lib/cms.js, utils]
+  end
+  R --> V
+  R --> U
+  NL --> U
+  P --> U
+  VP --> V
+  VP --> H
+  H --> U
+  V -. "@/lib/navigation (port)" .-> NL
+  V -. "@/lib/navigation (port)" .-> A
+```
+
+The dotted edges are resolved by the build, not by the source: shared code names the port, never an implementation.
 
 ### 2.1 Rules that keep Vite intact
 
 | Rule | Why | How it is enforced |
 |---|---|---|
-| `@/lib/navigation` is the only routing import in shared code. Vite aliases it to `navigation.vite.jsx` (`vite.config.js`). | `next/link` cannot run under Vite, and React Router cannot run under Next. | `grep "react-router-dom"` in shared modules must be empty. On the branch, the only matches are Vite adapters and pages not yet ported. |
-| Helpers that Vite needs are never placed in a `server-only` module | Importing such a module from the Vite (browser) bundle breaks it | Pure helpers live in `*.js` modules without `server-only`; only the server transport and Next data loaders import `server-only`. |
-| Head tags are applied by adapters, not by shared components | Vite uses `PageMeta` and Helmet on the client; Next uses route `metadata` on the server | `DetailLayout` lost its `PageMeta` call. Vite pages that are not yet ported import `ViteDetailLayout as DetailLayout` (one import line changed; JSX unchanged), which adds `PageMeta` back. |
-| Titles and descriptions are computed once | Both builds must emit the same values | `src/views/meta.js`, used by `PageMeta` (Vite) and `pageMetadata()` (Next) |
-| Image imports go through `assetSrc()` | Vite returns a URL string, Next returns `{ src, width, height }` | Applied in `data/hmv.js`, `data/productPhotos.js` and the components that import images directly. Swapping in `next/image` is the images PR. |
-| Data comes in as props | Vite fetches with hooks in the browser; Next fetches on the server | For example, `LatestInsights` receives `state` instead of calling `useArticleList` |
+| Shared code reaches routing only through the port `@/lib/navigation` | `next/link` cannot run under Vite, and React Router cannot run under Next | `scripts/check-boundaries.js` (part of `npm run lint`) |
+| Helpers that Vite needs are never placed in a `server-only` module | Importing one from the browser bundle breaks it | Pure modules may not import `server-only` (checker); only Next adapters do |
+| Head tags are applied by adapters, not by shared components | Vite uses `PageMeta` and Helmet on the client; Next uses route `metadata` on the server | `DetailLayout` renders no head tags. Each Vite page adapter renders `PageMeta`; Next routes export `metadata`. |
+| Titles and descriptions are computed once | Both builds must emit the same values | `src/views/meta.js`, used by `PageMeta` (Vite) and `pageMetadata()` (Next). Views framed by `DetailLayout` use the same values as their heading. |
+| Image imports go through `assetSrc()` | Vite returns a URL string, Next returns `{ src, width, height }` | Applied once in each data module (`hmv.js`, `productPhotos.js`, `logisticsServices.js`, `operationalLogistics.js`, `logisticsActivities.js`) and in the components that import images directly |
+| Data comes in as props | Vite fetches with hooks in the browser; Next fetches on the server | Views take `state`/`articles`/`product` props; no view calls a data hook |
 | Tailwind scans code, not docs | Prose in `docs/` was adding utilities to the Vite CSS | `@source not "../../docs"` in `index.css`. Vite CSS is byte-identical to `main` (§12). |
 | Tailwind runs once per build | Vite would also pick up `postcss.config.mjs` | `vite.config.js` sets `css.postcss: {}`. The PostCSS config is for Next only. |
 
@@ -44,39 +73,37 @@ Five kinds of module. "Imports allowed" is the rule a reviewer checks.
 
 ```
 HMV_landingpage/
-  app/                                  # Next.js routes only
-    (en)/layout.tsx                     # root layout #1: <Document lang="en">
-    (en)/(site)/layout.tsx              # <SiteShell lang="en"> (nav, main, footer, chat)
-    (en)/(site)/page.tsx                # /
-    (en)/(site)/about/page.tsx          # /about
-    (en)/(site)/contact/page.tsx        # /contact
-    (vi)/layout.tsx                     # root layout #2: <Document lang="vi">
-    (vi)/vi/(site)/layout.tsx           # <SiteShell lang="vi">
-    (vi)/vi/(site)/page.tsx             # /vi
-    (vi)/vi/(site)/about/page.tsx       # /vi/about
-    (vi)/vi/(site)/contact/page.tsx     # /vi/contact
-    global-not-found.tsx                # the 404 for every URL without a route (§10)
-  proxy.ts                              # legacy URL forms only: one 308 to the final URL (§4.3)
-  next.config.ts                        # noindex fail-safe, collection redirects, globalNotFound, agentRules: false
-  postcss.config.mjs                    # Tailwind for the Next build only
-  deploy/vercel.next.json               # Vercel config for Next previews (§15)
+  app/                                     # Next.js routes only
+    (en)/layout.tsx                        # root layout #1: <Document lang="en">
+    (en)/(site)/layout.tsx                 # <SiteShell lang="en"> (nav, main, footer, chat)
+    (en)/(site)/page.tsx                   # /
+    (en)/(site)/<page>/page.tsx            # /about, /supply-chain, /trade-solutions, /activities, /contact, /insights,
+                                           # /regulations, /logistics, /packaging-logistics
+    (en)/(site)/products/[id]/page.tsx     # /products/<id>
+    (en)/blog/[slug]/page.tsx              # /blog/<slug> (frames its own SiteShell, as on Vite)
+    (vi)/layout.tsx                        # root layout #2: <Document lang="vi">
+    (vi)/vi/(site)/…                       # the same pages under /vi, products at /vi/san-pham/[slug]
+    (vi)/vi/tin-tuc/[slug]/page.tsx        # /vi/tin-tuc/<slug>
+    global-not-found.tsx                   # the 404 for every URL without a route (§10)
+  proxy.ts                                 # legacy URL forms only: one 308 to the final URL (§4.3)
+  next.config.ts                           # noindex fail-safe, collection redirects (from routes.js), globalNotFound
+  postcss.config.mjs                       # Tailwind for the Next build only
+  deploy/vercel.next.json                  # Vercel config for Next previews (§15)
+  scripts/check-boundaries.js              # layer rules (§2), run by `npm run lint`
   src/
-    views/                              # renamed from src/pages; Next.js would otherwise fail the build (audit F-22)
-      meta.js                           # shared titles and descriptions
-      home/HomeView.jsx, HomePage.jsx   # shared body / Vite adapter
-      about/AboutView.jsx, AboutPage.jsx
-      contact/ContactView.jsx, ContactPage.jsx
-      not-found/NotFoundView.jsx, NotFoundPage.jsx
-      <other routes>/<Name>Page.jsx     # not yet ported: Vite page modules as before
-    app/                                # Vite application (App.jsx, SiteLayout.jsx, ViteDetailLayout.jsx). Next ignores src/app when app/ exists.
-    next/                               # Next-only adapters: seo.ts, Document.tsx (later: cms.server.js, loaders)
-    i18n/routes.js                      # shared URL contract (SEO spec §2)
-    lib/navigation.jsx                  # adapter interface, Next implementation
-    lib/navigation.vite.jsx             # Vite implementation (alias), deleted at cleanup
+    views/                                 # renamed from src/pages; Next.js would otherwise fail the build (audit F-22)
+      meta.js                              # shared titles, descriptions and article structured data
+      <route>/<Name>View.jsx               # shared page body
+      <route>/<Name>Page.jsx               # Vite adapter, where the page needs more than StaticPage
+      <route>/ImagePreview.jsx, article/BackButton.jsx   # client islands
+    app/                                   # Vite application: App, SiteLayout, StaticPage, navigation, cms
+    next/                                  # Next adapters: seo.ts, Document.tsx, article.tsx, navigation.jsx
+    i18n/routes.js                         # shared URL contract (SEO spec §2)
+    lib/cms.js                             # CMS contract: URL builder and errors (no transport)
     features/, components/, data/, styles/
 ```
 
-Naming convention for a route that has been ported: `<Name>View.jsx` is shared, `<Name>Page.jsx` is the Vite adapter, and the `app/` route files are the Next adapters.
+A ported route has a shared `<Name>View.jsx`, a Vite adapter (`StaticPage` in `App.jsx` when only the language matters, otherwise `<Name>Page.jsx`), and two Next route files.
 
 ## 4. Routing
 
@@ -92,33 +119,51 @@ The nested `(site)` group carries the chrome, so the 404 (§10) can stay chrome-
 
 ### 4.2 Route files
 
-Each is 5–10 lines: pick the locale, compute metadata from `views/meta.js`, render the shared view with server-side data.
+A route file only picks the locale and params, loads data, exports metadata, renders a shared view, and redirects or 404s when that is the route's job. The EN and VI twins differ only in the locale literal (and the param name for products); Next needs one file per URL.
 
 ```tsx
-// app/(vi)/vi/(site)/about/page.tsx
-const state = bundledPage('about', 'vi');
-export const metadata = pageMetadata({ lang: 'vi', path: '/about', ...aboutMeta('vi', state) });
+// app/(vi)/vi/(site)/supply-chain/page.tsx
+export const metadata = pageMetadata({ lang: 'vi', path: '/supply-chain', ...supplyChainMeta('vi') });
 export default function Page() {
-  return <AboutView lang="vi" state={state} />;
+  return <SupplyChainView lang="vi" />;
+}
+
+// app/(vi)/vi/tin-tuc/[slug]/page.tsx: resolution, metadata and JSX live once, in src/next/article.tsx
+export const dynamicParams = false;
+export const generateStaticParams = articleSlugs;
+export const generateMetadata = async ({ params }: Props) => articleMetadata('vi', (await params).slug);
+export default async function Page({ params }: Props) {
+  return <ArticlePage lang="vi" slug={(await params).slug} />;
 }
 ```
+
+Products and bundled articles use `generateStaticParams` with `dynamicParams = false`, so every page is prerendered and unknown slugs get the server-rendered global 404 (§10).
 
 ### 4.3 Redirects, verified on 16.4.5
 
 | Mechanism | Used for | Facts from the docs that shaped the design |
 |---|---|---|
 | Built-in trailing-slash redirect | `/about/` → `/about` | Default `trailingSlash: false` redirects to the URL without the slash (`05-config/01-next-config-js/trailingSlash.md`). It runs **before** the proxy, so `/en/about/` takes two hops. |
-| `next.config` `redirects()` | Exact collection URLs only: `/products`, `/blog`, `/vi/san-pham`, `/vi/tin-tuc`, each with `missing: [{ type: 'query', key: 'lang' }]` | "any query values provided in the request will be passed through to the redirect destination" (`redirects.md`). A config redirect therefore cannot drop `?lang=`, which is why `?lang` goes to the proxy. `permanent: true` = 308, which "instructs clients/search engines to cache the redirect forever". |
-| `proxy.ts` (formerly middleware; "The `middleware` file convention is deprecated and has been renamed to `proxy`", `03-file-conventions/proxy.md`) | Legacy forms: any URL with `?lang=`, `/en`, `/en/*`, `/index.html`, `/vi/products/*`, `/vi/blog/*` | Runs only for the `matcher` entries (with `has` for the query), after config headers and redirects. "Proxy defaults to using the Node.js runtime." It computes the final URL with the shared `canonicalUrl()` and drops `lang`. Normal requests never invoke it. |
-| `permanentRedirect()` in route code | Article slugs owned by the other locale (articles PR) | It returns a 308, but "When used in a streaming context, this will insert a meta tag" (`04-functions/permanentRedirect.md`). So there must be no `loading.tsx` or Suspense above it. |
+| `next.config` `redirects()` | Collection URLs in every locale (`INDEX_ALIASES` × `LOCALES` from `routes.js`: `/products`, `/vi/san-pham`, `/blog`, `/vi/tin-tuc`), each with `missing: [{ type: 'query', key: 'lang' }]` | "any query values provided in the request will be passed through to the redirect destination" (`redirects.md`). A config redirect therefore cannot drop `?lang=`, which is why `?lang` goes to the proxy. `permanent: true` = 308, which "instructs clients/search engines to cache the redirect forever". |
+| `proxy.ts` (formerly middleware; "The `middleware` file convention is deprecated and has been renamed to `proxy`", `03-file-conventions/proxy.md`) | Legacy forms: any URL with `?lang=`, `/en`, `/en/*`, `/index.html`, `/vi/products/*`, `/vi/blog/*` | Runs only for the `matcher` entries, which must be literals ("The `matcher` values need to be constants so they can be statically analyzed"); the target comes from the shared `legacyRedirect()`. Drift between the matcher and the contract is caught by the redirect-chain E2E tests. Normal requests never invoke it. |
+| `permanentRedirect()` in route code | An article slug of the other locale (`/blog/xuat-khau-chanh-day-eu`) | Both locales' slugs are in `generateStaticParams`, so the redirect is prerendered: **observed 308 with `Location`** on `next start`. "When used in a streaming context, this will insert a meta tag" (`04-functions/permanentRedirect.md`), so there is no `loading.tsx` or Suspense above it. |
 
 Complete rules and chains: [URL matrix §3–4](URL_MIGRATION_MATRIX.md).
 
 ## 5. Server and client components
 
-`'use client'` is set only on: `Navigation`, `LanguageSwitcher`, `SupportChatWidget`, `ContactForm`, `TradeRfq`, `CinematicHero`, `ValueJourney`, `LivingLogistics` and `src/lib/navigation.jsx`. In later PRs it will be added to `Operations`, `Activities`, `LogisticsHubPage` and `PackagingLogisticsPage`. Vite ignores the directive, and the Vite build shows no warning for it.
+No page or layout is a client component. `'use client'` is set only on these modules (Vite ignores the directive):
 
-Client components are still rendered on the server. On the branch, the server HTML of `/` contains every home section's text, asserted in `tests/next/next.spec.js`. Radix dropdown content renders only when open, so the switcher options are not in the server HTML; crawlers use the head `hreflang` links instead ([SEO spec §3](SEO_I18N_GEO_SPEC.md#3-language-switcher-behavior)).
+| Kind | Modules | Why client |
+|---|---|---|
+| Islands created for the migration | `components/common/Lightbox.jsx` (`Lightbox`, `ZoomTrigger`, `LightboxPreview`), `views/logistics/ImagePreview.jsx`, `views/packaging-logistics/ImagePreview.jsx`, `views/article/BackButton.jsx`, `features/inquiries/ContactForm.jsx` | Photo preview state, history navigation, `useSearchParams`. The Logistics and Packaging pages used to hold the preview state at page level; they are now server components. |
+| Interactive sections | `views/activities/Activities.jsx` (carousel), `views/supply-chain/Operations.jsx` (tabs), `views/home/sections/ValueJourney.jsx`, `LivingLogistics.jsx`, `features/inquiries/TradeRfq.jsx` | Local state and effects of the section itself |
+| Chrome | `Navigation`, `LanguageSwitcher`, `SupportChatWidget` | Menu state, dropdown, chat |
+| Port | `src/next/navigation.jsx` | `usePathname`, `useRouter` |
+
+Migration debt (kept for parity, not the target): `Navigation` is one 620-line client component for seven open/close toggles (target: a server-rendered menu with small client toggles); `CinematicHero` is a client component for one scroll button (target: a `ScrollCue` island); `SupportChatWidget` loads on every page (lazy-load in PR-08).
+
+Client components are still rendered on the server: the server HTML of every page contains its full text (Next E2E, and the Vite/Next parity check in §12). Radix dropdown content renders only when open, so the switcher options are not in the server HTML; crawlers use the head `hreflang` links ([SEO spec §3](SEO_I18N_GEO_SPEC.md#3-language-switcher-behavior)).
 
 ### 5.1 Contact form and `useSearchParams`
 
@@ -135,27 +180,30 @@ export function ContactFormFromUrl({ lang }) {
 <Suspense fallback={<ContactForm lang={lang} />}><ContactFormFromUrl lang={lang} /></Suspense>
 ```
 
-In Next, the static page contains the fallback form and the client renders the preselected one. In Vite, the React Router hook does not suspend. The CTA-mode `Contact` on every inner page no longer touches search parameters.
+In Next, the static page contains the fallback form and the client renders the preselected one. In Vite, the React Router hook does not suspend.
 
-## 6. Navigation adapter
+## 6. Navigation port
 
-`@/lib/navigation` exports the same API from both implementations:
+`@/lib/navigation` has the same API in both implementations:
 
-| Export | Next (`navigation.jsx`) | Vite (`navigation.vite.jsx`) |
-|---|---|---|
-| `Link` (`to` = English key path) | `next/link` with `localizePath(to, locale of current page)` | React Router `Link` (URLs are locale-free) |
-| `useRoutePath()` | English key path of `usePathname()`, for active states | `useLocation().pathname` |
-| `useSearchParams()` | `next/navigation` | React Router, first tuple element |
-| `useLanguageSwitch()` | `{ lang, hrefFor, select }`: `hrefFor` gives the real URL of the same page in that language; `select` adds the current query (minus `lang`) and `#hash` and navigates | `{ lang, hrefFor: () => undefined, select: setLang }` (a re-render, as today) |
+| Export | Next (`src/next/navigation.jsx`) | Vite (`src/app/navigation.jsx`) | After cleanup |
+|---|---|---|---|
+| `Link` (`to` = English key path) | `next/link` with `localizePath(to, locale of the current page)` | React Router `Link` (URLs are locale-free) | Stays: components keep writing key paths |
+| `useRoutePath()` | English key path of `usePathname()`, for active states | `useLocation().pathname` | Stays |
+| `useSearchParams()` | re-export of `next/navigation` | React Router, first tuple element | Deleted: import from `next/navigation` |
+| `useLanguageSwitch()` | `{ lang, hrefFor, select }`: `hrefFor` is the real URL of the same page in that language; `select` adds the current query (minus `lang`) and `#hash` and navigates | `{ lang, hrefFor: () => undefined, select: setLang }` (a re-render, as today) | Stays, without the Vite branch in `LanguageSwitcher` |
+| `useGoBack()` | `router.back()`, or the localized home page when there is no history | `navigate(-1)`, or `/` | Stays |
 
 ## 7. Data fetching
 
 | Content | Vite (until cutover) | Next |
 |---|---|---|
 | Bundled pages and articles | Hooks call the shared pure `bundledPage()` and `listBundledArticles()` | Route files call the same functions on the server |
-| CMS (`CMS_CONTENT=true`; off in production and in this phase) | Hooks plus the browser transport (`lib/cms.js`, same-origin `/api/v1/public`) | Server functions plus the server transport (`next/cms.server.js`), absolute `CMS_API_ORIGIN`, `fetch(…, { next: { revalidate: 300, tags } })` (`04-functions/fetch.md`). Tags: `cms:articles`, `cms:article:<id>`, `cms:page:<key>`, `cms:sitemap`. |
+| CMS (`CMS_CONTENT=true`; off in production and in this phase) | Hooks pass the browser transport (`src/app/cms.js`, same-origin `/api/v1/public`) to the shared mappers | Server functions pass the server transport (`src/next/cms.ts`, CMS PR): absolute `CMS_API_ORIGIN`, `fetch(…, { next: { revalidate: 300, tags } })` (`04-functions/fetch.md`). Tags: `cms:articles`, `cms:article:<id>`, `cms:page:<key>`, `cms:sitemap`. |
 
-Caching rules (no Cache Components): "By default, `fetch` requests are not cached" (`02-guides/caching-without-cache-components.md`). `next.revalidate` opts a fetch in, and "If two fetch requests with the same URL in the same route have different `revalidate` values, the lower value will be used" (`fetch.md`). In bundled mode the routes make no fetch and are fully static (the build output shows ○ for every page).
+The CMS layer is dependency inversion by argument, with no repository or service layer: a **transport** is `get(path, params) → Promise<body>` that rejects with `{ status }` (`src/lib/cms.js` documents the contract and holds the URL builder and error helpers). The **mappers** `fetchPage(get, …)`, `fetchArticles(get, …)` and `resolveArticle(get, …)` in `features/*/api.js` validate DTOs, map them to view shapes and resolve cross-locale slugs; they never touch `fetch`, caching, environment variables or `server-only` (enforced by the checker).
+
+Caching rules (no Cache Components): "By default, `fetch` requests are not cached" (`02-guides/caching-without-cache-components.md`). `next.revalidate` opts a fetch in, and "If two fetch requests with the same URL in the same route have different `revalidate` values, the lower value will be used" (`fetch.md`). In bundled mode the routes make no fetch and are fully static (the build output shows ○ or ● for every page).
 
 ## 8. Rendering strategy
 
@@ -167,7 +215,7 @@ Caching rules (no Cache Components): "By default, `fetch` requests are not cache
 | Product listing (`/trade-solutions`) | SSG | Bundled; ISR once a commodities API exists |
 | Product detail | SSG, `generateStaticParams`, `dynamicParams = false` ("Dynamic route segments not included in `generateStaticParams` will return a 404", `dynamicParams.md`) | 6 fixed products |
 | Articles listing | SSG; ISR with the CMS on | Up to 100 items |
-| Article detail | ISR: `generateStaticParams` plus `dynamicParams = true` | New slugs appear without a deploy; cross-locale slugs need 308s |
+| Article detail | Bundled (now): SSG, both locales' slugs in `generateStaticParams`, `dynamicParams = false`. CMS: ISR with `dynamicParams = true` | Bundled slugs are known at build time. With the CMS, new slugs appear without a deploy. |
 | Contact / RFQ | SSG shell plus client form island | No server data; `mailto:` only |
 | Logistics, Packaging, Activities, Regulations | SSG | Bundled |
 
@@ -210,8 +258,8 @@ The endpoint, the runbook and the blocked-slugs switch are built in the CMS PR. 
 
 | Situation | Implementation | Observed (`next start`, 16.4.5) |
 |---|---|---|
-| URL without a route (EN or VI) | `app/global-not-found.tsx` with `experimental.globalNotFound: true`. Same markup as the Vite 404 (`NotFoundView`: chrome-less, "Page not found", link to `/`, English for every URL as on Vite today). | **404**, static, fully server-rendered, `<html lang="en">`, `noindex` (meta tag and header) |
-| `notFound()` thrown inside a page (unknown product or article, later PRs) | Route-segment `not-found.tsx` | **Status 404 and noindex are correct, but the body is an error shell (`<html id="__next_error__">`) rendered on the client from the RSC payload.** Reproduced with a static probe page as well. The cause is that there is no single layout above both root layouts (`03-file-conventions/not-found.md`: `global-not-found.js` is "useful when… your app has multiple root layouts"). |
+| URL without a route (EN or VI), including an unknown product id or article slug (`dynamicParams = false`) | `app/global-not-found.tsx` with `experimental.globalNotFound: true`. Same markup as the Vite 404 (`NotFoundView`: chrome-less, "Page not found", link to `/`, English for every URL as on Vite today). | **404**, static, fully server-rendered, `<html lang="en">`, `noindex` (meta tag and header) |
+| `notFound()` thrown inside a page (CMS slugs, from the CMS PR; bundled products and articles never reach it because of `dynamicParams = false`) | Route-segment `not-found.tsx` | **Status 404 and noindex are correct, but the body is an error shell (`<html id="__next_error__">`) rendered on the client from the RSC payload.** Reproduced with a static probe page as well. The cause is that there is no single layout above both root layouts (`03-file-conventions/not-found.md`: `global-not-found.js` is "useful when… your app has multiple root layouts"). |
 | CMS error on a URL never generated | `error.tsx` (client, localized) | 5xx: crawlers retry, and a live page is not deindexed |
 | Streaming | No `loading.tsx` and no Suspense above `notFound()` or redirects: "After streaming starts, the status code remains `200`" (`not-found.md`) | n/a |
 
@@ -229,16 +277,17 @@ Consequences for later PRs:
 
 ## 12. Coexistence evidence (branch `feat/nextjs-foundation`)
 
-| Check | `main` (baseline) | Branch |
+| Check | `main` (baseline) | Branch (revision 3) |
 |---|---|---|
-| `npm run build` (Vite) JS / CSS | 620.42 kB / 156.50 kB `index-CUg3tHd_.css` | 623.26 kB (+2.8 kB: route contract, adapters) / **156.50 kB, same file hash** |
+| `npm run build` (Vite) JS / CSS | 620.42 kB / 156.50 kB `index-CUg3tHd_.css` | 624.53 kB (+4.1 kB: route contract, port, islands) / **156.50 kB, same file hash** |
 | `npm run build:cms` | passes | passes |
-| `npm test` (Vitest) | 49/49 | 53/53 (+4 route-contract tests) |
-| `npm run lint` | 0 errors, 9 warnings | 0 errors, 9 warnings |
-| Playwright, Vite | 89 passed, 3 skipped | 111 passed, 7 skipped. +18: the `?lang=vi` → English regression for about, product, article and contact (desktop) and the rollback-compatibility spec. The 4 extra skips are the desktop-only switcher cases on the mobile project. |
+| `npm test` (Vitest) | 49/49 | 54/54 (+4 route contract, +1 product slugs) |
+| `npm run lint` | 0 errors, 9 warnings | 0 errors, 9 warnings; layer boundaries OK |
+| Playwright, Vite | 89 passed, 3 skipped | 111 passed, 7 skipped (+18: `?lang=vi` → English regressions and the rollback-compatibility spec; +4 skips: desktop-only switcher cases on the mobile project) |
 | Playwright, CMS mode (Vite) | 35 passed, 1 skipped | 35 passed, 1 skipped |
-| `next build` | n/a | passes; 6 static pages, proxy, global 404 |
-| Playwright, Next (`tests/next/`) | n/a | 75 passed, 3 skipped (switcher cases on mobile) |
+| `next build` | n/a | passes: 46 prerendered pages (static and SSG), proxy, global 404 |
+| Playwright, Next (`tests/next/`) | n/a | 181 passed, 3 skipped (switcher cases on mobile). Covers all 38 indexable URLs, 7 404s, 26 redirect chains, noindex on every page and 404, Article JSON-LD, the photo preview and back-button islands, and the switcher. |
+| Vite/Next parity (one-off script, not committed) | n/a | All 38 URLs identical in title, description, `h1`, the full `<main>` text, and the number of images and links |
 
 ## 13. Environment variables and security
 
@@ -283,3 +332,78 @@ The Next build must never read the root `vercel.json`, because its SPA rewrite s
 ### 15.3 Cutover and rollback
 
 Cutover switches the existing production project to the Next.js framework preset and removes the SPA rewrite in the same PR. Rollback is Vercel Instant Rollback to the last Vite deployment. The temporary Next project is deleted after cutover. Rollback limits and preconditions: [roadmap §8](MIGRATION_ROADMAP.md#8-rollback-contract).
+
+## 16. Architecture review (revision 3)
+
+### 16.1 Migration-only abstractions
+
+Each one exists because the two builds differ. `grep -rn MIGRATION-ONLY` lists them in code.
+
+| Abstraction | Coupling it removes | Why the framework API is not used directly | After cleanup (PR-12) |
+|---|---|---|---|
+| Port `@/lib/navigation` (`src/app/navigation.jsx`, `src/next/navigation.jsx`) | Shared components on a router | Each build has its own router and URL scheme (locale-free vs localized) | Vite implementation deleted; the Next one stays as the localized `Link`, `useRoutePath`, `useLanguageSwitch`, `useGoBack`; the `useSearchParams` re-export goes |
+| `StaticPage` (`src/app`) | Six identical Vite page adapters | Vite head tags need a component per page | Deleted |
+| Browser transport (`src/app/cms.js`) | Mappers on browser `fetch` | Vite has no server | Deleted; the server transport remains |
+| `assetSrc()` | Shared data on the bundler's image import shape | Vite gives a URL string, Next an object | Deleted with `next/image` (PR-08) |
+| `resolveBundledArticle()` | Vite article URLs on per-locale slugs | Locale-free URLs need one canonical slug | Deleted |
+| `LegacyLocaleRedirect` mapping of the new Vietnamese URLs | Rollback target on the Next URL scheme | A rollback serves the Vite build | Deleted with the Vite app |
+| Vite rules in `scripts/check-boundaries.js` | n/a | n/a | Simplified to the Next rules |
+
+Abstractions that **stay** after cleanup, because they are the target design: the URL contract (`src/i18n/routes.js`), titles and descriptions (`src/views/meta.js`), `pageMetadata()` (`src/next/seo.ts`), the CMS contract and mappers (`src/lib/cms.js`, `features/*/api.js`), `Lightbox` and the other islands.
+
+### 16.2 Single sources of truth
+
+| Fact | Defined once in | Derived by |
+|---|---|---|
+| Locales, page key paths, Vietnamese product slugs, collection aliases, article slug pairing | `src/i18n/routes.js` (article pairs read from `data/articles.js`) | Links (`Link`), switcher (`switchHref`), canonical and `hreflang` (`pageMetadata`), proxy (`legacyRedirect`), config redirects (`INDEX_ALIASES` × `LOCALES`), product and article `generateStaticParams`, the Vite rollback mapping, the Next E2E URL list. The sitemap (PR-07) will use the same functions. |
+| Titles and descriptions | `src/views/meta.js` | Vite `PageMeta`, Next `metadata`, `DetailLayout` headings |
+| CMS response shape | `features/*/api.js` | Both transports |
+| Layer membership | `scripts/check-boundaries.js` | `npm run lint`, CI |
+
+Framework-materialized exception: the proxy `matcher` must be a literal, so it repeats the legacy prefixes. The redirect-chain E2E tests fail if it drifts from `legacyRedirect()`.
+
+### 16.3 Findings
+
+**P0: architecture.** Both fixed in this revision.
+
+| ID | Finding | Change |
+|---|---|---|
+| A-1 | Shared components imported `@/lib/navigation`, which **was** the Next implementation file (`next/link`): shared → Next in the source graph | The path is now a port with no file; each build maps it (Vite alias, tsconfig `paths`). The implementations live in their adapter folders. |
+| A-2 | The layer rules were only documented | `scripts/check-boundaries.js`, run by `npm run lint` and CI. It found the six unported sections importing React Router; they are ported now and the check passes. |
+
+**P1: maintainability.** All fixed except where noted.
+
+| ID | Finding | Change |
+|---|---|---|
+| M-1 | CMS mappers imported the browser transport, so a server transport could not reuse them | Transport passed as an argument; `lib/cms.js` keeps only the contract; the browser transport moved to the Vite layer |
+| M-2 | `next.config.ts` hand-copied the collection URLs | Derived from `INDEX_ALIASES` × `LOCALES` |
+| M-3 | `routes.js` re-implemented the article slug lookup | Uses `findArticle()` from `data/articles.js` |
+| M-4 | Logistics and Packaging held preview state at page level, which would have made both whole pages client components | Server views plus the `Lightbox` island |
+| M-5 | EN and VI article routes would duplicate resolution, metadata and JSX | One Next module, `src/next/article.tsx`; route files only bind the locale |
+| M-6 | Page sizes duplicated between Vite adapters and Next routes (`3`, `100`) | `LATEST_ARTICLES`, `INSIGHTS_PAGE_SIZE` exported by the shared views |
+| M-7 | Product ids in `PRODUCT_SLUG_VI` could drift from `data/hmv.js` | Unit test: same ids, unique slugs |
+| M-8 | Next code (`app/`, `proxy.ts`, `next.config.ts`) was outside `sonar.sources` | Added |
+| M-9 | `ViteDetailLayout` and the six one-line Vite page modules | Deleted (`StaticPage`) |
+
+**P2: later, only where it does not raise migration risk.**
+
+| ID | Finding | When |
+|---|---|---|
+| L-1 | `Navigation.jsx` (620 lines, cognitive complexity 42): seven booleans and repeated submenu blocks; a data-driven menu would remove most of it | With the server-rendered menu, after cutover |
+| L-2 | `SupportChatWidget.jsx` (545 lines, complexity 28) mixes UI, canned answers and claims under D-12 review | After D-12; lazy-load in PR-08 |
+| L-3 | `LogisticsView` (complexity 37), `SupplyChainPillars` (39), `PackagingView` (20): long content components with inline EN/VI ternaries | Move copy to data modules after cutover |
+| L-4 | Nested ternaries in moved code (`toDoc` in `bundled.js`, `ContactForm` autocomplete, `ArticleView` states, `Activities`, `Operations`) | When those files change for other reasons |
+| L-5 | `LanguageSwitcher` keeps an unused-in-Next `currentLang` prop and exports `LANGUAGES` only for itself | PR-12 (the Vite branch goes too) |
+| L-6 | `operationalPhotos` in `data/operationalLogistics.js` is unused | Any time |
+| L-7 | Twin route files: Next needs one file per URL; each binds a locale literal | Accepted |
+| L-8 | `LegacyLocaleRedirect` and `LangQueryBootstrap` repeat small URL logic | Deleted with the Vite app |
+
+### 16.4 Automated reviewers
+
+SonarQube Cloud and CodeRabbit run on pull requests into `main`, so they have not analysed this branch. As a local approximation, the SonarJS recommended rules (`eslint-plugin-sonarjs` 3.0.5, installed outside the repository) report 20 issues on `src`, `app`, `proxy.ts` and `next.config.ts`. One was in new code and is fixed (S5852 slow regex in the Next `Link`; replaced by `String.search`). The others are in existing or moved code: L-1 to L-4 above and the deliberate control-character regex in `RichText.js`. Copy-paste detection was not run locally.
+
+Dispositions for automated suggestions:
+
+- Accept fixes that remove a real defect, duplication or security hotspot.
+- Reject suggestions that add layers or abstractions to satisfy a metric, or that refactor existing large components before cutover (L-1 to L-4). Record the reason on the PR.
+- Coverage on new code: `app/` and `src/next/` are exercised by the Next E2E suite, which SonarQube does not import. If the gate fails on coverage there, the remedy is unit tests for logic, not excluding files.

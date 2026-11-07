@@ -26,9 +26,9 @@ Today, every extension-less path returns **200** with the same SPA shell (`verce
 | ID | Existing URL | Proposed URL | Locale | Redirect | Canonical | Risk | ✓ |
 |---|---|---|---|---|---|---|---|
 | M-01 | `/` | `/` | en | No | `B` | L | ✓ |
-| M-02…M-10 | `/about`, `/supply-chain`, `/trade-solutions`, `/activities`, `/contact`, `/insights`, `/regulations`, `/logistics`, `/packaging-logistics` | unchanged | en | No | `B/<path>` | L | ✓ about, contact; others with their port PR |
+| M-02…M-10 | `/about`, `/supply-chain`, `/trade-solutions`, `/activities`, `/contact`, `/insights`, `/regulations`, `/logistics`, `/packaging-logistics` | unchanged | en | No | `B/<path>` | L | ✓ |
 | M-11 | `/vi` (today: browser redirect to `/`) | `/vi` | vi | No | `B/vi` | M (meaning changes on purpose) | ✓ |
-| M-12…M-20 | `/vi/<page>` (today: browser redirect to `/<page>`) | `/vi/<page>`, same segment | vi | No | `B/vi/<page>` | M | ✓ about, contact |
+| M-12…M-20 | `/vi/<page>` (today: browser redirect to `/<page>`) | `/vi/<page>`, same segment | vi | No | `B/vi/<page>` | M | ✓ |
 
 `/regulations` is added to the sitemap (missing today, audit F-08).
 
@@ -36,23 +36,23 @@ Today, every extension-less path returns **200** with the same SPA shell (`verce
 
 | ID | Existing URL | Proposed URL | Locale | Redirect | Canonical | Risk | ✓ |
 |---|---|---|---|---|---|---|---|
-| M-21…M-26 | `/products/{passion-fruit, bananas, dragon-fruit, spices, nuts, tapioca-starch}` | unchanged (`nuts` stays) | en | No | itself | L | products PR |
-| M-27…M-32 | new | `/vi/san-pham/{chanh-day, chuoi-cavendish, thanh-long, gia-vi, hat-dieu, tinh-bot-san}` | vi | No | itself | L | products PR |
+| M-21…M-26 | `/products/{passion-fruit, bananas, dragon-fruit, spices, nuts, tapioca-starch}` | unchanged (`nuts` stays) | en | No | itself | L | ✓ |
+| M-27…M-32 | new | `/vi/san-pham/{chanh-day, chuoi-cavendish, thanh-long, gia-vi, hat-dieu, tinh-bot-san}` | vi | No | itself | L | ✓ |
 | M-33 | `/vi/products/{id}` | `/vi/san-pham/{vi-slug}` | vi | 308, proxy, 1 hop | target | M | ✓ (Location) |
-| M-34 | `/products/{unknown}` (today 200, soft 404) | none | n/a | **404** (global 404, server-rendered) | none | M | products PR |
-| M-35 | `/vi/san-pham/{unknown}` | none | n/a | **404** | none | L | products PR |
+| M-34 | `/products/{unknown}` (today 200, soft 404) | none | n/a | **404** (global 404, server-rendered) | none | M | ✓ |
+| M-35 | `/vi/san-pham/{unknown}` | none | n/a | **404** | none | L | ✓ |
 | M-36 | `/products`, `/vi/san-pham`, `/vi/products` | `/trade-solutions`, `/vi/trade-solutions` | en/vi | 308, 1 hop (config redirect or proxy) | target | L | ✓ |
 
 ### 2.3 Articles: the three bundled articles
 
 | ID | Existing URL | Proposed URL | Locale | Redirect | Canonical | Risk | ✓ |
 |---|---|---|---|---|---|---|---|
-| M-37…M-39 | `/blog/{exporting-passion-fruit-eu, optimizing-tropical-logistics, circular-agriculture}` | unchanged | en | No | itself | L | articles PR |
-| M-40…M-42 | new | `/vi/tin-tuc/{xuat-khau-chanh-day-eu, toi-uu-hoa-logistics, nong-nghiep-khep-kin}` | vi | No | itself | L | articles PR |
-| M-43…M-45 | `/blog/{vi-slug}` (today: browser redirect to the English slug) | `/blog/{en-slug}` | en | 308, 1 hop, article route (pairs known) | target | L | unit ✓; HTTP in articles PR |
+| M-37…M-39 | `/blog/{exporting-passion-fruit-eu, optimizing-tropical-logistics, circular-agriculture}` | unchanged | en | No | itself | L | ✓ |
+| M-40…M-42 | new | `/vi/tin-tuc/{xuat-khau-chanh-day-eu, toi-uu-hoa-logistics, nong-nghiep-khep-kin}` | vi | No | itself | L | ✓ |
+| M-43…M-45 | `/blog/{vi-slug}` (today: browser redirect to the English slug) | `/blog/{en-slug}` | en | 308, 1 hop, article route (pairs known; prerendered) | target | L | ✓ |
 | M-46 | `/vi/blog/{slug}` | `/vi/tin-tuc/{vi-slug}`, directly to the Vietnamese slug when the pair is known | vi | 308, proxy, 1 hop | target | M | ✓ |
 | M-47 | `/en/blog/{slug}` | `/blog/{en-slug}` (pair known) | en | 308, proxy, 1 hop | target | L | unit ✓ |
-| M-48 | `/blog/{unknown}` (today: browser redirect to `/insights`) | none | n/a | **404** (D-09) | none | M | articles PR |
+| M-48 | `/blog/{unknown}` (today: browser redirect to `/insights`) | none | n/a | **404** (D-09; global 404, server-rendered) | none | M | ✓ |
 | M-49 | `/blog`, `/vi/tin-tuc`, `/vi/blog` | `/insights`, `/vi/insights` | en/vi | 308, 1 hop | target | L | ✓ |
 
 If the CMS goes live, the three articles must exist in the CMS with exactly these per-locale slugs (CMS PR gate).
@@ -180,7 +180,7 @@ None of the 308s sends `Cache-Control`. Browsers keep permanent redirects, which
 
 ## 5. CMS-generated and in-content links
 
-- **The CMS admin's public link `/tin-tuc/<slug>`** is resolved by M-56 (articles PR). The `hmvglobal.vn` domain shown in the CMS preview is outside this site (audit C-04).
+- **The CMS admin's public link `/tin-tuc/<slug>`** is resolved by M-56 (CMS PR). The `hmvglobal.vn` domain shown in the CMS preview is outside this site (audit C-04).
 - **Links inside rich text** render as written. Every format in this matrix resolves. A link to `/about` inside a Vietnamese article goes to English. Editorial guideline: use `/vi/…` links in Vietnamese content. Optional later: run internal hrefs through `localizePath` in `RichText`.
 - **No CMS change is needed for any row.**
 

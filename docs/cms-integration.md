@@ -33,8 +33,9 @@ Contract sources: `CMS_HMV/docs/api/public-content-contract.md`, `CMS_HMV/docs/a
 |---|---|
 | Mode flag | `.env.cms` sets `VITE_CMS_CONTENT=true`; it is loaded only by `--mode cms` (`npm run dev:cms`, `npm run build:cms` → `dist-cms/`). With the flag off, the CMS client is tree-shaken out of the bundle. |
 | Same-origin access | `vite.config.js` proxies **only** `/api/v1/public` to `CMS_API_ORIGIN` (shell variable, default `http://localhost:4000`) for `vite` and `vite preview`, and strips the `Cookie` header (localhost cookies ignore the port, so the admin `hmv_session` would otherwise be forwarded). |
-| Shared client | `src/lib/cms.js` (`getJson`: relative `/api/v1/public/...` URLs, `credentials: 'omit'`, only an `Accept` header) and `src/lib/useFetched.js` (`CMS_CONTENT` flag, keyed fetch hook with abort). Used by every CMS-backed feature. |
-| API client | `src/features/articles/api.js`: maps CMS article DTOs to the view shape the pages render. |
+| CMS contract | `src/lib/cms.js`: the URL builder (`/api/v1/public/...`) and error helpers. A transport is `get(path, params)` that rejects with `{ status }`. |
+| Browser transport (Vite) | `src/app/cms.js` (`browserCms(signal)`: relative URLs, `credentials: 'omit'`, only an `Accept` header) and `src/lib/useFetched.js` (`CMS_CONTENT` flag, keyed fetch hook with abort). Next.js gets a server transport in the CMS PR (docs/architecture/NEXTJS_TARGET_ARCHITECTURE.md §7). |
+| API client | `src/features/articles/api.js`, `src/features/pages/api.js`: take the transport as their first argument and map CMS DTOs to the view shape the pages render. No `fetch`, caching or environment access. |
 | Data hooks | `src/features/articles/hooks.js`: `useArticleList(lang, { pageSize })`, `useArticle(slug, lang)`. In static mode they map the bundled articles to the same shape. States: `loading`, `ready`, `empty`, `error`, `not-found`, `unavailable`, `redirect`. |
 | Cards and states | `src/features/articles/ArticleGrid.jsx` (Home shows 3, `/insights` shows up to 100: no pagination UI yet). |
 | Rich text | `src/features/articles/RichText.js` (see [Rich text](#rich-text)). |
