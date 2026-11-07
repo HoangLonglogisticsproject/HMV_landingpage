@@ -1,13 +1,14 @@
-import { bundledPage } from '@/features/pages/bundled';
+import { loadPage } from '@/next/content';
 import { pageMetadata } from '@/next/seo';
 import { AboutView } from '@/views/about/AboutView';
 import { aboutMeta } from '@/views/meta';
 
-// ponytail: bundled copy only (CMS_CONTENT stays off); the server CMS transport comes with the CMS PR.
-const state = bundledPage('about', 'en');
+// Not published in this language (CMS): the page explains it, with noindex.
+export async function generateMetadata() {
+  const state = await loadPage('about', 'en');
+  return pageMetadata({ lang: 'en', path: '/about', noindex: state.status !== 'ready', ...aboutMeta('en', state) });
+}
 
-export const metadata = pageMetadata({ lang: 'en', path: '/about', ...aboutMeta('en', state) });
-
-export default function Page() {
-  return <AboutView lang="en" state={state} />;
+export default async function Page() {
+  return <AboutView lang="en" state={await loadPage('about', 'en')} />;
 }

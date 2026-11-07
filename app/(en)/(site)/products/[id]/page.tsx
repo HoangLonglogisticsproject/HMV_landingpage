@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { products } from '@/data/hmv';
 import { pageMetadata } from '@/next/seo';
 import { ProductView } from '@/views/products/ProductView';
@@ -11,7 +12,7 @@ export const generateStaticParams = () => products.map(p => ({ id: p.id }));
 
 const productAt = async ({ params }: Props) => {
   const { id } = await params;
-  return products.find(p => p.id === id);
+  return products.find(p => p.id === id) ?? notFound();
 };
 
 export async function generateMetadata(props: Props) {

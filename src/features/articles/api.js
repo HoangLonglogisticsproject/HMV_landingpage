@@ -1,7 +1,9 @@
-// EcoNews from the CMS public article API (CMS_HMV docs/api/public-content-contract.md).
+// EcoNews from the CMS public article API (CMS_HMV docs/api/public-content-contract.md): DTO validation, the view
+// shape and slug resolution. No React, no framework: any consumer with a transport can use it.
 // Plain .js with relative imports so `node --test` can load it.
-import { malformed } from '../../lib/cms.js';
-import { isSafeSrc } from './RichText.js';
+import { isCmsSlug, malformed } from '../../lib/cms.js';
+import { isSafeSrc } from '../../lib/safeUrl.js';
+import { LOCALES } from '../../i18n/routes.js';
 
 const isArticle = a => typeof a?.slug === 'string' && typeof a?.title === 'string';
 
@@ -16,11 +18,14 @@ function dateLabel(iso, lang) {
 }
 
 // CMS DTO → the single-locale shape the EcoNews pages render (static articles map to the same shape).
+// `alternates`: slug per locale, this one included; list items carry only their own.
 function toView(a, lang) {
   const cover = a.cover && isSafeSrc(a.cover.url) ? a.cover : null;
+  const alternates = (a.alternates ?? []).filter(x => LOCALES.includes(x?.locale) && typeof x.slug === 'string');
   return {
     key: a.id ?? a.slug,
     slug: a.slug,
+    alternates: { ...Object.fromEntries(alternates.map(x => [x.locale, x.slug])), [lang]: a.slug },
     title: a.title,
     metaTitle: a.seo?.title ?? a.title,
     description: a.seo?.description ?? a.excerpt ?? '',
@@ -32,11 +37,27 @@ function toView(a, lang) {
   };
 }
 
+/**
+ * @typedef {ReturnType<typeof toView>} Article
+ * @typedef {{ status: 'ready', article: Article } | { status: 'redirect', to: string }
+ *   | { status: 'unavailable', locale: string } | { status: 'not-found' }} ArticleResolution
+ */
+
 // `get` in every function below: a CMS transport (lib/cms.js).
+/** @returns {Promise<Article[]>} */
 export async function fetchArticles(get, { locale, pageSize }) {
   const body = await get('/articles', { locale, pageSize });
   if (!Array.isArray(body?.items) || !body.items.every(isArticle)) throw malformed();
   return body.items.map(a => toView(a, locale));
+}
+
+/** Every published article as `{ en?: slug, vi?: slug }`, paired by the CMS id that translations share. */
+export async function fetchArticleIndex(get, { pageSize }) {
+  const byKey = new Map();
+  for (const locale of LOCALES) {
+    for (const a of await fetchArticles(get, { locale, pageSize })) byKey.set(a.key, { ...byKey.get(a.key), [locale]: a.slug });
+  }
+  return [...byKey.values()];
 }
 
 async function fetchArticle(get, slug, locale) {
@@ -45,10 +66,12 @@ async function fetchArticle(get, slug, locale) {
   return a;
 }
 
-// URLs are locale-free (/blog/:slug) but CMS slugs differ per locale, so a slug may belong to the other
-// language (a shared link, or the visitor just switched). Resolve it through `alternates`; never show
-// the other language's content on its own.
+// CMS slugs differ per locale, so a slug may belong to the other language (a shared link, a switch, or the
+// locale-free Vite URL). Resolve it through `alternates`; never show the other language's content on its own.
+// `redirect.to` is an English key path (/blog/<slug>); each adapter localizes it.
+/** @returns {Promise<ArticleResolution>} */
 export async function resolveArticle(get, { slug, lang }) {
+  if (!isCmsSlug(slug)) return { status: 'not-found' };
   try {
     return { status: 'ready', article: toView(await fetchArticle(get, slug, lang), lang) };
   } catch (e) {

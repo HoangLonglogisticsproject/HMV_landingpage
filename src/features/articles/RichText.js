@@ -2,26 +2,7 @@
 // text stays a string child, so React escapes it: no HTML from the CMS is ever injected.
 // Plain .js with createElement so `node --test` can render it without a JSX transform.
 import { createElement as h, Fragment } from 'react';
-
-// Same rule as the CMS (`isSafeHref` in backend rich-content.ts and frontend content-rules.ts).
-const SAFE_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:']);
-function isSafeHref(value) {
-  if (typeof value !== 'string' || !value || value.length > 2048) return false;
-  // Whitespace/control characters are how "java\tscript:" style bypasses get through naive checks.
-  // eslint-disable-next-line no-control-regex -- matching control characters is the point
-  if (/[\u0000- \u007f]/.test(value)) return false;
-  if (value.startsWith('#') || (value.startsWith('/') && !value.startsWith('//'))) return true;
-  try {
-    return SAFE_PROTOCOLS.has(new URL(value).protocol);
-  } catch {
-    return false;
-  }
-}
-
-// Media may only come from http(s) or this site.
-export function isSafeSrc(value) {
-  return isSafeHref(value) && (value.startsWith('/') || /^https?:/i.test(value));
-}
+import { isSafeHref, isSafeSrc } from '../../lib/safeUrl.js';
 
 const MARKS = { bold: 'strong', italic: 'em', strike: 's', underline: 'u', code: 'code' };
 const BLOCKS = { paragraph: 'p', blockquote: 'blockquote', bulletList: 'ul' };

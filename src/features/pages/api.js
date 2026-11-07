@@ -3,7 +3,8 @@
 import { malformed } from '../../lib/cms.js';
 
 /** `{ status: 'ready', page }` or `{ status: 'not-found' }` (unknown page, or not published in this locale).
- *  `get`: a CMS transport (lib/cms.js). */
+ *  `get`: a CMS transport (lib/cms.js).
+ * @returns {Promise<{ status: 'ready', page: { content: any, seo: { title: string, description: string } } } | { status: 'not-found' }>} */
 export async function fetchPage(get, { key, locale }) {
   let p;
   try {

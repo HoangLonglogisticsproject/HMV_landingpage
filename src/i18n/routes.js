@@ -10,6 +10,7 @@ export const PAGES = ['/', '/about', '/supply-chain', '/trade-solutions', '/acti
   '/regulations', '/logistics', '/packaging-logistics'];
 
 // English product id (unchanged URLs) → Vietnamese slug, transliterated from the names in data/hmv.js.
+/** @type {Record<string, string>} */
 export const PRODUCT_SLUG_VI = {
   'passion-fruit': 'chanh-day',
   bananas: 'chuoi-cavendish',

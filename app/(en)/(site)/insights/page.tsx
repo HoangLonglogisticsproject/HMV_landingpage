@@ -1,10 +1,10 @@
-import { listBundledArticles } from '@/features/articles/bundled';
+import { loadArticleList } from '@/next/content';
 import { pageMetadata } from '@/next/seo';
 import { INSIGHTS_PAGE_SIZE, InsightsView } from '@/views/insights/InsightsView';
 import { insightsMeta } from '@/views/meta';
 
 export const metadata = pageMetadata({ lang: 'en', path: '/insights', ...insightsMeta('en') });
 
-export default function Page() {
-  return <InsightsView lang="en" articles={listBundledArticles('en', { pageSize: INSIGHTS_PAGE_SIZE })} />;
+export default async function Page() {
+  return <InsightsView lang="en" articles={await loadArticleList('en', INSIGHTS_PAGE_SIZE)} />;
 }

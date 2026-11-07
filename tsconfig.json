@@ -8,7 +8,7 @@
     "checkJs": false,
     "noEmit": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "esModuleInterop": true,
     "paths": {
       "@/lib/navigation": [

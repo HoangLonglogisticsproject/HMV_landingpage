@@ -1,7 +1,7 @@
 import { test } from 'vitest';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
-import { fetchArticles, resolveArticle } from './api.js';
+import { fetchArticleIndex, fetchArticles, resolveArticle } from './api.js';
 import { browserCms } from '../../app/cms.js';
 
 // The browser transport (src/app/cms.js) against a mocked global fetch.
@@ -46,7 +46,7 @@ test('list: maps DTOs to the view shape', async () => {
   mockFetch({ '/api/v1/public/articles?locale=en&pageSize=3': { items: [summary()], page: 1, pageSize: 3, total: 1 } });
   const [a] = await fetchArticles(get, { locale: 'en', pageSize: 3 });
   assert.deepEqual(a, {
-    key: '0199f3a0-0000-7000-8000-0000000000aa', slug: 'test-econews-integration', title: '[TEST] EcoNews integration',
+    key: '0199f3a0-0000-7000-8000-0000000000aa', slug: 'test-econews-integration', alternates: { en: 'test-econews-integration' }, title: '[TEST] EcoNews integration',
     metaTitle: '[TEST] EcoNews integration', description: 'Excerpt', category: 'Supply Chain Insights',
     date: { iso: '2026-10-13T10:00:00.000Z', label: 'October 2026' },
     image: { src: 'http://localhost:4000/media-files/media/2026/10/cover.webp', width: 1600, height: 900, alt: 'Cover alt' },
@@ -141,11 +141,10 @@ test('detail: non-404 errors reject without probing the other locale', async () 
   assert.equal(calls.length, 1);
 });
 
-test('detail: the slug is encoded into a single path segment', async () => {
+test('detail: a path-traversal slug never reaches the API', async () => {
   const calls = mockFetch({});
-  await resolveArticle(get, { slug: '../admin/articles?x=1', lang: 'en' });
-  assert.equal(calls[0].url, '/api/v1/public/articles/..%2Fadmin%2Farticles%3Fx%3D1?locale=en');
-  assert.ok(calls.every(c => c.url.startsWith('/api/v1/public/articles/')));
+  assert.deepEqual(await resolveArticle(get, { slug: '../admin/articles?x=1', lang: 'en' }), { status: 'not-found' });
+  assert.equal(calls.length, 0);
 });
 
 test('detail: maps a real published CMS payload (fixtures/cms-article.json)', async () => {
@@ -157,7 +156,7 @@ test('detail: maps a real published CMS payload (fixtures/cms-article.json)', as
   const r = await resolveArticle(get, { slug: en.slug, lang: 'en' });
   assert.equal(r.status, 'ready');
   assert.deepEqual({ ...r.article, content: undefined }, {
-    key: en.id, slug: 'test-econews-integration-e2e1020', title: '[TEST e2e1020] EcoNews CMS → Landing integration',
+    key: en.id, slug: 'test-econews-integration-e2e1020', alternates: { en: en.slug, vi: vi.slug }, title: '[TEST e2e1020] EcoNews CMS → Landing integration',
     metaTitle: '[TEST e2e1020] EcoNews CMS → Landing integration',
     description: 'Integration test article: content published in the CMS appears on the Landing site.',
     category: 'Supply Chain Insights', date: { iso: '2026-10-20T07:41:54.331Z', label: 'October 2026' },
@@ -166,4 +165,27 @@ test('detail: maps a real published CMS payload (fixtures/cms-article.json)', as
   });
   // Opening the English slug in Vietnamese follows the real alternates.
   assert.deepEqual(await resolveArticle(get, { slug: vi.slug, lang: 'en' }), { status: 'redirect', to: '/blog/test-econews-integration-e2e1020' });
+});
+
+test('detail: alternates map each locale to its slug, invalid entries dropped', async () => {
+  const alternates = [{ locale: 'vi', slug: 'test-tich-hop' }, { locale: 'fr', slug: 'x' }, { locale: 'en' }];
+  mockFetch({ '/api/v1/public/articles/test-econews-integration?locale=en': detail({ alternates }) });
+  const r = await resolveArticle(get, { slug: 'test-econews-integration', lang: 'en' });
+  assert.deepEqual(r.article.alternates, { en: 'test-econews-integration', vi: 'test-tich-hop' });
+});
+
+test('index: articles are paired across locales by the id their translations share', async () => {
+  mockFetch({
+    '/api/v1/public/articles?locale=en&pageSize=100': { items: [summary({ id: 'a', slug: 'a-en' }), summary({ id: 'b', slug: 'b-en' })] },
+    '/api/v1/public/articles?locale=vi&pageSize=100': { items: [summary({ id: 'a', locale: 'vi', slug: 'a-vi' }), summary({ id: 'c', locale: 'vi', slug: 'c-vi' })] },
+  });
+  assert.deepEqual(await fetchArticleIndex(get, { pageSize: 100 }), [{ en: 'a-en', vi: 'a-vi' }, { en: 'b-en' }, { vi: 'c-vi' }]);
+});
+
+test('detail: a slug the CMS cannot have is not-found without any request', async () => {
+  const calls = mockFetch({});
+  for (const slug of ['Upper-Case', 'trailing-', 'a--b', 'x'.repeat(201), '../admin']) {
+    assert.deepEqual(await resolveArticle(get, { slug, lang: 'en' }), { status: 'not-found' }, slug);
+  }
+  assert.equal(calls.length, 0);
 });

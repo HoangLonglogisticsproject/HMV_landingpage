@@ -2,6 +2,7 @@
 import { test, expect } from '@playwright/test';
 import { articles } from '../../src/data/articles.js';
 import { LOCALES, PAGES, PRODUCT_SLUG_VI, localizePath } from '../../src/i18n/routes.js';
+import { abs, head, tags } from './html.js';
 
 /**
  * Next.js site in EN and VI: server HTML, status codes, redirects, noindex, client islands and the language switch.
@@ -11,30 +12,6 @@ import { LOCALES, PAGES, PRODUCT_SLUG_VI, localizePath } from '../../src/i18n/ro
 // Every indexable URL, from the route contract: each page, product and article in each language.
 const KEYS = [...PAGES, ...Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`), ...articles.map(a => `/blog/${a.slug.en}`)];
 const URLS = LOCALES.flatMap(lang => KEYS.map(key => ({ key, lang, path: localizePath(key, lang) })));
-
-const SITE = 'https://www.hmv-global.com';
-// Next.js writes the root URL without the trailing slash; sitemap and links must use the same string.
-const abs = path => (path === '/' ? SITE : `${SITE}${path}`);
-
-const tags = (html, name) =>
-  [...html.matchAll(new RegExp(`<${name}\\b[^>]*>`, 'gi'))].map(([tag]) =>
-    Object.fromEntries([...tag.matchAll(/([\w:-]+)="([^"]*)"/g)].map(([, k, v]) => [k.toLowerCase(), v])));
-const ENTITIES = { '&amp;': '&', '&#x27;': "'", '&quot;': '"', '&lt;': '<', '&gt;': '>' };
-const text = (html, re) =>
-  (html.match(re)?.[1] ?? '').replace(/<[^>]+>/g, '').replace(/&(amp|#x27|quot|lt|gt);/g, e => ENTITIES[e]).trim();
-const head = html => {
-  const links = tags(html, 'link');
-  const metas = tags(html, 'meta');
-  return {
-    lang: html.match(/<html[^>]*\blang="([^"]+)"/)?.[1],
-    title: text(html, /<title>([\s\S]*?)<\/title>/),
-    h1: text(html, /<h1[^>]*>([\s\S]*?)<\/h1>/),
-    description: metas.find(m => m.name === 'description')?.content,
-    robots: metas.find(m => m.name === 'robots')?.content,
-    canonical: links.find(l => l.rel === 'canonical')?.href,
-    hreflang: Object.fromEntries(links.filter(l => l.rel === 'alternate' && l.hreflang).map(l => [l.hreflang, l.href])),
-  };
-};
 
 // Server-rendered pages: everything a crawler or link preview needs is in the HTML, before any JavaScript.
 for (const { key, lang, path } of URLS) {
@@ -47,6 +24,7 @@ for (const { key, lang, path } of URLS) {
     expect(html.match(/<h1\b/g)).toHaveLength(1);
     expect(h.h1).toBeTruthy();
     expect(h.title).toMatch(/. \| HMV Global$/);
+    expect(h.title.split(' | '), 'one brand suffix (D-06)').toHaveLength(2);
     expect(h.description).toBeTruthy();
     expect(h.canonical).toBe(abs(path));
     const en = abs(localizePath(key, 'en'));
@@ -69,8 +47,9 @@ const COPY = [
   { path: '/vi/san-pham/hat-dieu', h1: 'Hạt điều', title: 'Hạt điều | HMV Global' },
   { path: '/products/nuts', h1: 'Cashew nuts', title: 'Cashew nuts | HMV Global' },
   { path: '/vi/tin-tuc/xuat-khau-chanh-day-eu', title: 'Xuất khẩu Chanh dây sang Châu Âu: Tiêu chuẩn GlobalGAP và câu chuyện của HMV Global. | HMV Global' },
-  // Parity with today's titles, including the embedded brand suffix that decision D-06 would remove.
-  { path: '/logistics', title: 'International Logistics & Dangerous Goods Handling | HMV Logistics | HMV Global' },
+  // Decision D-06: one brand suffix, added by the title template.
+  { path: '/logistics', title: 'International Logistics & Dangerous Goods Handling | HMV Global' },
+  { path: '/vi/packaging-logistics', title: 'Quy Cách Đóng Gói & Vận Chuyển Xuất Khẩu | HMV Global' },
 ];
 
 for (const p of COPY) {
@@ -112,7 +91,7 @@ test('internal links in Vietnamese pages point to Vietnamese URLs', async ({ req
 // Unknown URLs: a real 404 (not the SPA's 200), noindex, and the same chrome-less English 404 page as the Vite site,
 // server-rendered (app/global-not-found.tsx). Unknown products and articles are not generated (dynamicParams = false).
 const NOT_FOUND = ['/this-page-does-not-exist', '/vi/trang-khong-ton-tai', '/about/extra', '/products/unknown',
-  '/vi/san-pham/unknown', '/blog/unknown', '/vi/tin-tuc/unknown'];
+  '/vi/san-pham/unknown'];
 for (const path of NOT_FOUND) {
   test(`404 ${path}`, async ({ request }) => {
     const res = await request.get(path, { maxRedirects: 0 });
@@ -126,6 +105,18 @@ for (const path of NOT_FOUND) {
     expect(html).toContain('class="not-found"');
     expect(html).not.toContain('class="site-nav"');
     expect(tags(html, 'a').some(a => a.href === '/')).toBe(true);
+  });
+}
+
+// Unknown article slugs reach the article route (dynamicParams = true, for new CMS articles): 404 and noindex, with
+// Next.js's default 404 body rendered on the client (two root layouts; architecture §10, decision D-17).
+const ARTICLE_NOT_FOUND = ['/blog/unknown', '/vi/tin-tuc/unknown'];
+for (const path of ARTICLE_NOT_FOUND) {
+  test(`404 ${path}`, async ({ request }) => {
+    const res = await request.get(path, { maxRedirects: 0 });
+    expect(res.status()).toBe(404);
+    expect(res.headers()['x-robots-tag']).toBe('noindex, nofollow');
+    expect(head(await res.text()).robots).toContain('noindex');
   });
 }
 
@@ -159,7 +150,36 @@ const CHAINS = [
   // The other language's article slug: the article route answers (prerendered redirect).
   ['/blog/xuat-khau-chanh-day-eu', ['/blog/exporting-passion-fruit-eu']],
   ['/vi/tin-tuc/exporting-passion-fruit-eu', ['/vi/tin-tuc/xuat-khau-chanh-day-eu']],
+  // The CMS admin's link format (M-56), resolved by app/tin-tuc/[slug]/route.ts.
+  ['/tin-tuc/xuat-khau-chanh-day-eu', ['/vi/tin-tuc/xuat-khau-chanh-day-eu']],
+  ['/tin-tuc/exporting-passion-fruit-eu', ['/blog/exporting-passion-fruit-eu']],
 ];
+
+test('/tin-tuc/<unknown> is a 404', async ({ request }) => {
+  expect((await request.get('/tin-tuc/unknown', { maxRedirects: 0 })).status()).toBe(404);
+});
+
+// The sitemap lists every indexable URL once, with the same alternates (hreflang set) as the page itself. URLs are
+// compared normalized: Next.js writes the root as `B` in head tags and `B/` in the sitemap, the same URL.
+const sameUrls = obj => Object.fromEntries(Object.entries(obj ?? {}).map(([k, v]) => [k, new URL(v).href]));
+test('sitemap: every indexable URL, with the page hreflang as alternates', async ({ request }) => {
+  const xml = await (await request.get('/sitemap.xml')).text();
+  const entries = [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(([, body]) => ({
+    loc: body.match(/<loc>([^<]+)<\/loc>/)?.[1],
+    alternates: Object.fromEntries([...body.matchAll(/hreflang="([^"]+)" href="([^"]+)"/g)].map(([, l, h]) => [l, h])),
+  }));
+  expect(entries.map(e => new URL(e.loc).href).sort()).toEqual(URLS.map(u => new URL(abs(u.path)).href).sort());
+  for (const { path } of URLS) {
+    const html = await (await request.get(path)).text();
+    const entry = entries.find(e => new URL(e.loc).href === new URL(abs(path)).href);
+    expect(sameUrls(entry?.alternates), path).toEqual(sameUrls(head(html).hreflang));
+  }
+});
+
+test('the revalidation endpoint refuses requests without the secret', async ({ request }) => {
+  expect((await request.post('/api/revalidate')).status()).toBe(401);
+  expect((await request.post('/api/revalidate', { headers: { 'x-revalidate-secret': 'guess' } })).status()).toBe(401);
+});
 
 for (const [from, hops] of CHAINS) {
   test(`redirect ${from}`, async ({ request, baseURL }) => {
@@ -180,7 +200,7 @@ for (const [from, hops] of CHAINS) {
 // Fail-safe for test deployments: every page and 404 is noindex (header and meta) unless SITE_INDEXABLE=true.
 // Redirect responses have no indexable body; their targets are covered here.
 test('pages and 404s are noindex until SITE_INDEXABLE=true', async ({ request }) => {
-  for (const path of [...URLS.map(u => u.path), ...NOT_FOUND]) {
+  for (const path of [...URLS.map(u => u.path), ...NOT_FOUND, ...ARTICLE_NOT_FOUND]) {
     const res = await request.get(path, { maxRedirects: 0 });
     expect(res.headers()['x-robots-tag'], path).toBe('noindex, nofollow');
     expect(head(await res.text()).robots, path).toContain('noindex');

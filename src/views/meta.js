@@ -31,14 +31,14 @@ const INSIGHTS = {
 };
 export const insightsMeta = lang => ({ title: 'EcoNews', description: INSIGHTS[lang] });
 
-// The embedded brand suffixes are today's titles, kept for parity until decision D-06 removes them.
+// No brand suffix here: both builds add " | HMV Global" (decision D-06).
 const LOGISTICS = {
   en: {
-    title: 'International Logistics & Dangerous Goods Handling | HMV Logistics',
+    title: 'International Logistics & Dangerous Goods Handling',
     description: 'Specialized Dangerous Goods handling (Air & Sea), chemical transport, special & general cargoes, Vietnam-Cambodia cross-border drayage, local agency handling and JC Trans global networking.',
   },
   vi: {
-    title: 'Dịch Vụ Logistics Quốc Tế & Vận Chuyển Hàng Nguy Hiểm | HMV Logistics',
+    title: 'Dịch Vụ Logistics Quốc Tế & Vận Chuyển Hàng Nguy Hiểm',
     description: 'Chuyên xử lý hàng nguy hiểm Dangerous Goods (Air & Sea), hàng hóa chất, hàng đặc biệt, tuyến xuyên biên giới Việt Nam - Campuchia, đại lý nội địa và mạng lưới toàn cầu JC Trans.',
   },
 };
@@ -46,11 +46,11 @@ export const logisticsMeta = lang => LOGISTICS[lang];
 
 const PACKAGING = {
   en: {
-    title: 'Packaging & Ocean Freight Logistics | HMV Global',
+    title: 'Packaging & Ocean Freight Logistics',
     description: 'Operational evidence of export packaging standards, ISPM 15 palletization, mechanized forklift cross-docking, and container transport to EU & US ports.',
   },
   vi: {
-    title: 'Quy Cách Đóng Gói & Vận Chuyển Xuất Khẩu | HMV Global',
+    title: 'Quy Cách Đóng Gói & Vận Chuyển Xuất Khẩu',
     description: 'Thực tế năng lực đóng gói hàng hóa, bọc màng co pallet ISPM 15, xếp dỡ cơ giới và vận chuyển container đường biển an toàn xuất khẩu sang EU & Mỹ.',
   },
 };

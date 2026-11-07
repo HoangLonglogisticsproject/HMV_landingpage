@@ -49,6 +49,7 @@ const buttonVariants = cva(
   }
 )
 
+/** @param {import('react').ComponentProps<'button'> & { variant?: string, size?: string, asChild?: boolean }} props */
 function Button({
   className,
   variant = "default",

@@ -1,10 +1,20 @@
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
+// The Vite site's static sitemap, emitted unchanged. It lives in src/app because Next.js generates /sitemap.xml
+// (app/sitemap.ts) and a public/ file at the same path would conflict. MIGRATION-ONLY.
+const viteSitemap = {
+  name: 'hmv-vite-sitemap',
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: readFileSync(path.resolve(import.meta.dirname, 'src/app/sitemap.xml')) });
+  },
+};
+
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), viteSitemap],
   resolve: {
     // `@/lib/navigation` is a port with one implementation per build (Next.js: tsconfig.json `paths`). MIGRATION-ONLY.
     alias: [
@@ -29,7 +39,7 @@ export default defineConfig({
   // Unit tests (`npm test`, Vitest): Node environment; React component and hook tests opt into jsdom with a
   // `// @vitest-environment jsdom` comment. `npm run test:coverage` writes coverage/lcov.info for SonarQube.
   test: {
-    include: ['src/**/*.test.{js,jsx}'],
+    include: ['src/**/*.test.{js,jsx}', 'scripts/**/*.test.js'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{js,jsx}'],

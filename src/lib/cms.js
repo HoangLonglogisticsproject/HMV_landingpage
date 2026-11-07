@@ -9,3 +9,7 @@ export const cmsUrl = (path, params) => `/api/v1/public${path}?${new URLSearchPa
 export const cmsError = (status, message) => Object.assign(new Error(message), { status });
 
 export const malformed = () => cmsError(0, 'Malformed CMS response');
+
+// The CMS accepts only these slugs (CMS_HMV backend SLUG_RE, max 200): anything else cannot exist, so it is never fetched.
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const isCmsSlug = slug => typeof slug === 'string' && slug.length <= 200 && SLUG.test(slug);

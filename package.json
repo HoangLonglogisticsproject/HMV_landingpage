@@ -20,7 +20,8 @@
     "next:dev": "next dev -p 4175",
     "next:build": "next build",
     "next:start": "next start -p 4175",
-    "test:e2e:next": "npm run next:build && npx playwright test -c playwright.next.config.js"
+    "test:e2e:next": "npm run next:build && npx playwright test -c playwright.next.config.js",
+    "test:e2e:next-cms": "npx playwright test -c playwright.next-cms.config.js"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

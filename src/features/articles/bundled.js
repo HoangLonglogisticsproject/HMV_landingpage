@@ -18,6 +18,7 @@ function staticView(a, lang) {
   return {
     key: a.id,
     slug: articleSlug(a),
+    alternates: { ...a.slug },
     title: a.title[lang],
     metaTitle: a.title[lang],
     description: a.description[lang],
@@ -28,6 +29,9 @@ function staticView(a, lang) {
     cta: a.cta[lang],
   };
 }
+
+/** Every bundled article as `{ en, vi }` slugs (the same shape as the CMS index). */
+export const bundledArticleIndex = () => articles.map(a => ({ ...a.slug }));
 
 export const listBundledArticles = (lang, { pageSize }) => ({
   status: 'ready',
