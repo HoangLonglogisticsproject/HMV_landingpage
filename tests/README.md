@@ -67,6 +67,16 @@ npm run test:visual
 
 Screenshots are saved to `tests/screenshots/` (gitignored — never committed). They are for **manual review** only, not pixel-diff CI.
 
+### Visual baselines of the Next.js build (D-14)
+
+`tests/next-visual/` compares the Next.js build with committed baselines (`*-linux.png`): every page, one product and one article, full page in EN and VI with images masked, and the first viewport in EN with images. Reduced motion, images decoded and fonts loaded before each screenshot; zero tolerance; no retries. Linux only: CI runs it in the pinned image `mcr.microsoft.com/playwright:v1.64.1-noble` (job `visual`), which also rendered the baselines; on failure the diffs are in the `visual-diff` artifact.
+
+To regenerate the baselines (only for an accepted visual change, recorded in the PR), from a commit that contains the change:
+
+```bash
+docker run --rm --ipc=host -v "$PWD:/repo:ro" -v "$PWD/tests/next-visual:/out" mcr.microsoft.com/playwright:v1.64.1-noble bash -c   "git config --global --add safe.directory '*' && git clone -q /repo /work && cd /work && npm ci && npx next build &&    npx playwright test -c playwright.next-visual.config.js --update-snapshots=all; cp -r tests/next-visual/visual.spec.js-snapshots /out/"
+```
+
 To view the HTML report after a test run:
 
 ```bash
