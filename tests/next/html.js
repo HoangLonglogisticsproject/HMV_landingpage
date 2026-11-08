@@ -22,5 +22,6 @@ export const head = html => {
     canonical: links.find(l => l.rel === 'canonical')?.href,
     ogUrl: metas.find(m => m.property === 'og:url')?.content,
     hreflang: Object.fromEntries(links.filter(l => l.rel === 'alternate' && l.hreflang).map(l => [l.hreflang, l.href])),
+    jsonLd: JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1] ?? 'null'),
   };
 };

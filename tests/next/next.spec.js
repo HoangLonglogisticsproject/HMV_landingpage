@@ -62,10 +62,9 @@ for (const p of COPY) {
 
 test('articles carry Article structured data in their language', async ({ request }) => {
   for (const { key, lang, path } of URLS.filter(u => u.key.startsWith('/blog/'))) {
-    const html = await (await request.get(path)).text();
-    const json = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1];
-    const data = JSON.parse(json ?? 'null');
-    expect(data, key).toMatchObject({ '@type': 'Article', inLanguage: lang, headline: head(html).h1 });
+    const h = head(await (await request.get(path)).text());
+    // Bundled articles have no author: the organization, never a person taken from the site.
+    expect(h.jsonLd, key).toMatchObject({ '@type': 'Article', inLanguage: lang, headline: h.h1, author: { '@type': 'Organization' } });
   }
 });
 
@@ -198,11 +197,18 @@ test('robots.txt allows crawling and points to the sitemap', async ({ request })
 
 test('home pages carry Organization and WebSite structured data with confirmed facts only', async ({ request }) => {
   for (const path of ['/', '/vi']) {
-    const html = await (await request.get(path)).text();
-    const json = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1] ?? 'null';
-    const [org, site] = JSON.parse(json)['@graph'];
+    const [org, site] = head(await (await request.get(path)).text()).jsonLd['@graph'];
     expect(Object.keys(org).sort(), path).toEqual(['@id', '@type', 'alternateName', 'logo', 'name', 'url']);
     expect(site, path).toMatchObject({ '@type': 'WebSite', url: 'https://www.hmv-global.com', publisher: { '@id': org['@id'] } });
+  }
+});
+
+test('the sitemap is prerendered: served from the build output, never computed per request', async ({ request }) => {
+  test.skip(!!process.env.PLAYWRIGHT_BASE_URL, 'next start headers; a hosted preview reports its cache differently');
+  for (const attempt of ['first', 'second']) {
+    const res = await request.get('/sitemap.xml');
+    expect(res.headers()['x-nextjs-cache'], attempt).toBe('HIT');
+    expect(res.headers()['cache-control'], attempt).toBe('s-maxage=31536000');
   }
 });
 

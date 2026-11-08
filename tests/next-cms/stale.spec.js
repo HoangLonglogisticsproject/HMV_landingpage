@@ -10,10 +10,13 @@ import { MOCK_PORT } from './env.js';
  */
 const MOCK = `http://localhost:${MOCK_PORT}/__mock`;
 const INTERVAL_MS = 2_000;
-const PAGES = { '/about': '[CMS] About HMV', '/vi/insights': '[CMS] Cập nhật thương mại', '/blog/cms-trade-update': '[CMS] Trade update' };
+const PAGES = {
+  '/about': '[CMS] About HMV', '/vi/insights': '[CMS] Cập nhật thương mại', '/blog/cms-trade-update': '[CMS] Trade update',
+  '/sitemap.xml': 'https://www.hmv-global.com/blog/cms-trade-update',
+};
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-test('after the interval, a failing CMS leaves the last good page in place: 200, same content, indexable', async ({ request }) => {
+test('after the interval, a failing CMS leaves the last good page and sitemap in place: 200, same content, indexable', async ({ request }) => {
   await request.post(`${MOCK}/reset`);
   // 1. Good content, rendered and cached.
   for (const [url, text] of Object.entries(PAGES)) {

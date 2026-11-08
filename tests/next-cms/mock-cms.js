@@ -30,7 +30,9 @@ const cmsAbout = lang => ({ ...about[lang], hero: { ...about[lang].hero, title: 
 
 const initial = () => ({
   articles: [
-    ...pair('a', ['cms-trade-update', '[CMS] Trade update'], ['cms-cap-nhat-thuong-mai', '[CMS] Cập nhật thương mại']),
+    // The byline is per article in the CMS (both translations); authorRole must never reach the site.
+    ...pair('a', ['cms-trade-update', '[CMS] Trade update'], ['cms-cap-nhat-thuong-mai', '[CMS] Cập nhật thương mại'])
+      .map(a => ({ ...a, authorName: 'An Nguyen', authorRole: 'Trade analyst' })),
     article('b', 'vi', 'cms-chi-tieng-viet', '[CMS] Chỉ tiếng Việt', []),
     ...pair('c', ['cms-blocked', '[CMS] Blocked'], ['cms-bi-chan', '[CMS] Bị chặn']),
     ...pair('d', ['cms-takedown', '[CMS] Takedown'], ['cms-go-bo', '[CMS] Gỡ bỏ']),

@@ -236,7 +236,7 @@ Caching rules (no Cache Components): "By default, `fetch` requests are not cache
 | Product detail | SSG, `generateStaticParams`, `dynamicParams = false` ("Dynamic route segments not included in `generateStaticParams` will return a 404", `dynamicParams.md`) | 6 fixed products |
 | Articles listing | SSG; ISR with the CMS on | Up to 100 items |
 | Article detail | Known slugs of both locales prerendered (`generateStaticParams` from the index); `dynamicParams = true`, so a new CMS article renders on its first request and is then cached (ISR) | Segment config must be a literal, so one setting serves both modes |
-| Sitemap (`app/sitemap.xml/route.ts`), robots (`app/robots.ts`) | Static; the sitemap is ISR with the CMS on | The sitemap is written by a route handler, not the `sitemap.ts` convention, which rewrites the root as `B/`: every URL comes from `absoluteUrl()`, the formatter of canonical, hreflang and `og:url` |
+| Sitemap (`app/sitemap.xml/route.ts`), robots (`app/robots.ts`) | Prerendered at build. The sitemap: static in bundled mode, ISR with the CMS on (measured in §9.4) | The sitemap is written by a route handler, not the `sitemap.ts` convention, which rewrites the root as `B/`: every URL comes from `absoluteUrl()`, the formatter of canonical, hreflang and `og:url`. A GET route handler is not cached by default, so it sets `dynamic = 'force-static'`; tests fail if it is ever computed per request |
 | Contact / RFQ | SSG shell plus client form island | No server data; `mailto:` only |
 | Logistics, Packaging, Activities, Regulations | SSG | Bundled |
 
@@ -268,12 +268,33 @@ Expectation to communicate to editors: with traffic, typically within about 5–
 ### 9.3 Emergency takedown (implemented; tested against the mock CMS)
 
 1. **CMS:** archive or unpublish the article or page locale (an editor with the right permission). The public API then returns 404, after any HTTP cache in front of the CMS.
-2. **Site:** an operator calls `POST /api/revalidate` with the header `x-revalidate-secret: <REVALIDATE_SECRET>`. It calls `revalidateTag('cms', { expire: 0 })`, which expires every cached CMS response at once (one tag: the content is small, and an operator never has to know which tags a page used). The docs: "`{ expire: 0 }`: Stale content is never served, so the next request is a blocking revalidate" (`04-functions/revalidateTag.md`). The endpoint answers 401 without the right secret, compares in constant time, logs nothing, and is disabled when the variable is unset.
+2. **Site:** only while the CMS answers normally, an operator calls `POST /api/revalidate` with the header `x-revalidate-secret: <REVALIDATE_SECRET>`. It calls `revalidateTag('cms', { expire: 0 })`, which expires every cached CMS response at once (one tag: the content is small, and an operator never has to know which tags a page used). The docs: "`{ expire: 0 }`: Stale content is never served, so the next request is a blocking revalidate" (`04-functions/revalidateTag.md`). The endpoint answers 401 without the right secret, compares in constant time, logs nothing, and is disabled when the variable is unset. Because nothing stale is kept, a call while the CMS fails turns every CMS page and the sitemap into 5xx on their next request, until the CMS answers again (tested on the sitemap, §9.4).
 3. **Verify:** the article URL returns 404, and `/insights`, `/vi/insights` and `/sitemap.xml` no longer contain it.
-4. **If the CMS cannot unpublish it, or is unreachable:** set `CMS_BLOCKED_SLUGS` (comma-separated slugs, per locale; list both translations' slugs to remove both) and redeploy (Vercel environment changes need a new deployment). A blocked slug is a 404 under every URL form that resolves to it (`/blog/…`, `/vi/tin-tuc/…`, the other locale's route, `/tin-tuc/…`; legacy aliases redirect to one of those), and it leaves the lists, the alternates and the sitemap. Do not use rollback for this: older deployments contain the same content.
-5. **Images:** CMS media files are served by the CMS media host. Optimized copies (`next/image`, after the images PR) are cached for `images.minimumCacheTTL`. Removal = delete the media in the CMS, revalidate, then purge the image cache in Vercel (owner), or wait for the TTL.
+4. **If the CMS cannot unpublish it** (but answers): set `CMS_BLOCKED_SLUGS` (comma-separated slugs, per locale; list both translations' slugs to remove both) and redeploy (Vercel environment changes need a new deployment). A blocked slug is a 404 under every URL form that resolves to it (`/blog/…`, `/vi/tin-tuc/…`, the other locale's route, `/tin-tuc/…`; legacy aliases redirect to one of those), and it leaves the lists, the alternates and the sitemap. Do not use rollback for this: older deployments contain the same content.
+5. **If the CMS is unreachable:** a CMS-mode build cannot run, because it prerenders from the CMS (checked: `next build` fails with "Failed to collect page data for /vi/tin-tuc/[slug]"), so step 4 is not available, and step 2 must not be used. The deployed site keeps serving its last good content, the article included. What remains: a Vercel Firewall rule on the article's URLs (owner; it takes effect without a deployment, to be confirmed in the PR-13 rehearsal), which leaves the article in the cached lists and sitemap; or a deployment built with `CMS_CONTENT` unset, which serves the bundled content everywhere until the CMS is back. The choice is the content owner's; roadmap PR-13 rehearses it.
+6. **Images:** CMS media files are served by the CMS media host. Optimized copies (`next/image`, after the images PR) are cached for `images.minimumCacheTTL`. Removal = delete the media in the CMS, revalidate, then purge the image cache in Vercel (owner), or wait for the TTL.
 
 What the CMS suite (`tests/next-cms/`) shows: a cached article is served without a CMS request after it is unpublished; a missing or wrong secret changes nothing; after the endpoint call the detail is 404, the lists and the sitemap drop it, and the refetch reached the CMS despite its `max-age=60` answer, with `Cache-Control: no-cache` on the request; the other translation stays. What the mock cannot show: how a real CDN or cache in front of the CMS behaves. `no-cache` asks it to revalidate before reusing a stored copy; it does not remove that copy, and a CDN configured to ignore request directives can still serve it for up to `max-age` + `stale-while-revalidate` (about 360 s). Before `CMS_CONTENT=true`, the production-CMS gate (roadmap PR-13) checks this against the real CMS and CDN, including their response and cache headers.
+
+### 9.4 Sitemap response caching (measured, `next start`, 16.4.5)
+
+The sitemap is prerendered at build in both modes (`prerender-manifest.json`: `compute: static`). Its revalidation and tags come from its fetches: none in bundled mode; with the CMS on, the lowest fetch `revalidate` (300 s) and the fetch tag `cms` on the route entry (`x-next-cache-tags: …,cms`), so `revalidateTag('cms')` expires the sitemap together with the data it was built from.
+
+| Mode, moment | Response | Handler runs | CMS requests | `x-nextjs-cache` |
+|---|---|---|---|---|
+| Bundled, every request | The build output, `Cache-Control: s-maxage=31536000` | Never after the build | none | `HIT` |
+| CMS, within 300 s of the last generation | The cached copy, `s-maxage=300, stale-while-revalidate=31535700` | No | none | `HIT` |
+| CMS, first request after the interval | The cached (stale) copy; regeneration starts in the background | Yes, after responding | the two article lists, if their data entries are stale too | `STALE` |
+| CMS, next request | The regenerated copy | No | none | `HIT` |
+| CMS, the regeneration fails (CMS 5xx) | The last good copy, kept; retried on a later request | Yes, failing | one | `STALE`, then `HIT` |
+| CMS, first request after `POST /api/revalidate` | Regenerated before responding: `{ expire: 0 }` serves nothing stale | Yes, blocking | both lists, refetched (their entries carry the same tag) | `MISS` |
+| CMS, `POST /api/revalidate` while the CMS fails | 500 until the CMS answers, then a blocking regeneration | Yes, on every request | one per request | none, then `MISS` |
+
+Data cache interaction: a regeneration reuses a data entry that is still fresh and refetches a stale one before rendering, so it never stores stale data again (`willConsumerServerCache` in `next/dist/server/lib/patch-fetch.js`; the stale-on-error suite shows the regeneration reaching the CMS). The `/articles?locale=…&pageSize=100` entries are shared with the insights pages, so without a revalidation call the sitemap can reflect data up to one interval older than its own regeneration: about 10 minutes plus traffic gaps in the worst case, consistent with §9.2.
+
+Cost: bundled, no computation per request. With the CMS on, at most one handler run and two CMS list requests per 300 s window that has traffic, plus one after each revalidation call. A per-request handler (`dynamic`) would buy nothing: the sitemap has no request-specific content.
+
+Tests: `tests/next/next.spec.js` (bundled: `HIT` and `s-maxage=31536000` on two requests); `tests/next-cms/cms.spec.js` (after an unpublish, `HIT` with the old content and no CMS request; after the endpoint call, `MISS`, both lists refetched, the article gone; 5xx when revalidated during a CMS failure, then recovery); `tests/next-cms/stale.spec.js` (the sitemap keeps its last good content after a failed regeneration). A hosted preview reports its cache in other headers, so the header assertions run on `next start` only.
 
 ## 10. Errors, loading and 404 (verified on the branch)
 
@@ -481,3 +502,12 @@ No new P0. The CMS dependency diagram in §7 was wrong, not the code: it showed 
 | R5-8 | P2 | The shared `articleJsonLd` now carries the organization node (`@id`, `url`, `logo`) and the CMS author: Vite's article JSON-LD changes with the next merge | Accepted: confirmed facts only |
 
 Kept as directed: one global CMS cache tag (`cms`), which meets the takedown requirement at the scale of About and EcoNews; per-article tags only when a real need appears.
+
+### 16.7 Revision 6 (sitemap caching, article author, PR-08)
+
+| ID | Kind | Finding | Change |
+|---|---|---|---|
+| R6-1 | P1 (doc and tests) | The sitemap's caching was described in one line, and nothing failed if it became computed per request | Measured and documented (§9.4); `force-static` explained; tests pin `HIT` in bundled mode and `HIT` / `MISS` / `STALE` behaviour with the CMS on; the sitemap joins the stale-on-error suite |
+| R6-2 | P1 (runbook, gates PR-13) | Runbook step 4 relied on a redeploy while the CMS is unreachable; a CMS-mode build fails without the CMS. And a revalidation call during a CMS failure turns every CMS page and the sitemap into 5xx | Runbook corrected (§9.3 steps 2 and 5). Whether a CMS-mode build should tolerate an unreachable CMS is a PR-13 decision, not made here |
+| R6-3 | P2 | The CMS byline (`authorName`) is free text: the real CMS fixture says "HMV Administrator", which becomes a `Person` | Unchanged, as directed: the JSON-LD author is exactly the CMS byline, and `authorRole` is never used. Editors should enter a person's name or leave it empty (CMS content guidance, owner) |
+| R6-4 | Risk, not a migration change | The D-12 items (people and titles, contact channels, certifications, facilities, testimonials) are live on the Vite production site today, in visible text, `index.html` JSON-LD and `llms.txt` | A current production risk, independent of cutover; corrected only through the D-12 content PRs (roadmap D-12) |

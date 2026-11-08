@@ -54,6 +54,15 @@ test('list: maps DTOs to the view shape', async () => {
   });
 });
 
+test('author: the CMS authorName as written, empty means none; authorRole is never mapped', async () => {
+  const items = [summary({ authorName: 'An Nguyen', authorRole: 'Trade analyst' }), summary({ authorName: '', authorRole: 'Editor' })];
+  mockFetch({ '/api/v1/public/articles?locale=en&pageSize=3': { items, page: 1, pageSize: 3, total: 2 } });
+  const [named, unnamed] = await fetchArticles(get, { locale: 'en', pageSize: 3 });
+  assert.equal(named.author, 'An Nguyen');
+  assert.equal(unnamed.author, null);
+  assert.ok(!JSON.stringify([named, unnamed]).match(/Trade analyst|Editor|authorRole/));
+});
+
 test('list: nullable fields and unsafe cover URLs', async () => {
   mockFetch({
     '/api/v1/public/articles?locale=vi&pageSize=100': { items: [

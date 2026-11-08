@@ -52,7 +52,7 @@ Evidence is named here; the numbers are only in [architecture §12](NEXTJS_TARGE
 | D-09 | Unknown URL → 404 (including `/blog/{unknown}`, which today redirects to `/insights`); "not available in this language" → 200 with noindex | Approve |
 | D-10 | `/contact?service=`: keep ignoring it | Approve |
 | D-11 | Next preview setup by the owner (§6.2) | Owner |
-| **D-12** | **Content review C-01 to C-06** ([audit §9](NEXTJS_MIGRATION_AUDIT.md#9-content-integrity-and-geo-findings-d-12)): for each item, confirm and keep, correct or limit, or remove. Visible text is corrected in content PRs; JSON-LD follows. Items decided "correct" or "remove" land before cutover. | HMV management |
+| **D-12** | **Content review C-01 to C-06** ([audit §9](NEXTJS_MIGRATION_AUDIT.md#9-content-integrity-and-geo-findings-d-12)): for each item, confirm and keep, correct or limit, or remove. Visible text is corrected in content PRs; JSON-LD follows. Items decided "correct" or "remove" land before cutover. **The items are live on the Vite production site today** (visible text, `index.html` JSON-LD, `llms.txt`): a current production risk, not only a cutover risk. The migration does not change them; the Next.js structured data leaves them out. | HMV management |
 | D-13 | `AGENTS.md`: the `src/pages` path is updated on the branch; the rules for locale-free URLs, Helmet and React Router are amended at cleanup. Adopting Next's managed agent block is off for now (`agentRules: false`). | Tech lead |
 | D-14 | Commit visual baselines for the migration period | **Approved 2026-11-08**; first step of PR-08, before any image or font change |
 | D-15 | AI crawlers: allow all, as today | Business |
@@ -105,7 +105,7 @@ graph LR
 | PR-10 | Cutover readiness: every gate (§7.3) green on the preview; D-12 content PRs merged; sign-offs | PR-06–09, OA-1 | 2 |
 | PR-11 | Cutover (§9) | PR-10 | 0.5 + monitoring |
 | PR-12 | Cleanup: remove the Vite adapters, React Router, Helmet and the Vite navigation port (`src/app/navigation.jsx`); update docs and `AGENTS.md` rules | PR-11 plus 2 stable weeks | 1 |
-| PR-13 | `CMS_CONTENT=true` in production. Prerequisites: CMS API and media over HTTPS, the CMS-side rate limit or CDN, the bundled articles recreated with their legacy slugs, the takedown runbook rehearsed, and an **integration check against the real CMS and CDN** (the mock only proves the application's behaviour): their response and cache headers as the provider documents them, a publish and an unpublish followed by the revalidation endpoint, and whether the CDN honours the request's `Cache-Control: no-cache` (it asks for revalidation; it purges nothing). | PR-11, approval | 1 |
+| PR-13 | `CMS_CONTENT=true` in production. Prerequisites: CMS API and media over HTTPS, the CMS-side rate limit or CDN, the bundled articles recreated with their legacy slugs, the takedown runbook rehearsed, including the CMS-unreachable path (architecture §9.3 step 5: a CMS-mode build fails without the CMS) and a decision on whether the build should tolerate it, and an **integration check against the real CMS and CDN** (the mock only proves the application's behaviour): their response and cache headers as the provider documents them, a publish and an unpublish followed by the revalidation endpoint, and whether the CDN honours the request's `Cache-Control: no-cache` (it asks for revalidation; it purges nothing). | PR-11, approval | 1 |
 
 ## 5. Acceptance criteria per PR
 

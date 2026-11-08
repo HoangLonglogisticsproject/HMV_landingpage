@@ -117,6 +117,48 @@ test('takedown: cached until the protected revalidation, then gone from detail, 
   expect(await status(request, '/vi/tin-tuc/cms-go-bo')).toBe(200);
 });
 
+test('Article structured data matches the CMS article: its author as a Person, else the organization; no role', async ({ request }) => {
+  for (const [url, lang] of [['/blog/cms-trade-update', 'en'], ['/vi/tin-tuc/cms-cap-nhat-thuong-mai', 'vi']]) {
+    const page = await html(request, url);
+    const h = head(page);
+    expect(h.jsonLd, url).toEqual(expect.objectContaining({
+      '@type': 'Article', headline: h.h1, inLanguage: lang, datePublished: '2026-10-13T10:00:00.000Z',
+      author: { '@type': 'Person', name: 'An Nguyen' },
+    }));
+    expect(page, url).not.toContain('Trade analyst');
+  }
+  const { author } = head(await html(request, '/vi/tin-tuc/cms-chi-tieng-viet')).jsonLd;
+  expect(author).toMatchObject({ '@type': 'Organization', '@id': 'https://www.hmv-global.com/#organization' });
+});
+
+test('sitemap: cached until revalidation, then regenerated before responding; 5xx while the CMS fails', async ({ request }) => {
+  const sitemap = async () => {
+    const res = await request.get('/sitemap.xml');
+    return { status: res.status(), cache: res.headers()['x-nextjs-cache'], body: await res.text() };
+  };
+  await sitemap(); // regenerates it: beforeEach expired every CMS entry
+  await mock(request, 'reset-requests');
+  await mock(request, 'unpublish', '?slug=cms-takedown');
+  const cached = await sitemap();
+  expect(cached).toMatchObject({ status: 200, cache: 'HIT' });
+  expect(cached.body).toContain('/blog/cms-takedown');
+  expect(await cmsRequests(request)).toEqual([]);
+
+  expect((await revalidate(request)).status()).toBe(200);
+  // { expire: 0 }: nothing stale is served; this request waits for the regeneration, which refetched both lists.
+  const fresh = await sitemap();
+  expect(fresh).toMatchObject({ status: 200, cache: 'MISS' });
+  expect(fresh.body).not.toContain('/blog/cms-takedown');
+  expect((await cmsRequests(request)).sort()).toEqual(['en', 'vi'].map(l => `/api/v1/public/articles?locale=${l}&pageSize=100`));
+
+  // A revalidation while the CMS fails leaves nothing to serve, until the CMS answers again (runbook, architecture §9.3).
+  await mock(request, 'fail', '?status=503');
+  await revalidate(request);
+  expect((await sitemap()).status).toBeGreaterThanOrEqual(500);
+  await mock(request, 'fail', '?status=0');
+  expect(await sitemap()).toMatchObject({ status: 200, cache: 'MISS' });
+});
+
 test('CMS_BLOCKED_SLUGS: 404 under every URL form, absent from lists, alternates and the sitemap', async ({ request }) => {
   for (const url of ['/blog/cms-blocked', '/vi/tin-tuc/cms-bi-chan', '/blog/cms-bi-chan', '/vi/tin-tuc/cms-blocked', '/tin-tuc/cms-bi-chan']) {
     expect(await status(request, url), url).toBe(404);

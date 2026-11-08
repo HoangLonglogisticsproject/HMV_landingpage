@@ -5,7 +5,8 @@ import { absoluteUrl, alternateUrls, type Lang, type LocalePaths } from '@/next/
 // The sitemap, written here rather than with Next.js's sitemap convention, which rewrites the root URL as `B/`: every
 // <loc> and alternate comes from absoluteUrl(), the formatter of the canonical, hreflang and og:url. One entry per URL
 // and language, with the page's hreflang set as alternates. Articles come from the content loader, so a takedown
-// removes them here too. Static, or regenerated with the CMS data cache when CMS_CONTENT=true.
+// removes them here too. Prerendered at build (a GET handler is not cached by default): static in bundled mode; with
+// CMS_CONTENT=true, ISR with the interval and `cms` tag of its fetches (architecture §9.4).
 export const dynamic = 'force-static';
 
 const escapeXml = (s: string) => s.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);

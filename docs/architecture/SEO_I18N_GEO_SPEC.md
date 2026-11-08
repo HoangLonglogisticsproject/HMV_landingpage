@@ -121,7 +121,7 @@ Absolute, `https://www.hmv-global.com`, no query, no fragment, no trailing slash
 
 ### 7.5 XML sitemap (implemented)
 
-`app/sitemap.xml/route.ts`: every indexable page in every live locale (38 URLs in bundled mode), with `xhtml:link` alternates built by the same function as the head `hreflang` (`alternateUrls`), so both list the same set; none for a single-locale article. Articles come from the content loader, so unpublished and blocked slugs leave it. It excludes noindex states, redirects, 404s and query variants. `lastmod` (CMS `updatedAt`) is not emitted yet (SEO PR).
+`app/sitemap.xml/route.ts`: every indexable page in every live locale (38 URLs in bundled mode), with `xhtml:link` alternates built by the same function as the head `hreflang` (`alternateUrls`), so both list the same set; none for a single-locale article. Articles come from the content loader, so unpublished and blocked slugs leave it. It excludes noindex states, redirects, 404s and query variants. `lastmod` (CMS `updatedAt`) is not emitted yet (SEO PR). Caching: prerendered at build; static in bundled mode, ISR with the CMS on, refreshed before responding after a revalidation call (architecture §9.4).
 
 **Coexistence:** Next.js generates `/sitemap.xml` and `/robots.txt`, so the same paths cannot stay in `public/`. Vite's two files moved to `src/app/`; a small Vite plugin emits them unchanged in the build and serves them in `vite` (dev). A Vite E2E test checks that the built site serves them unchanged.
 
@@ -161,7 +161,7 @@ Every row in the URL matrix is asserted with `maxRedirects: 0`.
 |---|---|---|
 | `Organization` (on `/` and `/vi`) | Yes, implemented | Only the facts in the register below. `employee`, `founder`, `telephone`, `email`, `address`, certifications, facilities and testimonials wait for the D-12 outcome. |
 | `WebSite` | Yes | `name`, `url`, `inLanguage`, `publisher`. No `SearchAction`. |
-| `Article` | Yes, indexable articles only | CMS `authorName` as `Person` if present, else the organization `@id` |
+| `Article` | Yes, indexable articles only | `author`: the CMS `authorName` exactly, as `{ "@type": "Person", "name" }`, with no role, title or affiliation (`authorRole` is not used); otherwise the organization node. Never a person inferred from the site (leadership, team). Tested in unit, bundled and CMS suites |
 | `BreadcrumbList` | Deferred | Together with visible breadcrumbs |
 | `Product` | No | Quotation briefs with no offers; the markup would overstate the page |
 | `Review`, `AggregateRating` | Never | The only "reviews" are placeholders (C-01) |
@@ -183,7 +183,7 @@ Fact register for structured data (`src/views/meta.js`; a unit test rejects the 
 | Certifications, facilities, guarantees, testimonials | | No | C-03, C-06, C-01 |
 | Postal address | Floor 5, 240 Nguyen Dinh Chinh St. | No, until HMV confirms it | Not a D-12 row, but not confirmed either |
 
-The Vite site's `index.html` JSON-LD still contains several of the excluded items; it is production content and changes only through the D-12 content PRs.
+The Vite site's `index.html` JSON-LD still contains several of the excluded items; it is production content and changes only through the D-12 content PRs. This is a risk on the live Vite site today, not only at cutover (roadmap D-12).
 
 **Leaving a claim out of JSON-LD does not fix the visible page.** If a visible statement is wrong or unverified, the D-12 outcome changes the visible text (content PR). Structured data must then match the corrected visible content.
 
