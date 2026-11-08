@@ -10,7 +10,9 @@ import { about } from '../../data/about.js';
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 // The content mode (VITE_CMS_CONTENT, .env.cms in `--mode cms`) is read at import: each test imports the page fresh,
-// with the language provider from the same module graph, and renders it the way App does.
+// with the language provider from the same module graph, and renders it the way App does. That import takes seconds
+// on a loaded machine, past the default 5 s.
+vi.setConfig({ testTimeout: 20_000 });
 async function renderAbout({ cms, lang }) {
   vi.stubEnv('VITE_CMS_CONTENT', cms ? 'true' : '');
   vi.resetModules();
