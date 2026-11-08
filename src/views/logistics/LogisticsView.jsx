@@ -22,6 +22,7 @@ import { Lightbox, ZoomTrigger } from '@/components/common/Lightbox';
 import { Link } from '@/lib/navigation';
 import { logisticsServicesData } from '@/data/logisticsServices';
 import { ImagePreview } from './ImagePreview';
+import Image from '@/lib/image';
 
 // Logistics page body, shared by both builds. Server-rendered; the photo preview is the only client island.
 export function LogisticsView({ lang }) {
@@ -170,7 +171,7 @@ export function LogisticsView({ lang }) {
                         className="dg-img-thumb"
                         title={img.title}
                       >
-                        <img src={img.src} alt={img.title} loading="lazy" />
+                        <Image src={img.src} alt={img.title} sizes="(max-width: 1100px) calc(100vw - 98px), 508px" loading="lazy" />
                         <span className="dg-img-tag">{img.tag}</span>
                         <div className="dg-zoom-hint">
                           <Maximize2 size={13} />
@@ -256,7 +257,7 @@ export function LogisticsView({ lang }) {
               <div className="cb-gallery-grid">
                 {crossBorder.images.map((img, cIdx) => (
                   <ZoomTrigger key={cIdx} image={img} className="cb-img-card">
-                    <img src={img.src} alt={img.title} loading="lazy" />
+                    <Image src={img.src} alt={img.title} sizes="(max-width: 768px) 100vw, (max-width: 1100px) 47vw, 300px" loading="lazy" />
                     <div className="cb-img-overlay">
                       <span className="cb-tag">{img.tag}</span>
                       <p className="cb-img-title">{img.title}</p>

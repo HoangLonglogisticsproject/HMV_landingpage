@@ -1,6 +1,7 @@
 'use client';
 import { X } from 'lucide-react';
 import { LightboxPreview } from '@/components/common/Lightbox';
+import Image from '@/lib/image';
 
 // The Packaging photo preview: the photo alone, as a modal dialog.
 export function ImagePreview({ lang }) {
@@ -22,7 +23,7 @@ export function ImagePreview({ lang }) {
             >
               <X size={20} />
             </button>
-            <img src={image} alt="Packaging & Freight Evidence" />
+            <Image src={image} alt="Packaging & Freight Evidence" sizes="(max-width: 960px) 100vw, 960px" />
           </div>
         </div>
       )}

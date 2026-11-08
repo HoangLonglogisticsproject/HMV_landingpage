@@ -16,6 +16,7 @@ import { Lightbox, ZoomTrigger } from '@/components/common/Lightbox';
 import { Link } from '@/lib/navigation';
 import { packagingData } from '@/data/operationalLogistics';
 import { ImagePreview } from './ImagePreview';
+import Image from '@/lib/image';
 
 // Packaging page body, shared by both builds. Server-rendered; the photo preview is the only client island.
 export function PackagingView({ lang }) {
@@ -98,9 +99,10 @@ export function PackagingView({ lang }) {
             {standards.map((item, idx) => (
               <article key={item.id} className="pack-card">
                 <ZoomTrigger image={item.image} className="pack-card-media">
-                  <img
+                  <Image
                     src={item.image}
                     alt={vi ? item.titleVi : item.titleEn}
+                    sizes="(max-width: 600px) calc(100vw - 40px), (max-width: 960px) 46vw, (max-width: 1200px) 30vw, 270px"
                     loading="lazy"
                     decoding="async"
                   />
@@ -165,9 +167,10 @@ export function PackagingView({ lang }) {
                 className={`transport-stage-row ${idx % 2 === 1 ? 'row-reversed' : ''}`}
               >
                 <ZoomTrigger image={stage.image} className="stage-media">
-                  <img
+                  <Image
                     src={stage.image}
                     alt={vi ? stage.titleVi : stage.titleEn}
+                    sizes="(max-width: 960px) calc(100vw - 72px), (max-width: 1280px) 44vw, 554px"
                     loading="lazy"
                     decoding="async"
                   />

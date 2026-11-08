@@ -10,6 +10,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { copy, photos, photoCopy } from '@/data/hmv';
+import Image from '@/lib/image';
 export function Activities({ lang, full = false }) {
   const t = copy[lang];
   const [selected, setSelected] = useState(null);
@@ -187,12 +188,13 @@ export function Activities({ lang, full = false }) {
                 onClick={() => setSelected(p)}
                 aria-label={`${p.label} ${i + 1}`}
               >
-                <img
+                <Image
                   src={p.src}
                   alt={p.label}
                   width={p.width}
                   height={p.height}
-                  loading="lazy"
+                  sizes="(max-width: 600px) calc(100vw - 40px), (max-width: 1280px) 30vw, 371px"
+                  loading={full && i < 2 ? 'eager' : 'lazy'}
                   decoding="async"
                 />
               </Button>
@@ -214,7 +216,7 @@ export function Activities({ lang, full = false }) {
         <DialogContent className="photo-dialog">
           <DialogTitle>{selected?.label}</DialogTitle>
           <DialogDescription>{t.photoNote}</DialogDescription>
-          {selected && <img src={selected.src} alt={selected.label} />}
+          {selected && <Image src={selected.src} alt={selected.label} width={selected.width} height={selected.height} sizes="(max-width: 1012px) calc(100vw - 32px), 980px" />}
         </DialogContent>
       </Dialog>
     </section>

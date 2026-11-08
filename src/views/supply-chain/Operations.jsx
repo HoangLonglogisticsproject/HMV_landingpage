@@ -4,6 +4,7 @@ import { Link } from '@/lib/navigation';
 import { ArrowUpRight, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { copy, stages, photos, photoCopy } from '@/data/hmv';
+import Image from '@/lib/image';
 export function Operations({ lang, full = false }) {
   const [active, setActive] = useState(0);
   const t = copy[lang];
@@ -87,19 +88,21 @@ export function Operations({ lang, full = false }) {
           <figure
             style={{ '--chain-ratio': `${image.width} / ${image.height}` }}
           >
-            <img
+            <Image
               src={image.src}
               width={image.width}
               height={image.height}
+              sizes="(max-width: 600px) calc(100vw - 40px), (max-width: 1000px) 245px, 27vw"
               loading="lazy"
               decoding="async"
               alt={image.label}
             />
             <figcaption>{image.label}</figcaption>
             {item.id === 'origin' && (
-              <img
+              <Image
                 className="origin-inset"
                 src={photos.grower}
+                sizes="(max-width: 600px) 40vw, 150px"
                 width={960}
                 height={1280}
                 loading="lazy"

@@ -4,6 +4,7 @@ import { RichText } from '@/features/articles/RichText';
 import { Link } from '@/lib/navigation';
 import { BackButton } from './BackButton';
 import { articleCopy } from './copy';
+import Image from '@/lib/image';
 
 // Article page content inside the site shell, shared by both builds. `state` is an article resolution
 // (loading | ready | not-found | unavailable | error); `readIn` is the adapter's action to the other language.
@@ -36,7 +37,7 @@ export function ArticleView({ lang, state, readIn }) {
       </div>
       {a && (
         <>
-          {a.image && <figure className="article-hero"><img src={a.image.src} alt={a.image.alt} fetchPriority="high" decoding="async" style={a.image.position ? { objectPosition: a.image.position } : undefined} /></figure>}
+          {a.image && <figure className="article-hero"><Image src={a.image.src} alt={a.image.alt} width={a.image.width} height={a.image.height} sizes="(max-width: 1120px) calc(100vw - 40px), 1080px" loading="eager" fetchPriority="high" decoding="async" style={a.image.position ? { objectPosition: a.image.position } : undefined} /></figure>}
           <article className="article-col article-body">
             <RichText doc={a.content} />
             <aside className="article-cta glass">

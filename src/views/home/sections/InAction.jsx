@@ -2,6 +2,7 @@ import { Link } from '@/lib/navigation';
 import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { photos } from '@/data/hmv';
+import Image from '@/lib/image';
 
 // Bento grid of real HMV photographs; a unified grade keeps mixed lighting cohesive.
 const blocks = [
@@ -70,11 +71,12 @@ export function InAction({ lang }) {
         <div className="bento-grid">
           {blocks.map(b => (
             <figure key={b.key} className={`bento-item ${b.size}`}>
-              <img
+              <Image
                 src={b.src}
                 alt={b[lang]}
                 width={b.w}
                 height={b.h}
+                sizes="(max-width: 768px) calc(100vw - 40px), (max-width: 1280px) 46vw, 571px"
                 loading="lazy"
                 decoding="async"
               />

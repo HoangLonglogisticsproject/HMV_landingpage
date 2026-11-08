@@ -14,6 +14,9 @@
       "@/lib/navigation": [
         "./src/next/navigation.jsx"
       ],
+      "@/lib/image": [
+        "./src/next/image.tsx"
+      ],
       "@/*": [
         "./src/*"
       ]

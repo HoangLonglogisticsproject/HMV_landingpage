@@ -1,6 +1,7 @@
 import { Link } from '@/lib/navigation';
 import { ArrowUpRight } from 'lucide-react';
 import { productPhotos } from '@/data/productPhotos';
+import Image from '@/lib/image';
 
 const commodities = [
   { id: 'passion-fruit', en: 'Passion Fruit', vi: 'Chanh dây', size: 'c-tall' },
@@ -22,7 +23,7 @@ export function CoreCommodities({ lang }) {
             const p = productPhotos[c.id];
             return (
               <Link key={c.id} to={`/products/${c.id}`} className={`commodity ${c.size}`}>
-                <img src={p.src} alt={lang === 'vi' ? p.altVi : p.altEn} width={p.width} height={p.height} loading="lazy" decoding="async" />
+                <Image src={p.src} alt={lang === 'vi' ? p.altVi : p.altEn} width={p.width} height={p.height} sizes="(max-width: 900px) calc(100vw - 40px), (max-width: 1280px) 62vw, 767px" loading="lazy" decoding="async" />
                 <span className="commodity-label"><strong>{c[lang]}</strong><em>{lang === 'vi' ? 'Xem quy cách' : 'View Specs'}<ArrowUpRight size={16} /></em></span>
               </Link>
             );

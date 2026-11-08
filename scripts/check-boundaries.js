@@ -1,7 +1,7 @@
 // Dependency direction between the migration layers (docs/architecture/NEXTJS_TARGET_ARCHITECTURE.md §2):
 //   shared → shared · vite → shared · next → shared. Nothing else: shared code knows neither framework.
-// Shared code reaches navigation only through the `@/lib/navigation` port, which each build maps to its own
-// implementation (vite.config.js alias, tsconfig.json `paths`). Run by `npm run lint`; tested by
+// Shared code reaches navigation and images only through the `@/lib/navigation` and `@/lib/image` ports, which each
+// build maps to its own implementation (vite.config.js alias, tsconfig.json `paths`). Run by `npm run lint`; tested by
 // check-boundaries.test.js.
 // MIGRATION-ONLY: the Vite layer is deleted at cleanup (PR-12); then only the `next` rules remain useful.
 import { readFileSync, readdirSync } from 'node:fs';
@@ -24,7 +24,7 @@ const LAYERS = {
 };
 const PACKAGES = { next: /^(next|server-only)(\/|$)/, vite: /^(react-router|react-router-dom|react-helmet-async)$/ };
 const ALLOWED = { shared: ['shared'], vite: ['shared', 'vite'], next: ['shared', 'next'] };
-const PORT = '@/lib/navigation';
+const PORTS = new Set(['@/lib/navigation', '@/lib/image']);
 const EXTENSIONS = ['', '.js', '.jsx', '.ts', '.tsx', '/index.js', '/index.jsx'];
 // `import … from`, `import '…'`, `export … from`, `import('…')`
 const IMPORT = /\b(?:from|import)\s*(?:\(\s*)?['"]([^'"\n]+)['"]/g;
@@ -36,9 +36,9 @@ function resolve(files, from, specifier) {
   return EXTENSIONS.map(ext => base + ext).find(file => files.has(file)) ?? base;
 }
 
-// The layer an import specifier points into; undefined for the port and for packages no layer owns.
+// The layer an import specifier points into; undefined for the ports and for packages no layer owns.
 function targetLayer(files, file, specifier) {
-  if (specifier === PORT) return undefined;
+  if (PORTS.has(specifier)) return undefined;
   if (/^(\.|@\/)/.test(specifier)) return layerOf(resolve(files, file, specifier));
   return Object.keys(PACKAGES).find(layer => PACKAGES[layer].test(specifier));
 }

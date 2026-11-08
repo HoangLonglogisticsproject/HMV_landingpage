@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { products, photos } from '@/data/hmv';
 import { productPhotos } from '@/data/productPhotos';
+import Image from '@/lib/image';
 
 export function SupplyChainPillars({ lang }) {
   const vi = lang === 'vi';
@@ -129,10 +130,11 @@ export function SupplyChainPillars({ lang }) {
                 <article key={p.id} className="pillar-product-card">
                   {photo && (
                     <figure className="pillar-card-photo">
-                      <img
+                      <Image
                         src={photo.src}
                         width={photo.width}
                         height={photo.height}
+                        sizes="(max-width: 800px) calc(100vw - 40px), (max-width: 1100px) 46vw, 369px"
                         alt={vi ? photo.altVi : photo.altEn}
                         loading="lazy"
                         decoding="async"
@@ -260,8 +262,9 @@ export function SupplyChainPillars({ lang }) {
             </div>
 
             <figure className="pillar-wind-media">
-              <img
+              <Image
                 src={photos.wind}
+                sizes="(max-width: 1100px) calc(100vw - 40px), 468px"
                 alt={
                   vi
                     ? 'Dự án điện gió hiện đại tại Việt Nam'

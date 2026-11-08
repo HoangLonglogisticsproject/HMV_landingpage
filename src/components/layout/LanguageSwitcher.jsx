@@ -59,6 +59,7 @@ export function LanguageSwitcher({ currentLang, onSelect, className = '' }) {
                 width="21"
                 height="15"
                 loading="eager"
+                fetchPriority="low"
                 decoding="async"
               />
               <span className="hmv-lang-name">{activeLang.label}</span>

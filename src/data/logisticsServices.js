@@ -13,7 +13,6 @@ import crossborder6 from '@/assets/crossborder6.webp';
 import mijack from '@/assets/mijack.webp';
 import mijack2 from '@/assets/mijack2.webp';
 import mijack3 from '@/assets/mijack3.webp';
-import { assetSrc } from '@/lib/utils';
 
 export const logisticsServicesData = {
   dangerousGoods: {
@@ -33,9 +32,9 @@ export const logisticsServicesData = {
         descVi: 'Book tàu container chuyên dụng (DG Reefer / ISO Tank / DG Dry) và tải bay chuyên biệt tuân thủ IATA Dangerous Goods Regulations. Giám sát phân loại UN/Class, tách lô tương thích (Segregation table) và niêm phong an toàn.',
         descEn: 'Direct booking for DG vessel space (ISO Tank / DG Reefer / DG Dry) and air cargo capacity under strict IATA DGR rules, complete with UN segregation validation and certified sealing.',
         images: [
-          { src: assetSrc(dangerousGoods), title: 'IATA/IMO Dangerous Goods Container Handling', tag: 'DG Air & Sea' },
-          { src: assetSrc(dangerousGoods1), title: 'DG Cargo Sorting & Drum Palletization', tag: 'IMDG Protocol' },
-          { src: assetSrc(chemical), title: 'Chemical Drum Stowage & Seal Verification', tag: 'Chemical Transit' }
+          { src: dangerousGoods, title: 'IATA/IMO Dangerous Goods Container Handling', tag: 'DG Air & Sea' },
+          { src: dangerousGoods1, title: 'DG Cargo Sorting & Drum Palletization', tag: 'IMDG Protocol' },
+          { src: chemical, title: 'Chemical Drum Stowage & Seal Verification', tag: 'Chemical Transit' }
         ],
         highlightsVi: [
           'Khai báo hàng nguy hiểm (IMO Dangerous Goods Declaration - DGD)',
@@ -58,8 +57,8 @@ export const logisticsServicesData = {
         descVi: 'Năng lực xử lý các loại hàng dự án quá khổ quá tải (OOG), thiết bị siêu trường siêu trọng, hàng hóa chất lỏng công nghiệp đựng trong phuy thép/nhựa và thùng IBC Tanks chuyên dụng.',
         descEn: 'Proven engineering capacity for Out-Of-Gauge (OOG), project breakbulk, liquid industrial chemicals in heavy-gauge drums, and certified IBC bulk containers.',
         images: [
-          { src: assetSrc(specialcargoes), title: 'Special Cargo Lift & Heavy Rigging Inspection', tag: 'Special Cargo' },
-          { src: assetSrc(chemical2), title: 'Chemical Drums & IBC Tank Loading Line', tag: 'IBC & Drums' }
+          { src: specialcargoes, title: 'Special Cargo Lift & Heavy Rigging Inspection', tag: 'Special Cargo' },
+          { src: chemical2, title: 'Chemical Drums & IBC Tank Loading Line', tag: 'IBC & Drums' }
         ],
         highlightsVi: [
           'Xếp dỡ cơ giới hạng nặng bằng cẩu bến và xe nâng tải trọng lớn',
@@ -82,7 +81,7 @@ export const logisticsServicesData = {
         descVi: 'Quản lý kho bãi, đóng gói, phân loại và lưu thông hàng bách hóa, nguyên phụ liệu công nghiệp, nông sản xuất khẩu và hàng tiêu dùng nhanh với năng suất cross-docking vượt trội.',
         descEn: 'Full-spectrum dry warehouse management, carton bundling, pallet wrapping, and high-velocity cross-dock dispatch for industrial materials and export commodities.',
         images: [
-          { src: assetSrc(generalCargoesHandling), title: 'General Cargo Cross-Dock Warehouse & Pallet Stacking', tag: 'General Cargo' }
+          { src: generalCargoesHandling, title: 'General Cargo Cross-Dock Warehouse & Pallet Stacking', tag: 'General Cargo' }
         ],
         highlightsVi: [
           'Đóng pallet chuẩn ISPM 15, màng co nhiệt PE chống ẩm',
@@ -105,9 +104,9 @@ export const logisticsServicesData = {
         descVi: 'Tổ chức các chuyến khảo sát thực địa tận nhà máy sản xuất, kho hóa chất và bến bãi cảng biển. Minh bạch quy trình đóng gói, năng lực thiết bị và đảm bảo an toàn lao động.',
         descEn: 'On-site factory walkthroughs, chemical plant audits, and container yard inspection visits verifying physical packing standards, machinery capacity, and safety compliance.',
         images: [
-          { src: assetSrc(mijack), title: 'Terminal Gantry Crane & Site Inspection', tag: 'Factory & Port Audit' },
-          { src: assetSrc(mijack2), title: 'Container Yard Logistics Audit', tag: 'Yard Equipment' },
-          { src: assetSrc(mijack3), title: 'Intermodal Transfer & Heavy Equipment Verification', tag: 'Site Tour' }
+          { src: mijack, title: 'Terminal Gantry Crane & Site Inspection', tag: 'Factory & Port Audit' },
+          { src: mijack2, title: 'Container Yard Logistics Audit', tag: 'Yard Equipment' },
+          { src: mijack3, title: 'Intermodal Transfer & Heavy Equipment Verification', tag: 'Site Tour' }
         ],
         highlightsVi: [
           'Khảo sát trực tiếp điều kiện đóng gói và lưu kho tại nhà xưởng',
@@ -133,12 +132,12 @@ export const logisticsServicesData = {
     leadVi: 'Đội xe kéo container chuyên dụng và xe tải liên vận phục vụ tuyến xuyên biên giới Việt Nam - Campuchia (Mộc Bài / Bavet, Xa Mát / Trapeang Phlong, Hoa Lư / Trapeang Sre). Dịch vụ thông quan tại cả 2 đầu biên giới, sang xe nhanh chóng, an toàn và đúng hẹn.',
     leadEn: 'Dedicated container chassis and cross-border trucking fleet serving the direct Vietnam - Cambodia trade lane (Moc Bai / Bavet, Xa Mat, Hoa Lu). Full customs clearance at both borders, seamless transshipment, bonded drayage, and punctuality.',
     images: [
-      { src: assetSrc(crossborder1), title: 'Cross-Border Container Trucks at Border Checkpoint', tag: 'Border Gate' },
-      { src: assetSrc(crossborder2), title: 'Fleet Staging & Customs Inspection Lane', tag: 'Customs Lane' },
-      { src: assetSrc(crossborder3), title: 'Border Crossing Drayage Convoy', tag: 'Highway Convoy' },
-      { src: assetSrc(crossborder4), title: 'Cross-Border Truck Terminal Dispatch', tag: 'Terminal Dispatch' },
-      { src: assetSrc(crossborder5), title: 'Inspection & Seal Check at International Border', tag: 'Security Seal' },
-      { src: assetSrc(crossborder6), title: 'Border Gate Crossing Clearance Process', tag: 'Clearance Gate' }
+      { src: crossborder1, title: 'Cross-Border Container Trucks at Border Checkpoint', tag: 'Border Gate' },
+      { src: crossborder2, title: 'Fleet Staging & Customs Inspection Lane', tag: 'Customs Lane' },
+      { src: crossborder3, title: 'Border Crossing Drayage Convoy', tag: 'Highway Convoy' },
+      { src: crossborder4, title: 'Cross-Border Truck Terminal Dispatch', tag: 'Terminal Dispatch' },
+      { src: crossborder5, title: 'Inspection & Seal Check at International Border', tag: 'Security Seal' },
+      { src: crossborder6, title: 'Border Gate Crossing Clearance Process', tag: 'Clearance Gate' }
     ],
     featuresVi: [
       'Thông quan 2 đầu cửa khẩu (Hai quan Việt Nam & Hải quan Campuchia)',

@@ -36,8 +36,9 @@ test('pass: shared → shared through every import form in use', () => {
     "const m = await import('@/lib/utils');",
     "import {\n  cn,\n} from '@/lib/utils';",
     "import type { X } from '@/lib/utils';",
-    // The navigation port is the one framework-dependent path shared code may name.
+    // The ports are the only framework-dependent paths shared code may name.
     "import { Link } from '@/lib/navigation';",
+    "import Image from '@/lib/image';",
   ];
   for (const code of forms) assert.deepEqual(check(SHARED, code), [], code);
 });

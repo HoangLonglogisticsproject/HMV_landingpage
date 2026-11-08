@@ -1,6 +1,7 @@
 'use client';
 import { X } from 'lucide-react';
 import { LightboxPreview } from '@/components/common/Lightbox';
+import Image from '@/lib/image';
 
 // The Logistics photo preview: the photo with its tag and title.
 export function ImagePreview() {
@@ -19,7 +20,7 @@ export function ImagePreview() {
             >
               <X size={20} />
             </button>
-            <img src={image.src} alt={image.title} />
+            <Image src={image.src} alt={image.title} sizes="(max-width: 960px) 100vw, 960px" />
             <div className="pack-lightbox-caption">
               <strong>{image.tag}</strong> · {image.title}
             </div>

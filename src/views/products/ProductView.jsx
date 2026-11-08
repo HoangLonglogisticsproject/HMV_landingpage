@@ -5,6 +5,7 @@ import { Link } from '@/lib/navigation';
 import { copy, stages, photoCopy } from '@/data/hmv';
 import { productPhotos } from '@/data/productPhotos';
 import { productMeta } from '../meta';
+import Image from '@/lib/image';
 
 // Product page body, shared by both builds. `product` is undefined for an unknown id on the Vite site only.
 export function ProductView({ lang, product }) {
@@ -18,11 +19,13 @@ export function ProductView({ lang, product }) {
             <div>
               {photo && (
                 <figure className="product-detail-photo">
-                  <img
+                  <Image
                     src={photo.src}
                     width={photo.width}
                     height={photo.height}
-                    loading="lazy"
+                    sizes="(max-width: 600px) calc(100vw - 40px), (max-width: 1280px) 45vw, 530px"
+                    loading="eager"
+                    fetchPriority="high"
                     decoding="async"
                     alt={lang === 'vi' ? photo.altVi : photo.altEn}
                   />

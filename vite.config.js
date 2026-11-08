@@ -27,9 +27,11 @@ const viteSeoFiles = {
 export default defineConfig({
   plugins: [react(), tailwindcss(), viteSeoFiles],
   resolve: {
-    // `@/lib/navigation` is a port with one implementation per build (Next.js: tsconfig.json `paths`). MIGRATION-ONLY.
+    // `@/lib/navigation` and `@/lib/image` are ports with one implementation per build (Next.js: tsconfig.json
+    // `paths`). MIGRATION-ONLY.
     alias: [
       { find: /^@\/lib\/navigation$/, replacement: path.resolve(import.meta.dirname, './src/app/navigation.jsx') },
+      { find: /^@\/lib\/image$/, replacement: path.resolve(import.meta.dirname, './src/app/image.jsx') },
       { find: '@', replacement: path.resolve(import.meta.dirname, './src') },
     ],
   },

@@ -12,7 +12,7 @@ export function InsightsView({ lang, articles }) {
     <DetailLayout lang={lang} {...insightsMeta(lang)}>
       <section className="section-pad">
         <div className="content-width">
-          <ArticleGrid state={articles} lang={lang} />
+          <ArticleGrid state={articles} lang={lang} aboveFold />
         </div>
       </section>
       <Regulations lang={lang} limit={3} />

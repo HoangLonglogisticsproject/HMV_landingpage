@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { copy, products } from '@/data/hmv';
 import { productPhotos } from '@/data/productPhotos';
+import Image from '@/lib/image';
 const icons = [Flower2, Leaf, Sprout, Wheat, CircleDot, Layers];
 export function ProductPortfolio({ lang }) {
   const t = copy[lang];
@@ -34,9 +35,10 @@ export function ProductPortfolio({ lang }) {
                 to={`/products/${p.id}`}
               >
                 {photo && (
-                  <img
+                  <Image
                     className="product-photo"
                     src={photo.src}
+                    sizes="(max-width: 860px) 46vw, (max-width: 1280px) 30vw, 369px"
                     width={photo.width}
                     height={photo.height}
                     loading="lazy"

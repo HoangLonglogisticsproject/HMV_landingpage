@@ -6,6 +6,7 @@ import fruitFarmPhoto from '@/assets/fruitFarm.webp';
 import journeyWeighing from '@/assets/fruitWeighing.webp';
 import journeyFactory from '@/assets/visitfactory.webp';
 import { assetSrc } from '@/lib/utils';
+import Image from '@/lib/image';
 
 const steps = [
   { src: fruitFarmPhoto, w: 1280, h: 960, en: ['Origins', 'Direct, farm-level connections with Vietnamese growers.'], vi: ['Vùng trồng', 'Kết nối trực tiếp với người trồng tại vùng nguyên liệu.'] },
@@ -39,7 +40,7 @@ export function ValueJourney({ lang }) {
         <div className="journey-media">
           {steps.map((s, i) => (
             <figure key={i} data-i={i} ref={(el) => (refs.current[i] = el)} className={active === i ? 'on' : ''}>
-              <img src={assetSrc(s.src)} alt={s[lang][0]} width={s.w} height={s.h} loading="lazy" decoding="async" />
+              <Image src={assetSrc(s.src)} alt={s[lang][0]} width={s.w} height={s.h} sizes="(max-width: 900px) calc(100vw - 40px), (max-width: 1280px) 46vw, 572px" loading="lazy" decoding="async" />
             </figure>
           ))}
         </div>

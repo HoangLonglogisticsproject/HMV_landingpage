@@ -3,6 +3,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { copy } from '@/data/hmv';
 import { logisticsActivities } from '@/data/logisticsActivities';
+import Image from '@/lib/image';
 
 export function LogisticsAction({ lang }) {
   const vi = lang === 'vi';
@@ -35,9 +36,10 @@ export function LogisticsAction({ lang }) {
           {logisticsActivities.map((p, i) => (
             <figure key={p.src}>
               <div className="logistics-action-photo">
-                <img
+                <Image
                   src={p.src}
                   alt={p[lang]}
+                  sizes="(max-width: 600px) calc(100vw - 40px), (max-width: 960px) 46vw, (max-width: 1280px) 30vw, 371px"
                   width={p.width}
                   height={p.height}
                   loading="lazy"
