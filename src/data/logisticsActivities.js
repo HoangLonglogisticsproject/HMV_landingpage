@@ -1,10 +1,10 @@
-import portVisit from '@/assets/logistic/visit.jpg';
-import groundbreaking from '@/assets/logistic/logis2.jpg';
-import factoryVisit from '@/assets/logistic/visitfactory.jpg';
-import containerDepot from '@/assets/logistic/logis3.jpg';
-import xrayScanning from '@/assets/logistic/car.jpg';
-import palletisedCargo from '@/assets/logistic/package.jpg';
-import planningMeeting from '@/assets/logistic/meeting.jpg';
+import portVisit from '@/assets/logistic/visit.webp';
+import groundbreaking from '@/assets/logistic/logis2.webp';
+import factoryVisit from '@/assets/logistic/visitfactory.webp';
+import containerDepot from '@/assets/logistic/logis3.webp';
+import xrayScanning from '@/assets/logistic/car.webp';
+import palletisedCargo from '@/assets/logistic/package.webp';
+import planningMeeting from '@/assets/logistic/meeting.webp';
 import { assetSrc } from '@/lib/utils';
 
 // Operational photographs supplied by HMV. Captions describe what is shown;

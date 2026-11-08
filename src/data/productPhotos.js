@@ -1,9 +1,9 @@
-import passionFruit from '@/assets/passion-fruit-cut.png';
-import bananas from '@/assets/vietnam-bananas.png';
-import dragonFruit from '@/assets/dragonFruit.png';
-import pepper from '@/assets/phu-quoc-pepper.png';
-import cashews from '@/assets/cashew-kernels-unbranded.png';
-import tapioca from '@/assets/tapioca-starch-reference.png';
+import passionFruit from '@/assets/passion-fruit-cut.webp';
+import bananas from '@/assets/vietnam-bananas.webp';
+import dragonFruit from '@/assets/dragonFruit.webp';
+import pepper from '@/assets/phu-quoc-pepper.webp';
+import cashews from '@/assets/cashew-kernels-unbranded.webp';
+import tapioca from '@/assets/tapioca-starch-reference.webp';
 import { assetSrc } from '@/lib/utils';
 
 // Only verified photographs belong here. Missing categories stay unfilled

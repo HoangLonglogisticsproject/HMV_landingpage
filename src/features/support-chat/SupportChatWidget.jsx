@@ -18,7 +18,7 @@ import {
   CheckCheck
 } from 'lucide-react';
 import { productPhotos } from '@/data/productPhotos';
-import logoImage from '@/assets/logohmv.png';
+import logoImage from '@/assets/logohmv.webp';
 import { Link, useLanguageSwitch } from '@/lib/navigation';
 import { assetSrc } from '@/lib/utils';
 

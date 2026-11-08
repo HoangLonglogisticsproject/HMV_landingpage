@@ -1,18 +1,18 @@
-import chemical from '@/assets/chemical.jpg';
-import chemical2 from '@/assets/chemical2.jpg';
-import dangerousGoods from '@/assets/dangerousGoods.jpg';
-import dangerousGoods1 from '@/assets/dangerousGoods1.jpg';
-import specialcargoes from '@/assets/specialcargoes.jpg';
-import generalCargoesHandling from '@/assets/generalCargoesHandling.jpg';
-import crossborder1 from '@/assets/crossborder1.jpg';
-import crossborder2 from '@/assets/crossborder2.jpg';
-import crossborder3 from '@/assets/crossborder3.jpg';
-import crossborder4 from '@/assets/crossborder4.jpg';
-import crossborder5 from '@/assets/crossborder5.jpg';
-import crossborder6 from '@/assets/crossborder6.jpg';
-import mijack from '@/assets/mijack.jpg';
-import mijack2 from '@/assets/mijack2.jpg';
-import mijack3 from '@/assets/mijack3.jpg';
+import chemical from '@/assets/chemical.webp';
+import chemical2 from '@/assets/chemical2.webp';
+import dangerousGoods from '@/assets/dangerousGoods.webp';
+import dangerousGoods1 from '@/assets/dangerousGoods1.webp';
+import specialcargoes from '@/assets/specialcargoes.webp';
+import generalCargoesHandling from '@/assets/generalCargoesHandling.webp';
+import crossborder1 from '@/assets/crossborder1.webp';
+import crossborder2 from '@/assets/crossborder2.webp';
+import crossborder3 from '@/assets/crossborder3.webp';
+import crossborder4 from '@/assets/crossborder4.webp';
+import crossborder5 from '@/assets/crossborder5.webp';
+import crossborder6 from '@/assets/crossborder6.webp';
+import mijack from '@/assets/mijack.webp';
+import mijack2 from '@/assets/mijack2.webp';
+import mijack3 from '@/assets/mijack3.webp';
 import { assetSrc } from '@/lib/utils';
 
 export const logisticsServicesData = {

@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from '@/lib/navigation';
 import { ArrowUpRight } from 'lucide-react';
-import fruitFarmPhoto from '@/assets/fruitFarm.jpg';
-import journeyWeighing from '@/assets/fruitWeighing.jpg';
-import journeyFactory from '@/assets/visitfactory.jpg';
+import fruitFarmPhoto from '@/assets/fruitFarm.webp';
+import journeyWeighing from '@/assets/fruitWeighing.webp';
+import journeyFactory from '@/assets/visitfactory.webp';
 import { assetSrc } from '@/lib/utils';
 
 const steps = [

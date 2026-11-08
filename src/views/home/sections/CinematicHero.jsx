@@ -2,8 +2,8 @@
 import { Link } from '@/lib/navigation';
 import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import macroOcean from '@/assets/hmv-macro-ocean.png';
-import fruitFarmPhoto from '@/assets/fruitFarm.jpg';
+import macroOcean from '@/assets/hmv-macro-ocean.webp';
+import fruitFarmPhoto from '@/assets/fruitFarm.webp';
 import { assetSrc } from '@/lib/utils';
 
 const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
