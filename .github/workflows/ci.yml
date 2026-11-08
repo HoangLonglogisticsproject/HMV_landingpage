@@ -45,20 +45,15 @@ jobs:
   visual:
     name: Visual baselines (D-14, Next.js)
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    # The baselines (tests/next-visual/) were rendered in this image; fonts and the browser stay fixed with it.
-    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24.18.0
-          cache: npm
-      - run: npm ci
-      - run: npm run next:build
-      - run: npx playwright test -c playwright.next-visual.config.js
+      # The image that rendered the baselines (tests/README.md): its browser, fonts and Node.js render the comparison.
+      - run: >
+          docker run --rm --ipc=host -e CI=true -v "$PWD:/work" -w /work mcr.microsoft.com/playwright:v1.64.1-noble
+          bash -c "npm ci --no-audit --no-fund && npx next build && npx playwright test -c playwright.next-visual.config.js"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
