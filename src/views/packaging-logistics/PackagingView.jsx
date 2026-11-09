@@ -109,11 +109,13 @@ export function PackagingView({ lang }) {
                   <div className="pack-card-tag">
                     <span>{vi ? item.tagVi : item.tagEn}</span>
                   </div>
+                  {/* Decorative: the card itself is the zoom control (ZoomTrigger), so this is not a second focus stop. */}
                   <button
                     type="button"
                     className="pack-zoom-btn"
                     title={vi ? 'Xem ảnh phóng to' : 'Zoom photo'}
-                    aria-label={vi ? 'Xem ảnh phóng to' : 'Zoom photo'}
+                    tabIndex={-1}
+                    aria-hidden="true"
                   >
                     <Maximize2 size={15} />
                   </button>

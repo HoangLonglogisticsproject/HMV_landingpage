@@ -8,15 +8,14 @@ export function ImagePreview() {
   return (
     <LightboxPreview>
       {(image, close) => (
-        <div className="pack-lightbox" onClick={close}>
-          <div
-            className="pack-lightbox-content"
-            onClick={e => e.stopPropagation()}
-          >
+        // A click on the backdrop closes; the keyboard closes with Escape or the button (LightboxPreview).
+        <div className="pack-lightbox" role="presentation" onClick={e => e.target === e.currentTarget && close()}>
+          <div className="pack-lightbox-content" role="dialog" aria-modal="true" aria-label={image.title}>
             <button
               className="pack-lightbox-close"
               onClick={close}
               aria-label="Close image preview"
+              autoFocus
             >
               <X size={20} />
             </button>

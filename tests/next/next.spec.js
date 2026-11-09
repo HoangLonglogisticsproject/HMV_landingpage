@@ -212,6 +212,24 @@ test('the sitemap is prerendered: served from the build output, never computed p
   }
 });
 
+for (const [path, trigger, close] of [['/logistics', '.dg-img-thumb', '.pack-lightbox-close'], ['/packaging-logistics', '.stage-media', '.lightbox-close']]) {
+  test(`${path}: a gallery photo opens from the keyboard, Escape closes it, focus returns`, async ({ page }) => {
+    await page.goto(path);
+    const thumb = page.locator(trigger).first();
+    const dialog = page.locator('.pack-lightbox [role="dialog"]');
+    // Before hydration the key does nothing: retry.
+    await expect(async () => {
+      await thumb.focus();
+      await page.keyboard.press('Enter');
+      await expect(dialog).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
+    await expect(page.locator(close)).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(thumb).toBeFocused();
+  });
+}
+
 test('the revalidation endpoint refuses requests without the secret', async ({ request }) => {
   expect((await request.post('/api/revalidate')).status()).toBe(401);
   expect((await request.post('/api/revalidate', { headers: { 'x-revalidate-secret': 'guess' } })).status()).toBe(401);
