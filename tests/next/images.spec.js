@@ -21,6 +21,7 @@ const LIGHTBOXES = [
 ];
 // Served at the full resolution of the photograph HMV supplied (checked against the originals in commit f10daaa),
 // which is smaller than their largest painted size × DPR: a sharper version needs a larger original, not an export.
+// Each is listed, with its sizes, in docs/architecture/IMAGE_ASSET_DEBT.md; remove it from both when it is replaced.
 const ORIGINAL_LIMITED = new Set(['car.webp', 'container1.webp', 'crossborder1.webp', 'crossborder2.webp',
   'crossborder3.webp', 'crossborder4.webp', 'crossborder5.webp', 'crossborder6.webp', 'factory-visit.webp',
   'farm-team.webp', 'forest-team.webp', 'fruitFarm.webp', 'fruitWeighing.webp', 'grower-visit.webp',

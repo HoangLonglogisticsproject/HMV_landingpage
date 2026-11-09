@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Revision 7, 2026-11-09. PR-01 to PR-08 are implemented on `feat/nextjs-foundation` (not merged; D-18 not approved). Fonts stay on Google Fonts (D-20). Production runs Vite with `CMS_CONTENT` off. No cutover, and no CMS in production. Test and CI numbers: [architecture §12](NEXTJS_TARGET_ARCHITECTURE.md#12-coexistence-evidence-branch-featnextjs-foundation). |
+| Status | Revision 8, 2026-11-09. PR-01 to PR-08 are implemented on `feat/nextjs-foundation`, open as a pull request into `main` for the final automated review only (not merged; D-18 not approved). Fonts stay on Google Fonts (D-20). Production runs Vite with `CMS_CONTENT` off. No cutover, and no CMS in production. Test and CI numbers: [architecture §12](NEXTJS_TARGET_ARCHITECTURE.md#12-coexistence-evidence-branch-featnextjs-foundation). |
 | Remaining estimate | About 7 engineer-days (1.5 weeks for one engineer; 2–3 calendar weeks with review), plus owner and content actions |
 | Related | [Audit](NEXTJS_MIGRATION_AUDIT.md) · [Architecture](NEXTJS_TARGET_ARCHITECTURE.md) · [SEO spec](SEO_I18N_GEO_SPEC.md) · [URL matrix](URL_MIGRATION_MATRIX.md) |
 
@@ -63,7 +63,7 @@ Evidence is named here; the numbers are only in [architecture §12](NEXTJS_TARGE
 | D-18 | Merging the branch into `main` deploys Vite production with more than the two titles. Production delta to review: the migration refactor and rollback compatibility (shared views, ports, `src/i18n/routes.js`, `LegacyLocaleRedirect` mapping); D-06 (two titles); the re-exported WebP image sources (new file names and hashes, smaller transfers, the same pixel dimensions where a lightbox shows the image at its intrinsic size); the confirmed Article JSON-LD additions (organization node, CMS author); the Vite smoke checks and other behaviour-preserving internal changes. Before approval: a Vite visual and smoke verification with the WebP assets (architecture §12), not only the Next.js baselines. | **Not approved yet (2026-11-09)**: development continues on the branch until the final review |
 | D-19 | `hmv-landingpage.vercel.app` publicly duplicates production (F-33): redirect it to `www` in the Vercel domain settings | Owner, independent of the migration |
 | **D-20** | **Fonts.** **Decided 2026-11-09: keep the Google Fonts link through the migration and cutover.** `wip/next-font` is not merged. Self-hosting becomes a separate performance and design PR after cutover, which selects a canonical font build and validates it across the supported platforms (`next/font` self-hosts the build Google serves to macOS, iOS and Android; Windows and Linux visitors get another build today, architecture §11). Poppins' Vietnamese coverage stays known typography debt. The `/logistics` CLS of 0.131 (the Google Fonts swap, also before the migration) does not force a typography change: the migration gate is no regression, and CLS ≤ 0.1 is performance backlog. | Decided |
-| **D-21** | **G-10 JavaScript criterion.** **Decided 2026-11-09:** "JS on `/` ≤ 50% of 620 KB" is replaced by: home page initial (cold-load) JavaScript transferred ≤ 250 kB, and TBT ≤ 200 ms. The decoded total and the framework/application split are still reported, to diagnose, but the decoded runtime is not a gate. Revision 6: 223 kB transferred, passes; regressions are tracked from there. | Decided |
+| **D-21** | **G-10 JavaScript criterion.** **Decided 2026-11-09:** home page initial JavaScript transferred ≤ 250 kB, and TBT ≤ 200 ms. Measurement: the production build (`next start` of the commit, or the hosted preview); the home page `/`; a cold first navigation with the browser cache disabled (Lighthouse clears it before each run); the compressed bytes transferred for every script requested during the load (Lighthouse `resource-summary`, scripts); mobile preset, median of 5. The decoded total and the framework/application split are reported to diagnose, never gated. Approved PR-08 baseline: 223 kB, every run. | Decided |
 
 ## 4. PR sequence
 
@@ -195,7 +195,7 @@ Without CI, the same can be run locally: `npx vercel@65.2.0 build --local-config
 | G-7 Functional parity | Navigation and workflow specs pass on Next; `mailto:` hrefs byte-identical; switcher regressions pass (`lang` dropped, `product`, UTM and hash kept) |
 | G-8 Visual | ≤ 1% pixel diff per page and viewport, or design-owner sign-off |
 | G-9 Accessibility | 0 critical or serious axe findings, EN and VI |
-| G-10 Performance | Lighthouse mobile (median of 3, after warm-up) on 5 templates. **Gates:** home page initial JavaScript transferred ≤ 250 kB (D-21); TBT ≤ 200 ms; no image transfer over 500 kB at 375 px; LCP and CLS no worse than the pre-migration baseline (architecture §12). **Targets, tracked as performance backlog:** LCP ≤ 2.5 s, CLS ≤ 0.1. |
+| G-10 Performance | On the five gate templates `/`, `/products/passion-fruit`, `/about`, `/logistics`, `/vi/insights` (home, product, static, service and listing page; Vietnamese for the listing, which loads the Vietnamese font subsets). **Gates:** Lighthouse mobile lab LCP median ≤ 3.0 s, and no template more than 10% slower than the approved PR-08 baseline (architecture §12); TBT ≤ 200 ms; home page initial JavaScript transferred ≤ 250 kB (D-21); no image transfer over 500 kB at mobile size. **Measurement:** Lighthouse 13.5.0, mobile preset with applied throttling (`--throttling-method=devtools`), the production build, two discarded warm-up runs, then the median of 5. No tolerance is added to these thresholds. **Long-term targets, not migration work:** LCP ≤ 2.5 s (lab and field CWV), CLS ≤ 0.1. |
 | G-11 CMS (with the flag on, mock) | As in PR-06, including the takedown |
 | G-12 Security | No browser requests to the CMS; no secrets in bundles |
 | G-13 Indexing | Preview: noindex on 100% of pages and 404s. Production: 0 noindex on indexable pages. |
@@ -208,8 +208,24 @@ Without CI, the same can be run locally: `npx vercel@65.2.0 build --local-config
 |---|---|
 | D-18 (merge into `main`) | The reviewer's approval of the production delta in the D-18 row; the Vite visual and smoke verification with the WebP assets (done for revision 7, architecture §12; repeat on the final commit); CI green; a normal PR so SonarQube Cloud and CodeRabbit run |
 | PR-09 (rollback readiness) | D-18 merged and deployed as Vite production (RB-1); the rollback-compatibility spec against that deployment; the rehearsal (§8.5) |
-| PR-10 (cutover readiness) | G-4: the sitemap validated against the XSD; OA-1: the hosted Vercel preview, with G-15 (one raw `Location` per redirect, including a CMS-mode check after a revalidation); the D-12 content PRs; every gate of §7.3 on the preview; sign-offs |
+| PR-10 (cutover readiness) | G-4: the sitemap validated against the XSD; OA-1: the hosted Vercel preview, with G-15 (one raw `Location` per redirect, including a CMS-mode check after a revalidation); the Search Console and Bing URL inventory reconciled with the URL matrix; the D-12 content decisions and PRs; every gate of §7.3 on the preview, G-10 measured as defined there; sign-offs |
 | PR-13 (CMS in production) | Its prerequisites in §4, including the CMS-unreachable takedown path and the CMS media host allow-list |
+
+After D-18 the order is PR-09, OA-1 and G-15, the sitemap XSD, the URL inventory, D-12, then PR-10. No further performance work in the migration.
+
+### 7.5 Post-cutover backlog (not in the migration)
+
+Prioritized only when field data (Search Console Core Web Vitals, real-user measurements) shows a need:
+
+| Item | Why it is not migration work | Evidence so far |
+|---|---|---|
+| Critical CSS, broad CSS splitting | An architecture change to all styles | Text-LCP pages paint when the 22 kB main CSS chunk arrives (architecture §12) |
+| Experimental CSS inlining (`experimental.inlineCss`) | Experimental; HTML 15 → 73 kB per page | LCP −0.1 to −0.2 s, TBT above the gate on `/about` |
+| Navigation and SupportChat restructure (fewer client islands, lazy chat) | Large P2 refactors | About 410 kB of the home page's 683 kB decoded JavaScript is the framework; the chat is about 8 kB gzip |
+| Self-hosted fonts (D-20) | Font architecture and typography | `wip/next-font`: CLS 0, FCP −0.4 s, a different font build for Windows and Linux |
+| Poppins Vietnamese coverage | Typography debt | Tone-marked letters render in the system font today |
+| Larger originals for 23 photographs | Content | [Image asset debt](IMAGE_ASSET_DEBT.md) |
+| Packaging lightbox size rule | Existing UX bug on Vite production too; design owner | Architecture R7-3 |
 
 ## 8. Rollback contract
 
