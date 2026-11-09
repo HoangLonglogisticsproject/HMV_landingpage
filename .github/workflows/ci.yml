@@ -53,7 +53,11 @@ jobs:
       # The image that rendered the baselines (tests/README.md): its browser, fonts and Node.js render the comparison.
       - run: >
           docker run --rm --ipc=host -e CI=true -v "$PWD:/work" -w /work mcr.microsoft.com/playwright:v1.64.1-noble
-          bash -c "npm ci --no-audit --no-fund && npx next build && npx playwright test -c playwright.next-visual.config.js"
+          bash -c "set -o pipefail; npm ci --no-audit --no-fund && npx next build &&
+          npx playwright test -c playwright.next-visual.config.js | tee visual.log"
+      # Each differing screenshot as an annotation, readable without access to the job log.
+      - if: failure()
+        run: grep -E '^ +[0-9]+\) |pixels \(ratio' visual.log | sed -E 's/^ +/::error::/' | head -60 || true
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
