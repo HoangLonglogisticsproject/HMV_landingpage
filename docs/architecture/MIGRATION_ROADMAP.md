@@ -206,7 +206,7 @@ Without CI, the same can be run locally: `npx vercel@65.2.0 build --local-config
 
 | Milestone | Open items |
 |---|---|
-| D-18 (merge into `main`) | The reviewer's approval of the production delta in the D-18 row; the Vite visual and smoke verification with the WebP assets (done for revision 7, architecture §12; repeat on the final commit); CI green; a normal PR so SonarQube Cloud and CodeRabbit run |
+| D-18 (merge into `main`) | The reviewer's approval of the production delta in the D-18 row. Done: the final Vite verification on the branch head (architecture §12); pull request #15 open with CI green. Open: the SonarQube Cloud gate, failing on 10 false positives to mark in SonarQube Cloud and on coverage of new code (a decision, architecture §16.9); CodeRabbit, which needs credits or a plan for 226 files, or a review split by area |
 | PR-09 (rollback readiness) | D-18 merged and deployed as Vite production (RB-1); the rollback-compatibility spec against that deployment; the rehearsal (§8.5) |
 | PR-10 (cutover readiness) | G-4: the sitemap validated against the XSD; OA-1: the hosted Vercel preview, with G-15 (one raw `Location` per redirect, including a CMS-mode check after a revalidation); the Search Console and Bing URL inventory reconciled with the URL matrix; the D-12 content decisions and PRs; every gate of §7.3 on the preview, G-10 measured as defined there; sign-offs |
 | PR-13 (CMS in production) | Its prerequisites in §4, including the CMS-unreachable takedown path and the CMS media host allow-list |

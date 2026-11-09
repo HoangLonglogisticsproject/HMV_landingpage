@@ -607,3 +607,29 @@ Kept as directed: one global CMS cache tag (`cms`), which meets the takedown req
 | R7-8 | Decision | The header logo was lazy only to avoid React's preload | Eager with `fetchPriority="low"`, chosen by measurement (§11) |
 | R7-9 | Decision | D-20: fonts stay on Google Fonts through cutover; D-21: G-10's JavaScript criterion is home JS transferred ≤ 250 kB and TBT ≤ 200 ms | Roadmap §3, §7.3 |
 | R7-10 | Evidence | LCP is gated by the HTML, the render-blocking CSS and, on `/`, bandwidth shared with JavaScript; images are no longer the bottleneck. `experimental.inlineCss` measured and not adopted | §12; larger levers are performance backlog |
+
+### 16.9 Final automated review (pull request #15, not to be merged before D-18)
+
+Pull request #15 (`feat/nextjs-foundation` into `main`) exists for the automated review. Head `bda598b`: CI green (both jobs), Vercel preview of the Vite build green.
+
+**CodeRabbit did not review.** It skips pull requests over 100 files on the current plan (this one has 226 reviewable files) and reports that the account has no usage credits. Options for the owner: credits or a plan that covers the size, or a review split by area into pull requests of at most 100 files. No code change helps.
+
+**SonarQube Cloud quality gate: failed on two conditions.** Security rating A, maintainability A, duplication 0.0%, no security hotspot.
+
+| Rule | Issues | Decision | Reason |
+|---|---|---|---|
+| S1082, S6848, S6847 (click handlers without keyboard access, non-native controls) | 5 bugs, 5 smells | **Fixed** (`bda598b`) | A real accessibility defect, legacy from `main`'s `LogisticsHubPage`: gallery photos could not be opened from the keyboard and Escape did nothing. Now keyboard operable, Escape closes, focus returns; tested |
+| S3403 "`===` always false" | 10 bugs, the reliability C | **False positive**, to be marked in SonarQube Cloud | `drop` (Navigation) and `active` (LivingLogistics) are React state initialized with `useState(null)`; the analyzer types them as `null` and ignores the setters. The dropdowns and tooltips work and are tested. No code change for a tool's inference |
+| Coverage on new code 16.5% (gate 80%) | condition | **Decision needed** | The new code is mostly views and Next.js routes, tested by the Playwright suites (Next 209, Vite 115, CMS-mode, visual, image fidelity), which SonarQube does not import; unit tests cover the logic (71). Writing unit tests for JSX to reach 80% would serve the metric, not the risk. Options: accept the condition for this pull request, exclude the view and route layers from coverage with the end-to-end suites as their evidence, or import end-to-end coverage (a project of its own) |
+| S6819 prefer `<button>`, `<dialog>`, `<output>` over ARIA roles | 7 | Rejected | The roles are valid ARIA; the native elements change rendering and layout. Keyboard behaviour is tested |
+| S3776 cognitive complexity (LogisticsView, PackagingView) | 2 critical | Rejected, backlog | Legacy page components moved unchanged; restructuring is P2 refactoring |
+| S6479 array index as key | 7 | Rejected | Legacy, static lists that never reorder |
+| S6759 read-only props | 10 | Rejected | Style; route components receive Next.js props and never mutate them |
+| S7763 `export…from` | 6 | Rejected | Route files keep explicit exports that Next.js analyzes statically; the ports re-export by design |
+| S3358 nested ternary | 4 | Rejected | Style; short, local expressions (two are legacy) |
+| S1607 skipped tests | 5 | Rejected | Conditional skips that state their reason (mobile project, hosted run) |
+| S7503 async function without await | 2 | Rejected | `headers()` and `redirects()` follow the documented Next.js config signature |
+| S6481 context value changes every render | 1 | Rejected | The provider renders only when the open image changes, so the value changes with it; the callbacks are stable |
+| S1077 `<img>` without alt | 1 | False positive | The Vite image port spreads its props; every caller passes `alt` |
+| S7781, S7780, S7758 (`replaceAll`, `String.raw`, `codePointAt`) | 4 | Rejected | Equivalent rewrites of correct code (ASCII escaping in JSON-LD and XML) |
+| S9382 `await` in a loop | 1 | Rejected | Two sequential CMS requests (one per locale) at build or regeneration time; no user-facing cost |
