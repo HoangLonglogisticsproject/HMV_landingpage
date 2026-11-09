@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Revision 5, 2026-11-08. On branch `feat/nextjs-foundation`: every page, product and article in EN and VI, the CMS server layer behind `CMS_CONTENT` (off), sitemap, robots and confirmed-facts structured data, the revalidation endpoint, stale-on-error tested, layer rules enforced and tested, TypeScript `strict`, and CI. Not merged; production runs Vite. Images, fonts and cutover are still designs. Review: §16. |
+| Status | Revision 6, 2026-11-08. On branch `feat/nextjs-foundation`: every page, product and article in EN and VI, the CMS server layer behind `CMS_CONTENT` (off), sitemap (caching measured, §9.4), robots and confirmed-facts structured data, the revalidation endpoint, stale-on-error tested, layer rules enforced and tested, TypeScript `strict`, CI, D-14 visual baselines compared on CI, images through `next/image` with re-exported sources. Not merged; production runs Vite. Fonts wait for decision D-20; cutover is still a design. Review: §16. |
 | Pinned versions | `next` **16.4.5** (exact), `react`/`react-dom` 19.3.0 (installed), Tailwind 4.3.3, TypeScript 5.9.3 (new `.ts`/`.tsx` files only) |
 | API source | The documentation shipped with the pinned version, `node_modules/next/dist/docs/` (the same pages as `https://nextjs.org/docs/…`). Citations below give the path under `01-app/`. Where the docs were ambiguous, the 16.4.5 source code was read and is cited instead. |
 | Related | [Audit](NEXTJS_MIGRATION_AUDIT.md) · [SEO, i18n and GEO spec](SEO_I18N_GEO_SPEC.md) · [URL matrix](URL_MIGRATION_MATRIX.md) · [Roadmap](MIGRATION_ROADMAP.md) |
@@ -314,28 +314,56 @@ Consequences for later PRs:
 
 ## 11. Images, fonts and CSS
 
-- **Images:** the static import extensions accepted by 16.4.5 are `jpg, jpeg, png, webp, avif, ico, svg` (`node_modules/next/dist/build/webpack/loaders/utils.js`). The two `.jfif` files were renamed to `.jpg` (JFIF is JPEG, so the pixels are identical). Plain `<img>` with `assetSrc()` is used until the images PR switches to `next/image` ("If the image is statically imported, Next.js will automatically determine the intrinsic width and height", `01-getting-started/12-images.md`).
+- **Images (PR-08):** shared views render images through the port `@/lib/image` (§16.1). Next.js maps it to `next/image` (`src/next/image.tsx`: a srcset for each `sizes`, lazy unless the view asks otherwise, the intrinsic size of static imports); Vite maps it to the plain `<img>` it rendered before (`src/app/image.jsx`, `sizes` dropped). Rules:
+  - **Sources** were re-exported once as WebP, never enlarged, aspect ratios kept: photographs at most 1600 px on the long edge (the lightboxes show them up to the viewport), the hero inset 800 px (it never renders wider than 270 CSS px), the logo 360 px (118 CSS px). `src/assets`: 46.1 MB → 8.6 MB, in both builds. New images follow the same rule; the optimizer does not excuse an oversized source.
+  - **`sizes`** on every image, written from the rendered widths measured on every page at 10 viewport widths (360–1440 px), rounded up.
+  - **Priority:** only a page's LCP image (Lighthouse) is `loading="eager" fetchPriority="high"`: the home hero, the product photo, the first insights card, the article hero. On `/activities` the LCP element differs by viewport, so the first two tiles are eager at normal priority. Everything else is lazy. React 19 preloads every server-rendered `<img>` that is not lazy or `fetchPriority="low"`, so the logo is lazy in Next.js and the header flag is low priority: each page preloads only its LCP image (checked on 10 pages).
+  - **CMS media** (absolute URLs) render `unoptimized` until the CMS media host is allow-listed (`CMS_MEDIA_HOST`, roadmap PR-13).
+  - Static import extensions accepted by 16.4.5: `jpg, jpeg, png, webp, avif, ico, svg`; the two `.jfif` files became `.jpg` in PR-01.
 - **CSS:** `index.css` then `hmv.css` are imported in `src/next/Document.tsx`, the same order as `src/main.jsx`. Tailwind for Next uses `@tailwindcss/postcss`, as documented in `01-getting-started/11-css.md`.
-- **Fonts:** the Google Fonts `<link>` from `index.html` is kept in `Document.tsx` for parity. `next/font` comes in the images/CWV PR: `subsets` must cover Vietnamese, which needs checking per family (`02-components/font.md`).
+- **Fonts:** still the Google Fonts `<link>`, as on Vite. `next/font` is implemented on the local branch `wip/next-font` (commit `4cc36d3`, not pushed) and waits for decision D-20, because it changes the font file Windows and Linux visitors get:
+  - next/font downloads with a macOS user agent (`next/dist/compiled/@next/font/dist/google/fetch-resource.js`), so it self-hosts the build Google serves to macOS, iOS and Android, byte-identical to theirs today. Windows and Linux visitors get today a build with an extra `prep` table; same version (2.071), glyphs and advance widths.
+  - Measured with the two files swapped on the same page: Windows Chromium, 0.08% of pixels differ, all by at most 40 levels, no line break moves; Linux (the CI image), headings break differently: up to 22% of a first viewport and 4–5% of some full pages, beyond G-8's 1%.
+  - Vietnamese coverage, checked with the fonts each glyph rendered in (Chromium `CSS.getPlatformFontsForNode`): Plus Jakarta Sans (headings) covers Vietnamese; on the branch its `latin` and `vietnamese` subsets are preloaded. Poppins (body) has no Vietnamese subset at Google, so tone-marked letters render in the system font today, on both builds ("Nông sản cao cấp…": 44 glyphs in Poppins, 7 in Segoe UI). Changing that is a typography decision, not part of this migration.
+  - next/font 16 keeps the Google family names in its `@font-face` rules, so the branch needs no CSS change and keeps today's fallback chains.
 
 ## 12. Coexistence evidence (branch `feat/nextjs-foundation`)
 
 The only place these numbers are kept; the other documents link here.
 
-| Check | `main` (baseline) | Branch (revision 5) |
+| Check | `main` (baseline) | Branch (revision 6) |
 |---|---|---|
-| `npm run build` (Vite) JS / CSS | 620.42 kB / 156.50 kB `index-CUg3tHd_.css` | 624.65 kB / **156.50 kB, same file hash**; `dist/sitemap.xml` and `dist/robots.txt` are `main`'s files (line endings follow the checkout) |
+| `npm run build` (Vite) JS / CSS | 620.42 kB / 156.50 kB `index-CUg3tHd_.css` | 626.37 kB (gzip 200.60 kB) / **156.50 kB, same file hash**; `dist/assets` 8.0 MB with the re-exported images; `dist/sitemap.xml` and `dist/robots.txt` are `main`'s files (line endings follow the checkout) |
 | `npm run build:cms` | passes | passes |
-| `npm test` (Vitest) | 49/49 | 68/68: +9 layer checker, +4 route contract, +1 product slugs, +3 CMS mappers, +2 structured data |
-| `npm run lint` | 0 errors, 9 warnings | 0 errors, 9 warnings; layer boundaries OK |
+| `npm test` (Vitest) | 49/49 | 71/71: +9 layer checker, +4 route contract, +1 product slugs, +4 CMS mappers, +4 structured data |
+| `npm run lint` | 0 errors, 9 warnings | 0 errors, 9 warnings; layer boundaries OK (two ports) |
 | `tsc --noEmit`, `next build` type check | n/a | pass with `strict: true` |
-| Playwright, Vite | 89 passed, 3 skipped | 115 passed, 7 skipped (+4: the built site serves the unchanged `sitemap.xml` and `robots.txt`) |
+| Playwright, Vite | 89 passed, 3 skipped | 115 passed, 7 skipped |
 | Playwright, CMS mode (Vite) | 35 passed, 1 skipped | 35 passed, 1 skipped |
 | `next build` | n/a | 49 prerendered routes (static and SSG), proxy, robots, sitemap route, two more route handlers, global 404 |
-| Playwright, Next (`tests/next/`) | n/a | 199 passed, 3 skipped (switcher cases on mobile): all 38 indexable URLs, 404s and what a visitor sees on an article 404, 28 redirect chains with one raw `Location` per hop, sitemap = canonical, `og:url` and `hreflang` as exact strings, robots, Organization/WebSite JSON-LD, noindex everywhere, Article JSON-LD, islands, switcher |
-| Playwright, Next with the CMS (`tests/next-cms/`, mock CMS) | n/a | 13 passed: About and lists from the CMS, not-published states, alternates, M-52 to M-57, takedown, blocked slugs, 5xx on an uncached failure, the 404 a visitor sees, no browser request to the CMS, no secret or origin in client bundles or server output. Stale-on-error (2 s interval): 1 passed |
+| Playwright, Next (`tests/next/`) | n/a | 201 passed, 3 skipped (switcher cases on mobile): all 38 indexable URLs, 404s and what a visitor sees on an article 404, 28 redirect chains with one raw `Location` per hop, sitemap = canonical, `og:url` and `hreflang` as exact strings, the sitemap served from the build output, robots, Organization/WebSite JSON-LD, noindex everywhere, Article JSON-LD (organization author), islands, switcher |
+| Playwright, Next with the CMS (`tests/next-cms/`, mock CMS) | n/a | 15 passed: About and lists from the CMS, not-published states, alternates, M-52 to M-57, takedown, sitemap cache states (§9.4), Article author from the CMS, blocked slugs, 5xx on an uncached failure, the 404 a visitor sees, no browser request to the CMS, no secret or origin in client bundles or server output. Stale-on-error (2 s interval, About, a list, an article, the sitemap): 1 passed |
+| Visual baselines (`tests/next-visual/`, D-14) | n/a | 48 tests, 72 screenshots, zero tolerance, CI job `visual`. Against the original set (`73e8c26`) after the image work: the 48 full pages byte-identical; the 24 EN first viewports differ by at most 432 px (0.047%, home desktop: the resampled hero photos and logo) |
 | GitHub CI (`ci.yml`, Linux) | n/a | Runs all of the above on every push of the branch; each revision is reported green with its run |
 
+Lab performance, Lighthouse 13.5.0, mobile preset (simulated slow 4G, 4× CPU), `next start` in the pinned Linux image, median of 3 after two discarded warm-up runs. Score · LCP · CLS · TBT · page weight. The page weight of short pages includes the footer's Google Maps embed (about 400 kB, third party, already `loading="lazy"`).
+
+| Page | Before PR-08 (`73e8c26`) | Images (`bb9cf5d`, branch head) | With `next/font` (`4cc36d3`, not merged, D-20) |
+|---|---|---|---|
+| `/` | 73 · 8.0 s · 0.038 · 145 ms · 11.6 MB | 89 · 3.6 s · 0.038 · 79 ms · 575 kB | 87 · 4.0 s · 0 · 59 ms · 560 kB |
+| `/vi` | 74 · 8.0 s · 0.038 · 109 ms · 11.6 MB | 89 · 3.5 s · 0.041 · 76 ms · 623 kB | 89 · 3.8 s · 0 · 59 ms · 601 kB |
+| `/about` | 93 · 3.0 s · 0.023 · 110 ms · 2.0 MB | 93 · 3.0 s · 0.023 · 102 ms · 325 kB | 95 · 2.8 s · 0 · 99 ms · 369 kB |
+| `/trade-solutions` | 84 · 3.6 s · 0.001 · 200 ms · 11.0 MB | 91 · 3.0 s · 0.001 · 153 ms · 905 kB | 95 · 2.7 s · 0 · 142 ms · 948 kB |
+| `/products/passion-fruit` | 70 · 10.7 s · 0.001 · 251 ms · 3.5 MB | 93 · 3.0 s · 0.001 · 104 ms · 822 kB | 95 · 2.8 s · 0 · 113 ms · 866 kB |
+| `/activities` | 90 · 3.4 s · 0.001 · 137 ms · 9.5 MB | 91 · 3.3 s · 0.001 · 122 ms · 1.0 MB | 94 · 2.9 s · 0 · 142 ms · 1.1 MB |
+| `/logistics` | 85 · 3.4 s · 0.131 · 114 ms · 6.9 MB | 88 · 3.0 s · 0.131 · 103 ms · 736 kB | 94 · 2.9 s · 0 · 117 ms · 726 kB |
+| `/vi/insights` | 88 · 3.6 s · 0 · 141 ms · 4.4 MB | 88 · 3.6 s · 0 · 166 ms · 1.1 MB | 89 · 3.5 s · 0 · 109 ms · 1.1 MB |
+
+- Largest single image at 375 px: 7.9 MB before (the hero inset), 190 kB after (an `/activities` tile).
+- Desktop preset after the image work: 100 on all eight pages, LCP 0.7 s (before: 74–100, home LCP 8.3 s).
+- Client JavaScript on `/`: 217 → 223 kB transferred, 669 → 683 kB decoded (+ the `next/image` client). Of the 683 kB, React DOM and the Next.js runtime are about 410 kB; the shell with Radix and the chat about 150 kB; the chat alone 23.5 kB raw, about 8 kB gzip (R6-9). The Vite bundle: 626 kB, 200.6 kB gzip.
+- `/logistics` CLS 0.131 is the Poppins swap from Google Fonts (Lighthouse names the four font files); 0 with `next/font`.
+- Mobile LCP above 2.5 s is no longer the images (resource load delay and duration are tens of milliseconds): it is element render delay, the CSS, fonts and hydration of the page on a slow device. The text-LCP pages (`/about`, `/logistics`) show the same gap.
 ## 13. Environment variables and security
 
 | Variable | Scope | Purpose |
@@ -343,7 +371,7 @@ The only place these numbers are kept; the other documents link here.
 | `SITE_INDEXABLE` | Next, build and runtime | Only the exact value `true` removes the noindex header and meta. **Unset everywhere until cutover.** At cutover it is set on the production project's Production environment only. A fail-safe default: forgetting it leaves a site unindexed, never a test site indexed (§15.2). |
 | `CMS_CONTENT` | Next server, build and regeneration | `true` reads About, EcoNews and the sitemap's articles from the CMS. Off in this phase. |
 | `CMS_API_ORIGIN` | Next server | Read only by the transport. Never `NEXT_PUBLIC_*`; the CMS suite checks client bundles for it. |
-| `CMS_MEDIA_HOST` | `next.config` | `images.remotePatterns` allow-list (images PR) |
+| `CMS_MEDIA_HOST` | `next.config` | `images.remotePatterns` allow-list, so `next/image` optimizes CMS media (roadmap PR-13); until then CMS media render unoptimized (`src/next/image.tsx`) |
 | `REVALIDATE_SECRET` | Next server | Required by `POST /api/revalidate`; unset disables it (§9.3). Never logged; the CMS suite checks bundles and server output for it. |
 | `CMS_BLOCKED_SLUGS` | Next server | Comma-separated slugs answered with 404 everywhere (§9.3) |
 | `CMS_REVALIDATE_SECONDS` | Next server, tests only | Overrides the 300 s revalidation interval; the stale-on-error suite sets 2. Unset in every deployment. |
@@ -393,7 +421,8 @@ Each one exists because the two builds differ. `grep -rn MIGRATION-ONLY` lists t
 | Port `@/lib/navigation` (`src/app/navigation.jsx`, `src/next/navigation.jsx`) | Shared components on a router | Each build has its own router and URL scheme (locale-free vs localized) | Vite implementation deleted; the Next one stays as the localized `Link`, `useRoutePath`, `useLanguageSwitch`, `useGoBack`; the `useSearchParams` re-export goes |
 | `StaticPage` (`src/app`) | Six identical Vite page adapters | Vite head tags need a component per page | Deleted |
 | Browser transport (`src/app/cms.js`) | Mappers on browser `fetch` | Vite has no server | Deleted; the server transport remains |
-| `assetSrc()` | Shared data on the bundler's image import shape | Vite gives a URL string, Next an object | Deleted with `next/image` (PR-08) |
+| Port `@/lib/image` (`src/app/image.jsx`, `src/next/image.tsx`) | Shared views on `next/image` | Vite cannot render `next/image`; the Next.js side also keeps CMS media unoptimized until PR-13 | Vite implementation deleted; views may import `next/image` directly |
+| `assetSrc()` | Shared data on the bundler's image import shape | Vite gives a URL string, Next an object | Still used where shared data hands a URL string to both builds (`photos`, `productPhotos`, the chat); `next/image` takes it with explicit width and height. Deleted at cleanup: data passes the static imports |
 | `resolveBundledArticle()` | Vite article URLs on per-locale slugs | Locale-free URLs need one canonical slug | Deleted |
 | `LegacyLocaleRedirect` mapping of the new Vietnamese URLs | Rollback target on the Next URL scheme | A rollback serves the Vite build | Deleted with the Vite app |
 | Vite rules in `scripts/check-boundaries.js` | n/a | n/a | Simplified to the Next rules |
@@ -511,3 +540,11 @@ Kept as directed: one global CMS cache tag (`cms`), which meets the takedown req
 | R6-2 | P1 (runbook, gates PR-13) | Runbook step 4 relied on a redeploy while the CMS is unreachable; a CMS-mode build fails without the CMS. And a revalidation call during a CMS failure turns every CMS page and the sitemap into 5xx | Runbook corrected (§9.3 steps 2 and 5). Whether a CMS-mode build should tolerate an unreachable CMS is a PR-13 decision, not made here |
 | R6-3 | P2 | The CMS byline (`authorName`) is free text: the real CMS fixture says "HMV Administrator", which becomes a `Person` | Unchanged, as directed: the JSON-LD author is exactly the CMS byline, and `authorRole` is never used. Editors should enter a person's name or leave it empty (CMS content guidance, owner) |
 | R6-4 | Risk, not a migration change | The D-12 items (people and titles, contact channels, certifications, facilities, testimonials) are live on the Vite production site today, in visible text, `index.html` JSON-LD and `llms.txt` | A current production risk, independent of cutover; corrected only through the D-12 content PRs (roadmap D-12) |
+| R6-5 | Gate (D-14) | Visual baselines for the migration period | 72 baselines (`tests/next-visual/`), rendered in the image the CI job uses, `mcr.microsoft.com/playwright:v1.64.1-noble`, with local Docker (taking them from a CI artifact needs a GitHub token), then reproduced exactly by CI on GitHub's runners and compared on every run at zero tolerance without retries. The first CI attempt failed inside the job container's checkout (no access to the logs); the job now checks out on the host and runs the suite with `docker run`. An accepted visual change regenerates the changed baselines in the same commit, with the measured diff in the commit message; the original set stays in `73e8c26` |
+| R6-6 | P1 (performance), fixed | LCP images were lazy-loaded (product photo, first insights card, first activities tiles) and sources reached 7.9 MB | §11 |
+| R6-7 | Decision D-20 | `next/font` self-hosts the macOS build of the fonts; Linux rendering changes beyond G-8 | §11; not merged until decided |
+| R6-8 | P2, existing, unchanged | Poppins has no Vietnamese subset: Vietnamese body text mixes Poppins and the system font on both builds | Typography decision (design owner) |
+| R6-9 | P2, not done | Lazy chat: the 24/7 Support launcher is part of the widget and visible on every page, and the navigation opens the chat by event. Deferring the module delays a visible call to action and can drop an early open request unless the launcher is split out (the SupportChat restructure kept out of scope). Measured gain: 23.5 kB raw, about 8 kB gzip of client JavaScript | Kept eager |
+| R6-10 | P2, existing | `/regulations` is 479 px wide in a 375 px viewport (horizontal overflow), visible in the mobile baselines; same markup and CSS as Vite, not checked on production | Not changed (UI) |
+| R6-11 | Test reliability | The About unit tests import the page graph fresh per test and exceeded 5 s on a loaded machine; one Vite CMS run failed on a cold start | 20 s timeout for the About tests; the CMS suite passed twice in full afterwards |
+| R6-12 | P2 | The image sources are now WebP in both builds, so the Vite site serves the smaller files after the next merge | A production change under D-18; no visual change measured on the Next.js build |

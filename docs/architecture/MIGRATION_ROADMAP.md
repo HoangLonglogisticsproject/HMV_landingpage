@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | Revision 5, 2026-11-08. PR-01 to PR-07 are implemented on `feat/nextjs-foundation` (not merged; D-18 not approved). Production runs Vite with `CMS_CONTENT` off. No cutover, and no CMS in production. Test and CI numbers: [architecture §12](NEXTJS_TARGET_ARCHITECTURE.md#12-coexistence-evidence-branch-featnextjs-foundation). |
-| Remaining estimate | About 9 engineer-days (2 weeks for one engineer; 3 calendar weeks with review), plus owner and content actions |
+| Status | Revision 6, 2026-11-08. PR-01 to PR-07 and the image part of PR-08 are implemented on `feat/nextjs-foundation` (not merged; D-18 not approved); fonts wait for D-20. Production runs Vite with `CMS_CONTENT` off. No cutover, and no CMS in production. Test and CI numbers: [architecture §12](NEXTJS_TARGET_ARCHITECTURE.md#12-coexistence-evidence-branch-featnextjs-foundation). |
+| Remaining estimate | About 7.5 engineer-days (1.5 weeks for one engineer; 2–3 calendar weeks with review), plus owner and content actions |
 | Related | [Audit](NEXTJS_MIGRATION_AUDIT.md) · [Architecture](NEXTJS_TARGET_ARCHITECTURE.md) · [SEO spec](SEO_I18N_GEO_SPEC.md) · [URL matrix](URL_MIGRATION_MATRIX.md) |
 
 ## 1. Rules for every PR
@@ -16,7 +16,7 @@
 6. Each PR has its own tests and acceptance criteria.
 7. **Review workflow.** No draft PRs during development: the branch CI and the architecture review are the gates. To merge into `main`, open a normal PR so SonarQube Cloud and CodeRabbit run as the final automated review; fix the findings that have real value (architecture §16.4), then merge once D-18 is approved.
 
-## 2. Status on branch `feat/nextjs-foundation` (PR-01 to PR-07)
+## 2. Status on branch `feat/nextjs-foundation` (PR-01 to PR-08, fonts pending)
 
 Evidence is named here; the numbers are only in [architecture §12](NEXTJS_TARGET_ARCHITECTURE.md#12-coexistence-evidence-branch-featnextjs-foundation).
 
@@ -37,6 +37,8 @@ Evidence is named here; the numbers are only in [architecture §12](NEXTJS_TARGE
 | PR-05: bundled articles in EN and VI; other-locale slug → 308; Article JSON-LD on the server; back button island | Next E2E: chains, 404s, JSON-LD parses with `inLanguage` and `headline` |
 | PR-06: CMS server layer (architecture §7, §9.3): server transport, content loader, slug validation, `CMS_BLOCKED_SLUGS`, `POST /api/revalidate`, generated sitemap (moved forward from PR-07), `/tin-tuc/[slug]` (M-56), mock CMS suite; TypeScript `strict` | `tests/next-cms/` against the mock CMS; `tests/next/` for the sitemap, M-56 and the endpoint in bundled mode |
 | PR-07: `app/robots.ts`; the sitemap as a route handler with the one URL formatter (canonical, hreflang, `og:url` and sitemap are the same strings); `Organization` and `WebSite` JSON-LD with confirmed facts only (SEO spec §8 fact register); Vite's `sitemap.xml` and `robots.txt` moved to `src/app/`, unchanged, served again by `vite` (dev). Review follow-ups: stale-on-error automated, CMS dependency diagram corrected, 404 browser assertions, raw `Location` assertions | `tests/next/` (exact strings, robots, JSON-LD, one raw `Location` per hop, the 404 a visitor sees); `tests/next-cms/stale.spec.js` (2 s interval); `tests/seo-files.spec.js` (Vite); `src/views/meta.test.js` |
+| PR-07 follow-up: sitemap caching measured and pinned by tests (architecture §9.4); Article JSON-LD author rules tested; takedown runbook corrected for a failing or unreachable CMS | `tests/next/`, `tests/next-cms/` (cache states, author), `src/views/meta.test.js`, `src/features/articles/api.test.js` |
+| PR-08 (images): D-14 baselines first (`73e8c26`, CI job `visual`); image sources re-exported as WebP (46.1 MB → 8.6 MB); `next/image` through the `@/lib/image` port with measured `sizes`; only the LCP image of each page eager and high priority. Fonts: `wip/next-font`, waiting for D-20. Lazy chat: not done (architecture R6-9) | `tests/next-visual/` (full pages unchanged by the image work); Lighthouse lab runs (architecture §12) |
 
 
 ## 3. Decisions requiring approval
@@ -54,12 +56,14 @@ Evidence is named here; the numbers are only in [architecture §12](NEXTJS_TARGE
 | D-11 | Next preview setup by the owner (§6.2) | Owner |
 | **D-12** | **Content review C-01 to C-06** ([audit §9](NEXTJS_MIGRATION_AUDIT.md#9-content-integrity-and-geo-findings-d-12)): for each item, confirm and keep, correct or limit, or remove. Visible text is corrected in content PRs; JSON-LD follows. Items decided "correct" or "remove" land before cutover. **The items are live on the Vite production site today** (visible text, `index.html` JSON-LD, `llms.txt`): a current production risk, not only a cutover risk. The migration does not change them; the Next.js structured data leaves them out. | HMV management |
 | D-13 | `AGENTS.md`: the `src/pages` path is updated on the branch; the rules for locale-free URLs, Helmet and React Router are amended at cleanup. Adopting Next's managed agent block is off for now (`agentRules: false`). | Tech lead |
-| D-14 | Commit visual baselines for the migration period | **Approved 2026-11-08**; first step of PR-08, before any image or font change |
+| D-14 | Commit visual baselines for the migration period | **Approved 2026-11-08; done**: commit `73e8c26`, compared on every CI run (architecture §16.7, R6-5) |
 | D-15 | AI crawlers: allow all, as today | Business |
 | D-16 | Optional: limit browser caching of proxy 308s (`Cache-Control: max-age=86400`) for the first 28 days after cutover | Optional; the compatibility mapping already covers rollback |
 | D-17 | 404 page: keep Vite parity (one English, server-rendered 404 via the **experimental** `globalNotFound`), or add a Vietnamese 404 (design approval). Accept that `notFound()` inside pages (unknown, unpublished or blocked article slugs) gives a correct 404 status and noindex, while the visitor sees Next.js's default 404 page, rendered on the client (architecture §10): an accepted UX exception, asserted in a browser, not a solved problem. | Keep parity; accept the exception |
 | D-18 | Merging the branch into `main` deploys Vite production with the refactor, the rollback mapping and D-06 (the only visible change: two titles). This is the first production change of the migration. | **Not approved yet (2026-11-08)**: development continues on the branch until the final review |
 | D-19 | `hmv-landingpage.vercel.app` publicly duplicates production (F-33): redirect it to `www` in the Vercel domain settings | Owner, independent of the migration |
+| **D-20** | **Fonts.** `next/font` self-hosts the build Google serves to macOS, iOS and Android; Windows and Linux visitors would get it instead of today's build (architecture §11). Options: (a) accept: Windows changes imperceptibly (0.08% of pixels), Linux headings may break differently (up to 22% of a viewport), so the baselines are regenerated with this sign-off; (b) self-host Google's Windows/Linux files with plain `@font-face` rules and preloads (no rendering change expected anywhere; more code to own, outside `next/font`); (c) keep the Google Fonts link (no change; keeps the render-blocking third-party stylesheet). The branch `wip/next-font` implements (a). Lab effect (architecture §12): CLS 0 on every page (`/logistics` 0.131 → 0), mobile FCP 1.5–1.7 s → 1.1–1.5 s, LCP better on most pages but 0.3–0.4 s worse on `/` and `/vi`, where six preloaded font files compete with the hero image. | Design owner, with measured lab data |
+| **D-21** | **G-10 JavaScript criterion.** "JS on `/` ≤ 50% of 620 KB" is below what React DOM and the Next.js runtime need alone (about 410 kB decoded). Options: compare transferred bytes with the Vite site (`/`: 223 kB with Next.js, 200.6 kB gzip for the Vite bundle), or set a budget for application code only (about 270 kB decoded today); either way a lower number needs fewer client islands (navigation, chat), which is the P2 restructure kept out of scope. | Reviewer, before PR-10 |
 
 ## 4. PR sequence
 
@@ -100,12 +104,12 @@ graph LR
 | PR-05 | Bundled articles in EN and VI: route-level slug resolution (`permanentRedirect`), server Article JSON-LD, direct alternate links | PR-02 | done on the branch |
 | PR-06 | CMS server layer behind `CMS_CONTENT` (off): server transport for the existing mappers, mock CMS HTTP server, `/api/revalidate` (secret), `CMS_BLOCKED_SLUGS`, slug validation, takedown runbook, the `/tin-tuc/[slug]` handler (M-56), and the generated sitemap | PR-03, PR-05 | done on the branch |
 | PR-07 | SEO surfaces: `robots.ts`, the sitemap with one URL formatter, Organization and WebSite JSON-LD with confirmed facts only. `llms.txt` moved to the D-12 content PRs; the Vite sitemap stays as in production (F-08 is fixed by the Next.js sitemap at cutover). | PR-03–05 | done on the branch |
-| PR-08 | **First, a separate commit:** the D-14 visual baselines, generated on Linux CI, green before any change below. Then `next/image`, re-exported image sources, `next/font` with Vietnamese coverage, optional lazy chat | PR-03 | 3 |
+| PR-08 | **First, a separate commit:** the D-14 visual baselines, generated on Linux CI, green before any change below. Then `next/image`, re-exported image sources, `next/font` with Vietnamese coverage, optional lazy chat | PR-03 | Baselines, sources and `next/image` done on the branch; fonts wait for D-20 (0.5); lazy chat not done (architecture R6-9) |
 | PR-09 | Rollback readiness: extend the rollback-compatibility spec to every Next URL target, the production acceptance suite (read-only), the rehearsal (§8.5) | PR-01 merged (D-18), PR-04, PR-05 | 1.5 |
 | PR-10 | Cutover readiness: every gate (§7.3) green on the preview; D-12 content PRs merged; sign-offs | PR-06–09, OA-1 | 2 |
 | PR-11 | Cutover (§9) | PR-10 | 0.5 + monitoring |
 | PR-12 | Cleanup: remove the Vite adapters, React Router, Helmet and the Vite navigation port (`src/app/navigation.jsx`); update docs and `AGENTS.md` rules | PR-11 plus 2 stable weeks | 1 |
-| PR-13 | `CMS_CONTENT=true` in production. Prerequisites: CMS API and media over HTTPS, the CMS-side rate limit or CDN, the bundled articles recreated with their legacy slugs, the takedown runbook rehearsed, including the CMS-unreachable path (architecture §9.3 step 5: a CMS-mode build fails without the CMS) and a decision on whether the build should tolerate it, and an **integration check against the real CMS and CDN** (the mock only proves the application's behaviour): their response and cache headers as the provider documents them, a publish and an unpublish followed by the revalidation endpoint, and whether the CDN honours the request's `Cache-Control: no-cache` (it asks for revalidation; it purges nothing). | PR-11, approval | 1 |
+| PR-13 | `CMS_CONTENT=true` in production. Prerequisites: CMS API and media over HTTPS, the CMS-side rate limit or CDN, `CMS_MEDIA_HOST` allow-listed so `next/image` optimizes CMS media, the bundled articles recreated with their legacy slugs, the takedown runbook rehearsed, including the CMS-unreachable path (architecture §9.3 step 5: a CMS-mode build fails without the CMS) and a decision on whether the build should tolerate it, and an **integration check against the real CMS and CDN** (the mock only proves the application's behaviour): their response and cache headers as the provider documents them, a publish and an unpublish followed by the revalidation endpoint, and whether the CDN honours the request's `Cache-Control: no-cache` (it asks for revalidation; it purges nothing). | PR-11, approval | 1 |
 
 ## 5. Acceptance criteria per PR
 
@@ -117,7 +121,7 @@ graph LR
 | PR-05 | M-37–M-49 ✓ (M-48: 404 with Next.js's default body since PR-06, D-17); Article JSON-LD parses ✓; no client chunk for `RichText` ✓ (checked in `.next/static/chunks`); switch links to the alternate slug directly ✓ |
 | PR-06 | ✓ M-56 (`/tin-tuc/<slug>`). ✓ With the flag off, server HTML is unchanged (the bundled suite). ✓ With the flag on, against the mock: EN and VI About and articles, not-published states (noindex), cross-locale 308s, 404, 5xx on an uncached failure, **takedown: content gone from detail, lists and sitemap on the next request after the endpoint call**, blocked slugs, zero browser requests to the CMS, no secret or origin in client bundles or server output. Not automated: stale-on-error after the 300 s window (needs time travel; the Next.js docs are the evidence, architecture §9.2). |
 | PR-07 | ✓ Same URLs and alternates as the pages' `hreflang`, as exact strings, `og:url` included. ✓ Robots content as specified in both builds. ✓ JSON-LD contains only the fact register's facts (unit test and Next E2E). Still open for G-4: validation against the sitemap XSD. |
-| PR-08 | Gate G-10; visual diff within threshold or design sign-off |
+| PR-08 | Gate G-10 (architecture §12, branch head): ✓ no image over 500 kB at 375 px (largest 190 kB); ✓ TBT ≤ 200 ms on all eight pages (76–166 ms); CLS ≤ 0.1 except `/logistics` (0.131, the Google Fonts swap; 0 with `next/font`); ✗ LCP ≤ 2.5 s (3.0–3.6 s, from 3.0–10.7 s); ✗ JS on `/` ≤ 310 kB (683 kB decoded, of which about 410 kB is React DOM and the Next.js runtime: the criterion needs D-21). ✓ Visual diff within threshold: full pages unchanged, first viewports ≤ 0.047%. |
 | PR-09 | Rollback spec green against the rollback target; rehearsal R-A to R-D recorded (§8.5) |
 | PR-10 | Every gate (§7.3) on the preview |
 | PR-11 | Production acceptance suite (§7.2) 100% within 1 hour; no rollback trigger in 72 hours |
