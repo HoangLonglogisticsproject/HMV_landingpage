@@ -69,7 +69,7 @@ Screenshots are saved to `tests/screenshots/` (gitignored — never committed). 
 
 ### Visual baselines of the Next.js build (D-14)
 
-`tests/next-visual/` compares the Next.js build with committed baselines (`*-linux.png`): every page, one product and one article, full page in EN and VI with images masked, and the first viewport in EN with images. Reduced motion, images decoded and fonts loaded before each screenshot; zero tolerance; no retries. Linux only: CI runs it in the pinned image `mcr.microsoft.com/playwright:v1.64.1-noble` (job `visual`), which also rendered the baselines; on failure the diffs are in the `visual-diff` artifact.
+`tests/next-visual/` compares the Next.js build with committed baselines (`*-linux.png`): every page, one product and one article, full page in EN and VI with images masked, and the first viewport in EN with images. Reduced motion, images decoded and every font face loaded before each screenshot; zero tolerance; no retries. The Google Fonts CSS and files are served from `tests/next-visual/fonts/` (Google serves different builds by user agent, region and day); to refresh them, capture them again in the pinned image and regenerate the baselines. Linux only: CI runs it in the pinned image `mcr.microsoft.com/playwright:v1.64.1-noble` (job `visual`), which also rendered the baselines; on failure the diffs are in the `visual-diff` artifact.
 
 An accepted visual change regenerates only the changed baselines (`--update-snapshots=changed`) in the same commit, with the measured diff in the commit message; the original D-14 set stays in commit `73e8c26`, for the cumulative comparison at cutover (G-8). A diff beyond G-8 needs the design owner's sign-off first.
 
