@@ -10,7 +10,7 @@ import { LOCALES, PAGES, localizePath } from '../../src/i18n/routes.js';
  *   and text, at a fraction of the size of photographs;
  * - the first viewport in English with its images, the hero (LCP) image included.
  * Stabilized, not masked: reduced motion (the site's CSS then stops every animation and transition, and the activities
- * carousel does not autoplay), every image loaded and decoded, web fonts loaded.
+ * carousel does not autoplay), every image loaded and decoded, every declared web font face loaded.
  */
 const KEYS = [...PAGES, '/products/passion-fruit', `/blog/${articles[0].slug.en}`];
 
@@ -21,6 +21,9 @@ for (const lang of LOCALES) {
       await page.evaluate(async () => {
         for (const img of document.images) img.loading = 'eager';
         await Promise.all([...document.images].map(img => img.decode().catch(() => {})));
+        // Every declared face, not only those already requested: a <select>'s text can request its face late, and
+        // `fonts.ready` alone then races the network (seen on CI on /contact).
+        await Promise.all([...document.fonts].map(face => face.load().catch(() => {})));
         await document.fonts.ready;
       });
       const name = `${lang}-${key.slice(1).replaceAll('/', '-') || 'home'}`;
