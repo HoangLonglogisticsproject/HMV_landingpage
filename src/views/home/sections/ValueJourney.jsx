@@ -40,7 +40,7 @@ export function ValueJourney({ lang }) {
         <div className="journey-media">
           {steps.map((s, i) => (
             <figure key={i} data-i={i} ref={(el) => (refs.current[i] = el)} className={active === i ? 'on' : ''}>
-              <Image src={assetSrc(s.src)} alt={s[lang][0]} width={s.w} height={s.h} sizes="(max-width: 900px) calc(100vw - 40px), (max-width: 1280px) 46vw, 572px" loading="lazy" decoding="async" />
+              <Image src={assetSrc(s.src)} alt={s[lang][0]} width={s.w} height={s.h} sizes="(max-width: 768px) 720px, (max-width: 900px) calc(100vw - 40px), 940px" loading="lazy" decoding="async" />
             </figure>
           ))}
         </div>

@@ -38,7 +38,7 @@ export function ProductPortfolio({ lang }) {
                   <Image
                     className="product-photo"
                     src={photo.src}
-                    sizes="(max-width: 860px) 46vw, (max-width: 1280px) 30vw, 369px"
+                    sizes="(max-width: 600px) 68vw, (max-width: 860px) 50vw, (max-width: 1280px) 33vw, 415px"
                     width={photo.width}
                     height={photo.height}
                     loading="lazy"

@@ -76,7 +76,7 @@ export function InAction({ lang }) {
                 alt={b[lang]}
                 width={b.w}
                 height={b.h}
-                sizes="(max-width: 768px) calc(100vw - 40px), (max-width: 1280px) 46vw, 571px"
+                sizes="(max-width: 400px) 350px, (max-width: 768px) calc(100vw - 40px), (max-width: 1280px) 46vw, 571px"
                 loading="lazy"
                 decoding="async"
               />

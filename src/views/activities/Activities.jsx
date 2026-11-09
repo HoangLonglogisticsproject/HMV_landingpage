@@ -193,7 +193,7 @@ export function Activities({ lang, full = false }) {
                   alt={p.label}
                   width={p.width}
                   height={p.height}
-                  sizes="(max-width: 600px) calc(100vw - 40px), (max-width: 1280px) 30vw, 371px"
+                  sizes="(max-width: 600px) 560px, 430px"
                   loading={full && i < 2 ? 'eager' : 'lazy'}
                   decoding="async"
                 />
@@ -216,7 +216,9 @@ export function Activities({ lang, full = false }) {
         <DialogContent className="photo-dialog">
           <DialogTitle>{selected?.label}</DialogTitle>
           <DialogDescription>{t.photoNote}</DialogDescription>
-          {selected && <Image src={selected.src} alt={selected.label} width={selected.width} height={selected.height} sizes="(max-width: 1012px) calc(100vw - 32px), 980px" />}
+          {/* A plain <img>: next/image's width and height attributes change how the dialog sizes it (measured: up to
+              5% larger). These sources are the original photographs (at most 1600 px), served as they are. */}
+          {selected && <img src={selected.src} alt={selected.label} />}
         </DialogContent>
       </Dialog>
     </section>

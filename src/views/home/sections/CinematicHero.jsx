@@ -24,8 +24,8 @@ export function CinematicHero({ lang }) {
           </div>
         </div>
         <div className="day-visual">
-          <Image className="day-farm" src={fruitFarmPhoto} alt={vi ? 'Vườn chanh dây dưới nắng tại Việt Nam' : 'Sunlit passion fruit farm in Vietnam'} width={1280} height={960} sizes="(max-width: 900px) calc(100vw - 40px), (max-width: 1280px) 46vw, 576px" loading="eager" fetchPriority="high" decoding="async" />
-          <figure className="day-ocean glass"><Image src={macroOcean} alt={vi ? 'Tàu container chở nông sản trên đại dương xanh' : 'Container ship carrying agricultural cargo across the blue ocean'} width={2400} height={1729} sizes="(max-width: 900px) 45vw, (max-width: 1280px) 17vw, 216px" loading="lazy" decoding="async" /><figcaption>{vi ? 'Từ vườn đến cảng' : 'Farm to port'}</figcaption></figure>
+          <Image className="day-farm" src={fruitFarmPhoto} alt={vi ? 'Vườn chanh dây dưới nắng tại Việt Nam' : 'Sunlit passion fruit farm in Vietnam'} width={1280} height={960} sizes="(max-width: 540px) 500px, (max-width: 900px) calc(100vw - 40px), 820px" loading="eager" fetchPriority="high" decoding="async" />
+          <figure className="day-ocean glass"><Image src={macroOcean} alt={vi ? 'Tàu container chở nông sản trên đại dương xanh' : 'Container ship carrying agricultural cargo across the blue ocean'} width={2400} height={1729} sizes="(max-width: 900px) 48vw, (max-width: 1280px) 18vw, 230px" loading="lazy" decoding="async" /><figcaption>{vi ? 'Từ vườn đến cảng' : 'Farm to port'}</figcaption></figure>
           <div className="day-chip glass"><strong>01</strong>{vi ? 'Vùng trồng Việt Nam' : 'Vietnamese origins'}</div>
         </div>
       </div>

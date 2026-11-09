@@ -39,7 +39,7 @@ export function LogisticsAction({ lang }) {
                 <Image
                   src={p.src}
                   alt={p[lang]}
-                  sizes="(max-width: 600px) calc(100vw - 40px), (max-width: 960px) 46vw, (max-width: 1280px) 30vw, 371px"
+                  sizes="(max-width: 400px) 350px, (max-width: 600px) calc(100vw - 40px), (max-width: 900px) 410px, 445px"
                   width={p.width}
                   height={p.height}
                   loading="lazy"
