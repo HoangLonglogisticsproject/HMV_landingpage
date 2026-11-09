@@ -14,7 +14,8 @@ import fs from 'fs';
  *  2. Zero browser console errors — after filtering known-harmless messages.
  *  3. main#main-content is visible — page is not blank.
  *  4. H1 text matches expected content — correct page loaded.
- *  5. Screenshot saved to tests/screenshots/ for manual review only.
+ *  5. Every image loads, including below the fold (the WebP sources).
+ *  6. Screenshot saved to tests/screenshots/ for manual review only.
  *
  * This is explicitly NOT a pixel-identical regression suite.
  * To add visual regression, use Playwright's built-in snapshot API
@@ -98,7 +99,15 @@ for (const pg of VISUAL_PAGES) {
       `${pg.path} emitted console errors:\n${appConsoleErrors.join('\n')}`
     ).toHaveLength(0);
 
-    // 5. Take screenshot for manual review (NOT a pixel-diff assertion)
+    // 5. Every image loads: lazy ones are switched to eager and decoded first
+    const broken = await page.evaluate(async () => {
+      for (const img of document.images) img.loading = 'eager';
+      await Promise.all([...document.images].map((img) => img.decode().catch(() => {})));
+      return [...document.images].filter((img) => img.naturalWidth === 0).map((img) => img.src);
+    });
+    expect(broken, `${pg.path} has images that did not load`).toEqual([]);
+
+    // 6. Take screenshot for manual review (NOT a pixel-diff assertion)
     const screenshotPath = path.join(
       screenshotDir,
       `${pg.name}-${test.info().project.name}.png`
