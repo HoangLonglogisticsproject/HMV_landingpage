@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Revision 6, 2026-11-08. On branch `feat/nextjs-foundation`: every page, product and article in EN and VI, the CMS server layer behind `CMS_CONTENT` (off), sitemap (caching measured, §9.4), robots and confirmed-facts structured data, the revalidation endpoint, stale-on-error tested, layer rules enforced and tested, TypeScript `strict`, CI, D-14 visual baselines compared on CI, images through `next/image` with re-exported sources. Not merged; production runs Vite. Fonts wait for decision D-20; cutover is still a design. Review: §16. |
+| Status | Revision 7, 2026-11-09. On branch `feat/nextjs-foundation`: every page, product and article in EN and VI, the CMS server layer behind `CMS_CONTENT` (off), sitemap (caching measured, §9.4), robots and confirmed-facts structured data, the revalidation endpoint, stale-on-error tested, layer rules enforced and tested, TypeScript `strict`, CI, D-14 visual baselines compared on CI, images through `next/image` with sources sized from measured rendering and an image fidelity test. Fonts stay on Google Fonts (D-20). Not merged; production runs Vite. Cutover is still a design. Review: §16. |
 | Pinned versions | `next` **16.4.5** (exact), `react`/`react-dom` 19.3.0 (installed), Tailwind 4.3.3, TypeScript 5.9.3 (new `.ts`/`.tsx` files only) |
 | API source | The documentation shipped with the pinned version, `node_modules/next/dist/docs/` (the same pages as `https://nextjs.org/docs/…`). Citations below give the path under `01-app/`. Where the docs were ambiguous, the 16.4.5 source code was read and is cited instead. |
 | Related | [Audit](NEXTJS_MIGRATION_AUDIT.md) · [SEO, i18n and GEO spec](SEO_I18N_GEO_SPEC.md) · [URL matrix](URL_MIGRATION_MATRIX.md) · [Roadmap](MIGRATION_ROADMAP.md) |
@@ -17,7 +17,7 @@
 
 ## 2. Layers and dependency direction
 
-Three layers and one port. The only allowed directions are **shared → shared**, **vite → shared** and **next → shared**. `npm run lint` runs `scripts/check-boundaries.js`, which resolves every import (relative and `@/`) and fails on:
+Three layers and two ports (`@/lib/navigation`, `@/lib/image`). The only allowed directions are **shared → shared**, **vite → shared** and **next → shared**. `npm run lint` runs `scripts/check-boundaries.js`, which resolves every import (relative and `@/`) and fails on:
 
 - an import from a layer that the importer may not use (shared → vite or next, vite → next, next → vite);
 - a framework package in the wrong layer (`next`, `next/*`, `server-only` outside Next; `react-router-dom`, `react-helmet-async` outside Vite);
@@ -315,17 +315,24 @@ Consequences for later PRs:
 ## 11. Images, fonts and CSS
 
 - **Images (PR-08):** shared views render images through the port `@/lib/image` (§16.1). Next.js maps it to `next/image` (`src/next/image.tsx`: a srcset for each `sizes`, lazy unless the view asks otherwise, the intrinsic size of static imports); Vite maps it to the plain `<img>` it rendered before (`src/app/image.jsx`, `sizes` dropped). Rules:
-  - **Sources** were re-exported once as WebP, never enlarged, aspect ratios kept: photographs at most 1600 px on the long edge (the lightboxes show them up to the viewport), the hero inset 800 px (it never renders wider than 270 CSS px), the logo 360 px (118 CSS px). `src/assets`: 46.1 MB → 8.6 MB, in both builds. New images follow the same rule; the optimizer does not excuse an oversized source.
-  - **`sizes`** on every image, written from the rendered widths measured on every page at 10 viewport widths (360–1440 px), rounded up.
-  - **Priority:** only a page's LCP image (Lighthouse) is `loading="eager" fetchPriority="high"`: the home hero, the product photo, the first insights card, the article hero. On `/activities` the LCP element differs by viewport, so the first two tiles are eager at normal priority. Everything else is lazy. React 19 preloads every server-rendered `<img>` that is not lazy or `fetchPriority="low"`, so the logo is lazy in Next.js and the header flag is low priority: each page preloads only its LCP image (checked on 10 pages).
+  - **Source resolution rule:** a source needs its largest painted size × the target density, never more than the original has: desktop up to 1920 × 1080 CSS px at DPR 2, phones at DPR 3. Painted size is measured in a browser, lightboxes included, and accounts for `object-fit` (a cover crop paints wider than its box). The 1600 px long edge is used only for images that never render large.
+    - Logistics lightbox (max 960 CSS px, 75vh): 1920 × 1440 for the landscape DG photo, 1216 × 1621 for the portrait ones.
+    - Packaging lightbox: `.lightbox-content` has no size rule, so the image renders at its intrinsic size (a portrait photo is 1872 × 2496 CSS px at 1920 × 1080 and its close button is out of view, an existing bug). pack1–4 and `move` keep their original dimensions, so the lightbox looks exactly as before; constraining it is a separate UI fix.
+    - Activities dialog: a plain `<img>`, as before; `next/image`'s width and height made the photo up to 5% larger in the dialog.
+    - The hero inset is 800 px (painted at most 230 CSS px), the logo 360 px (118 CSS px).
+    - 23 sources are the full-resolution photographs HMV supplied and smaller than their need at DPR 2 (`ORIGINAL_LIMITED` in the test): sharper versions need larger originals.
+    - WebP quality 80, re-encoded once from the originals; `src/assets` 46.1 MB → 9.6 MB; the Vite build's `dist/assets` 42.5 MB → 9.9 MB.
+  - **`sizes`** on every image, from the painted widths measured on every page at 15 viewport widths (360–1920 px), rounded up. One deliberate exception: the home hero (the LCP image) uses 420 px on phones, between its box (372) and its cover width (481): a DPR 1.75 phone requests 750w instead of 1080w (LCP 3.5 s instead of 4.1 s in the lab), while DPR 2.6–3 phones still get the full 1280 px source.
+  - **Fidelity checks:** `tests/next/images.spec.js` opens every page and lightbox at 1920 × 1080 DPR 2 and 390 × 844 DPR 3 and checks, per image, the aspect ratio (file, delivered and unstretched box within 1%), the pixels delivered for the painted size, and the pixels in the source. `scripts/image-fidelity.mjs <commit>` reviews the re-encoding against the originals: SSIM 0.953–0.997 (most 0.96–0.99), PSNR 32–41 dB.
+  - **Priority:** only a page's LCP image (Lighthouse) is `loading="eager" fetchPriority="high"`: the home hero, the product photo, the first insights card, the article hero. On `/activities` the LCP element differs by viewport, so the first two tiles are eager at normal priority. Everything else is lazy. React 19 preloads every server-rendered `<img>` that is not lazy or `fetchPriority="low"`. The header logo is in the first viewport, so it is eager with `fetchPriority="low"`: measured, lazy requested it 180 ms later (after layout), eager at normal priority made React preload it together with the LCP image, low priority requests it right after the LCP image; LCP was the same for the three. The header flag is also low priority. Each page preloads only its LCP image.
   - **CMS media** (absolute URLs) render `unoptimized` until the CMS media host is allow-listed (`CMS_MEDIA_HOST`, roadmap PR-13).
   - Static import extensions accepted by 16.4.5: `jpg, jpeg, png, webp, avif, ico, svg`; the two `.jfif` files became `.jpg` in PR-01.
 - **CSS:** `index.css` then `hmv.css` are imported in `src/next/Document.tsx`, the same order as `src/main.jsx`. Tailwind for Next uses `@tailwindcss/postcss`, as documented in `01-getting-started/11-css.md`.
-- **Fonts:** still the Google Fonts `<link>`, as on Vite. `next/font` is implemented on the local branch `wip/next-font` (commit `4cc36d3`, not pushed) and waits for decision D-20, because it changes the font file Windows and Linux visitors get:
+- **Fonts (D-20, decided):** the Google Fonts `<link>` stays, as on Vite, through the migration and cutover. Self-hosting the fonts is a separate performance and design PR once Next.js is stable in production; the branch `wip/next-font` (local, not merged) is its starting point. What it showed:
   - next/font downloads with a macOS user agent (`next/dist/compiled/@next/font/dist/google/fetch-resource.js`), so it self-hosts the build Google serves to macOS, iOS and Android, byte-identical to theirs today. Windows and Linux visitors get today a build with an extra `prep` table; same version (2.071), glyphs and advance widths.
   - Measured with the two files swapped on the same page: Windows Chromium, 0.08% of pixels differ, all by at most 40 levels, no line break moves; Linux (the CI image), headings break differently: up to 22% of a first viewport and 4–5% of some full pages, beyond G-8's 1%.
   - Vietnamese coverage, checked with the fonts each glyph rendered in (Chromium `CSS.getPlatformFontsForNode`): Plus Jakarta Sans (headings) covers Vietnamese; on the branch its `latin` and `vietnamese` subsets are preloaded. Poppins (body) has no Vietnamese subset at Google, so tone-marked letters render in the system font today, on both builds ("Nông sản cao cấp…": 44 glyphs in Poppins, 7 in Segoe UI). Changing that is a typography decision, not part of this migration.
-  - next/font 16 keeps the Google family names in its `@font-face` rules, so the branch needs no CSS change and keeps today's fallback chains.
+  - next/font 16 keeps the Google family names in its `@font-face` rules, so that PR needs no CSS change and keeps today's fallback chains. Poppins' missing Vietnamese subset is known typography debt, out of the migration.
 
 ## 12. Coexistence evidence (branch `feat/nextjs-foundation`)
 
@@ -338,32 +345,57 @@ The only place these numbers are kept; the other documents link here.
 | `npm test` (Vitest) | 49/49 | 71/71: +9 layer checker, +4 route contract, +1 product slugs, +4 CMS mappers, +4 structured data |
 | `npm run lint` | 0 errors, 9 warnings | 0 errors, 9 warnings; layer boundaries OK (two ports) |
 | `tsc --noEmit`, `next build` type check | n/a | pass with `strict: true` |
-| Playwright, Vite | 89 passed, 3 skipped | 115 passed, 7 skipped |
+| Playwright, Vite | 89 passed, 3 skipped | 115 passed, 7 skipped (the smoke pages also check that every image loads) |
 | Playwright, CMS mode (Vite) | 35 passed, 1 skipped | 35 passed, 1 skipped |
 | `next build` | n/a | 49 prerendered routes (static and SSG), proxy, robots, sitemap route, two more route handlers, global 404 |
-| Playwright, Next (`tests/next/`) | n/a | 201 passed, 3 skipped (switcher cases on mobile): all 38 indexable URLs, 404s and what a visitor sees on an article 404, 28 redirect chains with one raw `Location` per hop, sitemap = canonical, `og:url` and `hreflang` as exact strings, the sitemap served from the build output, robots, Organization/WebSite JSON-LD, noindex everywhere, Article JSON-LD (organization author), islands, switcher |
+| Playwright, Next (`tests/next/`) | n/a | 205 passed, 7 skipped (switcher cases on mobile; the image fidelity tests run once, with their own viewports): all 38 indexable URLs, 404s and what a visitor sees on an article 404, 28 redirect chains with one raw `Location` per hop, sitemap = canonical, `og:url` and `hreflang` as exact strings, the sitemap served from the build output, robots, Organization/WebSite JSON-LD, noindex everywhere, Article JSON-LD (organization author), islands, switcher, image fidelity on every page and lightbox at DPR 2 and 3 |
 | Playwright, Next with the CMS (`tests/next-cms/`, mock CMS) | n/a | 15 passed: About and lists from the CMS, not-published states, alternates, M-52 to M-57, takedown, sitemap cache states (§9.4), Article author from the CMS, blocked slugs, 5xx on an uncached failure, the 404 a visitor sees, no browser request to the CMS, no secret or origin in client bundles or server output. Stale-on-error (2 s interval, About, a list, an article, the sitemap): 1 passed |
 | Visual baselines (`tests/next-visual/`, D-14) | n/a | 48 tests, 72 screenshots, zero tolerance, CI job `visual`, fonts pinned. Against the original set (`73e8c26`) after the image work: 46 full pages byte-identical, the two mobile `/contact` pages 254–299 px (the `<select>` text, now captured with its font loaded: a harness correction, not a site change); the 24 EN first viewports differ by at most 432 px (0.047%, home desktop: the resampled hero photos and logo) |
 | GitHub CI (`ci.yml`, Linux) | n/a | Runs all of the above on every push of the branch; each revision is reported green with its run |
 
-Lab performance, Lighthouse 13.5.0, mobile preset (simulated slow 4G, 4× CPU), `next start` in the pinned Linux image, median of 3 after two discarded warm-up runs. Score · LCP · CLS · TBT · page weight. The page weight of short pages includes the footer's Google Maps embed (about 400 kB, third party, already `loading="lazy"`).
+Lab performance, Lighthouse 13.5.0 in the pinned Linux image, mobile preset, median of 3 after two discarded warm-up runs. Score · LCP · CLS · TBT · page weight. The pre-migration baseline is the Vite production build of `main` (`a93fcc4`, `vite preview`); the branch is `next start` of `77f7d2d`. Page weights of short pages include the footer's Google Maps embed (about 400 kB, third party, `loading="lazy"`).
 
-| Page | Before PR-08 (`73e8c26`) | Images (`bb9cf5d`, branch head) | With `next/font` (`4cc36d3`, not merged, D-20) |
+Simulated throttling (Lighthouse's default):
+
+| Page | Vite production (`main`) | Next.js before PR-08 (`73e8c26`) | Branch head (`77f7d2d`) |
 |---|---|---|---|
-| `/` | 73 · 8.0 s · 0.038 · 145 ms · 11.6 MB | 89 · 3.6 s · 0.038 · 79 ms · 575 kB | 87 · 4.0 s · 0 · 59 ms · 560 kB |
-| `/vi` | 74 · 8.0 s · 0.038 · 109 ms · 11.6 MB | 89 · 3.5 s · 0.041 · 76 ms · 623 kB | 89 · 3.8 s · 0 · 59 ms · 601 kB |
-| `/about` | 93 · 3.0 s · 0.023 · 110 ms · 2.0 MB | 93 · 3.0 s · 0.023 · 102 ms · 325 kB | 95 · 2.8 s · 0 · 99 ms · 369 kB |
-| `/trade-solutions` | 84 · 3.6 s · 0.001 · 200 ms · 11.0 MB | 91 · 3.0 s · 0.001 · 153 ms · 905 kB | 95 · 2.7 s · 0 · 142 ms · 948 kB |
-| `/products/passion-fruit` | 70 · 10.7 s · 0.001 · 251 ms · 3.5 MB | 93 · 3.0 s · 0.001 · 104 ms · 822 kB | 95 · 2.8 s · 0 · 113 ms · 866 kB |
-| `/activities` | 90 · 3.4 s · 0.001 · 137 ms · 9.5 MB | 91 · 3.3 s · 0.001 · 122 ms · 1.0 MB | 94 · 2.9 s · 0 · 142 ms · 1.1 MB |
-| `/logistics` | 85 · 3.4 s · 0.131 · 114 ms · 6.9 MB | 88 · 3.0 s · 0.131 · 103 ms · 736 kB | 94 · 2.9 s · 0 · 117 ms · 726 kB |
-| `/vi/insights` | 88 · 3.6 s · 0 · 141 ms · 4.4 MB | 88 · 3.6 s · 0 · 166 ms · 1.1 MB | 89 · 3.5 s · 0 · 109 ms · 1.1 MB |
+| `/` | 71 · 53.0 s · 0.038 · 136 ms · 11.5 MB | 73 · 8.0 s · 0.038 · 145 ms · 11.6 MB | 90 · 3.5 s · 0.038 · 63 ms · 780 kB |
+| `/vi` | n/a (no locale URL on Vite) | 74 · 8.0 s · 0.038 · 109 ms · 11.6 MB | 89 · 3.5 s · 0.038 · 66 ms · 828 kB |
+| `/about` | 94 · 2.5 s · 0.023 · 92 ms · 2.0 MB | 93 · 3.0 s · 0.023 · 110 ms · 2.0 MB | 94 · 2.9 s · 0.023 · 79 ms · 325 kB |
+| `/trade-solutions` | 78 · 5.0 s · 0.001 · 41 ms · 11.0 MB | 84 · 3.6 s · 0.001 · 200 ms · 11.0 MB | 93 · 3.1 s · 0.001 · 76 ms · 1.0 MB |
+| `/products/passion-fruit` | 92 · 2.9 s · 0.001 · 39 ms · 3.5 MB | 70 · 10.7 s · 0.001 · 251 ms · 3.5 MB | 94 · 3.0 s · 0.001 · 58 ms · 822 kB |
+| `/activities` | 77 · 5.3 s · 0.001 · 42 ms · 9.5 MB | 90 · 3.4 s · 0.001 · 137 ms · 9.5 MB | 92 · 3.2 s · 0.001 · 58 ms · 1.5 MB |
+| `/logistics` | 72 · 5.1 s · 0.143 · 65 ms · 6.2 MB | 85 · 3.4 s · 0.131 · 114 ms · 6.9 MB | 87 · 3.2 s · 0.135 · 80 ms · 736 kB |
+| `/insights` (Vite), `/vi/insights` | 84 · 3.9 s · 0.001 · 49 ms · 4.3 MB | 88 · 3.6 s · 0 · 141 ms · 4.4 MB | 93 · 3.2 s · 0 · 78 ms · 1.1 MB |
 
-- Largest single image at 375 px: 7.9 MB before (the hero inset), 190 kB after (an `/activities` tile).
-- Desktop preset after the image work: 100 on all eight pages, LCP 0.7 s (before: 74–100, home LCP 8.3 s).
-- Client JavaScript on `/`: 217 → 223 kB transferred, 669 → 683 kB decoded (+ the `next/image` client). Of the 683 kB, React DOM and the Next.js runtime are about 410 kB; the shell with Radix and the chat about 150 kB; the chat alone 23.5 kB raw, about 8 kB gzip (R6-9). The Vite bundle: 626 kB, 200.6 kB gzip.
-- `/logistics` CLS 0.131 is the Poppins swap from Google Fonts (Lighthouse names the four font files); 0 with `next/font`.
-- Mobile LCP above 2.5 s is no longer the images (resource load delay and duration are tens of milliseconds): it is element render delay, the CSS, fonts and hydration of the page on a slow device. The text-LCP pages (`/about`, `/logistics`) show the same gap.
+The simulation is pessimistic for both builds (Vite's 53 s comes from 11.5 MB of images on a simulated slow link). Applied throttling (`--throttling-method=devtools`: the same network and CPU limits applied while tracing), mobile, LCP · FCP · CLS · TBT:
+
+| Page | Vite production | Branch head |
+|---|---|---|
+| `/` | 13.4 s · 2.9 s · 0.038 · 0 ms | 2.8 s · 1.9 s · 0.038 · 145 ms |
+| `/products/passion-fruit` | 14.8 s · 2.8 s · 0.001 · 0 ms | 1.9 s · 1.9 s · 0.001 · 128 ms |
+| `/about` | 2.9 s · 2.9 s · 0.023 · 0 ms | 1.8 s · 1.8 s · 0.023 · 128 ms |
+| `/logistics` | 2.9 s · 2.9 s · 0.134 · 0 ms | 1.8 s · 1.8 s · 0.136 · 123 ms |
+
+G-10 (D-21) on the branch head: ✓ home JavaScript transferred 223 kB (≤ 250 kB); ✓ TBT ≤ 200 ms (58–80 ms simulated, 119–154 ms applied; Vite's is near 0, the cost of hydration); ✓ largest image at 375 px 311 kB (≤ 500 kB; Vite 7.9 MB); ✓ LCP and CLS no worse than Vite production on any page, under applied throttling (`/logistics` CLS 0.136 against 0.134: the same Google Fonts swap, within run-to-run variance). Targets: LCP ≤ 2.5 s is met under applied throttling except `/` (2.8 s), not under simulation; CLS ≤ 0.1 is met except `/logistics`.
+
+LCP breakdown, applied throttling, mobile (median run):
+
+| Page | LCP element | TTFB | Resource load delay | Resource load duration | Element render delay |
+|---|---|---|---|---|---|
+| `/` | hero image (`img.day-farm`, 750w, 78 kB) | 6 ms | 598 ms | 2,092 ms | 150 ms |
+| `/products/passion-fruit` | product photo (31 kB) | 6 ms | 616 ms | 1,283 ms | 36 ms |
+| `/about` | `h2` text | 6 ms | n/a | n/a | 1,796 ms |
+| `/logistics` | `p.log-hero-desc` text | 9 ms | n/a | n/a | 1,833 ms |
+
+- The LCP images are requested as soon as the HTML has arrived (about 600 ms on the throttled link), together with the CSS: the load delay is the HTML, not discovery. TTFB is local; a hosted measurement adds the network.
+- Render-blocking: the main CSS chunk (22 kB, done at 1.65–1.78 s), a second CSS chunk (7 kB, 1.37–1.42 s) and the Google Fonts stylesheet (1.31–1.40 s). Text-LCP pages paint when the main CSS chunk is in, after a 130–150 ms task (the page's JavaScript and hydration) that runs just before. The web fonts are requested at 1.8–1.9 s and load after the first paint (`display=swap`); they do not move LCP.
+- `/`'s hero takes 2.1 s to load because it shares the throttled link with 223 kB of JavaScript and the CSS.
+- Measured and not adopted: `experimental.inlineCss` (LCP −0.1 to −0.2 s, FCP −0.2 s, but TBT 162–233 ms, above the gate on `/about`, and the HTML grows from 15 to 73 kB on every page with no CSS caching between pages; experimental). The remaining levers are larger than the migration should take: less client JavaScript (fewer islands), critical CSS, self-hosted fonts (D-20). They are performance backlog.
+- Client JavaScript on `/`: 223 kB transferred, 683 kB decoded, of which React DOM and the Next.js runtime are about 410 kB and the shell with Radix and the chat about 150 kB (the chat alone about 8 kB gzip, R6-9). The Vite bundle: 626 kB, 200.6 kB gzip.
+- Desktop preset, branch head: 100 on all eight pages, LCP 0.6–0.7 s (Vite: 75–100, home LCP 8.2 s).
+
+Vite build with the WebP assets (requirement before D-18), `main` against the branch in the pinned image, 12 pages at desktop and mobile: no image fails to load and no console error on either build; full-page screenshots with images (fonts pinned) differ by at most 111 px on desktop and 331 px on mobile (the logo and re-encoding); every lightbox (34) paints at the same size; image bytes per page drop, for example 17.9 MB → 1.5 MB on the mobile home page; `dist/assets` 42.5 MB → 9.9 MB. The Vite smoke suite now fails a page whose images do not load.
 ## 13. Environment variables and security
 
 | Variable | Scope | Purpose |
@@ -548,3 +580,18 @@ Kept as directed: one global CMS cache tag (`cms`), which meets the takedown req
 | R6-10 | P2, existing | `/regulations` is 479 px wide in a 375 px viewport (horizontal overflow), visible in the mobile baselines; same markup and CSS as Vite, not checked on production | Not changed (UI) |
 | R6-11 | Test reliability | The About unit tests import the page graph fresh per test and exceeded 5 s on a loaded machine; one Vite CMS run failed on a cold start | 20 s timeout for the About tests; the CMS suite passed twice in full afterwards |
 | R6-12 | P2 | The image sources are now WebP in both builds, so the Vite site serves the smaller files after the next merge | A production change under D-18; no visual change measured on the Next.js build |
+
+### 16.8 Revision 7 (image fidelity, logo, D-20, D-21, LCP)
+
+| ID | Kind | Finding | Change |
+|---|---|---|---|
+| R7-1 | P1, fixed | One 1600 px cap for every photograph: the logistics lightbox needs 1920 px (landscape) and 1621 px (portrait) at desktop DPR 2 | Sources sized from the measured painted size × DPR, capped by the original (§11) |
+| R7-2 | P1, fixed | The packaging lightbox renders images at their intrinsic size, so the cap made it smaller (1872 × 2496 → 1200 × 1600 CSS px) | pack1–4 and `move` back at their original dimensions; that lightbox is identical to before PR-08 |
+| R7-3 | P2, existing | The packaging lightbox has no size rule: a portrait photo is 2496 CSS px tall at 1920 × 1080 and its close button is out of view (on Vite production too) | Not changed in the migration; a UI fix for the design owner |
+| R7-4 | P2, fixed | `next/image`'s width and height enlarged the Activities dialog photo by up to 5% | The dialog keeps its plain `<img>` |
+| R7-5 | P2, fixed | `sizes` written from box widths under-delivered images cropped by `object-fit: cover` (7–23% fewer pixels than painted) | `sizes` from painted widths; the image fidelity test fails on any regression |
+| R7-6 | Trade-off, decided | Full cover-width `sizes` for the home hero made the LCP request 1080w (lab LCP 4.1 s instead of 3.5 s) | 420 px on phones: 750w at DPR 1.75, the full source at DPR 2.6–3 |
+| R7-7 | Content | 23 photographs are at the full resolution HMV supplied and smaller than their need at DPR 2 (`ORIGINAL_LIMITED`) | Sharper versions need larger originals (content owner) |
+| R7-8 | Decision | The header logo was lazy only to avoid React's preload | Eager with `fetchPriority="low"`, chosen by measurement (§11) |
+| R7-9 | Decision | D-20: fonts stay on Google Fonts through cutover; D-21: G-10's JavaScript criterion is home JS transferred ≤ 250 kB and TBT ≤ 200 ms | Roadmap §3, §7.3 |
+| R7-10 | Evidence | LCP is gated by the HTML, the render-blocking CSS and, on `/`, bandwidth shared with JavaScript; images are no longer the bottleneck. `experimental.inlineCss` measured and not adopted | §12; larger levers are performance backlog |
