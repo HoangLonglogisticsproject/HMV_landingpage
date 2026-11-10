@@ -51,7 +51,7 @@ test('ProductDetailPage inquiry button navigates to /contact with correct produc
   await page.waitForLoadState('networkidle');
 
   // The inquiry button: <Link to="/contact?product=Passion%20fruit">
-  // Rendered text = copy[lang].ask = "Discuss this product"
+  // Rendered text = copy[lang].ask = "Discuss sourcing requirements"
   const inquiryBtn = page.locator('a[href*="/contact?product="]').first();
   await expect(inquiryBtn).toBeVisible({ timeout: 5000 });
 

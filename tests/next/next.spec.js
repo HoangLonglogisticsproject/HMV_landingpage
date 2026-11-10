@@ -37,18 +37,18 @@ for (const { key, lang, path } of URLS) {
 
 // Spot checks of the visible copy (the full Vite/Next parity check compares every page).
 const COPY = [
-  { path: '/', h1: 'Rooted in the land.Connecting the world.', title: 'Agricultural Supply Chain & Global Trading | HMV Global' },
-  { path: '/vi', h1: 'Bám rễ từ đất lành.Vươn tầm ra thế giới.', title: 'Chuỗi cung ứng nông nghiệp & thương mại quốc tế | HMV Global' },
+  { path: '/', h1: 'Rooted in the land.Connecting the world.', title: 'Vietnam Agricultural Sourcing & Supply Chain for Wholesale Buyers | HMV Global' },
+  { path: '/vi', h1: 'Bám rễ từ đất lành.Vươn tầm ra thế giới.', title: 'Nguồn hàng nông sản Việt Nam & chuỗi cung ứng cho khách hàng B2B | HMV Global' },
   { path: '/about', h1: 'About HMV', title: 'About HMV | HMV Global' },
   { path: '/vi/about', h1: 'Về HMV', title: 'Về HMV | HMV Global' },
   { path: '/contact', h1: 'Partner with us', title: 'Partner with us | HMV Global' },
   { path: '/vi/contact', h1: 'Kết nối hợp tác', title: 'Kết nối hợp tác | HMV Global' },
-  { path: '/vi/supply-chain', h1: 'Chuỗi cung ứng', title: 'Chuỗi cung ứng | HMV Global' },
-  { path: '/vi/san-pham/hat-dieu', h1: 'Hạt điều', title: 'Hạt điều | HMV Global' },
-  { path: '/products/nuts', h1: 'Cashew nuts', title: 'Cashew nuts | HMV Global' },
+  { path: '/vi/supply-chain', h1: 'Chuỗi cung ứng', title: 'Thực thi chuỗi cung ứng nông sản từ Việt Nam | HMV Global' },
+  { path: '/vi/san-pham/hat-dieu', h1: 'Hạt điều', title: 'Hạt điều Việt Nam cho nhu cầu thu mua B2B | HMV Global' },
+  { path: '/products/nuts', h1: 'Cashew nuts', title: 'Vietnam Cashew Nuts Sourcing for Wholesale Buyers | HMV Global' },
   { path: '/vi/tin-tuc/xuat-khau-chanh-day-eu', title: 'Xuất khẩu Chanh dây sang Châu Âu: Tiêu chuẩn GlobalGAP và câu chuyện của HMV Global. | HMV Global' },
   // Decision D-06: one brand suffix, added by the title template.
-  { path: '/logistics', title: 'International Logistics & Dangerous Goods Handling | HMV Global' },
+  { path: '/logistics', title: 'Supply Chain Operations & Dangerous Goods Handling | HMV Global' },
   { path: '/vi/packaging-logistics', title: 'Quy Cách Đóng Gói & Vận Chuyển Xuất Khẩu | HMV Global' },
 ];
 
@@ -71,7 +71,7 @@ test('articles carry Article structured data in their language', async ({ reques
 test('the home page HTML contains every section, client components included', async ({ request }) => {
   const html = await (await request.get('/')).text();
   for (const heading of ['THE VALUE JOURNEY', 'CORE COMMODITIES', 'PARTNER COMMUNITY', 'HMV GLOBAL IN ACTION',
-    'GLOBAL REACH', 'HMV ECONEWS', 'Initiate Trade', 'Exporting Passion Fruit']) {
+    'GLOBAL REACH', 'HMV ECONEWS', 'Discuss Your Sourcing Requirements', 'Exporting Passion Fruit']) {
     expect(html, heading).toContain(heading);
   }
 });

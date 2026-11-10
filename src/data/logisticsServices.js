@@ -21,8 +21,8 @@ export const logisticsServicesData = {
     titleEn: 'Specializing for Dangerous Goods Handling & Chemicals',
     subtitleVi: 'Tuân thủ nghiêm ngặt quy tắc IMO / IMDG Code, IATA DGR và tiêu chuẩn an toàn hóa chất quốc tế',
     subtitleEn: 'Strict adherence to IMO/IMDG Code, IATA DGR regulations and global chemical safety protocols',
-    leadVi: 'HMV Logistics cung cấp giải pháp xử lý chuyên biệt đối với hàng hóa chất và hàng nguy hiểm (DG Classes 1-9), kết hợp quy trình đóng gói chứng nhận UN, khai báo MSDS/DGD và điều phối đa phương thức đường biển lẫn đường hàng không an toàn tuyệt đối.',
-    leadEn: 'HMV Logistics provides engineered handling for chemical commodities and hazardous materials across DG Classes 1-9, combining UN-certified packaging, MSDS/DGD declaration, and end-to-end multimodal sea and air transport.',
+    leadVi: 'Trong quá trình thực thi chuỗi cung ứng, HMV Global phối hợp xử lý chuyên biệt hàng hóa chất và hàng nguy hiểm (DG Classes 1-9), kết hợp quy trình đóng gói chứng nhận UN, khai báo MSDS/DGD và điều phối đa phương thức đường biển lẫn đường hàng không an toàn tuyệt đối.',
+    leadEn: 'Within its supply-chain execution, HMV Global coordinates engineered handling for chemical commodities and hazardous materials across DG Classes 1-9, combining UN-certified packaging, MSDS/DGD declaration, and end-to-end multimodal sea and air transport.',
     subServices: [
       {
         id: 'dg-air-sea',
@@ -160,16 +160,16 @@ export const logisticsServicesData = {
     id: 'local-agency',
     titleVi: 'Đại Lý Hãng Tàu & Forwarding Nội Địa Tại Việt Nam',
     titleEn: 'Local Agency Handling in Vietnam',
-    subtitleVi: 'Mạng lưới dịch vụ logistics đại lý bao phủ toàn bộ các cụm cảng Hải Phòng, Đà Nẵng, Quy Nhơn, Cát Lái, Cái Mép',
+    subtitleVi: 'Năng lực xử lý đại lý bao phủ toàn bộ các cụm cảng Hải Phòng, Đà Nẵng, Quy Nhơn, Cát Lái, Cái Mép',
     subtitleEn: 'Comprehensive local agency representation across major seaport hubs: Hai Phong, Da Nang, Quy Nhon, Cat Lai, Cai Mep',
-    leadVi: 'HMV Logistics cung cấp dịch vụ đại lý giao nhận hàng hóa trọn gói tại Việt Nam cho các Forwarder và đối tác toàn cầu: từ đại lý cảng, thủ tục hải quan, vận tải nội địa đường bộ, lưu kho bãi CFS/ngoại quan cho đến xử lý chứng từ D/O, House B/L.',
-    leadEn: 'HMV Logistics acts as the reliable local partner in Vietnam for global forwarders and shipping lines: handling terminal discharge, customs brokerage, inland trucking, CFS/bonded warehousing, and D/O / House B/L releases.',
+    leadVi: 'Trong quá trình thực thi chuỗi cung ứng tại Việt Nam, HMV Global xử lý trọn gói các khâu đại lý giao nhận cùng các Forwarder và đối tác toàn cầu: từ đại lý cảng, thủ tục hải quan, vận tải nội địa đường bộ, lưu kho bãi CFS/ngoại quan cho đến xử lý chứng từ D/O, House B/L.',
+    leadEn: 'Within its supply-chain execution in Vietnam, HMV Global acts as the reliable local partner for global forwarders and shipping lines: handling terminal discharge, customs brokerage, inland trucking, CFS/bonded warehousing, and D/O / House B/L releases.',
     capabilitiesVi: [
-      'Dịch vụ đại lý đến (Inbound Consignee Handling & D/O issuance)',
+      'Xử lý đại lý đến (Inbound Consignee Handling & D/O issuance)',
       'Khai thuê hải quan điện tử VNACCS cho tất cả các loại hình xuất nhập khẩu',
       'Vận chuyển nội địa đường bộ (Inland Trucking) từ cảng đến nhà máy khách hàng',
       'Đại lý lưu cước hãng tàu (Ocean Carrier Booking Agency) giá cạnh tranh',
-      'Dịch vụ kho bãi, đóng gói lại, dán tem nhãn phụ và phân phối nội địa'
+      'Xử lý kho bãi, đóng gói lại, dán tem nhãn phụ và phân phối nội địa'
     ],
     capabilitiesEn: [
       'Inbound destination handling, cargo turnover & prompt D/O release',
@@ -185,11 +185,11 @@ export const logisticsServicesData = {
     titleEn: 'Oversea Agency Networking (JC Trans Membership)',
     subtitleVi: 'Thành viên chính thức mạng lưới giao nhận toàn cầu JC Trans với bảo chứng thanh toán quốc tế GCP',
     subtitleEn: 'Accredited Member of JC Trans Global Freight Forwarding Network with Global Credit Protection (GCP)',
-    leadVi: 'Với tư cách là thành viên chính thức trong mạng lưới logistics quốc tế JC Trans, HMV Logistics kết nối hơn 10.000+ đại lý giao nhận uy tín tại hơn 160 quốc gia và vùng lãnh thổ. Khách hàng được bảo đảm an toàn tài chính (JC Trans Financial Protection Fund), dịch vụ DDP/DAP uy tín và cước phí cạnh tranh nhất trên các tuyến Á - Âu - Mỹ.',
-    leadEn: 'As an accredited member of the JC Trans Global Freight Forwarding Network, HMV Logistics connects with over 10,000+ verified partner agencies across 160+ countries. Our clients enjoy JC Trans Financial Credit Protection (GCP), seamless DDP/DAP terms, and volume-tiered ocean/air rates worldwide.',
+    leadVi: 'Với tư cách là thành viên chính thức trong mạng lưới logistics quốc tế JC Trans, HMV Global kết nối chuỗi cung ứng với hơn 10.000+ đại lý giao nhận uy tín tại hơn 160 quốc gia và vùng lãnh thổ. Khách hàng được bảo đảm an toàn tài chính (JC Trans Financial Protection Fund), điều kiện giao hàng DDP/DAP uy tín và cước phí cạnh tranh nhất trên các tuyến Á - Âu - Mỹ.',
+    leadEn: 'As an accredited member of the JC Trans Global Freight Forwarding Network, HMV Global connects its supply-chain execution with over 10,000+ verified partner agencies across 160+ countries. Our clients enjoy JC Trans Financial Credit Protection (GCP), seamless DDP/DAP terms, and volume-tiered ocean/air rates worldwide.',
     advantagesVi: [
       'Bảo chứng an toàn tài chính quốc tế (GCP - Global Credit Protection)',
-      'Xử lý trọn gói dịch vụ giao hàng tận nơi DDP, DAP, Ex-works trên toàn thế giới',
+      'Xử lý trọn gói khâu giao hàng tận nơi DDP, DAP, Ex-works trên toàn thế giới',
       'Mạng lưới đối tác phủ sóng khắp Bắc Mỹ, Châu Âu, Trung Đông, Châu Á và Châu Phi',
       'Phối hợp giải quyết nhanh các vấn đề phát sinh tại cảng đích (Destinations clearance & detention/demurrage)',
       'Đối soát thanh toán quốc tế minh bạch, tỷ giá tối ưu và chứng từ số hóa'

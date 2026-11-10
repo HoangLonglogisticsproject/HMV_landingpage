@@ -1,14 +1,22 @@
 // Page titles and descriptions, shared by the Vite head tags (PageMeta) and Next.js route metadata, so both
 // builds emit the same values. Titles are without the " | HMV Global" suffix that both add. Pages framed by
-// DetailLayout also use them as their visible heading.
+// DetailLayout also use them as their visible heading and lead; Supply Chain, Trade Solutions and product pages
+// keep their nav label or product name as the heading, since their titles target buyer search intent.
 import { baseUrl, copy } from '@/data/hmv';
 import { regulationCopy } from '@/data/regulations';
 import { articleCopy } from './article/copy';
 
-export const homeMeta = lang => ({
-  title: lang === 'vi' ? 'Chuỗi cung ứng nông nghiệp & thương mại quốc tế' : 'Agricultural Supply Chain & Global Trading',
-  description: copy[lang].storyText,
-});
+const HOME = {
+  en: {
+    title: 'Vietnam Agricultural Sourcing & Supply Chain for Wholesale Buyers',
+    description: 'HMV Global connects wholesale buyers, importers and distributors with Vietnamese agricultural sourcing, quality coordination, trade requirements and supply-chain execution.',
+  },
+  vi: {
+    title: 'Nguồn hàng nông sản Việt Nam & chuỗi cung ứng cho khách hàng B2B',
+    description: 'HMV Global kết nối khách hàng B2B, nhà nhập khẩu và nhà phân phối với nguồn nông sản Việt Nam, yêu cầu chất lượng, thương mại và thực thi chuỗi cung ứng.',
+  },
+};
+export const homeMeta = lang => HOME[lang];
 
 // `state` is a usePage() result. Until the page is ready (CMS mode) the heading is the nav label.
 export const aboutMeta = (lang, state) =>
@@ -20,12 +28,28 @@ export const aboutMeta = (lang, state) =>
     : { title: copy[lang].about, description: '' };
 
 export const contactMeta = lang => ({ title: copy[lang].contact, description: copy[lang].contactText });
-export const supplyChainMeta = lang => ({ title: copy[lang].supply, description: copy[lang].chainText });
-const TRADE_SOLUTIONS = {
-  en: 'Explore HMV Global’s agricultural portfolio and trade solutions, with sourcing, product preparation, quality requirements and commercial coordination built around each buyer brief.',
-  vi: 'Khám phá danh mục nông sản và giải pháp thương mại của HMV Global, với nguồn hàng, hoàn thiện sản phẩm, yêu cầu chất lượng và điều phối thương mại theo từng nhu cầu người mua.',
+const SUPPLY_CHAIN = {
+  en: {
+    title: 'Agricultural Supply Chain Execution from Vietnam',
+    description: 'See how HMV Global coordinates sourcing, quality requirements, product readiness, trade documentation and delivery planning for international wholesale buyers.',
+  },
+  vi: {
+    title: 'Thực thi chuỗi cung ứng nông sản từ Việt Nam',
+    description: 'Tìm hiểu cách HMV Global phối hợp nguồn hàng, yêu cầu chất lượng, hoàn thiện sản phẩm, chứng từ thương mại và kế hoạch giao hàng cho khách hàng B2B quốc tế.',
+  },
 };
-export const tradeSolutionsMeta = lang => ({ title: copy[lang].trade, description: TRADE_SOLUTIONS[lang] });
+export const supplyChainMeta = lang => SUPPLY_CHAIN[lang];
+const TRADE_SOLUTIONS = {
+  en: {
+    title: 'Agricultural Trade Solutions for Wholesale Buyers',
+    description: 'Explore HMV Global’s agricultural portfolio and trade solutions for wholesale buyers, with sourcing, product preparation, quality requirements and commercial coordination built around each buyer brief.',
+  },
+  vi: {
+    title: 'Giải pháp thương mại nông sản cho khách hàng B2B',
+    description: 'Khám phá danh mục nông sản và giải pháp thương mại của HMV Global cho khách hàng B2B, với nguồn hàng, hoàn thiện sản phẩm, yêu cầu chất lượng và điều phối thương mại theo từng nhu cầu thu mua.',
+  },
+};
+export const tradeSolutionsMeta = lang => TRADE_SOLUTIONS[lang];
 export const activitiesMeta = lang => ({ title: copy[lang].activities, description: copy[lang].fieldText });
 export const regulationsMeta = lang => ({ title: regulationCopy[lang].title, description: regulationCopy[lang].intro });
 
@@ -35,15 +59,16 @@ const INSIGHTS = {
 };
 export const insightsMeta = lang => ({ title: 'EcoNews', description: INSIGHTS[lang] });
 
-// No brand suffix here: both builds add " | HMV Global" (decision D-06).
+// No brand suffix here: both builds add " | HMV Global" (decision D-06). Logistics is an operational capability
+// inside HMV Global's supply-chain execution, not a standalone service offer.
 const LOGISTICS = {
   en: {
-    title: 'International Logistics & Dangerous Goods Handling',
-    description: 'Specialized Dangerous Goods handling (Air & Sea), chemical transport, special & general cargoes, Vietnam-Cambodia cross-border drayage, local agency handling and JC Trans global networking.',
+    title: 'Supply Chain Operations & Dangerous Goods Handling',
+    description: 'Operational capabilities within HMV Global’s supply-chain execution, including dangerous-goods handling, cross-border coordination, local handling and international network connectivity.',
   },
   vi: {
-    title: 'Dịch Vụ Logistics Quốc Tế & Vận Chuyển Hàng Nguy Hiểm',
-    description: 'Chuyên xử lý hàng nguy hiểm Dangerous Goods (Air & Sea), hàng hóa chất, hàng đặc biệt, tuyến xuyên biên giới Việt Nam - Campuchia, đại lý nội địa và mạng lưới toàn cầu JC Trans.',
+    title: 'Năng lực vận hành chuỗi cung ứng & xử lý hàng nguy hiểm',
+    description: 'Các năng lực vận hành trong quá trình thực thi chuỗi cung ứng của HMV Global, gồm xử lý hàng nguy hiểm, điều phối xuyên biên giới, xử lý tại Việt Nam và kết nối mạng lưới quốc tế.',
   },
 };
 export const logisticsMeta = lang => LOGISTICS[lang];
@@ -61,16 +86,20 @@ const PACKAGING = {
 export const packagingMeta = lang => PACKAGING[lang];
 
 // `product` is undefined for an unknown id on the Vite site, which renders a not-found heading (Next.js: 404).
-export const productMeta = (lang, product) =>
-  product
-    ? {
-        title: product[lang],
-        description:
-          lang === 'vi'
-            ? `${product.vi} từ HMV Global — ${product.subVi}. Trao đổi dạng hàng, thông số, đóng gói, yêu cầu thị trường đích và điều kiện thương mại theo nhu cầu thu mua.`
-            : `${product.en} from HMV Global — ${product.subEn}. Discuss product form, specifications, packaging, destination requirements and commercial terms for your sourcing brief.`,
-      }
-    : { title: copy[lang].notfound, description: copy[lang].chainText };
+// Titles follow wholesale sourcing intent; the EN product name is title-cased ("Cavendish bananas" → "Cavendish Bananas").
+export const productMeta = (lang, product) => {
+  if (!product) return { title: copy[lang].notfound, description: copy[lang].chainText };
+  if (lang === 'vi') {
+    return {
+      title: `${product.vi} Việt Nam cho nhu cầu thu mua B2B`,
+      description: `Nguồn ${product.vi} Việt Nam cho khách hàng B2B — ${product.subVi}. Trao đổi dạng hàng, thông số, đóng gói, yêu cầu thị trường đích và điều kiện thương mại.`,
+    };
+  }
+  return {
+    title: `Vietnam ${product.en.replace(/\b\w/g, c => c.toUpperCase())} Sourcing for Wholesale Buyers`,
+    description: `${product.en} sourcing from Vietnam for wholesale buyers — ${product.subEn}. Discuss product form, specifications, packaging, destination requirements and commercial terms.`,
+  };
+};
 
 export const notFoundMeta = { title: 'Page not found', description: 'Return to HMV Global.' };
 

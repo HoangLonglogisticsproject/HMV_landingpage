@@ -7,7 +7,7 @@ import { ProductPortfolio } from './ProductPortfolio';
 export function TradeSolutionsView({ lang }) {
   const t = copy[lang];
   return (
-    <DetailLayout lang={lang} {...tradeSolutionsMeta(lang)}>
+    <DetailLayout lang={lang} {...tradeSolutionsMeta(lang)} title={t.trade}>
       <section className="section-pad">
         <div className="content-width">
           <p className="eyebrow">{t.businessLabel}</p>

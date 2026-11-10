@@ -12,7 +12,7 @@ export function ProductView({ lang, product }) {
   const t = copy[lang];
   const photo = product && productPhotos[product.id];
   return (
-    <DetailLayout lang={lang} {...productMeta(lang, product)}>
+    <DetailLayout lang={lang} {...productMeta(lang, product)} title={product ? product[lang] : t.notfound}>
       {product && (
         <section className="section-pad">
           <div className="content-width product-detail">

@@ -347,8 +347,8 @@ export function SupplyChainPillars({ lang }) {
               </h3>
               <p>
                 {vi
-                  ? 'HMV Logistics cung cấp giải pháp vận tải toàn diện: chuyên môn sâu về hàng hóa chất & hàng nguy hiểm (DG Air/Sea, Special Cargoes, General Cargoes), hành lang vận tải xuyên biên giới Việt Nam – Campuchia, dịch vụ đại lý nội địa và kết nối toàn cầu qua mạng lưới JC Trans.'
-                  : 'HMV Logistics delivers mission-critical freight forwarding: deep expertise in Dangerous Goods & Chemicals (DG Air/Sea, Special Cargoes, General Cargoes), cross-border Vietnam – Cambodia corridors, local agency handling and verified JC Trans global network coverage.'}
+                  ? 'Trong quá trình thực thi chuỗi cung ứng, HMV Global phối hợp toàn diện các khâu vận hành: chuyên môn sâu về hàng hóa chất & hàng nguy hiểm (DG Air/Sea, Special Cargoes, General Cargoes), hành lang vận tải xuyên biên giới Việt Nam – Campuchia, xử lý đại lý nội địa và kết nối toàn cầu qua mạng lưới JC Trans.'
+                  : 'Within its supply-chain execution, HMV Global coordinates mission-critical operational steps: deep expertise in Dangerous Goods & Chemicals (DG Air/Sea, Special Cargoes, General Cargoes), cross-border Vietnam – Cambodia corridors, local agency handling and verified JC Trans global network coverage.'}
               </p>
               <div className="compliance-trust-tags">
                 <span>
@@ -375,8 +375,8 @@ export function SupplyChainPillars({ lang }) {
                 <Link to="/logistics">
                   <span>
                     {vi
-                      ? 'Khám phá dịch vụ Logistics'
-                      : 'Explore logistics services'}
+                      ? 'Xem năng lực vận hành'
+                      : 'Explore operational capabilities'}
                   </span>
                   <ArrowUpRight size={18} />
                 </Link>
