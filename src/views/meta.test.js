@@ -1,7 +1,18 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { articleJsonLd, siteJsonLd } from './meta.js';
+import { articleJsonLd, productMeta, siteJsonLd, supplyChainMeta, tradeSolutionsMeta } from './meta.js';
 import { bundledArticle, bundledArticleIndex } from '../features/articles/bundled.js';
+import { products } from '../data/hmv.js';
+
+test('descriptions: Trade Solutions differs from Supply Chain; product descriptions are filled and unique', () => {
+  for (const lang of ['en', 'vi']) {
+    assert.notEqual(tradeSolutionsMeta(lang).description, supplyChainMeta(lang).description, lang);
+    const descriptions = products.map(p => productMeta(lang, p).description);
+    assert.equal(descriptions.length, 6, lang);
+    assert.ok(descriptions.every(d => d.trim()), lang);
+    assert.equal(new Set(descriptions).size, descriptions.length, lang);
+  }
+});
 
 // Facts under D-12 review (audit §9) that are on the site today and must not reach structured data before HMV confirms
 // them: people and titles (C-02), contact channels (C-05), the email domain (C-04).

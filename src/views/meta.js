@@ -21,7 +21,11 @@ export const aboutMeta = (lang, state) =>
 
 export const contactMeta = lang => ({ title: copy[lang].contact, description: copy[lang].contactText });
 export const supplyChainMeta = lang => ({ title: copy[lang].supply, description: copy[lang].chainText });
-export const tradeSolutionsMeta = lang => ({ title: copy[lang].trade, description: copy[lang].chainText });
+const TRADE_SOLUTIONS = {
+  en: 'Explore HMV Global’s agricultural portfolio and trade solutions, with sourcing, product preparation, quality requirements and commercial coordination built around each buyer brief.',
+  vi: 'Khám phá danh mục nông sản và giải pháp thương mại của HMV Global, với nguồn hàng, hoàn thiện sản phẩm, yêu cầu chất lượng và điều phối thương mại theo từng nhu cầu người mua.',
+};
+export const tradeSolutionsMeta = lang => ({ title: copy[lang].trade, description: TRADE_SOLUTIONS[lang] });
 export const activitiesMeta = lang => ({ title: copy[lang].activities, description: copy[lang].fieldText });
 export const regulationsMeta = lang => ({ title: regulationCopy[lang].title, description: regulationCopy[lang].intro });
 
@@ -59,7 +63,13 @@ export const packagingMeta = lang => PACKAGING[lang];
 // `product` is undefined for an unknown id on the Vite site, which renders a not-found heading (Next.js: 404).
 export const productMeta = (lang, product) =>
   product
-    ? { title: product[lang], description: lang === 'vi' ? product.subVi : product.subEn }
+    ? {
+        title: product[lang],
+        description:
+          lang === 'vi'
+            ? `${product.vi} từ HMV Global — ${product.subVi}. Trao đổi dạng hàng, thông số, đóng gói, yêu cầu thị trường đích và điều kiện thương mại theo nhu cầu thu mua.`
+            : `${product.en} from HMV Global — ${product.subEn}. Discuss product form, specifications, packaging, destination requirements and commercial terms for your sourcing brief.`,
+      }
     : { title: copy[lang].notfound, description: copy[lang].chainText };
 
 export const notFoundMeta = { title: 'Page not found', description: 'Return to HMV Global.' };
