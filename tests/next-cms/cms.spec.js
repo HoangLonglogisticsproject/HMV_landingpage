@@ -46,6 +46,23 @@ test('a page not published in a language: 200, noindex, no canonical, the not-pu
   expect(head(body).robots).toContain('noindex');
   expect(head(body).canonical).toBeUndefined();
   expect(body).toContain('Trang này chưa được xuất bản bằng tiếng Việt.');
+  // The published language no longer points to it, and the sitemap lists only the published URL.
+  expect(head(await html(request, '/about')).hreflang).toEqual({});
+  const sitemap = await html(request, '/sitemap.xml');
+  expect(sitemap).toContain('<loc>https://www.hmv-global.com/about</loc>');
+  expect(sitemap).not.toContain('https://www.hmv-global.com/vi/about');
+});
+
+test('more than 100 published articles per locale: every one in the sitemap, and served', async ({ request }) => {
+  await mock(request, 'bulk', '?count=130');
+  expect((await revalidate(request)).status()).toBe(200);
+  const sitemap = await html(request, '/sitemap.xml');
+  for (const i of [0, 99, 100, 129]) {
+    expect(sitemap, `bulk ${i}`).toContain(`https://www.hmv-global.com/blog/cms-bulk-${i}</loc>`);
+    expect(sitemap, `bulk ${i}`).toContain(`https://www.hmv-global.com/vi/tin-tuc/cms-loat-${i}</loc>`);
+  }
+  expect(await status(request, '/blog/cms-bulk-129')).toBe(200);
+  expect(await status(request, '/vi/tin-tuc/cms-loat-129')).toBe(200);
 });
 
 test('home and EcoNews list CMS articles, never the bundled ones', async ({ request }) => {
@@ -145,11 +162,15 @@ test('sitemap: cached until revalidation, then regenerated before responding; 5x
   expect(await cmsRequests(request)).toEqual([]);
 
   expect((await revalidate(request)).status()).toBe(200);
-  // { expire: 0 }: nothing stale is served; this request waits for the regeneration, which refetched both lists.
+  // { expire: 0 }: nothing stale is served; this request waits for the regeneration, which refetched both article
+  // lists and About in each language (its published languages).
   const fresh = await sitemap();
   expect(fresh).toMatchObject({ status: 200, cache: 'MISS' });
   expect(fresh.body).not.toContain('/blog/cms-takedown');
-  expect((await cmsRequests(request)).sort()).toEqual(['en', 'vi'].map(l => `/api/v1/public/articles?locale=${l}&pageSize=100`));
+  expect((await cmsRequests(request)).sort()).toEqual([
+    ...['en', 'vi'].map(l => `/api/v1/public/articles?locale=${l}&pageSize=100`),
+    ...['en', 'vi'].map(l => `/api/v1/public/pages/about?locale=${l}`),
+  ]);
 
   // A revalidation while the CMS fails leaves nothing to serve, until the CMS answers again (runbook, architecture §9.3).
   await mock(request, 'fail', '?status=503');

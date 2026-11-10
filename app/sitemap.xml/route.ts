@@ -1,5 +1,5 @@
 import { LOCALES, PAGES, PRODUCT_SLUG_VI } from '@/i18n/routes';
-import { loadArticleIndex } from '@/next/content';
+import { loadArticleIndex, sitePagePaths } from '@/next/content';
 import { absoluteUrl, alternateUrls, type Lang, type LocalePaths } from '@/next/seo';
 
 // The sitemap, written here rather than with Next.js's sitemap convention, which rewrites the root URL as `B/`: every
@@ -12,8 +12,8 @@ export const dynamic = 'force-static';
 const escapeXml = (s: string) => s.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
 
 export async function GET() {
-  const keys = [...PAGES, ...Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`)];
-  const pages: LocalePaths[] = keys.map(path => ({ en: path, vi: path }));
+  const products = Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`);
+  const pages: LocalePaths[] = [...(await Promise.all(PAGES.map(sitePagePaths))), ...products.map(path => ({ en: path, vi: path }))];
   const articles: LocalePaths[] = (await loadArticleIndex()).map(slugs =>
     Object.fromEntries(Object.entries(slugs).map(([lang, slug]) => [lang, `/blog/${slug}`])));
   const urls = [...pages, ...articles].flatMap(paths => {

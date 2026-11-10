@@ -1,7 +1,7 @@
 // EcoNews from the CMS public article API (CMS_HMV docs/api/public-content-contract.md): DTO validation, the view
 // shape and slug resolution. No React, no framework: any consumer with a transport can use it.
 // Plain .js with relative imports so `node --test` can load it.
-import { isCmsSlug, malformed } from '../../lib/cms.js';
+import { cmsError, isCmsSlug, malformed } from '../../lib/cms.js';
 import { isSafeSrc } from '../../lib/safeUrl.js';
 import { LOCALES } from '../../i18n/routes.js';
 
@@ -45,18 +45,35 @@ function toView(a, lang) {
  */
 
 // `get` in every function below: a CMS transport (lib/cms.js).
+const listItems = body => {
+  if (!Array.isArray(body?.items) || !body.items.every(isArticle)) throw malformed();
+  return body.items;
+};
+
 /** @returns {Promise<Article[]>} */
 export async function fetchArticles(get, { locale, pageSize }) {
-  const body = await get('/articles', { locale, pageSize });
-  if (!Array.isArray(body?.items) || !body.items.every(isArticle)) throw malformed();
-  return body.items.map(a => toView(a, locale));
+  return listItems(await get('/articles', { locale, pageSize })).map(a => toView(a, locale));
 }
+
+// The CMS serves at most 100 articles per page (CMS_HMV PageQuery), so the index pages through each locale and the
+// sitemap and generateStaticParams miss none. MAX_INDEX_PAGES bounds a wrong `total`: past it the index fails (the
+// last good sitemap stays) instead of being cut silently.
+const MAX_INDEX_PAGES = 50;
 
 /** Every published article as `{ en?: slug, vi?: slug }`, paired by the CMS id that translations share. */
 export async function fetchArticleIndex(get, { pageSize }) {
   const byKey = new Map();
   for (const locale of LOCALES) {
-    for (const a of await fetchArticles(get, { locale, pageSize })) byKey.set(a.key, { ...byKey.get(a.key), [locale]: a.slug });
+    for (let page = 1, pages = 1; page <= pages; page++) {
+      // Page 1 without `page`: the same request, and the same data cache entry, as the EcoNews list.
+      const body = await get('/articles', page === 1 ? { locale, pageSize } : { locale, page, pageSize });
+      const items = listItems(body);
+      if (!Number.isInteger(body.total) || body.total < 0) throw malformed();
+      pages = Math.ceil(body.total / pageSize);
+      if (pages > MAX_INDEX_PAGES) throw cmsError(0, `Article index over ${MAX_INDEX_PAGES} pages`);
+      for (const a of items.map(x => toView(x, locale))) byKey.set(a.key, { ...byKey.get(a.key), [locale]: a.slug });
+      if (!items.length) break;
+    }
   }
   return [...byKey.values()];
 }

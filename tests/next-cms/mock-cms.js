@@ -51,8 +51,13 @@ function publicApi(url) {
   const locale = url.searchParams.get('locale');
   const route = url.pathname.slice(API.length);
   if (route === '/articles') {
-    const items = state.articles.filter(a => a.locale === locale).slice(0, Number(url.searchParams.get('pageSize')));
-    return [200, { items: items.map(summary), page: 1, pageSize: items.length, total: items.length }];
+    // As CMS_HMV PageQuery: page from 1, pageSize 1-100 (default 20), `total` over every page.
+    const page = Number(url.searchParams.get('page') ?? 1);
+    const pageSize = Number(url.searchParams.get('pageSize') ?? 20);
+    if (!(page >= 1 && pageSize >= 1 && pageSize <= 100)) return [400, { statusCode: 400, code: 'VALIDATION_FAILED', message: 'Invalid' }];
+    const all = state.articles.filter(a => a.locale === locale);
+    const items = all.slice((page - 1) * pageSize, page * pageSize);
+    return [200, { items: items.map(summary), page, pageSize, total: all.length }];
   }
   if (route === '/pages/about') return state.pages[locale] ? [200, state.pages[locale]] : [404, notFound];
   const slug = decodeURIComponent(route.match(/^\/articles\/([^/]+)$/)?.[1] ?? '');
@@ -66,6 +71,8 @@ function control(url) {
     case '/__mock/reset': state = initial(); break;
     case '/__mock/unpublish': state.articles = state.articles.filter(a => a.slug !== q.get('slug')); break;
     case '/__mock/unpublish-page': delete state.pages[q.get('locale')]; break;
+    // `count` more article pairs, older than the others (the CMS lists newest first).
+    case '/__mock/bulk': for (let i = 0; i < Number(q.get('count')); i++) state.articles.push(...pair(`bulk-${i}`, [`cms-bulk-${i}`, `[CMS] Bulk ${i}`], [`cms-loat-${i}`, `[CMS] Loạt ${i}`])); break;
     case '/__mock/fail': state.fail = Number(q.get('status')) || 0; break;
     case '/__mock/reset-requests': state.requests = []; break;
     case '/__mock/requests': return state.requests;

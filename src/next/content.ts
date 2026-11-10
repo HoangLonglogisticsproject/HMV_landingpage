@@ -4,7 +4,8 @@ import { bundledArticle, bundledArticleIndex, listBundledArticles } from '@/feat
 import { fetchPage } from '@/features/pages/api';
 import { bundledPage } from '@/features/pages/bundled';
 import { cmsGet } from '@/next/cms';
-import type { Lang } from '@/next/seo';
+import { LOCALES } from '@/i18n/routes';
+import type { Lang, LocalePaths } from '@/next/seo';
 
 // Content for the Next.js routes, in the state shapes the shared views render: bundled, or the CMS when
 // CMS_CONTENT=true (server environment, read at build and at regeneration).
@@ -20,6 +21,18 @@ type Slugs = Partial<Record<Lang, string>>;
 const withoutBlocked = (slugs: Slugs): Slugs => Object.fromEntries(Object.entries(slugs).filter(([, s]) => !BLOCKED.has(s)));
 
 export const loadPage = (key: string, lang: Lang) => (CMS ? fetchPage(cmsGet, { key, locale: lang }) : bundledPage(key, lang));
+
+// Site pages whose content comes from the CMS (key path → CMS page key). A CMS page locale may never have been
+// published; that URL is a noindex "not published" page, so it is left out of hreflang and the sitemap.
+const CMS_PAGES: Record<string, string> = { '/about': 'about' };
+
+/** The site page's path in each language it is published in: every language for bundled pages. */
+export async function sitePagePaths(path: string): Promise<LocalePaths> {
+  const key = CMS ? CMS_PAGES[path] : undefined;
+  const langs = LOCALES as Lang[];
+  const live = key ? (await Promise.all(langs.map(lang => loadPage(key, lang)))).map(s => s.status === 'ready') : langs.map(() => true);
+  return Object.fromEntries(langs.filter((_, i) => live[i]).map(lang => [lang, path]));
+}
 
 export async function loadArticleList(lang: Lang, pageSize: number) {
   if (!CMS) return listBundledArticles(lang, { pageSize });

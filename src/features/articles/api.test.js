@@ -185,10 +185,35 @@ test('detail: alternates map each locale to its slug, invalid entries dropped', 
 
 test('index: articles are paired across locales by the id their translations share', async () => {
   mockFetch({
-    '/api/v1/public/articles?locale=en&pageSize=100': { items: [summary({ id: 'a', slug: 'a-en' }), summary({ id: 'b', slug: 'b-en' })] },
-    '/api/v1/public/articles?locale=vi&pageSize=100': { items: [summary({ id: 'a', locale: 'vi', slug: 'a-vi' }), summary({ id: 'c', locale: 'vi', slug: 'c-vi' })] },
+    '/api/v1/public/articles?locale=en&pageSize=100': { items: [summary({ id: 'a', slug: 'a-en' }), summary({ id: 'b', slug: 'b-en' })], page: 1, pageSize: 100, total: 2 },
+    '/api/v1/public/articles?locale=vi&pageSize=100': { items: [summary({ id: 'a', locale: 'vi', slug: 'a-vi' }), summary({ id: 'c', locale: 'vi', slug: 'c-vi' })], page: 1, pageSize: 100, total: 2 },
   });
   assert.deepEqual(await fetchArticleIndex(get, { pageSize: 100 }), [{ en: 'a-en', vi: 'a-vi' }, { en: 'b-en' }, { vi: 'c-vi' }]);
+});
+
+test('index: pages through more than one page per locale (the CMS caps pageSize at 100)', async () => {
+  const page = (locale, from, to, total) => ({
+    items: Array.from({ length: to - from }, (_, i) => summary({ id: `id-${from + i}`, locale, slug: `${locale}-${from + i}` })),
+    page: 1, pageSize: 2, total,
+  });
+  const calls = mockFetch({
+    '/api/v1/public/articles?locale=en&pageSize=2': page('en', 0, 2, 5),
+    '/api/v1/public/articles?locale=en&page=2&pageSize=2': page('en', 2, 4, 5),
+    '/api/v1/public/articles?locale=en&page=3&pageSize=2': page('en', 4, 5, 5),
+    '/api/v1/public/articles?locale=vi&pageSize=2': page('vi', 0, 1, 1),
+  });
+  const index = await fetchArticleIndex(get, { pageSize: 2 });
+  assert.equal(index.length, 5);
+  assert.deepEqual(index[0], { en: 'en-0', vi: 'vi-0' });
+  assert.deepEqual(index[4], { en: 'en-4' });
+  assert.equal(calls.length, 4);
+});
+
+test('index: a missing or absurd total fails instead of cutting the index', async () => {
+  mockFetch({ '/api/v1/public/articles?locale=en&pageSize=100': { items: [summary()] } });
+  await assert.rejects(fetchArticleIndex(get, { pageSize: 100 }), e => e.status === 0);
+  mockFetch({ '/api/v1/public/articles?locale=en&pageSize=100': { items: [summary()], page: 1, pageSize: 100, total: 1_000_000 } });
+  await assert.rejects(fetchArticleIndex(get, { pageSize: 100 }), /over 50 pages/);
 });
 
 test('detail: a slug the CMS cannot have is not-found without any request', async () => {
