@@ -27,9 +27,14 @@ test('titles: main commercial pages and the six products are unique per language
   assert.equal(productMeta('vi', products[1]).title, 'Chuối Cavendish Việt Nam cho nhu cầu thu mua B2B');
 });
 
+// Logistics is an operational capability of HMV Global, never a second brand or a standalone service offer.
+const STANDALONE_LOGISTICS = ['HMV Logistics', 'Dịch Vụ Logistics Chuyên Biệt', 'Specialized Logistics Solutions',
+  'Contact Logistics Desk', 'Explore logistics services'];
+
 test('HMV Global is the only entity on the logistics pages', () => {
   for (const file of ['./logistics/LogisticsView.jsx', '../data/logisticsServices.js', './supply-chain/SupplyChainPillars.jsx']) {
-    assert.ok(!readFileSync(new URL(file, import.meta.url), 'utf8').includes('HMV Logistics'), file);
+    const source = readFileSync(new URL(file, import.meta.url), 'utf8');
+    for (const phrase of STANDALONE_LOGISTICS) assert.ok(!source.includes(phrase), `${file}: ${phrase}`);
   }
 });
 

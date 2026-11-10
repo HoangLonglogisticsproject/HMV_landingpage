@@ -40,21 +40,21 @@ export function LogisticsView({ lang }) {
             <ShieldAlert size={14} className="log-badge-icon" />
             <span>
               {vi
-                ? 'NĂNG LỰC LOGISTICS TOÀN DIỆN · GIẢI PHÁP VẬN TẢI CHUYÊN BIỆT'
-                : 'END-TO-END FREIGHT CAPACITY · SPECIALIZED LOGISTICS'}
+                ? 'NĂNG LỰC VẬN HÀNH CHUỖI CUNG ỨNG · XỬ LÝ CHUYÊN BIỆT'
+                : 'SUPPLY-CHAIN OPERATIONS · SPECIALIZED HANDLING'}
             </span>
           </div>
           <h1 className="log-hero-title">
             {vi ? (
               <>
-                Dịch Vụ Logistics Chuyên Biệt, <br />
+                Năng Lực Vận Hành Chuyên Biệt, <br />
                 <span className="log-title-gradient">
                   Hàng Nguy Hiểm & Vận Tải Quốc Tế
                 </span>
               </>
             ) : (
               <>
-                Specialized Logistics Solutions, <br />
+                Specialized Operational Capabilities, <br />
                 <span className="log-title-gradient">
                   Dangerous Goods & Global Freight
                 </span>
@@ -63,8 +63,8 @@ export function LogisticsView({ lang }) {
           </h1>
           <p className="log-hero-desc">
             {vi
-              ? 'Trong quá trình thực thi chuỗi cung ứng, HMV Global phối hợp các khâu vận hành từ xử lý hàng hóa chất và hàng nguy hiểm (DG Air/Sea, Special Cargoes, General Cargoes, Factory Tour), vận tải xuyên biên giới Việt Nam - Campuchia đến xử lý tại Việt Nam và kết nối mạng lưới quốc tế JC Trans.'
-              : 'Within its supply-chain execution, HMV Global coordinates operational steps spanning dangerous-goods and chemicals handling (Air & Sea, Special Cargoes, General Cargoes, Factory Tour), Vietnam - Cambodia cross-border movements, local handling in Vietnam and JC Trans international network coordination.'}
+              ? 'Trong quá trình thực thi chuỗi cung ứng, HMV Global phối hợp toàn diện các khâu vận hành: chuyên môn sâu về hàng hóa chất & hàng nguy hiểm (DG Air/Sea, Special Cargoes, General Cargoes, Factory Tour), mạng lưới vận tải xuyên biên giới Việt Nam - Campuchia, xử lý đại lý nội địa tại Việt Nam và kết nối toàn cầu qua mạng lưới JC Trans.'
+              : 'Within its supply-chain execution, HMV Global coordinates mission-critical operational steps: deep engineering in Dangerous Goods & Chemicals (Air & Sea, Special Cargoes, General Cargoes, Factory Tour), cross-border Vietnam - Cambodia corridors, comprehensive local agency handling, and verified JC Trans global network coverage.'}
           </p>
 
           {/* QUICK JUMP NAV PILLS */}
@@ -401,16 +401,16 @@ export function LogisticsView({ lang }) {
               </h3>
               <p>
                 {vi
-                  ? 'Đội ngũ phụ trách hàng nguy hiểm theo IMDG/IATA và điều phối vận tải xuyên biên giới của HMV Global sẵn sàng trao đổi yêu cầu vận hành cho lô hàng trong chuỗi cung ứng của bạn.'
-                  : 'HMV Global’s IMDG/IATA dangerous-goods and cross-border transport coordinators can review the operational requirements of your shipment within your supply chain.'}
+                  ? 'Đội ngũ chuyên viên chứng chỉ IMDG/IATA và điều vận đường bộ của HMV Global sẵn sàng phản hồi giải pháp vận hành tối ưu trong vòng 2 giờ.'
+                  : 'HMV Global’s certified IMDG/IATA dangerous goods specialists and cross-border transport dispatchers are on standby.'}
               </p>
             </div>
             <div className="log-cta-actions">
               <Button asChild size="lg" variant="brand">
                 <Link to="/contact?service=logistics">
                   {vi
-                    ? 'Liên Hệ Chuyên Viên Logistics'
-                    : 'Contact Logistics Desk'}
+                    ? 'Trao Đổi Yêu Cầu Vận Hành'
+                    : 'Discuss Operational Requirements'}
                   <ArrowUpRight size={17} style={{ marginLeft: 6 }} />
                 </Link>
               </Button>
