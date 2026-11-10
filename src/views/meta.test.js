@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { articleJsonLd, homeMeta, logisticsMeta, productMeta, siteJsonLd, supplyChainMeta, tradeSolutionsMeta } from './meta.js';
 import { bundledArticle, bundledArticleIndex } from '../features/articles/bundled.js';
-import { products } from '../data/hmv.js';
+import { copy, products } from '../data/hmv.js';
 
 test('descriptions: Trade Solutions differs from Supply Chain; product descriptions are filled and unique', () => {
   for (const lang of ['en', 'vi']) {
@@ -25,6 +25,12 @@ test('titles: main commercial pages and the six products are unique per language
   }
   assert.equal(productMeta('en', products[1]).title, 'Vietnam Cavendish Bananas Sourcing for Wholesale Buyers');
   assert.equal(productMeta('vi', products[1]).title, 'Chuối Cavendish Việt Nam cho nhu cầu thu mua B2B');
+});
+
+test('product metadata: an unknown product (Vite soft 404) falls back to the not-found heading', () => {
+  for (const lang of ['en', 'vi']) {
+    assert.deepEqual(productMeta(lang, undefined), { title: copy[lang].notfound, description: copy[lang].chainText }, lang);
+  }
 });
 
 // Logistics is an operational capability of HMV Global, never a second brand or a standalone service offer.

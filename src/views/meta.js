@@ -87,18 +87,19 @@ export const packagingMeta = lang => PACKAGING[lang];
 
 // `product` is undefined for an unknown id on the Vite site, which renders a not-found heading (Next.js: 404).
 // Titles follow wholesale sourcing intent; the EN product name is title-cased ("Cavendish bananas" → "Cavendish Bananas").
-export const productMeta = (lang, product) =>
-  product
-    ? lang === 'vi'
-      ? {
-          title: `${product.vi} Việt Nam cho nhu cầu thu mua B2B`,
-          description: `Nguồn ${product.vi} Việt Nam cho khách hàng B2B — ${product.subVi}. Trao đổi dạng hàng, thông số, đóng gói, yêu cầu thị trường đích và điều kiện thương mại.`,
-        }
-      : {
-          title: `Vietnam ${product.en.replace(/\b\w/g, c => c.toUpperCase())} Sourcing for Wholesale Buyers`,
-          description: `${product.en} sourcing from Vietnam for wholesale buyers — ${product.subEn}. Discuss product form, specifications, packaging, destination requirements and commercial terms.`,
-        }
-    : { title: copy[lang].notfound, description: copy[lang].chainText };
+export const productMeta = (lang, product) => {
+  if (!product) return { title: copy[lang].notfound, description: copy[lang].chainText };
+  if (lang === 'vi') {
+    return {
+      title: `${product.vi} Việt Nam cho nhu cầu thu mua B2B`,
+      description: `Nguồn ${product.vi} Việt Nam cho khách hàng B2B — ${product.subVi}. Trao đổi dạng hàng, thông số, đóng gói, yêu cầu thị trường đích và điều kiện thương mại.`,
+    };
+  }
+  return {
+    title: `Vietnam ${product.en.replace(/\b\w/g, c => c.toUpperCase())} Sourcing for Wholesale Buyers`,
+    description: `${product.en} sourcing from Vietnam for wholesale buyers — ${product.subEn}. Discuss product form, specifications, packaging, destination requirements and commercial terms.`,
+  };
+};
 
 export const notFoundMeta = { title: 'Page not found', description: 'Return to HMV Global.' };
 

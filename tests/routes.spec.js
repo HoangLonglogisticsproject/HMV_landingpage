@@ -23,7 +23,7 @@ const ROUTES = [
   // InsightsPage uses title='EcoNews' in DetailLayout
   { path: '/insights', titleFrag: 'Insights', h1Text: /econews/i },
   { path: '/regulations', titleFrag: 'Regulations', h1Text: /regulations|quy định/i },
-  { path: '/logistics', titleFrag: 'Logistics', h1Text: /logistics/i },
+  { path: '/logistics', titleFrag: 'Logistics', h1Text: /specialized operational capabilities|năng lực vận hành chuyên biệt/i },
   { path: '/packaging-logistics', titleFrag: 'Packaging', h1Text: /packaging|đóng gói/i },
   // ProductDetailPage: title = product[lang] from data/hmv.js
   { path: '/products/passion-fruit', titleFrag: 'Passion fruit', h1Text: /passion fruit|chanh dây/i },

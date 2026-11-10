@@ -51,7 +51,7 @@ const VISUAL_PAGES = [
   { name: 'contact',             path: '/contact',                 expectH1: /partner with us|kết nối/i },
   { name: 'product-passion-fruit', path: '/products/passion-fruit', expectH1: /passion fruit|chanh dây/i },
   { name: 'insights',            path: '/insights',                expectH1: /econews/i },
-  { name: 'logistics',           path: '/logistics',               expectH1: /logistic/i },
+  { name: 'logistics',           path: '/logistics',               expectH1: /specialized operational capabilities|năng lực vận hành chuyên biệt/i },
 ];
 
 // Ensure screenshots directory exists
