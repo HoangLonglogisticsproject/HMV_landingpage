@@ -55,6 +55,8 @@ Playwright spins up `vite preview` on port 4173 automatically. Tests cover:
 
 `npm run test:e2e` builds both bundles and runs both suites. The default config ignores `cms-*.spec.js`, so `test:e2e:fast` and `test:visual` need only `dist`.
 
+Next.js (migration branch): `npm run test:e2e:next` builds and tests the Next.js site (`tests/next/`, port 4175). `npm run test:e2e:next-cms` starts a mock CMS (port 4400), builds Next.js with `CMS_CONTENT=true` against it and runs `tests/next-cms/` (port 4176), then rebuilds with a 2 s revalidation interval for the stale-on-error test (`playwright.next-cms-stale.config.js`); those builds replace `.next`, so run them last. `scripts/check-boundaries.test.js` runs with `npm test`.
+
 Both desktop (1280×720) and mobile (375×667) viewports are tested.
 
 ### Visual screenshots
@@ -64,6 +66,22 @@ npm run test:visual
 ```
 
 Screenshots are saved to `tests/screenshots/` (gitignored — never committed). They are for **manual review** only, not pixel-diff CI.
+
+### Visual baselines of the Next.js build (D-14)
+
+`tests/next-visual/` compares the Next.js build with committed baselines (`*-linux.png`): every page, one product and one article, full page in EN and VI with images masked, and the first viewport in EN with images. Reduced motion, images decoded and every font face loaded before each screenshot; zero tolerance; no retries. The Google Fonts CSS and files are served from `tests/next-visual/fonts/` (Google serves different builds by user agent, region and day); to refresh them, capture them again in the pinned image and regenerate the baselines. Linux only: CI runs it in the pinned image `mcr.microsoft.com/playwright:v1.64.1-noble` (job `visual`), which also rendered the baselines; on failure the diffs are in the `visual-diff` artifact.
+
+An accepted visual change regenerates only the changed baselines (`--update-snapshots=changed`) in the same commit, with the measured diff in the commit message; the original D-14 set stays in commit `73e8c26`, for the cumulative comparison at cutover (G-8). A diff beyond G-8 needs the design owner's sign-off first.
+
+To regenerate the baselines, from a commit that contains the change:
+
+```bash
+docker run --rm --ipc=host -e CI=true -v "$PWD:/repo:ro" -v "$PWD/tests/next-visual:/out" \
+  mcr.microsoft.com/playwright:v1.64.1-noble bash -c \
+  "git config --global --add safe.directory '*' && git clone -q /repo /work && cd /work && npm ci && npx next build &&
+   npx playwright test -c playwright.next-visual.config.js --update-snapshots=changed;
+   cp -r tests/next-visual/visual.spec.js-snapshots /out/"
+```
 
 To view the HTML report after a test run:
 

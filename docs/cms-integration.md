@@ -33,8 +33,9 @@ Contract sources: `CMS_HMV/docs/api/public-content-contract.md`, `CMS_HMV/docs/a
 |---|---|
 | Mode flag | `.env.cms` sets `VITE_CMS_CONTENT=true`; it is loaded only by `--mode cms` (`npm run dev:cms`, `npm run build:cms` → `dist-cms/`). With the flag off, the CMS client is tree-shaken out of the bundle. |
 | Same-origin access | `vite.config.js` proxies **only** `/api/v1/public` to `CMS_API_ORIGIN` (shell variable, default `http://localhost:4000`) for `vite` and `vite preview`, and strips the `Cookie` header (localhost cookies ignore the port, so the admin `hmv_session` would otherwise be forwarded). |
-| Shared client | `src/lib/cms.js` (`getJson`: relative `/api/v1/public/...` URLs, `credentials: 'omit'`, only an `Accept` header) and `src/lib/useFetched.js` (`CMS_CONTENT` flag, keyed fetch hook with abort). Used by every CMS-backed feature. |
-| API client | `src/features/articles/api.js`: maps CMS article DTOs to the view shape the pages render. |
+| CMS contract | `src/lib/cms.js`: the URL builder (`/api/v1/public/...`) and error helpers. A transport is `get(path, params)` that rejects with `{ status }`. |
+| Browser transport (Vite) | `src/app/cms.js` (`browserCms(signal)`: relative URLs, `credentials: 'omit'`, only an `Accept` header) and `src/lib/useFetched.js` (`CMS_CONTENT` flag, keyed fetch hook with abort). Next.js gets a server transport in the CMS PR (docs/architecture/NEXTJS_TARGET_ARCHITECTURE.md §7). |
+| API client | `src/features/articles/api.js`, `src/features/pages/api.js`: take the transport as their first argument and map CMS DTOs to the view shape the pages render. No `fetch`, caching or environment access. |
 | Data hooks | `src/features/articles/hooks.js`: `useArticleList(lang, { pageSize })`, `useArticle(slug, lang)`. In static mode they map the bundled articles to the same shape. States: `loading`, `ready`, `empty`, `error`, `not-found`, `unavailable`, `redirect`. |
 | Cards and states | `src/features/articles/ArticleGrid.jsx` (Home shows 3, `/insights` shows up to 100: no pagination UI yet). |
 | Rich text | `src/features/articles/RichText.js` (see [Rich text](#rich-text)). |
@@ -86,7 +87,7 @@ independently in the CMS (submit → approve → publish per locale).
 | Client | `src/features/pages/api.js` (`fetchPage`: 200 → `ready`, 404 → `not-found`, anything else → error) |
 | Hook | `src/features/pages/usePage.js` (`usePage(key, lang)`; bundled copy per key in static mode) |
 | Bundled copy | `src/data/about.js`, EN + VI in the CMS shape (the CMS was seeded from it) |
-| Rendering | `pages/about/AboutPage.jsx` + `CompanyStory.jsx`: same markup for both sources; icons, grids and the `/contact` link stay in code |
+| Rendering | `views/about/AboutView.jsx` + `CompanyStory.jsx` (Vite adapter: `AboutPage.jsx`): same markup for both sources; icons, grids and the `/contact` link stay in code |
 
 - The h1 and lead come from `hero`; `seo` sets the meta title/description (`DetailLayout` `seo` prop).
 - CMS mode states: loading, error (no noindex), and "not published in this language" (noindex). The bundled copy
@@ -108,7 +109,22 @@ independently in the CMS (submit → approve → publish per locale).
 
 Styles for elements the bundled articles never used (`h3`, `ol`, `blockquote`, `a`, `img`, `pre`, `hr`) are minimal placeholders in `hmv.css` pending design review.
 
-## SEO limitations (CMS mode)
+## Next.js (migration branch `feat/nextjs-foundation`)
+
+The Next.js build reads the CMS on the server when `CMS_CONTENT=true` (server environment): no browser request, no CORS, no same-origin rewrite. Design and takedown runbook: [architecture §7 and §9.3](architecture/NEXTJS_TARGET_ARCHITECTURE.md#7-data-fetching-and-the-cms-layer).
+
+| Piece | File |
+|---|---|
+| Server transport | `src/next/cms.ts`: `CMS_API_ORIGIN`, 300 s data cache under the tag `cms` (`CMS_REVALIDATE_SECONDS` overrides it in tests), `Cache-Control: no-cache` on requests (asks caches in front of the CMS to revalidate; purges nothing), 8 s timeout, normalized errors |
+| Source selection, takedown list | `src/next/content.ts`: bundled or CMS, `CMS_BLOCKED_SLUGS` |
+| Mappers | `src/features/*/api.js`, shared with the Vite CMS mode |
+| Operator endpoint | `POST /api/revalidate` with `x-revalidate-secret: <REVALIDATE_SECRET>` |
+| CMS admin links | `/tin-tuc/<slug>` redirects to `/vi/tin-tuc/<slug>` or `/blog/<slug>` (URL matrix M-56) |
+| Tests | `tests/next-cms/` against a mock CMS server (`npm run test:e2e:next-cms`) |
+
+The limitations below apply to the Vite CMS mode; the Next.js build renders on the server, has per-locale URLs with `hreflang`, and a generated sitemap that includes CMS articles.
+
+## SEO limitations (Vite CMS mode)
 
 - **Client-side rendering.** Article content, titles and meta tags are fetched and set in the browser. Crawlers that do not run JavaScript see only `index.html`'s static fallback tags. Crawlability of the rendered HTML has **not** been verified.
 - **Language outside the URL.** A visitor or crawler without a stored preference gets English. Vietnamese content is reachable only via `?lang=vi` or a stored preference, and Vietnamese slugs opened in English redirect to the English slug. There are no `hreflang` alternates.

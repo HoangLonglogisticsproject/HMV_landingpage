@@ -1,7 +1,11 @@
 import { test } from 'vitest';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
-import { fetchArticles, resolveArticle } from './api.js';
+import { fetchArticleIndex, fetchArticles, resolveArticle } from './api.js';
+import { browserCms } from '../../app/cms.js';
+
+// The browser transport (src/app/cms.js) against a mocked global fetch.
+const get = browserCms();
 
 // Shapes follow CMS_HMV docs/api/openapi-spec.json (PublicArticleSummary / PublicArticle / ErrorResponse).
 const summary = (over = {}) => ({
@@ -31,7 +35,7 @@ function mockFetch(routes) {
 
 test('list: exact public URL, no credentials, no custom headers', async () => {
   const calls = mockFetch({ '/api/v1/public/articles?locale=en&pageSize=3': { items: [summary()], page: 1, pageSize: 3, total: 1 } });
-  await fetchArticles({ locale: 'en', pageSize: 3 });
+  await fetchArticles(get, { locale: 'en', pageSize: 3 });
   assert.equal(calls.length, 1);
   assert.equal(calls[0].url, '/api/v1/public/articles?locale=en&pageSize=3');
   assert.equal(calls[0].init.credentials, 'omit');
@@ -40,14 +44,23 @@ test('list: exact public URL, no credentials, no custom headers', async () => {
 
 test('list: maps DTOs to the view shape', async () => {
   mockFetch({ '/api/v1/public/articles?locale=en&pageSize=3': { items: [summary()], page: 1, pageSize: 3, total: 1 } });
-  const [a] = await fetchArticles({ locale: 'en', pageSize: 3 });
+  const [a] = await fetchArticles(get, { locale: 'en', pageSize: 3 });
   assert.deepEqual(a, {
-    key: '0199f3a0-0000-7000-8000-0000000000aa', slug: 'test-econews-integration', title: '[TEST] EcoNews integration',
+    key: '0199f3a0-0000-7000-8000-0000000000aa', slug: 'test-econews-integration', alternates: { en: 'test-econews-integration' }, author: null, title: '[TEST] EcoNews integration',
     metaTitle: '[TEST] EcoNews integration', description: 'Excerpt', category: 'Supply Chain Insights',
     date: { iso: '2026-10-13T10:00:00.000Z', label: 'October 2026' },
     image: { src: 'http://localhost:4000/media-files/media/2026/10/cover.webp', width: 1600, height: 900, alt: 'Cover alt' },
     content: null, cta: null,
   });
+});
+
+test('author: the CMS authorName as written, empty means none; authorRole is never mapped', async () => {
+  const items = [summary({ authorName: 'An Nguyen', authorRole: 'Trade analyst' }), summary({ authorName: '', authorRole: 'Editor' })];
+  mockFetch({ '/api/v1/public/articles?locale=en&pageSize=3': { items, page: 1, pageSize: 3, total: 2 } });
+  const [named, unnamed] = await fetchArticles(get, { locale: 'en', pageSize: 3 });
+  assert.equal(named.author, 'An Nguyen');
+  assert.equal(unnamed.author, null);
+  assert.ok(!JSON.stringify([named, unnamed]).match(/Trade analyst|Editor|authorRole/));
 });
 
 test('list: nullable fields and unsafe cover URLs', async () => {
@@ -58,7 +71,7 @@ test('list: nullable fields and unsafe cover URLs', async () => {
       summary({ slug: 'c', cover: { url: 'https://media.example/x.webp', width: 1, height: 1, alt: null } }),
     ], page: 1, pageSize: 100, total: 3 },
   });
-  const [a, b, c] = await fetchArticles({ locale: 'vi', pageSize: 100 });
+  const [a, b, c] = await fetchArticles(get, { locale: 'vi', pageSize: 100 });
   assert.equal(a.description, '');
   assert.equal(a.image, null);
   assert.deepEqual(a.date, { iso: undefined, label: '' });
@@ -71,24 +84,24 @@ test('dates: labels match the bundled articles, in Vietnam time', async () => {
     '/api/v1/public/articles?locale=vi&pageSize=2': { items: [summary(), summary({ slug: 'b', publishedAt: '2026-09-30T20:00:00.000Z' })], page: 1, pageSize: 2, total: 2 },
     '/api/v1/public/articles?locale=en&pageSize=2': { items: [summary({ publishedAt: '2026-09-30T20:00:00.000Z' })], page: 1, pageSize: 2, total: 1 },
   });
-  const vi = await fetchArticles({ locale: 'vi', pageSize: 2 });
+  const vi = await fetchArticles(get, { locale: 'vi', pageSize: 2 });
   assert.deepEqual(vi.map(a => a.date.label), ['Tháng 10, 2026', 'Tháng 10, 2026']);
-  const [en] = await fetchArticles({ locale: 'en', pageSize: 2 });
+  const [en] = await fetchArticles(get, { locale: 'en', pageSize: 2 });
   assert.equal(en.date.label, 'October 2026'); // 20:00Z on Sep 30 is Oct 1 in Ho Chi Minh City
 });
 
 test('list: HTTP errors and malformed bodies reject, never fall back', async () => {
   mockFetch({ '/api/v1/public/articles?locale=en&pageSize=3': 503 });
-  await assert.rejects(fetchArticles({ locale: 'en', pageSize: 3 }), { status: 503 });
+  await assert.rejects(fetchArticles(get, { locale: 'en', pageSize: 3 }), { status: 503 });
   mockFetch({ '/api/v1/public/articles?locale=en&pageSize=3': { data: [] } });
-  await assert.rejects(fetchArticles({ locale: 'en', pageSize: 3 }), { status: 0 });
+  await assert.rejects(fetchArticles(get, { locale: 'en', pageSize: 3 }), { status: 0 });
   mockFetch({ '/api/v1/public/articles?locale=en&pageSize=3': { items: [{ slug: 1 }] } });
-  await assert.rejects(fetchArticles({ locale: 'en', pageSize: 3 }), { status: 0 });
+  await assert.rejects(fetchArticles(get, { locale: 'en', pageSize: 3 }), { status: 0 });
 });
 
 test('detail: found in the requested locale', async () => {
   const calls = mockFetch({ '/api/v1/public/articles/test-econews-integration?locale=en': detail() });
-  const r = await resolveArticle({ slug: 'test-econews-integration', lang: 'en' });
+  const r = await resolveArticle(get, { slug: 'test-econews-integration', lang: 'en' });
   assert.equal(r.status, 'ready');
   assert.equal(r.article.metaTitle, 'SEO title');
   assert.equal(r.article.description, 'SEO description');
@@ -99,7 +112,7 @@ test('detail: found in the requested locale', async () => {
 
 test('detail: seo.description null falls back to the excerpt', async () => {
   mockFetch({ '/api/v1/public/articles/x?locale=en': detail({ slug: 'x', seo: { title: 'S', description: null } }) });
-  const r = await resolveArticle({ slug: 'x', lang: 'en' });
+  const r = await resolveArticle(get, { slug: 'x', lang: 'en' });
   assert.equal(r.article.description, 'Excerpt');
 });
 
@@ -107,7 +120,7 @@ test('detail: other-locale slug redirects to the localized slug via alternates',
   const calls = mockFetch({
     '/api/v1/public/articles/test-econews-tich-hop?locale=vi': detail({ locale: 'vi', slug: 'test-econews-tich-hop', alternates: [{ locale: 'en', slug: 'test-econews-integration' }] }),
   });
-  const r = await resolveArticle({ slug: 'test-econews-tich-hop', lang: 'en' });
+  const r = await resolveArticle(get, { slug: 'test-econews-tich-hop', lang: 'en' });
   assert.deepEqual(r, { status: 'redirect', to: '/blog/test-econews-integration' });
   assert.deepEqual(calls.map(c => c.url), [
     '/api/v1/public/articles/test-econews-tich-hop?locale=en',
@@ -117,31 +130,30 @@ test('detail: other-locale slug redirects to the localized slug via alternates',
 
 test('detail: live only in the other locale is unavailable, not shown', async () => {
   mockFetch({ '/api/v1/public/articles/test-chi-tieng-viet?locale=vi': detail({ locale: 'vi', slug: 'test-chi-tieng-viet', alternates: [] }) });
-  assert.deepEqual(await resolveArticle({ slug: 'test-chi-tieng-viet', lang: 'en' }), { status: 'unavailable', locale: 'vi' });
+  assert.deepEqual(await resolveArticle(get, { slug: 'test-chi-tieng-viet', lang: 'en' }), { status: 'unavailable', locale: 'vi' });
 });
 
 test('detail: an alternate equal to the current slug does not redirect (would loop)', async () => {
   mockFetch({ '/api/v1/public/articles/same?locale=en': detail({ slug: 'same', alternates: [{ locale: 'vi', slug: 'same' }] }) });
-  assert.deepEqual(await resolveArticle({ slug: 'same', lang: 'vi' }), { status: 'unavailable', locale: 'en' });
+  assert.deepEqual(await resolveArticle(get, { slug: 'same', lang: 'vi' }), { status: 'unavailable', locale: 'en' });
 });
 
 test('detail: missing in both locales is not-found', async () => {
   const calls = mockFetch({});
-  assert.deepEqual(await resolveArticle({ slug: 'test-ban-nhap', lang: 'vi' }), { status: 'not-found' });
+  assert.deepEqual(await resolveArticle(get, { slug: 'test-ban-nhap', lang: 'vi' }), { status: 'not-found' });
   assert.equal(calls.length, 2);
 });
 
 test('detail: non-404 errors reject without probing the other locale', async () => {
   const calls = mockFetch({ '/api/v1/public/articles/x?locale=en': 500 });
-  await assert.rejects(resolveArticle({ slug: 'x', lang: 'en' }), { status: 500 });
+  await assert.rejects(resolveArticle(get, { slug: 'x', lang: 'en' }), { status: 500 });
   assert.equal(calls.length, 1);
 });
 
-test('detail: the slug is encoded into a single path segment', async () => {
+test('detail: a path-traversal slug never reaches the API', async () => {
   const calls = mockFetch({});
-  await resolveArticle({ slug: '../admin/articles?x=1', lang: 'en' });
-  assert.equal(calls[0].url, '/api/v1/public/articles/..%2Fadmin%2Farticles%3Fx%3D1?locale=en');
-  assert.ok(calls.every(c => c.url.startsWith('/api/v1/public/articles/')));
+  assert.deepEqual(await resolveArticle(get, { slug: '../admin/articles?x=1', lang: 'en' }), { status: 'not-found' });
+  assert.equal(calls.length, 0);
 });
 
 test('detail: maps a real published CMS payload (fixtures/cms-article.json)', async () => {
@@ -150,10 +162,10 @@ test('detail: maps a real published CMS payload (fixtures/cms-article.json)', as
     [`/api/v1/public/articles/${en.slug}?locale=en`]: en,
     [`/api/v1/public/articles/${vi.slug}?locale=vi`]: vi,
   });
-  const r = await resolveArticle({ slug: en.slug, lang: 'en' });
+  const r = await resolveArticle(get, { slug: en.slug, lang: 'en' });
   assert.equal(r.status, 'ready');
   assert.deepEqual({ ...r.article, content: undefined }, {
-    key: en.id, slug: 'test-econews-integration-e2e1020', title: '[TEST e2e1020] EcoNews CMS → Landing integration',
+    key: en.id, slug: 'test-econews-integration-e2e1020', alternates: { en: en.slug, vi: vi.slug }, author: 'HMV Administrator', title: '[TEST e2e1020] EcoNews CMS → Landing integration',
     metaTitle: '[TEST e2e1020] EcoNews CMS → Landing integration',
     description: 'Integration test article: content published in the CMS appears on the Landing site.',
     category: 'Supply Chain Insights', date: { iso: '2026-10-20T07:41:54.331Z', label: 'October 2026' },
@@ -161,5 +173,53 @@ test('detail: maps a real published CMS payload (fixtures/cms-article.json)', as
     content: undefined, cta: null,
   });
   // Opening the English slug in Vietnamese follows the real alternates.
-  assert.deepEqual(await resolveArticle({ slug: vi.slug, lang: 'en' }), { status: 'redirect', to: '/blog/test-econews-integration-e2e1020' });
+  assert.deepEqual(await resolveArticle(get, { slug: vi.slug, lang: 'en' }), { status: 'redirect', to: '/blog/test-econews-integration-e2e1020' });
+});
+
+test('detail: alternates map each locale to its slug, invalid entries dropped', async () => {
+  const alternates = [{ locale: 'vi', slug: 'test-tich-hop' }, { locale: 'fr', slug: 'x' }, { locale: 'en' }];
+  mockFetch({ '/api/v1/public/articles/test-econews-integration?locale=en': detail({ alternates }) });
+  const r = await resolveArticle(get, { slug: 'test-econews-integration', lang: 'en' });
+  assert.deepEqual(r.article.alternates, { en: 'test-econews-integration', vi: 'test-tich-hop' });
+});
+
+test('index: articles are paired across locales by the id their translations share', async () => {
+  mockFetch({
+    '/api/v1/public/articles?locale=en&pageSize=100': { items: [summary({ id: 'a', slug: 'a-en' }), summary({ id: 'b', slug: 'b-en' })], page: 1, pageSize: 100, total: 2 },
+    '/api/v1/public/articles?locale=vi&pageSize=100': { items: [summary({ id: 'a', locale: 'vi', slug: 'a-vi' }), summary({ id: 'c', locale: 'vi', slug: 'c-vi' })], page: 1, pageSize: 100, total: 2 },
+  });
+  assert.deepEqual(await fetchArticleIndex(get, { pageSize: 100 }), [{ en: 'a-en', vi: 'a-vi' }, { en: 'b-en' }, { vi: 'c-vi' }]);
+});
+
+test('index: pages through more than one page per locale (the CMS caps pageSize at 100)', async () => {
+  const page = (locale, from, to, total) => ({
+    items: Array.from({ length: to - from }, (_, i) => summary({ id: `id-${from + i}`, locale, slug: `${locale}-${from + i}` })),
+    page: 1, pageSize: 2, total,
+  });
+  const calls = mockFetch({
+    '/api/v1/public/articles?locale=en&pageSize=2': page('en', 0, 2, 5),
+    '/api/v1/public/articles?locale=en&page=2&pageSize=2': page('en', 2, 4, 5),
+    '/api/v1/public/articles?locale=en&page=3&pageSize=2': page('en', 4, 5, 5),
+    '/api/v1/public/articles?locale=vi&pageSize=2': page('vi', 0, 1, 1),
+  });
+  const index = await fetchArticleIndex(get, { pageSize: 2 });
+  assert.equal(index.length, 5);
+  assert.deepEqual(index[0], { en: 'en-0', vi: 'vi-0' });
+  assert.deepEqual(index[4], { en: 'en-4' });
+  assert.equal(calls.length, 4);
+});
+
+test('index: a missing or absurd total fails instead of cutting the index', async () => {
+  mockFetch({ '/api/v1/public/articles?locale=en&pageSize=100': { items: [summary()] } });
+  await assert.rejects(fetchArticleIndex(get, { pageSize: 100 }), e => e.status === 0);
+  mockFetch({ '/api/v1/public/articles?locale=en&pageSize=100': { items: [summary()], page: 1, pageSize: 100, total: 1_000_000 } });
+  await assert.rejects(fetchArticleIndex(get, { pageSize: 100 }), /over 50 pages/);
+});
+
+test('detail: a slug the CMS cannot have is not-found without any request', async () => {
+  const calls = mockFetch({});
+  for (const slug of ['Upper-Case', 'trailing-', 'a--b', 'x'.repeat(201), '../admin']) {
+    assert.deepEqual(await resolveArticle(get, { slug, lang: 'en' }), { status: 'not-found' }, slug);
+  }
+  assert.equal(calls.length, 0);
 });

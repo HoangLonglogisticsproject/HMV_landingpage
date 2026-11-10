@@ -1,10 +1,10 @@
-import container1 from '@/assets/container1.jpg';
-import container2 from '@/assets/container2.jpg';
-import move from '@/assets/move.jpg';
-import pack1 from '@/assets/pack1.jpg';
-import pack2 from '@/assets/pack2.jpg';
-import pack3 from '@/assets/pack3.jpg';
-import pack4 from '@/assets/pack4.jpg';
+import container1 from '@/assets/container1.webp';
+import container2 from '@/assets/container2.webp';
+import move from '@/assets/move.webp';
+import pack1 from '@/assets/pack1.webp';
+import pack2 from '@/assets/pack2.webp';
+import pack3 from '@/assets/pack3.webp';
+import pack4 from '@/assets/pack4.webp';
 
 export const operationalPhotos = {
   container1,

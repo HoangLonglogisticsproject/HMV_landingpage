@@ -10,7 +10,8 @@ There is no backend of its own. Content is static bilingual data in `src/data/`,
 src/
   main.jsx             mounts <App/>, imports global CSS (index.css before hmv.css)
   app/                 App.jsx (providers + route table), SiteLayout.jsx (layout route)
-  pages/<route>/       <Name>Page.jsx + sections used only by that page
+  views/<route>/       <Name>Page.jsx (Vite page adapter) + <Name>View.jsx (shared body) + sections
+                       (renamed from src/pages: Next.js reserves that name; see docs/architecture/)
     home/sections/     the eight home sections, in render order in HomePage.jsx
   features/<name>/     business functionality used by more than one page or the shell
     articles/          EcoNews data access (bundled or CMS public API), ArticleGrid, Tiptap RichText (+ tests)
@@ -44,20 +45,20 @@ src/
 
 | URL | Module | Notes |
 |---|---|---|
-| `/` | `pages/home/HomePage` | Section order is defined in `HomePage.jsx`. `#initiate-trade` targets the RFQ form. |
-| `/about` | `pages/about/AboutPage` | DetailLayout. Copy from `features/pages` (`data/about.js`, or the CMS in CMS mode). |
-| `/supply-chain` | `pages/supply-chain/SupplyChainPage` | DetailLayout. Deep links: `#commodities`, `#wind-energy`, `#logistics-capacity`, stage ids. |
-| `/trade-solutions` | `pages/trade-solutions/TradeSolutionsPage` | DetailLayout |
-| `/activities` | `pages/activities/ActivitiesPage` | DetailLayout |
-| `/contact` | `pages/contact/ContactPage` | DetailLayout with no trailing CTA. `?product=` preselects the product. |
-| `/insights` | `pages/insights/InsightsPage` | DetailLayout. EcoNews list (`features/articles`) plus the first 3 regulations, in data order. |
-| `/regulations` | `pages/regulations/RegulationsPage` | DetailLayout |
-| `/products/:id` | `pages/products/ProductDetailPage` | DetailLayout. An unknown id shows the "not found" title and the CTA only. |
-| `/logistics` | `pages/logistics/LogisticsHubPage` | Its own hero. Adds its own delayed smooth `#hash` scroll on top of SiteLayout's. |
-| `/packaging-logistics` | `pages/packaging-logistics/PackagingLogisticsPage` | Its own hero |
-| `/blog/:slug` | `pages/article/ArticlePage` | Outside SiteLayout (see below). Static mode: a Vietnamese slug redirects to the English canonical slug; an unknown slug goes to `/insights`. CMS mode: slugs are per locale and resolved through `alternates`; unknown slugs show a not-found state (noindex). |
+| `/` | `views/home/HomePage` | Section order is defined in `HomeView.jsx`. `#initiate-trade` targets the RFQ form. |
+| `/about` | `views/about/AboutPage` | DetailLayout. Copy from `features/pages` (`data/about.js`, or the CMS in CMS mode). |
+| `/supply-chain` | `views/supply-chain/SupplyChainPage` | DetailLayout. Deep links: `#commodities`, `#wind-energy`, `#logistics-capacity`, stage ids. |
+| `/trade-solutions` | `views/trade-solutions/TradeSolutionsPage` | DetailLayout |
+| `/activities` | `views/activities/ActivitiesPage` | DetailLayout |
+| `/contact` | `views/contact/ContactPage` | DetailLayout with no trailing CTA. `?product=` preselects the product. |
+| `/insights` | `views/insights/InsightsPage` | DetailLayout. EcoNews list (`features/articles`) plus the first 3 regulations, in data order. |
+| `/regulations` | `views/regulations/RegulationsPage` | DetailLayout |
+| `/products/:id` | `views/products/ProductDetailPage` | DetailLayout. An unknown id shows the "not found" title and the CTA only. |
+| `/logistics` | `views/logistics/LogisticsHubPage` | Its own hero. Adds its own delayed smooth `#hash` scroll on top of SiteLayout's. |
+| `/packaging-logistics` | `views/packaging-logistics/PackagingLogisticsPage` | Its own hero |
+| `/blog/:slug` | `views/article/ArticlePage` | Outside SiteLayout (see below). Static mode: a Vietnamese slug redirects to the English canonical slug; an unknown slug goes to `/insights`. CMS mode: slugs are per locale and resolved through `alternates`; unknown slugs show a not-found state (noindex). |
 | `/en/*`, `/vi/*` | `i18n/LegacyLocaleRedirect` | Sets the language and redirects to the locale-free URL. |
-| `*` | `pages/not-found/NotFoundPage` | No site chrome |
+| `*` | `views/not-found/NotFoundPage` | No site chrome |
 
 URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the language and is then removed from the address bar (`i18n/LangQueryBootstrap`).
 
@@ -70,8 +71,8 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 | Navigation (desktop + mobile) | `components/layout/Navigation` (~592 lines — see tech debt) |
 | Footer | `components/layout/Footer` |
 | Language switcher | `components/layout/LanguageSwitcher` (Radix DropdownMenu) |
-| Inner-page layout (hero + body + CTA) | `components/layout/DetailLayout` |
-| Blog page chrome | `pages/article/ArticlePage` (its own SiteShell — intentional remount) |
+| Inner-page layout (hero + body + CTA) | `components/layout/DetailLayout` (shared, no head tags); the page's adapter adds the head tags (Vite: `PageMeta`, Next.js: route `metadata`) |
+| Blog page chrome | `views/article/ArticlePage` (its own SiteShell — intentional remount) |
 
 ## i18n rules
 
@@ -106,16 +107,18 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 
 ## Adding things
 
-- **New route:** create `pages/<route>/<Name>Page.jsx` and add one `<Route>` inside `SiteLayout` in `app/App.jsx`. Then update the nav/footer links and `public/sitemap.xml`.
-- **Inner page:** wrap the content in `<DetailLayout lang title description>`.
+- **New route:** create the shared body `views/<route>/<Name>View.jsx` and its title in `views/meta.js`; add a `<Route>` with `<StaticPage view meta>` inside `SiteLayout` in `app/App.jsx` (or a `<Name>Page.jsx` adapter if it needs hooks); add the two Next.js route files (`app/(en)/(site)/<route>/page.tsx`, `app/(vi)/vi/(site)/<route>/page.tsx`) and the key path to `PAGES` in `i18n/routes.js`. Then update the nav/footer links and `public/sitemap.xml`.
+- **Inner page:** wrap the view in `<DetailLayout lang {...<name>Meta(lang)}>`; the adapters set the head tags.
+- **Next.js migration (in progress):** see `docs/architecture/`. Shared code imports links and router hooks from the port `@/lib/navigation` only, never from `react-router-dom` or `next/*`; `npm run lint` enforces the layer rules (`scripts/check-boundaries.js`).
 - **New section:** if only one page uses it, put it in that page's folder. If it is business-specific and used by two or more pages, put it in `features/<name>/`. If it is generic UI, put it in `components/ui/`.
 - **Styles:** `hmv.css` is one global stylesheet with no scoping. Keep class names stable; renaming a class silently unstyles markup.
 
 ## Checks
 
 - `npm run build` — Vite production build; must pass before any commit.
+- `package-lock.json` — regenerate it on Linux (CI, or Docker `node:24.18.0`). npm on Windows leaves out `@emnapi/core` and `@emnapi/runtime` (optional dependencies of the wasm builds of `sharp` and Tailwind's oxide), and `npm ci` on Linux then fails.
 - `npm test` — Vitest unit tests (co-located `*.test.js` files): inquiry + RFQ logic, CMS API clients, rich-text renderer, About page and its data hooks. `npm run test:coverage` writes `coverage/lcov.info` for SonarQube.
-- `npm run lint` — ESLint flat config (React Hooks + React Refresh checks). Baseline has 0 errors / 10 warnings.
+- `npm run lint` — ESLint flat config (React Hooks + React Refresh checks), then the layer boundary check (`scripts/check-boundaries.js`). Baseline has 0 errors / 9 warnings.
 - `npm run test:e2e` — Playwright smoke tests (routes, i18n, navigation, workflows, visual) against `vite preview` on port 4173, then the CMS-mode suite (`tests/cms-*.spec.js`, mocked API) against `dist-cms` on port 4174.
 - `npm run test:e2e:cms` — CMS-mode suite only (builds `dist-cms` first).
 - `npm run dev:cms` / `npm run build:cms` — EcoNews from the CMS public API (proxied to `CMS_API_ORIGIN`, default `http://localhost:4000`).

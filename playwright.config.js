@@ -13,8 +13,9 @@ import { defineConfig } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
-  // CMS-mode specs need the dist-cms bundle: they run via playwright.cms.config.js
-  testIgnore: /cms-.*\.spec\.js/,
+  // CMS-mode specs need the dist-cms bundle (playwright.cms.config.js); tests/next/, tests/next-cms/ and
+  // tests/next-visual/ target the Next.js build (playwright.next*.config.js).
+  testIgnore: [/cms-.*\.spec\.js/, /[\\/]next(-cms|-visual)?[\\/]/],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

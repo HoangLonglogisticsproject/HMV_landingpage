@@ -8,15 +8,39 @@
     "checkJs": false,
     "noEmit": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "esModuleInterop": true,
     "paths": {
+      "@/lib/navigation": [
+        "./src/next/navigation.jsx"
+      ],
+      "@/lib/image": [
+        "./src/next/image.tsx"
+      ],
       "@/*": [
         "./src/*"
       ]
-    }
+    },
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "incremental": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "include": [
-    "src"
+    "src",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

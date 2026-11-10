@@ -1,16 +1,14 @@
-import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { PageMeta } from '@/components/common/PageMeta';
+import { Link } from '@/lib/navigation';
 import { Contact } from '@/features/inquiries/Contact';
 import { copy } from '@/data/hmv';
 
-// Inner-page frame: meta tags, heading band, page content, then the contact CTA.
-// `seo` overrides the meta title/description when they differ from the visible heading (CMS pages).
-export function DetailLayout({ lang, title, description, seo, contactCta = true, children }) {
+// Inner-page frame: heading band, page content, then the contact CTA. Presentational and shared by both builds:
+// head tags come from the framework adapter (Vite: PageMeta in the page adapter; Next.js: route metadata).
+export function DetailLayout({ lang, title, description, contactCta = true, children }) {
   const t = copy[lang];
   return (
     <>
-      <PageMeta lang={lang} title={seo?.title || title} description={seo?.description || description} />
       <header className="detail-heading">
         <div className="content-width">
           <Link className="back-link" to="/">

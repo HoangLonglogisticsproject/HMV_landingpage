@@ -4,7 +4,7 @@
 - The CMS repository (`../CMS_HMV`) is read-only from this project unless explicitly approved.
 
 # Architecture rules
-- Follow the structure and dependency rules in `docs/architecture.md`: one module per route in `src/pages`, reusable business functionality in `src/features`, site chrome in `src/components/layout`, business-agnostic primitives in `src/components/ui`; delete unreachable code instead of keeping it.
+- Follow the structure and dependency rules in `docs/architecture.md`: one module per route in `src/views` (renamed from `src/pages`, which Next.js reserves), reusable business functionality in `src/features`, site chrome in `src/components/layout`, business-agnostic primitives in `src/components/ui`; delete unreachable code instead of keeping it.
 - Use locale-free React Router URLs (language from `?lang=`/stored preference; legacy `/en`, `/vi` prefixes redirect) and a shared bilingual content module; this keeps overview and detail pages consistent without duplicating layouts.
 - Use Helmet for route head links and language attributes, and synchronize route titles/meta tags to the static fallback explicitly; this avoids duplicate React 19 metadata while preserving crawlable sitewide tags.
 - Keep images as files under `src/assets` imported by the bundler; no remote asset manifests or host-specific asset proxies. Exception: EcoNews in CMS mode renders the absolute media URLs (with their width/height) that the CMS public API returns.

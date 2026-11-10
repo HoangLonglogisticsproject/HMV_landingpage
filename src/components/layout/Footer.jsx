@@ -1,5 +1,5 @@
 import { BrandLogo } from '@/components/common/BrandLogo';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/navigation';
 import { ArrowUpRight, Mail, MapPin } from 'lucide-react';
 import { copy, address } from '@/data/hmv';
 import { regulationCopy } from '@/data/regulations';

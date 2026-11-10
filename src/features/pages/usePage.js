@@ -1,18 +1,12 @@
-import { about } from '@/data/about';
+// Vite data adapter for website pages: bundled copy, or the CMS public pages API from the browser in CMS mode.
+import { browserCms } from '@/app/cms';
 import { CMS_CONTENT, useFetched } from '@/lib/useFetched';
 import { fetchPage } from './api.js';
-
-// Bundled copy per page key, in the same shape the CMS serves.
-const BUNDLED = { about };
+import { bundledPage } from './bundled.js';
 
 function useCmsPage(key, lang) {
-  return useFetched(`${key}|${lang}`, signal => fetchPage({ key, locale: lang, signal }));
-}
-
-function useBundledPage(key, lang) {
-  const content = BUNDLED[key][lang];
-  return { status: 'ready', page: { content, seo: { title: content.hero.title, description: content.hero.lead } } };
+  return useFetched(`${key}|${lang}`, signal => fetchPage(browserCms(signal), { key, locale: lang }));
 }
 
 /** States: loading | ready (`page: { content, seo }`) | not-found | error. Content shape: CMS page type for `key`. */
-export const usePage = CMS_CONTENT ? useCmsPage : useBundledPage;
+export const usePage = CMS_CONTENT ? useCmsPage : bundledPage;

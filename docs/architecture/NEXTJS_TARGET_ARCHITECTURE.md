@@ -1,0 +1,648 @@
+# Next.js Target Architecture: HMV Global public website
+
+| | |
+|---|---|
+| Status | Revision 8, 2026-11-09. On branch `feat/nextjs-foundation`, open as a pull request into `main` for the final automated review (not merged): every page, product and article in EN and VI, the CMS server layer behind `CMS_CONTENT` (off), sitemap (caching measured, §9.4), robots and confirmed-facts structured data, the revalidation endpoint, stale-on-error tested, layer rules enforced and tested, TypeScript `strict`, CI, D-14 visual baselines compared on CI, images through `next/image` with sources sized from measured rendering and an image fidelity test. Fonts stay on Google Fonts (D-20). Production runs Vite. Cutover is still a design. Review: §16. |
+| Pinned versions | `next` **16.4.5** (exact), `react`/`react-dom` 19.3.0 (installed), Tailwind 4.3.3, TypeScript 5.9.3 (new `.ts`/`.tsx` files only) |
+| API source | The documentation shipped with the pinned version, `node_modules/next/dist/docs/` (the same pages as `https://nextjs.org/docs/…`). Citations below give the path under `01-app/`. Where the docs were ambiguous, the 16.4.5 source code was read and is cited instead. |
+| Related | [Audit](NEXTJS_MIGRATION_AUDIT.md) · [SEO, i18n and GEO spec](SEO_I18N_GEO_SPEC.md) · [URL matrix](URL_MIGRATION_MATRIX.md) · [Roadmap](MIGRATION_ROADMAP.md) |
+
+## 1. Principles
+
+1. **One public frontend.** The migration happens in place in `HMV_landingpage`. Until cutover, production keeps serving the Vite build and the Next.js build only goes to preview deployments.
+2. **Vite keeps working until cutover, and that is tested.** Every change to a shared module must leave the Vite builds (`build`, `build:cms`), unit tests, lint and both Vite Playwright suites green, with the same results as on `main` (§12).
+3. **Shared code is framework-neutral.** Presentational components and pure data functions are shared. Anything that touches a router, head tags, `import.meta.env`, `localStorage` or a CMS transport sits in a framework adapter. Shared modules never import from a Next-only module.
+4. **Reuse before rewrite.** Same markup, CSS classes, copy and behavior. A component is split only where a framework boundary runs through it.
+5. **CMS boundaries unchanged.** The site uses public `GET /api/v1/public/*` endpoints only. No CMS, schema, auth or contract change.
+
+## 2. Layers and dependency direction
+
+Three layers and two ports (`@/lib/navigation`, `@/lib/image`). The only allowed directions are **shared → shared**, **vite → shared** and **next → shared**. `npm run lint` runs `scripts/check-boundaries.js`, which resolves every import (relative and `@/`) and fails on:
+
+- an import from a layer that the importer may not use (shared → vite or next, vite → next, next → vite);
+- a framework package in the wrong layer (`next`, `next/*`, `server-only` outside Next; `react-router-dom`, `react-helmet-async` outside Vite);
+- shared code that reads `import.meta.env` or `process.env`, or calls `fetch`. Configuration and I/O belong to adapters, which pass data or a transport in.
+
+`scripts/check-boundaries.test.js` (part of `npm test`) pins these rules: every allowed direction passes and every forbidden one fails, for each import form in use (alias `@/`, relative with and without extension, re-export, `export *`, side-effect import, dynamic `import()`, `import type`, multi-line import), plus framework packages, `fetch` and environment reads.
+
+| Layer | Files (the checker's list is authoritative) | May import |
+|---|---|---|
+| **Shared** | Everything in `src/` not listed below: views (`*View.jsx`, sections), `components/`, `features/` UI, and the pure modules `i18n/routes.js`, `views/meta.js`, `data/*`, `features/*/api.js` (CMS mappers), `features/*/bundled.js`, `lib/cms.js` (CMS contract), `lib/safeUrl.js`, `lib/utils.js` | Shared modules and the port `@/lib/navigation` |
+| **Vite** (deleted at cleanup) | `src/main.jsx`, `src/app/**` (`App`, `SiteLayout`, `StaticPage`, `navigation.jsx`, `cms.js`), `src/views/**/*Page.jsx`, `components/common/PageMeta.jsx`, `i18n/LanguageContext.jsx`, `LangQueryBootstrap.jsx`, `LegacyLocaleRedirect.jsx`, `lib/useFetched.js`, `features/articles/hooks.js`, `features/pages/usePage.js` | Shared, plus React Router, Helmet, `import.meta.env`, the browser CMS transport |
+| **Next** | `app/**`, `src/next/**`, `proxy.ts`, `next.config.ts` | Shared, plus `next/*`, `server-only`, the server CMS transport (CMS PR) |
+| **Port** `@/lib/navigation` | No file at that path. Vite maps it to `src/app/navigation.jsx` (`vite.config.js` alias); Next maps it to `src/next/navigation.jsx` (`tsconfig.json` `paths`, honored by Turbopack). | n/a |
+
+```mermaid
+graph LR
+  subgraph Next[Next adapters]
+    R[app/** route files] --> NL[src/next: content, cms, article, seo, Document, navigation]
+    P[proxy.ts, next.config.ts]
+  end
+  subgraph Vite[Vite adapters]
+    A[src/app: App, SiteLayout, StaticPage, navigation, cms] --> VP[views/**/*Page.jsx]
+    H[hooks.js, usePage.js, useFetched.js]
+  end
+  subgraph Shared
+    V[views/*View.jsx, sections, components, feature UI] --> U[routes.js, meta.js, data, api.js mappers, bundled.js, lib/cms.js, utils]
+  end
+  R --> V
+  R --> U
+  NL --> U
+  P --> U
+  VP --> V
+  VP --> H
+  H --> U
+  V -. "@/lib/navigation (port)" .-> NL
+  V -. "@/lib/navigation (port)" .-> A
+```
+
+The dotted edges are resolved by the build, not by the source: shared code names the port, never an implementation.
+
+### 2.1 Rules that keep Vite intact
+
+| Rule | Why | How it is enforced |
+|---|---|---|
+| Shared code reaches routing only through the port `@/lib/navigation` | `next/link` cannot run under Vite, and React Router cannot run under Next | `scripts/check-boundaries.js` (part of `npm run lint`) |
+| Helpers that Vite needs are never placed in a `server-only` module | Importing one from the browser bundle breaks it | Pure modules may not import `server-only` (checker); only Next adapters do |
+| Head tags are applied by adapters, not by shared components | Vite uses `PageMeta` and Helmet on the client; Next uses route `metadata` on the server | `DetailLayout` renders no head tags. Each Vite page adapter renders `PageMeta`; Next routes export `metadata`. |
+| Titles and descriptions are computed once | Both builds must emit the same values | `src/views/meta.js`, used by `PageMeta` (Vite) and `pageMetadata()` (Next). Views framed by `DetailLayout` use the same values as their heading. |
+| Image imports go through `assetSrc()` | Vite returns a URL string, Next returns `{ src, width, height }` | Applied once in each data module (`hmv.js`, `productPhotos.js`, `logisticsServices.js`, `operationalLogistics.js`, `logisticsActivities.js`) and in the components that import images directly |
+| Data comes in as props | Vite fetches with hooks in the browser; Next fetches on the server | Views take `state`/`articles`/`product` props; no view calls a data hook |
+| Tailwind scans code, not docs | Prose in `docs/` was adding utilities to the Vite CSS | `@source not "../../docs"` in `index.css`. Vite CSS is byte-identical to `main` (§12). |
+| Tailwind runs once per build | Vite would also pick up `postcss.config.mjs` | `vite.config.js` sets `css.postcss: {}`. The PostCSS config is for Next only. |
+
+## 3. Folder structure (as implemented)
+
+```
+HMV_landingpage/
+  app/                                     # Next.js routes only
+    (en)/layout.tsx                        # root layout #1: <Document lang="en">
+    (en)/(site)/layout.tsx                 # <SiteShell lang="en"> (nav, main, footer, chat)
+    (en)/(site)/page.tsx                   # /
+    (en)/(site)/<page>/page.tsx            # /about, /supply-chain, /trade-solutions, /activities, /contact, /insights,
+                                           # /regulations, /logistics, /packaging-logistics
+    (en)/(site)/products/[id]/page.tsx     # /products/<id>
+    (en)/blog/[slug]/page.tsx              # /blog/<slug> (frames its own SiteShell, as on Vite)
+    (vi)/layout.tsx                        # root layout #2: <Document lang="vi">
+    (vi)/vi/(site)/…                       # the same pages under /vi, products at /vi/san-pham/[slug]
+    (vi)/vi/tin-tuc/[slug]/page.tsx        # /vi/tin-tuc/<slug>
+    global-not-found.tsx                   # the 404 for every URL without a route (§10)
+  proxy.ts                                 # legacy URL forms only: one 308 to the final URL (§4.3)
+  next.config.ts                           # noindex fail-safe, collection redirects (from routes.js), globalNotFound
+  postcss.config.mjs                       # Tailwind for the Next build only
+  deploy/vercel.next.json                  # Vercel config for Next previews (§15)
+  scripts/check-boundaries.js              # layer rules (§2), run by `npm run lint`
+  src/
+    views/                                 # renamed from src/pages; Next.js would otherwise fail the build (audit F-22)
+      meta.js                              # shared titles, descriptions and article structured data
+      <route>/<Name>View.jsx               # shared page body
+      <route>/<Name>Page.jsx               # Vite adapter, where the page needs more than StaticPage
+      <route>/ImagePreview.jsx, article/BackButton.jsx   # client islands
+    app/                                   # Vite application: App, SiteLayout, StaticPage, navigation, cms
+    next/                                  # Next adapters: seo.ts, Document.tsx, article.tsx, navigation.jsx
+    i18n/routes.js                         # shared URL contract (SEO spec §2)
+    lib/cms.js                             # CMS contract: URL builder and errors (no transport)
+    features/, components/, data/, styles/
+```
+
+A ported route has a shared `<Name>View.jsx`, a Vite adapter (`StaticPage` in `App.jsx` when only the language matters, otherwise `<Name>Page.jsx`), and two Next route files.
+
+## 4. Routing
+
+### 4.1 Two root layouts
+
+`app/(en)` and `app/(vi)` are route groups, each with its own root layout. That gives `<html lang>` in the server HTML, English URLs without a prefix (no rewrite or proxy on normal requests), and Vietnamese segment names that are plain folders. Docs (`03-api-reference/03-file-conventions/route-groups.md`):
+
+- "Navigating between routes that use different root layouts… will trigger a full page reload". Switching language therefore reloads the page.
+- "Routes in different groups should not resolve to the same URL path."
+- With multiple root layouts and no top-level layout, the home route must sit inside a group (`(en)/(site)/page.tsx`).
+
+The nested `(site)` group carries the chrome, so the 404 (§10) can stay chrome-less, as it is on the Vite site.
+
+### 4.2 Route files
+
+A route file only picks the locale and params, loads data, exports metadata, renders a shared view, and redirects or 404s when that is the route's job. The EN and VI twins differ only in the locale literal (and the param name for products); Next needs one file per URL.
+
+```tsx
+// app/(vi)/vi/(site)/supply-chain/page.tsx
+export const metadata = pageMetadata({ lang: 'vi', path: '/supply-chain', ...supplyChainMeta('vi') });
+export default function Page() {
+  return <SupplyChainView lang="vi" />;
+}
+
+// app/(vi)/vi/tin-tuc/[slug]/page.tsx: resolution, metadata and JSX live once, in src/next/article.tsx
+export const dynamicParams = false;
+export const generateStaticParams = articleSlugs;
+export const generateMetadata = async ({ params }: Props) => articleMetadata('vi', (await params).slug);
+export default async function Page({ params }: Props) {
+  return <ArticlePage lang="vi" slug={(await params).slug} />;
+}
+```
+
+Products and bundled articles use `generateStaticParams` with `dynamicParams = false`, so every page is prerendered and unknown slugs get the server-rendered global 404 (§10).
+
+### 4.3 Redirects, verified on 16.4.5
+
+| Mechanism | Used for | Facts from the docs that shaped the design |
+|---|---|---|
+| Built-in trailing-slash redirect | `/about/` → `/about` | Default `trailingSlash: false` redirects to the URL without the slash (`05-config/01-next-config-js/trailingSlash.md`). It runs **before** the proxy, so `/en/about/` takes two hops. |
+| `next.config` `redirects()` | Collection URLs in every locale (`INDEX_ALIASES` × `LOCALES` from `routes.js`: `/products`, `/vi/san-pham`, `/blog`, `/vi/tin-tuc`), each with `missing: [{ type: 'query', key: 'lang' }]` | "any query values provided in the request will be passed through to the redirect destination" (`redirects.md`). A config redirect therefore cannot drop `?lang=`, which is why `?lang` goes to the proxy. `permanent: true` = 308, which "instructs clients/search engines to cache the redirect forever". |
+| `proxy.ts` (formerly middleware; "The `middleware` file convention is deprecated and has been renamed to `proxy`", `03-file-conventions/proxy.md`) | Legacy forms: any URL with `?lang=`, `/en`, `/en/*`, `/index.html`, `/vi/products/*`, `/vi/blog/*` | Runs only for the `matcher` entries, which must be literals ("The `matcher` values need to be constants so they can be statically analyzed"); the target comes from the shared `legacyRedirect()`. Drift between the matcher and the contract is caught by the redirect-chain E2E tests. Normal requests never invoke it. |
+| `permanentRedirect()` in route code | An article slug of the other locale (`/blog/xuat-khau-chanh-day-eu`) | Both locales' slugs are in `generateStaticParams`, so the redirect is prerendered: **observed 308 with `Location`** on `next start`. "When used in a streaming context, this will insert a meta tag" (`04-functions/permanentRedirect.md`), so there is no `loading.tsx` or Suspense above it. |
+
+Complete rules and chains: [URL matrix §3–4](URL_MIGRATION_MATRIX.md).
+
+## 5. Server and client components
+
+No page or layout is a client component. `'use client'` is set only on these modules (Vite ignores the directive):
+
+| Kind | Modules | Why client |
+|---|---|---|
+| Islands created for the migration | `components/common/Lightbox.jsx` (`Lightbox`, `ZoomTrigger`, `LightboxPreview`), `views/logistics/ImagePreview.jsx`, `views/packaging-logistics/ImagePreview.jsx`, `views/article/BackButton.jsx`, `features/inquiries/ContactForm.jsx` | Photo preview state, history navigation, `useSearchParams`. The Logistics and Packaging pages used to hold the preview state at page level; they are now server components. |
+| Interactive sections | `views/activities/Activities.jsx` (carousel), `views/supply-chain/Operations.jsx` (tabs), `views/home/sections/ValueJourney.jsx`, `LivingLogistics.jsx`, `features/inquiries/TradeRfq.jsx` | Local state and effects of the section itself |
+| Chrome | `Navigation`, `LanguageSwitcher`, `SupportChatWidget` | Menu state, dropdown, chat |
+| Port | `src/next/navigation.jsx` | `usePathname`, `useRouter` |
+
+Migration debt (kept for parity, not the target): `Navigation` is one 620-line client component for seven open/close toggles (target: a server-rendered menu with small client toggles); `CinematicHero` is a client component for one scroll button (target: a `ScrollCue` island); `SupportChatWidget` loads on every page (lazy-load in PR-08).
+
+Client components are still rendered on the server: the server HTML of every page contains its full text (Next E2E, and the Vite/Next parity check in §12). Radix dropdown content renders only when open, so the switcher options are not in the server HTML; crawlers use the head `hreflang` links ([SEO spec §3](SEO_I18N_GEO_SPEC.md#3-language-switcher-behavior)).
+
+### 5.1 Contact form and `useSearchParams`
+
+The docs say: "During production builds, a static page that calls `useSearchParams` from a Client Component must be wrapped in a `Suspense` boundary, otherwise the build fails" (`04-functions/use-search-params.md`). The implemented split has no conditional hook:
+
+```jsx
+// features/inquiries/ContactForm.jsx ('use client')
+export function ContactForm({ lang, product = '' }) { /* form, unchanged markup */ }
+export function ContactFormFromUrl({ lang }) {
+  const params = useSearchParams();                    // unconditional, top level
+  return <ContactForm lang={lang} product={params.get('product') || ''} />;
+}
+// features/inquiries/Contact.jsx (shared section): only in full mode
+<Suspense fallback={<ContactForm lang={lang} />}><ContactFormFromUrl lang={lang} /></Suspense>
+```
+
+In Next, the static page contains the fallback form and the client renders the preselected one. In Vite, the React Router hook does not suspend.
+
+## 6. Navigation port
+
+`@/lib/navigation` has the same API in both implementations:
+
+| Export | Next (`src/next/navigation.jsx`) | Vite (`src/app/navigation.jsx`) | After cleanup |
+|---|---|---|---|
+| `Link` (`to` = English key path) | `next/link` with `localizePath(to, locale of the current page)` | React Router `Link` (URLs are locale-free) | Stays: components keep writing key paths |
+| `useRoutePath()` | English key path of `usePathname()`, for active states | `useLocation().pathname` | Stays |
+| `useSearchParams()` | re-export of `next/navigation` | React Router, first tuple element | Deleted: import from `next/navigation` |
+| `useLanguageSwitch()` | `{ lang, hrefFor, select }`: `hrefFor` is the real URL of the same page in that language; `select` adds the current query (minus `lang`) and `#hash` and navigates | `{ lang, hrefFor: () => undefined, select: setLang }` (a re-render, as today) | Stays, without the Vite branch in `LanguageSwitcher` |
+| `useGoBack()` | `router.back()`, or the localized home page when there is no history | `navigate(-1)`, or `/` | Stays |
+
+## 7. Data fetching and the CMS layer
+
+Source dependencies (who imports whom):
+
+```mermaid
+graph LR
+  R[route, app/**] --> L[content loader<br>src/next/content.ts]
+  L --> M[mappers and resolver<br>features/*/api.js]
+  L --> T[server transport cmsGet<br>src/next/cms.ts]
+  M --> C[transport contract<br>src/lib/cms.js]
+  T --> C
+```
+
+- The **loader** imports both the mappers and the concrete transport, and passes the transport in: `fetchArticles(cmsGet, …)`.
+- The **mappers** import only the contract module (`src/lib/cms.js`: URL builder, error helpers, slug rule) and receive the transport as a function argument, `get(path, params) → Promise<body>`. They never import `src/next/cms.ts`: the mappers are shared code and the transport is Next code, so `scripts/check-boundaries.js` rejects that import.
+- At run time the call goes route → loader → mapper → transport, but that is not a source dependency of the mapper.
+
+| Piece | Owns | Never touches |
+|---|---|---|
+| **Transport** `cmsGet` (`src/next/cms.ts`, `server-only`) | The origin (`CMS_API_ORIGIN`); `fetch(…, { next: { revalidate, tags: ['cms'] } })` with `revalidate` = `CMS_REVALIDATE_SECONDS` or 300; `Cache-Control: no-cache` on the request, which requires an HTTP cache in front of the CMS to revalidate with the CMS before reusing a stored copy (it purges nothing); an 8 s timeout; errors normalized to `{ status }` (HTTP status, 503 unreachable, 504 timeout, 0 malformed); no logging | Response shapes |
+| **Mappers** `fetchPage`, `fetchArticles`, `fetchArticleIndex`, `resolveArticle` (`features/*/api.js`) | DTO validation, the view shape (`Article`, with `alternates` per locale), pairing translations by their shared CMS id, cross-locale slug resolution. JSDoc types (`Article`, `ArticleResolution`) are the contract for any consumer. | `fetch`, Next.js, React, environment, cache APIs, `server-only` (checker-enforced; the URL checks moved to `lib/safeUrl.js` so mappers no longer import the React renderer) |
+| **Content loader** (`src/next/content.ts`, `server-only`) | `CMS_CONTENT` (bundled or CMS), `CMS_BLOCKED_SLUGS`, list sizes | Rendering |
+| **Routes** | Locale, params, metadata, the shared view; 404 and 308 | Data sources |
+| **Browser transport** (`src/app/cms.js`, Vite only) | The same contract for the Vite CMS mode | n/a; deleted at cleanup |
+
+No repository, service or factory layer: two transports and four mapper functions do not need one. The mappers return plain data with no React or Next.js dependency, so a future module (a trade tool, a contextual assistant, a feed) can call them with any transport. That is the only provision made for such modules.
+
+Caching rules (no Cache Components): "By default, `fetch` requests are not cached" (`02-guides/caching-without-cache-components.md`). `next.revalidate` opts a fetch in, and "Only responses with a `200` HTTP status code are stored" (`04-functions/fetch.md`): a 404 is never cached as data, only as the rendered page. With `CMS_CONTENT` off, the routes make no fetch and are fully static (○ or ● in the build output).
+
+## 8. Rendering strategy
+
+| Page type | Recommended | Reason |
+|---|---|---|
+| Homepage | SSG; ISR (300 s) once the CMS is on | Static except the 3 latest EcoNews cards |
+| About | SSG with bundled copy; ISR with the CMS on | CMS-managed and rarely changed |
+| Supply Chain | SSG | Bundled data; no CMS API exists |
+| Product listing (`/trade-solutions`) | SSG | Bundled; ISR once a commodities API exists |
+| Product detail | SSG, `generateStaticParams`, `dynamicParams = false` ("Dynamic route segments not included in `generateStaticParams` will return a 404", `dynamicParams.md`) | 6 fixed products |
+| Articles listing | SSG; ISR with the CMS on | Up to 100 items |
+| Article detail | Known slugs of both locales prerendered (`generateStaticParams` from the index); `dynamicParams = true`, so a new CMS article renders on its first request and is then cached (ISR) | Segment config must be a literal, so one setting serves both modes |
+| Sitemap (`app/sitemap.xml/route.ts`), robots (`app/robots.ts`) | Prerendered at build. The sitemap: static in bundled mode, ISR with the CMS on (measured in §9.4) | The sitemap is written by a route handler, not the `sitemap.ts` convention, which rewrites the root as `B/`: every URL comes from `absoluteUrl()`, the formatter of canonical, hreflang and `og:url`. A GET route handler is not cached by default, so it sets `dynamic = 'force-static'`; tests fail if it is ever computed per request |
+| Contact / RFQ | SSG shell plus client form island | No server data; `mailto:` only |
+| Logistics, Packaging, Activities, Regulations | SSG | Bundled |
+
+SSR is not used: there is no personalization or authentication, and CMS drafts are not public. ISR trade-offs are in §9.
+
+## 9. CMS freshness, load and takedown (applies from the CMS PR)
+
+### 9.1 What server fetching does and does not solve
+
+| Concern | Effect of server fetching plus ISR |
+|---|---|
+| Browser CORS and the same-origin rewrite | **Removed.** The browser never calls the CMS. |
+| Load from normal traffic | **Reduced.** At most one CMS request per cache entry per revalidation window, instead of one per visitor. |
+| Rate limiting of the public API | **Not solved.** (1) The CMS public API stays reachable directly at its own origin by anyone. (2) Through the site, every never-seen article slug renders on demand and can cost up to two CMS calls (own locale, then the other locale for `alternates`); a bot enumerating random slugs therefore reaches the CMS. A CMS-side or CDN rate limit is still required (CMS/infra owner). The site adds: slug syntax validation before fetching, an optional Vercel WAF rate-limit rule on article routes (owner), and cached 404 results (verify in the CMS PR). |
+
+### 9.2 Freshness: 300 s is a revalidation interval, not an update SLA
+
+The docs describe stale-while-revalidate (`02-guides/incremental-static-regeneration.md`): after the window, "the next request will still return the cached (now stale) page", and regeneration runs in the background. Consequences:
+
+| Layer | Behavior |
+|---|---|
+| CMS HTTP caching | The CMS sends `public, max-age=60, stale-while-revalidate=300` on every public response, **404s included**. Any HTTP cache between the site's functions and the CMS (for example a CDN in front of the CMS) can add up to about 360 s. |
+| Next data cache, per fetch | Each distinct request is its own entry with its own 300 s window: the article detail, the home list (`pageSize=3`), the insights list (`pageSize=100`), the sitemap pages, About per locale. They expire and refresh **independently**, so for a while a new article can be in the list but not the sitemap, or an unpublished one can stay in the list after its detail returns 404. |
+| Page (ISR) | Revalidates at the lowest fetch window, on the **first request after** the window. That request still gets the stale page; the next one gets the new page once regeneration succeeds. A page with no traffic stays stale until someone requests it. |
+| Errors | "If an error is thrown while attempting to revalidate data, the last successfully generated data will continue to be served from the cache. On the next subsequent request, Next.js will retry" (ISR guide). During a CMS outage, neither updates nor takedowns reach the site. Automated: `tests/next-cms/stale.spec.js` runs with a 2 s interval, makes the CMS answer 500 after the interval, and checks that About, a list and an article keep their last good content with 200 and no noindex, while the regeneration did reach the CMS. |
+
+Expectation to communicate to editors: with traffic, typically within about 5–11 minutes, with no guaranteed upper bound. For anything urgent, use §9.3.
+
+### 9.3 Emergency takedown (implemented; tested against the mock CMS)
+
+1. **CMS:** archive the article (permission `article:archive`; it removes every locale; the CMS has no per-locale unpublish). The public API then returns 404, after any HTTP cache in front of the CMS. A page (About) has no unpublish or archive in the CMS: publish a corrected revision of that locale. For one article locale only, use `CMS_BLOCKED_SLUGS` (below).
+2. **Site:** only while the CMS answers normally, an operator calls `POST /api/revalidate` with the header `x-revalidate-secret: <REVALIDATE_SECRET>`. It calls `revalidateTag('cms', { expire: 0 })`, which expires every cached CMS response at once (one tag: the content is small, and an operator never has to know which tags a page used). The docs: "`{ expire: 0 }`: Stale content is never served, so the next request is a blocking revalidate" (`04-functions/revalidateTag.md`). The endpoint answers 401 without the right secret, compares in constant time, logs nothing, and is disabled when the variable is unset. Because nothing stale is kept, a call while the CMS fails turns every CMS page and the sitemap into 5xx on their next request, until the CMS answers again (tested on the sitemap, §9.4).
+3. **Verify:** the article URL returns 404, and `/insights`, `/vi/insights` and `/sitemap.xml` no longer contain it.
+4. **If the CMS cannot unpublish it** (but answers): set `CMS_BLOCKED_SLUGS` (comma-separated slugs, per locale; list both translations' slugs to remove both) and redeploy (Vercel environment changes need a new deployment). A blocked slug is a 404 under every URL form that resolves to it (`/blog/…`, `/vi/tin-tuc/…`, the other locale's route, `/tin-tuc/…`; legacy aliases redirect to one of those), and it leaves the lists, the alternates and the sitemap. Do not use rollback for this: older deployments contain the same content.
+5. **If the CMS is unreachable:** a CMS-mode build cannot run, because it prerenders from the CMS (checked: `next build` fails with "Failed to collect page data for /vi/tin-tuc/[slug]"), so step 4 is not available, and step 2 must not be used. The deployed site keeps serving its last good content, the article included. What remains: a Vercel Firewall rule on the article's URLs (owner; it takes effect without a deployment, to be confirmed in the PR-13 rehearsal), which leaves the article in the cached lists and sitemap; or a deployment built with `CMS_CONTENT` unset, which serves the bundled content everywhere until the CMS is back. The choice is the content owner's; roadmap PR-13 rehearses it.
+6. **Images:** CMS media files are served by the CMS media host. Optimized copies (`next/image`, after the images PR) are cached for `images.minimumCacheTTL`. Removal = delete the media in the CMS, revalidate, then purge the image cache in Vercel (owner), or wait for the TTL.
+
+What the CMS suite (`tests/next-cms/`) shows: a cached article is served without a CMS request after it is unpublished; a missing or wrong secret changes nothing; after the endpoint call the detail is 404, the lists and the sitemap drop it, and the refetch reached the CMS despite its `max-age=60` answer, with `Cache-Control: no-cache` on the request; the other translation stays. What the mock cannot show: how a real CDN or cache in front of the CMS behaves. `no-cache` asks it to revalidate before reusing a stored copy; it does not remove that copy, and a CDN configured to ignore request directives can still serve it for up to `max-age` + `stale-while-revalidate` (about 360 s). Before `CMS_CONTENT=true`, the production-CMS gate (roadmap PR-13) checks this against the real CMS and CDN, including their response and cache headers.
+
+### 9.4 Sitemap response caching (measured, `next start`, 16.4.5)
+
+The sitemap is prerendered at build in both modes (`prerender-manifest.json`: `compute: static`). Its revalidation and tags come from its fetches: none in bundled mode; with the CMS on, the lowest fetch `revalidate` (300 s) and the fetch tag `cms` on the route entry (`x-next-cache-tags: …,cms`), so `revalidateTag('cms')` expires the sitemap together with the data it was built from.
+
+| Mode, moment | Response | Handler runs | CMS requests | `x-nextjs-cache` |
+|---|---|---|---|---|
+| Bundled, every request | The build output, `Cache-Control: s-maxage=31536000` | Never after the build | none | `HIT` |
+| CMS, within 300 s of the last generation | The cached copy, `s-maxage=300, stale-while-revalidate=31535700` | No | none | `HIT` |
+| CMS, first request after the interval | The cached (stale) copy; regeneration starts in the background | Yes, after responding | the two article lists, if their data entries are stale too | `STALE` |
+| CMS, next request | The regenerated copy | No | none | `HIT` |
+| CMS, the regeneration fails (CMS 5xx) | The last good copy, kept; retried on a later request | Yes, failing | one | `STALE`, then `HIT` |
+| CMS, first request after `POST /api/revalidate` | Regenerated before responding: `{ expire: 0 }` serves nothing stale | Yes, blocking | both lists, refetched (their entries carry the same tag) | `MISS` |
+| CMS, `POST /api/revalidate` while the CMS fails | 500 until the CMS answers, then a blocking regeneration | Yes, on every request | one per request | none, then `MISS` |
+
+Data cache interaction: a regeneration reuses a data entry that is still fresh and refetches a stale one before rendering, so it never stores stale data again (`willConsumerServerCache` in `next/dist/server/lib/patch-fetch.js`; the stale-on-error suite shows the regeneration reaching the CMS). The `/articles?locale=…&pageSize=100` entries are shared with the insights pages, so without a revalidation call the sitemap can reflect data up to one interval older than its own regeneration: about 10 minutes plus traffic gaps in the worst case, consistent with §9.2.
+
+Cost: bundled, no computation per request. With the CMS on, at most one handler run and two CMS list requests per 300 s window that has traffic, plus one after each revalidation call. A per-request handler (`dynamic`) would buy nothing: the sitemap has no request-specific content.
+
+Tests: `tests/next/next.spec.js` (bundled: `HIT` and `s-maxage=31536000` on two requests); `tests/next-cms/cms.spec.js` (after an unpublish, `HIT` with the old content and no CMS request; after the endpoint call, `MISS`, both lists refetched, the article gone; 5xx when revalidated during a CMS failure, then recovery); `tests/next-cms/stale.spec.js` (the sitemap keeps its last good content after a failed regeneration). A hosted preview reports its cache in other headers, so the header assertions run on `next start` only.
+
+### 9.5 Verified against the real CMS (2026-11-10, CMS_HMV `main` f53874b)
+
+A throwaway PostgreSQL and the CMS backend in Docker, test accounts and `[IT]` test articles only; removed afterwards. This site in CMS mode (`next build` + `next start`) against it.
+
+- **Contract, from the source and probed:** the public article and page DTOs match `src/features/articles/api.js` and `src/features/pages/api.js`; the About content of `src/data/about.js` passes the CMS page validator as is. `locale` defaults to `vi`; an unknown locale is 400 `UNKNOWN_LOCALE`. No cross-locale fallback: a slug from the other locale is 404, and `alternates` lists the other live locales. Slugs: `^[a-z0-9]+(?:-[a-z0-9]+)*$`, at most 200 characters; an invalid slug is 404. `pageSize` is 1–100 (101 is 400); `total` counts every page. Approval requires cover alt text, so a published cover always has `alt`, `width` and `height`. Public responses set no cookie and no `Access-Control-Allow-Origin` for `www.hmv-global.com` (server-side fetch only). The CMS keeps no slug history: renaming a published slug turns the old URL into a 404.
+- **Cache headers:** `Cache-Control: public, max-age=60, stale-while-revalidate=300` on public 200s **and on 404 and 400**. Behind a CDN, a takedown (404) or a new article (old 404) can lag by up to 60 s plus 300 s unless the CDN honours the request's `Cache-Control: no-cache`. Not provable locally (no CDN): gate for PR-13.
+- **Pagination:** 110 published articles per locale, so two CMS pages per locale: all 110 per locale in the sitemap and pre-rendered.
+- **Takedown and publish:** archiving one article on CMS page 1 and one on page 2 gave a CMS 404, and the site kept serving the cached copies until `POST /api/revalidate`. On the first request after it, detail, list and sitemap dropped both articles in both languages. A newly published article was served at once (an uncached slug renders on demand), and joined the list and sitemap after the revalidation.
+- **Media:** with the local driver, `/media-files/…` serves `public, max-age=31536000, immutable` with `default-src 'none'`. With R2, objects are uploaded immutable and served from `MEDIA_PUBLIC_BASE_URL`. That host is production configuration of the CMS; the CMS requires it in production, but does not enforce `https`. CMS images render `unoptimized` until PR-13 adds that host to `images.remotePatterns`.
+- **Build:** the build pre-renders every slug of both languages under both article routes. On a laptop with the CMS in Docker Desktop, 19 build workers starved the Docker VM: CMS requests, even `/health`, stalled up to 8 s, past the 8 s timeout, and the build failed (fail-closed, as designed). With 4 workers it passed with no failure. This is a property of the local environment, not of the code; the hosted build is checked at OA-1.
+
+**Owner actions (not code):** 1) The CMS admin frontend hard-codes the old domain and URL form. These are the header link `https://hmvglobal.vn` (`frontend/src/components/layout/header.tsx:166`); the article preview at `/tin-tuc/{slug}` and `hmvglobal.vn > tin-tuc > {slug}` (`article-preview-dialog.tsx:190,275`); and the slug placeholder `/tin-tuc/slug-bai-viet` (`article-editor-view.tsx:733`). The public site is `https://www.hmv-global.com` with `/blog/<slug>` and `/vi/tin-tuc/<slug>`. Changing them is a CMS change for HMV to approve (audit C-04). 2) The production `MEDIA_PUBLIC_BASE_URL` (an `https` host) for PR-13. 3) The three legacy articles (`exporting-passion-fruit-eu`/`xuat-khau-chanh-day-eu`, `optimizing-tropical-logistics`/`toi-uu-hoa-logistics`, `circular-agriculture`/`nong-nghiep-khep-kin`) are not in the CMS. The slugs are valid and were accepted in the throwaway run. Before `CMS_CONTENT=true`, an editor recreates them with these exact slugs, from content HMV approves (audit C-03 covers claims in them), or their URLs become 404s.
+
+## 10. Errors, loading and 404 (verified on the branch)
+
+| Situation | Implementation | Observed (`next start`, 16.4.5) |
+|---|---|---|
+| URL without a route (EN or VI), including an unknown product id (`dynamicParams = false`) | `app/global-not-found.tsx` with `experimental.globalNotFound: true`. Same markup as the Vite 404 (`NotFoundView`: chrome-less, "Page not found", link to `/`, English for every URL as on Vite today). | **404**, static, fully server-rendered, `<html lang="en">`, `noindex` (meta tag and header) |
+| `notFound()` thrown inside a page: an unknown, unpublished or blocked article slug (`dynamicParams = true`) | No custom file works: a `not-found.tsx` in the group or in the article segment is not used | **Status 404 and noindex are correct; the server HTML is an error shell (`<html id="__next_error__">`) and the visitor sees Next.js's default 404 ("404 / This page could not be found.", no site navigation), asserted in a browser by both Next.js suites. Accepted UX exception (D-17), not a solved problem.** The cause is that there is no single layout above both root layouts (`03-file-conventions/not-found.md`: `global-not-found.js` is "useful when… your app has multiple root layouts"). Decision D-17. |
+| A redirect rendered by an ISR page (the other locale's article slug) | `permanentRedirect()` | 308. **On the first request after the page is regenerated (cache MISS), Next.js 16.4.5 sends the `Location` header twice, with the same value**: the render sets it and the cached entry's headers are appended (`next/dist/build/templates/app-page-runtime.js`). Later hits send it once. The bundled suite asserts exactly one raw `Location` on every redirect, and runs on the hosted preview (OA-1); a CMS-mode hosted check after a revalidation is a cutover gate (roadmap §7.3, G-15). If Vercel also sends two, investigate a patch or the framework behaviour before cutover; browser tolerance is not enough. |
+| CMS error on a URL never generated | `error.tsx` (client, localized) | 5xx: crawlers retry, and a live page is not deindexed |
+| Streaming | No `loading.tsx` and no Suspense above `notFound()` or redirects: "After streaming starts, the status code remains `200`" (`not-found.md`) | n/a |
+
+Consequences for later PRs:
+
+- Products use `dynamicParams = false`, so an unknown id never matches a route and gets the server-rendered global 404.
+- Article routes need `dynamicParams = true` (new CMS slugs), so an unknown article slug, bundled mode included, is a 404 with Next.js's default body rendered on the client. This is acceptable for indexing, because search engines act on the status (D-17).
+- `globalNotFound` is **experimental** in 16.4.5 (the build prints "Experiments (use with caution)"). If it is removed or changes, the fallback is catch-all routes plus segment `not-found.tsx`: status stays correct and the body becomes client-rendered.
+
+## 11. Images, fonts and CSS
+
+- **Images (PR-08):** shared views render images through the port `@/lib/image` (§16.1). Next.js maps it to `next/image` (`src/next/image.tsx`: a srcset for each `sizes`, lazy unless the view asks otherwise, the intrinsic size of static imports); Vite maps it to the plain `<img>` it rendered before (`src/app/image.jsx`, `sizes` dropped). Rules:
+  - **Source resolution rule:** a source needs its largest painted size × the target density, never more than the original has: desktop up to 1920 × 1080 CSS px at DPR 2, phones at DPR 3. Painted size is measured in a browser, lightboxes included, and accounts for `object-fit` (a cover crop paints wider than its box). The 1600 px long edge is used only for images that never render large.
+    - Logistics lightbox (max 960 CSS px, 75vh): 1920 × 1440 for the landscape DG photo, 1216 × 1621 for the portrait ones.
+    - Packaging lightbox: `.lightbox-content` has no size rule, so the image renders at its intrinsic size (a portrait photo is 1872 × 2496 CSS px at 1920 × 1080 and its close button is out of view, an existing bug on Vite production too, not a Next.js regression). pack1–4 and `move` keep their original dimensions, so the lightbox looks exactly as before; constraining it is design backlog (roadmap §7.5).
+    - Activities dialog: a plain `<img>`, as before; `next/image`'s width and height made the photo up to 5% larger in the dialog.
+    - The hero inset is 800 px (painted at most 230 CSS px), the logo 360 px (118 CSS px).
+    - 23 sources are the full-resolution photographs HMV supplied and smaller than their need (`ORIGINAL_LIMITED` in the test): sharper versions need larger originals, listed with their sizes in the [image asset debt](IMAGE_ASSET_DEBT.md). Never upscaled in code.
+    - WebP quality 80, re-encoded once from the originals; `src/assets` 46.1 MB → 9.6 MB; the Vite build's `dist/assets` 42.5 MB → 9.9 MB.
+  - **`sizes`** on every image, from the painted widths measured on every page at 15 viewport widths (360–1920 px), rounded up. One deliberate exception, benchmarked and commented in `CinematicHero.jsx` so that it is not changed back by guesswork: the home hero (the LCP image) uses 420 px on phones, between its box (372) and its cover width (481): a DPR 1.75 phone requests 750w instead of 1080w (LCP 3.5 s instead of 4.1 s in the lab), while DPR 2.6–3 phones still get the full 1280 px source.
+  - **Fidelity checks:** `tests/next/images.spec.js` opens every page and lightbox at 1920 × 1080 DPR 2 and 390 × 844 DPR 3 and checks, per image, the aspect ratio (file, delivered and unstretched box within 1%), the pixels delivered for the painted size, and the pixels in the source. `scripts/image-fidelity.mjs <commit>` reviews the re-encoding against the originals: SSIM 0.953–0.997 (most 0.96–0.99), PSNR 32–41 dB.
+  - **Priority:** only a page's LCP image (Lighthouse) is `loading="eager" fetchPriority="high"`: the home hero, the product photo, the first insights card, the article hero. On `/activities` the LCP element differs by viewport, so the first two tiles are eager at normal priority. Everything else is lazy. React 19 preloads every server-rendered `<img>` that is not lazy or `fetchPriority="low"`. The header logo is in the first viewport, so it is eager with `fetchPriority="low"`: measured, lazy requested it 180 ms later (after layout), eager at normal priority made React preload it together with the LCP image, low priority requests it right after the LCP image; LCP was the same for the three. The header flag is also low priority. Each page preloads only its LCP image.
+  - **CMS media** (absolute URLs) render `unoptimized` until the CMS media host is allow-listed (`CMS_MEDIA_HOST`, roadmap PR-13).
+  - Static import extensions accepted by 16.4.5: `jpg, jpeg, png, webp, avif, ico, svg`; the two `.jfif` files became `.jpg` in PR-01.
+- **CSS:** `index.css` then `hmv.css` are imported in `src/next/Document.tsx`, the same order as `src/main.jsx`. Tailwind for Next uses `@tailwindcss/postcss`, as documented in `01-getting-started/11-css.md`.
+- **Fonts (D-20, decided):** the Google Fonts `<link>` stays, as on Vite, through the migration and cutover. Self-hosting the fonts is a separate performance and design PR once Next.js is stable in production; the branch `wip/next-font` (local, not merged) is its starting point. What it showed:
+  - next/font downloads with a macOS user agent (`next/dist/compiled/@next/font/dist/google/fetch-resource.js`), so it self-hosts the build Google serves to macOS, iOS and Android, byte-identical to theirs today. Windows and Linux visitors get today a build with an extra `prep` table; same version (2.071), glyphs and advance widths.
+  - Measured with the two files swapped on the same page: Windows Chromium, 0.08% of pixels differ, all by at most 40 levels, no line break moves; Linux (the CI image), headings break differently: up to 22% of a first viewport and 4–5% of some full pages, beyond G-8's 1%.
+  - Vietnamese coverage, checked with the fonts each glyph rendered in (Chromium `CSS.getPlatformFontsForNode`): Plus Jakarta Sans (headings) covers Vietnamese; on the branch its `latin` and `vietnamese` subsets are preloaded. Poppins (body) has no Vietnamese subset at Google, so tone-marked letters render in the system font today, on both builds ("Nông sản cao cấp…": 44 glyphs in Poppins, 7 in Segoe UI). Changing that is a typography decision, not part of this migration.
+  - next/font 16 keeps the Google family names in its `@font-face` rules, so that PR needs no CSS change and keeps today's fallback chains. Poppins' missing Vietnamese subset is known typography debt, out of the migration.
+
+## 12. Coexistence evidence (branch `feat/nextjs-foundation`)
+
+The only place these numbers are kept; the other documents link here.
+
+| Check | `main` (baseline) | Branch (revision 6) |
+|---|---|---|
+| `npm run build` (Vite) JS / CSS | 620.42 kB / 156.50 kB `index-CUg3tHd_.css` | 626.37 kB (gzip 200.60 kB) / **156.50 kB, same file hash**; `dist/assets` 8.0 MB with the re-exported images; `dist/sitemap.xml` and `dist/robots.txt` are `main`'s files (line endings follow the checkout) |
+| `npm run build:cms` | passes | passes |
+| `npm test` (Vitest) | 49/49 | 71/71: +9 layer checker, +4 route contract, +1 product slugs, +4 CMS mappers, +4 structured data |
+| `npm run lint` | 0 errors, 9 warnings | 0 errors, 9 warnings; layer boundaries OK (two ports) |
+| `tsc --noEmit`, `next build` type check | n/a | pass with `strict: true` |
+| Playwright, Vite | 89 passed, 3 skipped | 115 passed, 7 skipped (the smoke pages also check that every image loads) |
+| Playwright, CMS mode (Vite) | 35 passed, 1 skipped | 35 passed, 1 skipped |
+| `next build` | n/a | 49 prerendered routes (static and SSG), proxy, robots, sitemap route, two more route handlers, global 404 |
+| Playwright, Next (`tests/next/`) | n/a | 205 passed, 7 skipped (switcher cases on mobile; the image fidelity tests run once, with their own viewports): all 38 indexable URLs, 404s and what a visitor sees on an article 404, 28 redirect chains with one raw `Location` per hop, sitemap = canonical, `og:url` and `hreflang` as exact strings, the sitemap served from the build output, robots, Organization/WebSite JSON-LD, noindex everywhere, Article JSON-LD (organization author), islands, switcher, image fidelity on every page and lightbox at DPR 2 and 3 |
+| Playwright, Next with the CMS (`tests/next-cms/`, mock CMS) | n/a | 15 passed: About and lists from the CMS, not-published states, alternates, M-52 to M-57, takedown, sitemap cache states (§9.4), Article author from the CMS, blocked slugs, 5xx on an uncached failure, the 404 a visitor sees, no browser request to the CMS, no secret or origin in client bundles or server output. Stale-on-error (2 s interval, About, a list, an article, the sitemap): 1 passed |
+| Visual baselines (`tests/next-visual/`, D-14) | n/a | 48 tests, 72 screenshots, zero tolerance, CI job `visual`, fonts pinned. Against the original set (`73e8c26`) after the image work: 46 full pages byte-identical, the two mobile `/contact` pages 254–299 px (the `<select>` text, now captured with its font loaded: a harness correction, not a site change); the 24 EN first viewports differ by at most 257 px (0.028%, home desktop: the resampled hero photos and logo) |
+| GitHub CI (`ci.yml`, Linux) | n/a | Runs all of the above on every push of the branch; each revision is reported green with its run |
+
+G-10 gate measurement (roadmap §7.3), the approved PR-08 performance baseline: Lighthouse 13.5.0 in the pinned Linux image, mobile preset, applied throttling, `next start` of `77f7d2d`, two warm-up runs, median of 5. LCP · TBT · CLS · largest image · home JavaScript transferred:
+
+| Template | Median | LCP of the five runs |
+|---|---|---|
+| `/` | 2.83 s · 139 ms · 0.038 · 172 kB · 223 kB | 2.72–2.88 s |
+| `/products/passion-fruit` | 1.93 s · 137 ms · 0.001 · 31 kB | 1.89–1.93 s |
+| `/about` | 1.83 s · 126 ms · 0.023 · 18 kB | 1.80–1.89 s |
+| `/logistics` | 1.84 s · 176 ms · 0.136 · 89 kB | 1.83–1.89 s |
+| `/vi/insights` | **3.02 s** · 148 ms · 0 · 79 kB | 3.00–3.02 s |
+
+`/vi/insights` is 21 ms over the 3.0 s LCP gate. Its LCP image (the first card, 750w, 78 kB) is requested at 615 ms with high priority and preloaded, and takes 2.4 s instead of the home hero's 2.1 s because the page's Vietnamese Google Fonts files (seven) download at the same time. The levers are the fonts (D-20 keeps them) or a smaller image (fidelity); a measurement tolerance or a different template would be a decision, not a measurement. Session to session, the same build measured 2.81 s (median of 3, earlier session) and 3.02 s (median of 5). The simulated throttling below is diagnostic only: it places `/` at 3.5 s and attributes bandwidth sharing differently from Chrome's own prioritization.
+
+Lab performance, Lighthouse 13.5.0 in the pinned Linux image, mobile preset, median of 3 after two discarded warm-up runs. Score · LCP · CLS · TBT · page weight. The pre-migration baseline is the Vite production build of `main` (`a93fcc4`, `vite preview`); the branch is `next start` of `77f7d2d`. Page weights of short pages include the footer's Google Maps embed (about 400 kB, third party, `loading="lazy"`).
+
+Simulated throttling (Lighthouse's default):
+
+| Page | Vite production (`main`) | Next.js before PR-08 (`73e8c26`) | Branch head (`77f7d2d`) |
+|---|---|---|---|
+| `/` | 71 · 53.0 s · 0.038 · 136 ms · 11.5 MB | 73 · 8.0 s · 0.038 · 145 ms · 11.6 MB | 90 · 3.5 s · 0.038 · 63 ms · 780 kB |
+| `/vi` | n/a (no locale URL on Vite) | 74 · 8.0 s · 0.038 · 109 ms · 11.6 MB | 89 · 3.5 s · 0.038 · 66 ms · 828 kB |
+| `/about` | 94 · 2.5 s · 0.023 · 92 ms · 2.0 MB | 93 · 3.0 s · 0.023 · 110 ms · 2.0 MB | 94 · 2.9 s · 0.023 · 79 ms · 325 kB |
+| `/trade-solutions` | 78 · 5.0 s · 0.001 · 41 ms · 11.0 MB | 84 · 3.6 s · 0.001 · 200 ms · 11.0 MB | 93 · 3.1 s · 0.001 · 76 ms · 1.0 MB |
+| `/products/passion-fruit` | 92 · 2.9 s · 0.001 · 39 ms · 3.5 MB | 70 · 10.7 s · 0.001 · 251 ms · 3.5 MB | 94 · 3.0 s · 0.001 · 58 ms · 822 kB |
+| `/activities` | 77 · 5.3 s · 0.001 · 42 ms · 9.5 MB | 90 · 3.4 s · 0.001 · 137 ms · 9.5 MB | 92 · 3.2 s · 0.001 · 58 ms · 1.5 MB |
+| `/logistics` | 72 · 5.1 s · 0.143 · 65 ms · 6.2 MB | 85 · 3.4 s · 0.131 · 114 ms · 6.9 MB | 87 · 3.2 s · 0.135 · 80 ms · 736 kB |
+| `/insights` (Vite), `/vi/insights` | 84 · 3.9 s · 0.001 · 49 ms · 4.3 MB | 88 · 3.6 s · 0 · 141 ms · 4.4 MB | 93 · 3.2 s · 0 · 78 ms · 1.1 MB |
+
+The simulation is pessimistic for both builds (Vite's 53 s comes from 11.5 MB of images on a simulated slow link). Applied throttling (`--throttling-method=devtools`: the same network and CPU limits applied while tracing), mobile, LCP · FCP · CLS · TBT:
+
+| Page | Vite production | Branch head |
+|---|---|---|
+| `/` | 13.4 s · 2.9 s · 0.038 · 0 ms | 2.8 s · 1.9 s · 0.038 · 145 ms |
+| `/products/passion-fruit` | 14.8 s · 2.8 s · 0.001 · 0 ms | 1.9 s · 1.9 s · 0.001 · 128 ms |
+| `/about` | 2.9 s · 2.9 s · 0.023 · 0 ms | 1.8 s · 1.8 s · 0.023 · 128 ms |
+| `/logistics` | 2.9 s · 2.9 s · 0.134 · 0 ms | 1.8 s · 1.8 s · 0.136 · 123 ms |
+
+G-10 (D-21) on the branch head: ✓ home JavaScript transferred 223 kB (≤ 250 kB); ✓ TBT ≤ 200 ms (58–80 ms simulated, 119–154 ms applied; Vite's is near 0, the cost of hydration); ✓ largest image at 375 px 311 kB (≤ 500 kB; Vite 7.9 MB); ✓ LCP and CLS no worse than Vite production on any page, under applied throttling (`/logistics` CLS 0.136 against 0.134: the same Google Fonts swap, within run-to-run variance). Targets: LCP ≤ 2.5 s is met under applied throttling except `/` (2.8 s), not under simulation; CLS ≤ 0.1 is met except `/logistics`.
+
+LCP breakdown, applied throttling, mobile (median run):
+
+| Page | LCP element | TTFB | Resource load delay | Resource load duration | Element render delay |
+|---|---|---|---|---|---|
+| `/` | hero image (`img.day-farm`, 750w, 78 kB) | 6 ms | 598 ms | 2,092 ms | 150 ms |
+| `/products/passion-fruit` | product photo (31 kB) | 6 ms | 616 ms | 1,283 ms | 36 ms |
+| `/about` | `h2` text | 6 ms | n/a | n/a | 1,796 ms |
+| `/logistics` | `p.log-hero-desc` text | 9 ms | n/a | n/a | 1,833 ms |
+
+- The LCP images are requested as soon as the HTML has arrived (about 600 ms on the throttled link), together with the CSS: the load delay is the HTML, not discovery. TTFB is local; a hosted measurement adds the network.
+- Render-blocking: the main CSS chunk (22 kB, done at 1.65–1.78 s), a second CSS chunk (7 kB, 1.37–1.42 s) and the Google Fonts stylesheet (1.31–1.40 s). Text-LCP pages paint when the main CSS chunk is in, after a 130–150 ms task (the page's JavaScript and hydration) that runs just before. The web fonts are requested at 1.8–1.9 s and load after the first paint (`display=swap`); they do not move LCP.
+- `/`'s hero takes 2.1 s to load because it shares the throttled link with 223 kB of JavaScript and the CSS.
+- Measured and not adopted: `experimental.inlineCss` (LCP −0.1 to −0.2 s, FCP −0.2 s, but TBT 162–233 ms, above the gate on `/about`, and the HTML grows from 15 to 73 kB on every page with no CSS caching between pages; experimental). The remaining levers are larger than the migration should take: less client JavaScript (fewer islands), critical CSS, self-hosted fonts (D-20). They are performance backlog.
+- Client JavaScript on `/`: 223 kB transferred, 683 kB decoded, of which React DOM and the Next.js runtime are about 410 kB and the shell with Radix and the chat about 150 kB (the chat alone about 8 kB gzip, R6-9). The Vite bundle: 626 kB, 200.6 kB gzip.
+- Desktop preset, branch head: 100 on all eight pages, LCP 0.6–0.7 s (Vite: 75–100, home LCP 8.2 s).
+
+Vite build with the WebP assets (requirement before D-18), `main` against the branch in the pinned image, 12 pages at desktop and mobile: no image fails to load and no console error on either build; full-page screenshots with images (fonts pinned) differ by at most 111 px on desktop and 331 px on mobile (the logo and re-encoding); every lightbox (34) paints at the same size; image bytes per page drop, for example 17.9 MB → 1.5 MB on the mobile home page; `dist/assets` 42.5 MB → 9.9 MB. The Vite smoke suite now fails a page whose images do not load.
+## 13. Environment variables and security
+
+| Variable | Scope | Purpose |
+|---|---|---|
+| `SITE_INDEXABLE` | Next, build and runtime | Only the exact value `true` removes the noindex header and meta. **Unset everywhere until cutover.** At cutover it is set on the production project's Production environment only. A fail-safe default: forgetting it leaves a site unindexed, never a test site indexed (§15.2). |
+| `CMS_CONTENT` | Next server, build and regeneration | `true` reads About, EcoNews and the sitemap's articles from the CMS. Off in this phase. |
+| `CMS_API_ORIGIN` | Next server | Read only by the transport. Never `NEXT_PUBLIC_*`; the CMS suite checks client bundles for it. |
+| `CMS_MEDIA_HOST` | `next.config` | `images.remotePatterns` allow-list, so `next/image` optimizes CMS media (roadmap PR-13); until then CMS media render unoptimized (`src/next/image.tsx`) |
+| `REVALIDATE_SECRET` | Next server | Required by `POST /api/revalidate`; unset disables it (§9.3). Never logged; the CMS suite checks bundles and server output for it. |
+| `CMS_BLOCKED_SLUGS` | Next server | Comma-separated slugs answered with 404 everywhere (§9.3) |
+| `CMS_REVALIDATE_SECONDS` | Next server, tests only | Overrides the 300 s revalidation interval; the stale-on-error suite sets 2. Unset in every deployment. |
+| `VITE_CMS_CONTENT` | Vite (`.env.cms`) | Unchanged until cleanup |
+
+## 14. TypeScript and linting
+
+- `next build` type-checks. Next added its standard entries to `tsconfig.json` (`plugins`, `isolatedModules`, `incremental`, `.next/types` includes); Vite ignores them.
+- `strict: true`, with `allowJs: true` and `checkJs: false`: every `.ts`/`.tsx` file is strict, and JSX legacy files are not checked. Turning it on found four real errors, all in the product routes (a possibly undefined product, an untyped slug map), fixed with `notFound()` narrowing and one JSDoc type. JS modules that TS files import are typed by inference plus a few JSDoc annotations (`SiteShell`, `Button`, `ArticleView`, the mapper result types).
+- ESLint ignores `.next/`. The Fast Refresh rule is switched off only for the two navigation adapters, which export hooks next to `Link` by design.
+- `agentRules: false` in `next.config.ts`. Otherwise `next dev` writes a managed block into `AGENTS.md` (`05-config/01-next-config-js/agentRules.md`); that file is owned by the team.
+
+## 15. Deployment
+
+### 15.1 What exists today (observed 2026-11-07)
+
+- One Vercel project (`hmv-landingpage`) with Git integration. Every push to a non-`main` branch creates a **Preview** deployment; merges to `main` deploy **Production** (GitHub deployment history).
+- Preview URLs answer `302` to Vercel SSO (Vercel Authentication) with `X-Robots-Tag: noindex`. Vercel's documentation does not mention that header, so it is treated as observed behavior, not a guarantee.
+- `https://hmv-landingpage.vercel.app/` serves the production build publicly (200, no noindex), duplicating `www`. This is an existing issue for the owner (audit F-33).
+- GitHub Actions: `ci.yml` on PRs into `main` and pushes to `feat/nextjs-**` (lint and layers, unit, builds, all Playwright suites; read-only, no secrets, no deployment); `next-preview.yml` on `feat/nextjs-**`, skipped until `NEXT_PREVIEW_ENABLED=true` (§15.2); `sonarqube.yml` on `main` pushes and PRs into `main`.
+
+### 15.2 Next.js preview configuration
+
+The Next build must never read the root `vercel.json`, because its SPA rewrite sends every path to `/index.html`. Vercel does not document how `vercel.json` rewrites combine with a Next.js deployment.
+
+| Item | Setting |
+|---|---|
+| Project | A **separate, temporary** Vercel project (for example `hmv-landingpage-next`) created with `vercel project add` (CLI, alias of `create`), **not** imported from Git. Docs: "The first deployment of a new project is always a production deployment… even when you import a Git repository in the dashboard" (`vercel.com/docs/deployments/environments`). |
+| Protection, set before the first deployment | Deployment Protection → **All Deployments** (Vercel Authentication): "all URLs are protected, including your production domain… and generated URLs", available on all plans (`vercel.com/docs/deployment-protection`). This covers the project's first deployment, which is a production one, and its `*.vercel.app` domains. |
+| Config file | `deploy/vercel.next.json`: framework `nextjs`, no rewrites, `git.deploymentEnabled: false`, `X-Robots-Tag: noindex, nofollow` on every path. It is passed with the CLI global option `--local-config` ("set the path to a local `vercel.json` file"; listed for `vercel build` and `vercel deploy`). |
+| Build and deploy | `.github/workflows/next-preview.yml` with `vercel pull`, then `vercel build --local-config deploy/vercel.next.json`, then a guard that fails if any route in `.vercel/output/config.json` targets `/index.html`, then `vercel deploy --prebuilt --local-config …` (never `--prod`), then the preview acceptance tests. Linking uses `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` ("to skip project linking", `vercel.com/docs/cli/global-options`). Vercel CLI pinned to 65.2.0. |
+| Noindex, defense in depth | (1) Vercel Authentication; (2) the platform header from `deploy/vercel.next.json`; (3) the app's fail-safe `X-Robots-Tag` header and `<meta name="robots">` unless `SITE_INDEXABLE=true`. **robots.txt is not used for this:** `Disallow` stops crawling, not indexing, and would hide the noindex from crawlers. `VERCEL_ENV` is not relied on. |
+| Status | The workflow is **not yet executed**: it needs the owner setup in the [roadmap](MIGRATION_ROADMAP.md#62-nextjs-preview-owner-setup-oa-1). Until `NEXT_PREVIEW_ENABLED=true` is set, it is skipped. |
+
+### 15.3 Cutover and rollback
+
+Cutover switches the existing production project to the Next.js framework preset and removes the SPA rewrite in the same PR. Rollback is Vercel Instant Rollback to the last Vite deployment. The temporary Next project is deleted after cutover. Rollback limits and preconditions: [roadmap §8](MIGRATION_ROADMAP.md#8-rollback-contract).
+
+## 16. Architecture review (revision 3)
+
+### 16.1 Migration-only abstractions
+
+Each one exists because the two builds differ. `grep -rn MIGRATION-ONLY` lists them in code.
+
+| Abstraction | Coupling it removes | Why the framework API is not used directly | After cleanup (PR-12) |
+|---|---|---|---|
+| Port `@/lib/navigation` (`src/app/navigation.jsx`, `src/next/navigation.jsx`) | Shared components on a router | Each build has its own router and URL scheme (locale-free vs localized) | Vite implementation deleted; the Next one stays as the localized `Link`, `useRoutePath`, `useLanguageSwitch`, `useGoBack`; the `useSearchParams` re-export goes |
+| `StaticPage` (`src/app`) | Six identical Vite page adapters | Vite head tags need a component per page | Deleted |
+| Browser transport (`src/app/cms.js`) | Mappers on browser `fetch` | Vite has no server | Deleted; the server transport remains |
+| Port `@/lib/image` (`src/app/image.jsx`, `src/next/image.tsx`) | Shared views on `next/image` | Vite cannot render `next/image`; the Next.js side also keeps CMS media unoptimized until PR-13 | Vite implementation deleted; views may import `next/image` directly |
+| `assetSrc()` | Shared data on the bundler's image import shape | Vite gives a URL string, Next an object | Still used where shared data hands a URL string to both builds (`photos`, `productPhotos`, the chat); `next/image` takes it with explicit width and height. Deleted at cleanup: data passes the static imports |
+| `resolveBundledArticle()` | Vite article URLs on per-locale slugs | Locale-free URLs need one canonical slug | Deleted |
+| `LegacyLocaleRedirect` mapping of the new Vietnamese URLs | Rollback target on the Next URL scheme | A rollback serves the Vite build | Deleted with the Vite app |
+| Vite rules in `scripts/check-boundaries.js` | n/a | n/a | Simplified to the Next rules |
+
+Abstractions that **stay** after cleanup, because they are the target design: the URL contract (`src/i18n/routes.js`), titles and descriptions (`src/views/meta.js`), `pageMetadata()` (`src/next/seo.ts`), the CMS contract and mappers (`src/lib/cms.js`, `features/*/api.js`), `Lightbox` and the other islands.
+
+### 16.2 Single sources of truth
+
+| Fact | Defined once in | Derived by |
+|---|---|---|
+| Locales, page key paths, Vietnamese product slugs, collection aliases, article slug pairing | `src/i18n/routes.js` (article pairs read from `data/articles.js`) | Links (`Link`), switcher (`switchHref`), canonical and `hreflang` (`pageMetadata`), proxy (`legacyRedirect`), config redirects (`INDEX_ALIASES` × `LOCALES`), product and article `generateStaticParams`, the Vite rollback mapping, the Next E2E URL list. The sitemap (PR-07) will use the same functions. |
+| Titles and descriptions | `src/views/meta.js` | Vite `PageMeta`, Next `metadata`, `DetailLayout` headings |
+| Absolute URLs and the `hreflang` set | `alternateUrls()` in `src/next/seo.ts`, on top of `localizePath()` | Page metadata and `app/sitemap.ts` |
+| Which source serves content, and what is blocked | `src/next/content.ts` | Every Next route, the sitemap, `/tin-tuc/[slug]` |
+| CMS response shape | `features/*/api.js` | Both transports |
+| Layer membership | `scripts/check-boundaries.js` | `npm run lint`, CI |
+
+Framework-materialized exception: the proxy `matcher` must be a literal, so it repeats the legacy prefixes. The redirect-chain E2E tests fail if it drifts from `legacyRedirect()`.
+
+### 16.3 Findings
+
+**P0: architecture.** Both fixed in this revision.
+
+| ID | Finding | Change |
+|---|---|---|
+| A-1 | Shared components imported `@/lib/navigation`, which **was** the Next implementation file (`next/link`): shared → Next in the source graph | The path is now a port with no file; each build maps it (Vite alias, tsconfig `paths`). The implementations live in their adapter folders. |
+| A-2 | The layer rules were only documented | `scripts/check-boundaries.js`, run by `npm run lint` and CI. It found the six unported sections importing React Router; they are ported now and the check passes. |
+
+**P1: maintainability.** All fixed except where noted.
+
+| ID | Finding | Change |
+|---|---|---|
+| M-1 | CMS mappers imported the browser transport, so a server transport could not reuse them | Transport passed as an argument; `lib/cms.js` keeps only the contract; the browser transport moved to the Vite layer |
+| M-2 | `next.config.ts` hand-copied the collection URLs | Derived from `INDEX_ALIASES` × `LOCALES` |
+| M-3 | `routes.js` re-implemented the article slug lookup | Uses `findArticle()` from `data/articles.js` |
+| M-4 | Logistics and Packaging held preview state at page level, which would have made both whole pages client components | Server views plus the `Lightbox` island |
+| M-5 | EN and VI article routes would duplicate resolution, metadata and JSX | One Next module, `src/next/article.tsx`; route files only bind the locale |
+| M-6 | Page sizes duplicated between Vite adapters and Next routes (`3`, `100`) | `LATEST_ARTICLES`, `INSIGHTS_PAGE_SIZE` exported by the shared views |
+| M-7 | Product ids in `PRODUCT_SLUG_VI` could drift from `data/hmv.js` | Unit test: same ids, unique slugs |
+| M-8 | Next code (`app/`, `proxy.ts`, `next.config.ts`) was outside `sonar.sources` | Added |
+| M-9 | `ViteDetailLayout` and the six one-line Vite page modules | Deleted (`StaticPage`) |
+
+**P2: later, only where it does not raise migration risk.**
+
+| ID | Finding | When |
+|---|---|---|
+| L-1 | `Navigation.jsx` (620 lines, cognitive complexity 42): seven booleans and repeated submenu blocks; a data-driven menu would remove most of it | With the server-rendered menu, after cutover |
+| L-2 | `SupportChatWidget.jsx` (545 lines, complexity 28) mixes UI, canned answers and claims under D-12 review | After D-12; lazy-load in PR-08 |
+| L-3 | `LogisticsView` (complexity 37), `SupplyChainPillars` (39), `PackagingView` (20): long content components with inline EN/VI ternaries | Move copy to data modules after cutover |
+| L-4 | Nested ternaries in moved code (`toDoc` in `bundled.js`, `ContactForm` autocomplete, `ArticleView` states, `Activities`, `Operations`) | When those files change for other reasons |
+| L-5 | `LanguageSwitcher` keeps an unused-in-Next `currentLang` prop and exports `LANGUAGES` only for itself | PR-12 (the Vite branch goes too) |
+| L-6 | `operationalPhotos` in `data/operationalLogistics.js` is unused | Any time |
+| L-7 | Twin route files: Next needs one file per URL; each binds a locale literal | Accepted |
+| L-8 | `LegacyLocaleRedirect` and `LangQueryBootstrap` repeat small URL logic | Deleted with the Vite app |
+
+### 16.4 Automated reviewers
+
+Workflow: no draft PRs during development; the branch CI and the architecture review are the gates. To merge into `main`, a normal PR is opened so SonarQube Cloud and CodeRabbit run as the final automated review; findings with real value are fixed before merging (D-18).
+
+Until then, the SonarJS recommended rules (`eslint-plugin-sonarjs` 3.0.5, installed outside the repository) are run locally as an approximation. Revision 3: one issue in new code, fixed (S5852 in the Next `Link`). Revision 4: six in new code, fixed: S5852 in the checker's import regex (rewritten without ambiguous quantifiers), cognitive complexity in `findViolations` (helper extracted), S4721 in `tests/next-cms/serve.js` (the Next.js CLI now runs through `process.execPath`, no shell), a nested ternary in the mock, and a clear-text URL used only as a parsing base in a test. Kept on purpose: the control-character regex in `lib/safeUrl.js` (moved unchanged from `RichText.js`; matching control characters is the point). The remaining 17 are in existing or moved code (L-1 to L-4). Copy-paste detection was not run locally.
+
+Dispositions for automated suggestions:
+
+- Accept fixes that remove a real defect, duplication or security hotspot.
+- Reject suggestions that add layers or abstractions to satisfy a metric, or that refactor existing large components before cutover (L-1 to L-4). Record the reason on the PR.
+- Coverage on new code: `app/` and `src/next/` are exercised by the Next E2E suite, which SonarQube does not import. If the gate fails on coverage there, the remedy is unit tests for logic, not excluding files.
+
+### 16.5 Revision 4 (CMS server layer)
+
+No new P0. Dependency graph: new Next modules `src/next/content.ts` (imports the mappers and the transport) and `src/next/cms.ts` (imports the contract); see §7 for the source dependencies (corrected in revision 5). Shared code is unchanged in direction.
+
+| ID | Kind | Finding | Change |
+|---|---|---|---|
+| R4-1 | P1 | The article mapper imported `isSafeSrc` from the React renderer (`RichText.js`), so mappers depended on React | URL checks moved to `src/lib/safeUrl.js`, used by both |
+| R4-2 | P1 | The lock file written by npm on Windows lacked two optional dependencies, so `npm ci` failed on Linux (found by CI; would have broken `sonarqube.yml` on `main`) | Lock fixed and verified on Linux; `docs/architecture.md` says to regenerate it on Linux |
+| R4-3 | P1 | `strict` was off; turning it on found a possibly undefined product in both product routes | `strict: true`; `notFound()` narrowing |
+| R4-4 | P1 | The layer checker was untested | `scripts/check-boundaries.test.js` |
+| R4-5 | P1 | Status numbers were copied between documents and drifted (53/53 vs 54/54; §15.1 said no workflow ran on branches) | Numbers only in §12; §15.1 and the roadmap corrected |
+| R4-6 | Upstream | Duplicate identical `Location` on the first response after an ISR redirect page regenerates (Next.js 16.4.5) | Documented in §10; recheck on upgrade and on the Vercel preview |
+| R4-7 | Upstream | Unknown article slugs show Next.js's default 404 body, rendered on the client; status and noindex are correct | D-17; a custom `not-found.tsx` is not used under two root layouts |
+| R4-8 | P2 | Next.js writes the root as `B` in head tags and `B/` in the sitemap | Fixed in revision 5: one formatter, exact strings |
+| R4-9 | P2 | The language switcher on a CMS article links to the same slug in the other locale; the route answers one 308 to the alternate (M-54) | Accepted; a direct link would need the alternates passed to the switcher |
+| R4-10 | P2 | `vite` (dev server) no longer serves `/sitemap.xml`; `vite build` and `vite preview` do | Fixed in revision 5 |
+
+What is already reusable by future modules (a trade tool, a contextual assistant), without building for them:
+
+- the transport contract (`get(path, params)`, `{ status }` errors) and the server transport;
+- the mappers and their JSDoc result types, which return plain data with no React or Next.js dependency;
+- the article index (translations paired by CMS id) and the URL model (`localizePath`, `alternateUrls`).
+
+Not built, because nothing needs it yet: a repository or service layer, per-item cache tags, a CMS webhook client, a plain-text or search projection of articles.
+
+### 16.6 Revision 5 (PR-07 and review follow-ups)
+
+No new P0. The CMS dependency diagram in §7 was wrong, not the code: it showed a chain into the transport. It now shows the source dependencies (the loader imports the mappers and the concrete transport; the mappers import only the contract); the layer checker already rejected a mapper importing `src/next/cms.ts`.
+
+| ID | Kind | Finding | Change |
+|---|---|---|---|
+| R5-1 | P1 | Canonical, hreflang and `og:url` wrote the root as `B`, the sitemap as `B/` | One formatter, `absoluteUrl()`; the sitemap is a route handler that writes its strings; tests compare exact strings, `og:url` included |
+| R5-2 | P1 | Stale-on-error was documented but untested (300 s interval) | `CMS_REVALIDATE_SECONDS` override (tests only); `tests/next-cms/stale.spec.js` with 2 s |
+| R5-3 | P1 (doc) | `Cache-Control: no-cache` was described as if it cleared upstream caches | Corrected: it asks for revalidation before reuse and purges nothing; a real CMS/CDN check joins the production-CMS gate |
+| R5-4 | P2 | `vite` (dev) did not serve `/sitemap.xml` | The Vite plugin serves `/sitemap.xml` and `/robots.txt` in dev and emits them in the build, unchanged |
+| R5-5 | Accepted exception | Unknown or blocked article slug: Next.js's default 404 page | Browser assertions in both Next.js suites; D-17 |
+| R5-6 | Gate | Duplicate `Location` (R4-6) | One raw `Location` asserted on every redirect in the bundled suite, which also runs on the hosted preview; CMS-mode hosted check before cutover (G-15) |
+| R5-7 | P2 | The Vite `index.html` Organization JSON-LD still lists people, emails and an address under D-12 review; `llms.txt` lists the same people as "verified" | Not changed by the migration: production content, corrected through the D-12 content PRs. The Next.js structured data holds confirmed facts only, so the two builds differ on purpose. |
+| R5-8 | P2 | The shared `articleJsonLd` now carries the organization node (`@id`, `url`, `logo`) and the CMS author: Vite's article JSON-LD changes with the next merge | Accepted: confirmed facts only |
+
+Kept as directed: one global CMS cache tag (`cms`), which meets the takedown requirement at the scale of About and EcoNews; per-article tags only when a real need appears.
+
+### 16.7 Revision 6 (sitemap caching, article author, PR-08)
+
+| ID | Kind | Finding | Change |
+|---|---|---|---|
+| R6-1 | P1 (doc and tests) | The sitemap's caching was described in one line, and nothing failed if it became computed per request | Measured and documented (§9.4); `force-static` explained; tests pin `HIT` in bundled mode and `HIT` / `MISS` / `STALE` behaviour with the CMS on; the sitemap joins the stale-on-error suite |
+| R6-2 | P1 (runbook, gates PR-13) | Runbook step 4 relied on a redeploy while the CMS is unreachable; a CMS-mode build fails without the CMS. And a revalidation call during a CMS failure turns every CMS page and the sitemap into 5xx | Runbook corrected (§9.3 steps 2 and 5). Whether a CMS-mode build should tolerate an unreachable CMS is a PR-13 decision, not made here |
+| R6-3 | P2 | The CMS byline (`authorName`) is free text: the real CMS fixture says "HMV Administrator", which becomes a `Person` | Unchanged, as directed: the JSON-LD author is exactly the CMS byline, and `authorRole` is never used. Editors should enter a person's name or leave it empty (CMS content guidance, owner) |
+| R6-4 | Risk, not a migration change | The D-12 items (people and titles, contact channels, certifications, facilities, testimonials) are live on the Vite production site today, in visible text, `index.html` JSON-LD and `llms.txt` | A current production risk, independent of cutover; corrected only through the D-12 content PRs (roadmap D-12) |
+| R6-5 | Gate (D-14) | Visual baselines for the migration period | 72 baselines (`tests/next-visual/`), rendered in the image the CI job uses, `mcr.microsoft.com/playwright:v1.64.1-noble`, with local Docker (taking them from a CI artifact needs a GitHub token), then reproduced exactly by CI on GitHub's runners and compared on every run at zero tolerance without retries. The suite serves the Google Fonts CSS and font files from `tests/next-visual/fonts/` (captured in that image): Google serves different builds of the same font by user agent, region and day, and the runner once got a different Poppins build, which changed the mobile `/contact` `<select>` text by 254–299 px. Every declared face is loaded before a screenshot. Failing screenshots are published as check-run annotations, readable without access to the logs. The first CI attempt failed inside the job container's checkout (no access to the logs); the job now checks out on the host and runs the suite with `docker run`. An accepted visual change regenerates the changed baselines in the same commit, with the measured diff in the commit message; the original set stays in `73e8c26` |
+| R6-6 | P1 (performance), fixed | LCP images were lazy-loaded (product photo, first insights card, first activities tiles) and sources reached 7.9 MB | §11 |
+| R6-7 | Decision D-20 | `next/font` self-hosts the macOS build of the fonts; Linux rendering changes beyond G-8 | §11; not merged until decided |
+| R6-8 | P2, existing, unchanged | Poppins has no Vietnamese subset: Vietnamese body text mixes Poppins and the system font on both builds | Typography decision (design owner) |
+| R6-9 | P2, not done | Lazy chat: the 24/7 Support launcher is part of the widget and visible on every page, and the navigation opens the chat by event. Deferring the module delays a visible call to action and can drop an early open request unless the launcher is split out (the SupportChat restructure kept out of scope). Measured gain: 23.5 kB raw, about 8 kB gzip of client JavaScript | Kept eager |
+| R6-10 | P2, existing | `/regulations` is 479 px wide in a 375 px viewport (horizontal overflow), visible in the mobile baselines; same markup and CSS as Vite, not checked on production | Not changed (UI) |
+| R6-11 | Test reliability | The About unit tests import the page graph fresh per test and exceeded 5 s on a loaded machine; one Vite CMS run failed on a cold start | 20 s timeout for the About tests; the CMS suite passed twice in full afterwards |
+| R6-12 | P2 | The image sources are now WebP in both builds, so the Vite site serves the smaller files after the next merge | A production change under D-18; no visual change measured on the Next.js build |
+
+### 16.8 Revision 7 (image fidelity, logo, D-20, D-21, LCP)
+
+| ID | Kind | Finding | Change |
+|---|---|---|---|
+| R7-1 | P1, fixed | One 1600 px cap for every photograph: the logistics lightbox needs 1920 px (landscape) and 1621 px (portrait) at desktop DPR 2 | Sources sized from the measured painted size × DPR, capped by the original (§11) |
+| R7-2 | P1, fixed | The packaging lightbox renders images at their intrinsic size, so the cap made it smaller (1872 × 2496 → 1200 × 1600 CSS px) | pack1–4 and `move` back at their original dimensions; that lightbox is identical to before PR-08 |
+| R7-3 | P2, existing | The packaging lightbox has no size rule: a portrait photo is 2496 CSS px tall at 1920 × 1080 and its close button is out of view (on Vite production too) | Not changed in the migration; a UI fix for the design owner |
+| R7-4 | P2, fixed | `next/image`'s width and height enlarged the Activities dialog photo by up to 5% | The dialog keeps its plain `<img>` |
+| R7-5 | P2, fixed | `sizes` written from box widths under-delivered images cropped by `object-fit: cover` (7–23% fewer pixels than painted) | `sizes` from painted widths; the image fidelity test fails on any regression |
+| R7-6 | Trade-off, decided | Full cover-width `sizes` for the home hero made the LCP request 1080w (lab LCP 4.1 s instead of 3.5 s) | 420 px on phones: 750w at DPR 1.75, the full source at DPR 2.6–3 |
+| R7-7 | Content | 23 photographs are at the full resolution HMV supplied and smaller than their need at DPR 2 (`ORIGINAL_LIMITED`) | Sharper versions need larger originals (content owner) |
+| R7-8 | Decision | The header logo was lazy only to avoid React's preload | Eager with `fetchPriority="low"`, chosen by measurement (§11) |
+| R7-9 | Decision | D-20: fonts stay on Google Fonts through cutover; D-21: G-10's JavaScript criterion is home JS transferred ≤ 250 kB and TBT ≤ 200 ms | Roadmap §3, §7.3 |
+| R7-10 | Evidence | LCP is gated by the HTML, the render-blocking CSS and, on `/`, bandwidth shared with JavaScript; images are no longer the bottleneck. `experimental.inlineCss` measured and not adopted | §12; larger levers are performance backlog |
+
+### 16.9 Final automated review (pull request #15, not to be merged before D-18)
+
+Pull request #15 (`feat/nextjs-foundation` into `main`) exists for the automated review. Head `bda598b`: CI green (both jobs), Vercel preview of the Vite build green.
+
+**CodeRabbit did not review.** It skips pull requests over 100 files on the current plan (this one has 226 reviewable files) and reports that the account has no usage credits. Options for the owner: credits or a plan that covers the size, or a review split by area into pull requests of at most 100 files. No code change helps.
+
+**SonarQube Cloud quality gate: failed on two conditions.** Security rating A, maintainability A, duplication 0.0%, no security hotspot.
+
+| Rule | Issues | Decision | Reason |
+|---|---|---|---|
+| S1082, S6848, S6847 (click handlers without keyboard access, non-native controls) | 5 bugs, 5 smells | **Fixed** (`bda598b`) | A real accessibility defect, legacy from `main`'s `LogisticsHubPage`: gallery photos could not be opened from the keyboard and Escape did nothing. Now keyboard operable, Escape closes, focus returns; tested |
+| S3403 "`===` always false" | 10 bugs, the reliability C | **False positive**, to be marked in SonarQube Cloud | `drop` (Navigation) and `active` (LivingLogistics) are React state initialized with `useState(null)`; the analyzer types them as `null` and ignores the setters. The dropdowns and tooltips work and are tested. No code change for a tool's inference |
+| Coverage on new code 16.5% (gate 80%) | condition | **Decision needed** | The new code is mostly views and Next.js routes, tested by the Playwright suites (Next 209, Vite 115, CMS-mode, visual, image fidelity), which SonarQube does not import; unit tests cover the logic (71). Writing unit tests for JSX to reach 80% would serve the metric, not the risk. Options: accept the condition for this pull request, exclude the view and route layers from coverage with the end-to-end suites as their evidence, or import end-to-end coverage (a project of its own) |
+| S6819 prefer `<button>`, `<dialog>`, `<output>` over ARIA roles | 7 | Rejected | The roles are valid ARIA; the native elements change rendering and layout. Keyboard behaviour is tested |
+| S3776 cognitive complexity (LogisticsView, PackagingView) | 2 critical | Rejected, backlog | Legacy page components moved unchanged; restructuring is P2 refactoring |
+| S6479 array index as key | 7 | Rejected | Legacy, static lists that never reorder |
+| S6759 read-only props | 10 | Rejected | Style; route components receive Next.js props and never mutate them |
+| S7763 `export…from` | 6 | Rejected | Route files keep explicit exports that Next.js analyzes statically; the ports re-export by design |
+| S3358 nested ternary | 4 | Rejected | Style; short, local expressions (two are legacy) |
+| S1607 skipped tests | 5 | Rejected | Conditional skips that state their reason (mobile project, hosted run) |
+| S7503 async function without await | 2 | Rejected | `headers()` and `redirects()` follow the documented Next.js config signature |
+| S6481 context value changes every render | 1 | Rejected | The provider renders only when the open image changes, so the value changes with it; the callbacks are stable |
+| S1077 `<img>` without alt | 1 | False positive | The Vite image port spreads its props; every caller passes `alt` |
+| S7781, S7780, S7758 (`replaceAll`, `String.raw`, `codePointAt`) | 4 | Rejected | Equivalent rewrites of correct code (ASCII escaping in JSON-LD and XML) |
+| S9382 `await` in a loop | 1 | Rejected | Two sequential CMS requests (one per locale) at build or regeneration time; no user-facing cost |

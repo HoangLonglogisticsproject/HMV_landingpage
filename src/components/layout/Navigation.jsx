@@ -1,6 +1,7 @@
+'use client';
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useRoutePath } from '@/lib/navigation';
 import {
   ChevronDown,
   Menu,
@@ -26,7 +27,7 @@ export function Navigation({ lang = 'en' }) {
   const [overseaOpen, setOverseaOpen] = useState(false);
   const [farmingOpen, setFarmingOpen] = useState(false);
   const [windOpen, setWindOpen] = useState(false);
-  const { pathname } = useLocation();
+  const pathname = useRoutePath();
 
   const close = () => {
     setMenu(false);

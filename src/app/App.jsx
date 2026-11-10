@@ -4,19 +4,28 @@ import { LanguageProvider } from '@/i18n/LanguageContext';
 import { LangQueryBootstrap } from '@/i18n/LangQueryBootstrap';
 import { LegacyLocaleRedirect } from '@/i18n/LegacyLocaleRedirect';
 import { SiteLayout } from '@/app/SiteLayout';
-import { HomePage } from '@/pages/home/HomePage';
-import { AboutPage } from '@/pages/about/AboutPage';
-import { SupplyChainPage } from '@/pages/supply-chain/SupplyChainPage';
-import { TradeSolutionsPage } from '@/pages/trade-solutions/TradeSolutionsPage';
-import { ActivitiesPage } from '@/pages/activities/ActivitiesPage';
-import { ContactPage } from '@/pages/contact/ContactPage';
-import { InsightsPage } from '@/pages/insights/InsightsPage';
-import { RegulationsPage } from '@/pages/regulations/RegulationsPage';
-import { PackagingLogisticsPage } from '@/pages/packaging-logistics/PackagingLogisticsPage';
-import { LogisticsHubPage } from '@/pages/logistics/LogisticsHubPage';
-import { ProductDetailPage } from '@/pages/products/ProductDetailPage';
-import { ArticlePage } from '@/pages/article/ArticlePage';
-import { NotFoundPage } from '@/pages/not-found/NotFoundPage';
+import { StaticPage } from '@/app/StaticPage';
+import { HomePage } from '@/views/home/HomePage';
+import { AboutPage } from '@/views/about/AboutPage';
+import { SupplyChainView } from '@/views/supply-chain/SupplyChainView';
+import { TradeSolutionsView } from '@/views/trade-solutions/TradeSolutionsView';
+import { ActivitiesView } from '@/views/activities/ActivitiesView';
+import { ContactView } from '@/views/contact/ContactView';
+import { InsightsPage } from '@/views/insights/InsightsPage';
+import { RegulationsView } from '@/views/regulations/RegulationsView';
+import { PackagingView } from '@/views/packaging-logistics/PackagingView';
+import { LogisticsHubPage } from '@/views/logistics/LogisticsHubPage';
+import { ProductDetailPage } from '@/views/products/ProductDetailPage';
+import { ArticlePage } from '@/views/article/ArticlePage';
+import { NotFoundPage } from '@/views/not-found/NotFoundPage';
+import {
+  activitiesMeta,
+  contactMeta,
+  packagingMeta,
+  regulationsMeta,
+  supplyChainMeta,
+  tradeSolutionsMeta,
+} from '@/views/meta';
 
 export default function App() {
   return (
@@ -31,13 +40,13 @@ export default function App() {
             <Route element={<SiteLayout />}>
               <Route index element={<HomePage />} />
               <Route path="/about" element={<AboutPage />} />
-              <Route path="/supply-chain" element={<SupplyChainPage />} />
-              <Route path="/trade-solutions" element={<TradeSolutionsPage />} />
-              <Route path="/activities" element={<ActivitiesPage />} />
-              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/supply-chain" element={<StaticPage view={SupplyChainView} meta={supplyChainMeta} />} />
+              <Route path="/trade-solutions" element={<StaticPage view={TradeSolutionsView} meta={tradeSolutionsMeta} />} />
+              <Route path="/activities" element={<StaticPage view={ActivitiesView} meta={activitiesMeta} />} />
+              <Route path="/contact" element={<StaticPage view={ContactView} meta={contactMeta} />} />
               <Route path="/insights" element={<InsightsPage />} />
-              <Route path="/regulations" element={<RegulationsPage />} />
-              <Route path="/packaging-logistics" element={<PackagingLogisticsPage />} />
+              <Route path="/regulations" element={<StaticPage view={RegulationsView} meta={regulationsMeta} />} />
+              <Route path="/packaging-logistics" element={<StaticPage view={PackagingView} meta={packagingMeta} />} />
               <Route path="/logistics" element={<LogisticsHubPage />} />
               <Route path="/products/:id" element={<ProductDetailPage />} />
             </Route>
