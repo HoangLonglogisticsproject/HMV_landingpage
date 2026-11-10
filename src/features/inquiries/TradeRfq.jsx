@@ -31,8 +31,8 @@ export function TradeRfq({ lang }) {
       <div className="content-width rfq-grid">
         <div className="rfq-info">
           <p className="eyebrow">RFQ · REQUEST FOR QUOTATION</p>
-          <h2 id="rfq-title">{L('Initiate Trade', 'Bắt đầu giao thương')}</h2>
-          <p className="rfq-lead">{L('Share your commodity, volume and destination. Our leadership team reviews every brief personally.', 'Chia sẻ sản phẩm, sản lượng và cảng đến. Ban lãnh đạo HMV trực tiếp xem xét từng yêu cầu.')}</p>
+          <h2 id="rfq-title">{L('Discuss Your Sourcing Requirements', 'Trao đổi nhu cầu thu mua')}</h2>
+          <p className="rfq-lead">{L('Share your product, estimated volume, destination and key requirements so HMV Global can review the sourcing and trade brief.', 'Chia sẻ sản phẩm, sản lượng dự kiến, thị trường đích và các yêu cầu chính để HMV Global xem xét nhu cầu nguồn hàng và giao thương.')}</p>
           <ul className="leader-list">
             {leaders.map(([n, r, m]) => (
               <li key={m}><span className="review-avatar">{n.split(' ').pop()[0]}</span><div><strong>{n}</strong><em>{r[lang]}</em><a href={`mailto:${m}`}><Mail size={14} />{m}</a></div></li>

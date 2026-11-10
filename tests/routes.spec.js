@@ -62,7 +62,7 @@ test('deep link /#initiate-trade reaches the RFQ section', async ({ page }) => {
   // The section must contain the RFQ heading
   const rfqHeading = rfqSection.locator('h2#rfq-title');
   await expect(rfqHeading).toBeVisible();
-  await expect(rfqHeading).toContainText(/initiate trade|bắt đầu giao thương/i);
+  await expect(rfqHeading).toContainText(/discuss your sourcing requirements|trao đổi nhu cầu thu mua/i);
 });
 
 test('deep link /supply-chain#commodities scrolls to commodities section', async ({ page }) => {

@@ -347,8 +347,8 @@ export function SupplyChainPillars({ lang }) {
               </h3>
               <p>
                 {vi
-                  ? 'HMV Logistics cung cấp giải pháp vận tải toàn diện: chuyên môn sâu về hàng hóa chất & hàng nguy hiểm (DG Air/Sea, Special Cargoes, General Cargoes), hành lang vận tải xuyên biên giới Việt Nam – Campuchia, dịch vụ đại lý nội địa và kết nối toàn cầu qua mạng lưới JC Trans.'
-                  : 'HMV Logistics delivers mission-critical freight forwarding: deep expertise in Dangerous Goods & Chemicals (DG Air/Sea, Special Cargoes, General Cargoes), cross-border Vietnam – Cambodia corridors, local agency handling and verified JC Trans global network coverage.'}
+                  ? 'Trong quá trình thực thi chuỗi cung ứng, HMV Global phối hợp các khâu vận hành từ xử lý hàng hóa chất và hàng nguy hiểm (DG Air/Sea, Special Cargoes, General Cargoes), vận tải xuyên biên giới Việt Nam – Campuchia đến xử lý tại Việt Nam và kết nối mạng lưới quốc tế JC Trans.'
+                  : 'Within its supply-chain execution, HMV Global coordinates operational steps spanning dangerous-goods and chemicals handling (DG Air/Sea, Special Cargoes, General Cargoes), Vietnam – Cambodia cross-border movements, local handling and JC Trans international network coordination.'}
               </p>
               <div className="compliance-trust-tags">
                 <span>

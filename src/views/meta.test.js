@@ -1,16 +1,35 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { articleJsonLd, productMeta, siteJsonLd, supplyChainMeta, tradeSolutionsMeta } from './meta.js';
+import { readFileSync } from 'node:fs';
+import { articleJsonLd, homeMeta, logisticsMeta, productMeta, siteJsonLd, supplyChainMeta, tradeSolutionsMeta } from './meta.js';
 import { bundledArticle, bundledArticleIndex } from '../features/articles/bundled.js';
 import { products } from '../data/hmv.js';
 
 test('descriptions: Trade Solutions differs from Supply Chain; product descriptions are filled and unique', () => {
   for (const lang of ['en', 'vi']) {
+    assert.notDeepEqual(tradeSolutionsMeta(lang), supplyChainMeta(lang), lang);
     assert.notEqual(tradeSolutionsMeta(lang).description, supplyChainMeta(lang).description, lang);
     const descriptions = products.map(p => productMeta(lang, p).description);
     assert.equal(descriptions.length, 6, lang);
     assert.ok(descriptions.every(d => d.trim()), lang);
     assert.equal(new Set(descriptions).size, descriptions.length, lang);
+  }
+});
+
+test('titles: main commercial pages and the six products are unique per language', () => {
+  for (const lang of ['en', 'vi']) {
+    const pages = [homeMeta, supplyChainMeta, tradeSolutionsMeta, logisticsMeta].map(m => m(lang).title);
+    assert.equal(new Set(pages).size, pages.length, lang);
+    const titles = products.map(p => productMeta(lang, p).title);
+    assert.equal(new Set(titles).size, 6, lang);
+  }
+  assert.equal(productMeta('en', products[1]).title, 'Vietnam Cavendish Bananas Sourcing for Wholesale Buyers');
+  assert.equal(productMeta('vi', products[1]).title, 'Chuối Cavendish Việt Nam cho nhu cầu thu mua B2B');
+});
+
+test('HMV Global is the only entity on the logistics pages', () => {
+  for (const file of ['./logistics/LogisticsView.jsx', '../data/logisticsServices.js', './supply-chain/SupplyChainPillars.jsx']) {
+    assert.ok(!readFileSync(new URL(file, import.meta.url), 'utf8').includes('HMV Logistics'), file);
   }
 });
 

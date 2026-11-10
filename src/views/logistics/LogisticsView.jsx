@@ -63,8 +63,8 @@ export function LogisticsView({ lang }) {
           </h1>
           <p className="log-hero-desc">
             {vi
-              ? 'HMV Logistics cung cấp giải pháp vận tải toàn diện: Chuyên môn sâu về hàng hóa chất & hàng nguy hiểm (DG Air/Sea, Special Cargoes, General Cargoes, Factory Tour), mạng lưới vận tải xuyên biên giới Việt Nam - Campuchia, dịch vụ đại lý nội địa tại Việt Nam và kết nối toàn cầu qua mạng lưới JC Trans.'
-              : 'HMV Logistics delivers mission-critical freight forwarding: deep engineering in Dangerous Goods & Chemicals (Air & Sea, Special Cargoes, General Cargoes, Factory Tour), cross-border Vietnam - Cambodia corridors, comprehensive local agency handling, and verified JC Trans global network coverage.'}
+              ? 'Trong quá trình thực thi chuỗi cung ứng, HMV Global phối hợp các khâu vận hành từ xử lý hàng hóa chất và hàng nguy hiểm (DG Air/Sea, Special Cargoes, General Cargoes, Factory Tour), vận tải xuyên biên giới Việt Nam - Campuchia đến xử lý tại Việt Nam và kết nối mạng lưới quốc tế JC Trans.'
+              : 'Within its supply-chain execution, HMV Global coordinates operational steps spanning dangerous-goods and chemicals handling (Air & Sea, Special Cargoes, General Cargoes, Factory Tour), Vietnam - Cambodia cross-border movements, local handling in Vietnam and JC Trans international network coordination.'}
           </p>
 
           {/* QUICK JUMP NAV PILLS */}
@@ -401,8 +401,8 @@ export function LogisticsView({ lang }) {
               </h3>
               <p>
                 {vi
-                  ? 'Đội ngũ chuyên viên chứng chỉ IMDG/IATA và điều vận đường bộ của HMV Logistics sẵn sàng phản hồi giải pháp tối ưu trong vòng 2 giờ.'
-                  : 'HMV Logistics certified IMDG/IATA dangerous goods specialists and cross-border transport dispatchers are on standby.'}
+                  ? 'Đội ngũ phụ trách hàng nguy hiểm theo IMDG/IATA và điều phối vận tải xuyên biên giới của HMV Global sẵn sàng trao đổi yêu cầu vận hành cho lô hàng trong chuỗi cung ứng của bạn.'
+                  : 'HMV Global’s IMDG/IATA dangerous-goods and cross-border transport coordinators can review the operational requirements of your shipment within your supply chain.'}
               </p>
             </div>
             <div className="log-cta-actions">
