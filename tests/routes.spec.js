@@ -28,6 +28,7 @@ const ROUTES = [
   // ProductDetailPage: title = product[lang] from data/hmv.js
   { path: '/products/passion-fruit', titleFrag: 'Passion fruit', h1Text: /passion fruit|chanh dây/i },
   { path: '/products/bananas', titleFrag: 'banana', h1Text: /banana|chuối/i },
+  { path: '/products/dried-cassava-chips', titleFrag: 'Cassava', h1Text: /dried cassava chips|sắn lát khô/i },
   // ArticlePage: title = a.title[lang] from data/articles.js — "Exporting Passion Fruit..."
   { path: '/blog/exporting-passion-fruit-eu', titleFrag: 'Passion Fruit', h1Text: /passion fruit|chanh dây/i },
 ];

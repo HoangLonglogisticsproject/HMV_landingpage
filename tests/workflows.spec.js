@@ -44,35 +44,23 @@ test('contact page renders the inquiry form with expected fields', async ({ page
 //  - select defaultValue={params.get('product') || ''}
 //  - URL param 'Passion fruit' → defaultValue 'Passion fruit' → matches option → preselected
 
-test('ProductDetailPage inquiry button navigates to /contact with correct product preselected (EN)', async ({ page }) => {
-  // Start in English so product.en labels are rendered
-  await page.goto('/products/passion-fruit?lang=en');
-  await expect(page).toHaveURL(/\/products\/passion-fruit/, { timeout: 5000 });
-  await page.waitForLoadState('networkidle');
-
-  // The inquiry button: <Link to="/contact?product=Passion%20fruit">
-  // Rendered text = copy[lang].ask = "Discuss sourcing requirements"
-  const inquiryBtn = page.locator('a[href*="/contact?product="]').first();
-  await expect(inquiryBtn).toBeVisible({ timeout: 5000 });
-
-  // Click and follow the navigation
-  await Promise.all([
-    page.waitForURL(/\/contact/, { timeout: 5000 }),
-    inquiryBtn.click(),
-  ]);
-
-  // 1. URL must contain ?product=Passion%20fruit (or decoded equivalent)
-  const url = page.url();
-  const params = new URL(url).searchParams;
-  expect(params.get('product')).toBe('Passion fruit');
-
-  // 2. The select must be preselected to 'Passion fruit'
-  await page.waitForLoadState('networkidle');
-  const select = page.locator('form.inquiry-form select[name="product"]');
-  await expect(select).toBeAttached({ timeout: 5000 });
-  const selectedValue = await select.evaluate((el) => el.value);
-  expect(selectedValue).toBe('Passion fruit');
-});
+// Buyer pages (passion fruit, dried cassava chips) carry their own RFQ (ProductRfq): the hero CTA jumps to it, and it is
+// fixed to the page's product (read-only field, no product select).
+for (const [id, product, cta] of [
+  ['passion-fruit', 'Passion fruit', 'Discuss Your Passion Fruit Requirements'],
+  ['dried-cassava-chips', 'Dried cassava chips', 'Request a Cassava Supply Proposal'],
+]) {
+  test(`${id} page CTA opens its RFQ fixed to "${product}"`, async ({ page }) => {
+    await page.goto(`/products/${id}?lang=en`);
+    await page.locator('a[href="#rfq"]', { hasText: cta }).click();
+    await expect(page).toHaveURL(/#rfq$/);
+    const rfq = page.locator('section#rfq');
+    await expect(rfq).toBeInViewport();
+    await expect(rfq.locator('input[readonly]')).toHaveValue(product);
+    await expect(rfq.locator('input[type="hidden"][name="product"]')).toHaveValue(product);
+    await expect(rfq.locator('select[name="product"]')).toHaveCount(0);
+  });
+}
 
 test('ProductDetailPage inquiry button for bananas preselects "Cavendish bananas"', async ({ page }) => {
   await page.goto('/products/bananas?lang=en');

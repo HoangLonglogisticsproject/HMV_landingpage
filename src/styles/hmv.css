@@ -3886,7 +3886,7 @@ article[id] {
   font-weight: 700
 }
 
-.rfq-success p {
+.rfq-success-message {
   flex: 1;
   font-weight: 600;
   min-width: 200px
@@ -9709,4 +9709,182 @@ article[id] {
 /* Loading / error / not-published message of a CMS-backed page (CMS mode only). Pending design review. */
 .cms-status {
   color: var(--muted-foreground)
+}
+
+/* Product buyer pages (views/products/ProductLanding.jsx): passion fruit, dried cassava chips */
+.landing-alt {
+  background: var(--surface)
+}
+
+.business-grid.landing-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 32px
+}
+
+.landing-facts {
+  display: grid;
+  margin: 0 0 32px
+}
+
+.landing-facts>div {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 20px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px
+}
+
+.landing-facts dt {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brand)
+}
+
+.landing-facts dd {
+  margin: 0;
+  color: var(--ink)
+}
+
+.landing-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  margin: 0
+}
+
+.landing-figures>div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+  padding: 24px;
+  background: var(--surface);
+  border-top: 3px solid var(--brand)
+}
+
+.landing-figures dt {
+  font-size: 13px;
+  color: var(--ink-muted)
+}
+
+.landing-figures dd {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--ink)
+}
+
+.landing-table-wrap {
+  overflow-x: auto;
+  max-width: 640px
+}
+
+.landing-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: var(--background)
+}
+
+.landing-table th,
+.landing-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  text-align: left
+}
+
+.landing-table thead th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brand)
+}
+
+.landing-table tbody th {
+  font-weight: 500;
+  color: var(--ink)
+}
+
+.landing-table td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink)
+}
+
+.landing-checks {
+  list-style: none;
+  padding: 0;
+  margin: 0
+}
+
+.landing-checks li {
+  display: flex;
+  gap: 15px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px
+}
+
+.landing-checks svg {
+  flex: none;
+  color: var(--brand)
+}
+
+.landing-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 24px
+}
+
+.landing-steps li {
+  border-top: 1px solid var(--border);
+  padding-top: 18px
+}
+
+.landing-steps span {
+  display: block;
+  font-size: 11px;
+  color: var(--brand);
+  margin-bottom: 10px
+}
+
+.landing-steps strong {
+  display: block;
+  font-size: 15px;
+  color: var(--ink)
+}
+
+.landing-steps p {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin-top: 8px
+}
+
+.landing-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px
+}
+
+.landing-photo img {
+  width: 100%;
+  aspect-ratio: 4/5;
+  object-fit: cover
+}
+
+.landing-photo figcaption {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-top: 10px
+}
+
+@media(max-width:600px) {
+  .landing-facts>div {
+    grid-template-columns: 1fr;
+    gap: 4px
+  }
 }

@@ -7,11 +7,20 @@ import {
   Wheat,
   Flower2,
   Layers,
+  Boxes,
 } from 'lucide-react';
 import { copy, products } from '@/data/hmv';
 import { productPhotos } from '@/data/productPhotos';
 import Image from '@/lib/image';
-const icons = [Flower2, Leaf, Sprout, Wheat, CircleDot, Layers];
+const icons = {
+  'passion-fruit': Flower2,
+  'dried-cassava-chips': Boxes,
+  bananas: Leaf,
+  'dragon-fruit': Sprout,
+  spices: Wheat,
+  nuts: CircleDot,
+  'tapioca-starch': Layers,
+};
 export function ProductPortfolio({ lang }) {
   const t = copy[lang];
   return (
@@ -25,8 +34,8 @@ export function ProductPortfolio({ lang }) {
           <p>{t.productsText}</p>
         </div>
         <div className="product-grid">
-          {products.map((p, i) => {
-            const Icon = icons[i];
+          {products.map(p => {
+            const Icon = icons[p.id];
             const photo = productPhotos[p.id];
             return (
               <Link

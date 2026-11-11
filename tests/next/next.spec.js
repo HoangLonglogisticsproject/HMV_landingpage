@@ -46,6 +46,10 @@ const COPY = [
   { path: '/vi/supply-chain', h1: 'Chuỗi cung ứng', title: 'Thực thi chuỗi cung ứng nông sản từ Việt Nam | HMV Global' },
   { path: '/vi/san-pham/hat-dieu', h1: 'Hạt điều', title: 'Hạt điều Việt Nam cho nhu cầu thu mua B2B | HMV Global' },
   { path: '/products/nuts', h1: 'Cashew nuts', title: 'Vietnam Cashew Nuts Sourcing for Wholesale Buyers | HMV Global' },
+  { path: '/products/passion-fruit', h1: 'Fresh Passion Fruit from Vietnam', title: 'Vietnam Passion Fruit Sourcing for Wholesale Buyers | HMV Global' },
+  { path: '/vi/san-pham/chanh-day', h1: 'Chanh dây tươi từ Việt Nam', title: 'Chanh dây Việt Nam cho nhu cầu thu mua B2B | HMV Global' },
+  { path: '/products/dried-cassava-chips', h1: 'Dried Cassava Chips for Industrial Buyers', title: 'Vietnam Dried Cassava Chips for Industrial Buyers | HMV Global' },
+  { path: '/vi/san-pham/san-lat-kho', h1: 'Sắn lát khô cho khách hàng công nghiệp', title: 'Sắn lát khô Việt Nam cho khách hàng công nghiệp & B2B | HMV Global' },
   { path: '/vi/tin-tuc/xuat-khau-chanh-day-eu', title: 'Xuất khẩu Chanh dây sang Châu Âu: Tiêu chuẩn GlobalGAP và câu chuyện của HMV Global. | HMV Global' },
   // Decision D-06: one brand suffix, added by the title template.
   { path: '/logistics', title: 'Supply Chain Operations & Dangerous Goods Handling | HMV Global' },
@@ -189,6 +193,19 @@ test('sitemap: every indexable URL, with exactly the page canonical, og:url and 
   }
 });
 
+// Dried cassava chips: its own EN/VI pair, never the tapioca-starch URLs.
+test('dried cassava chips: EN/VI pair in hreflang and the sitemap, separate from tapioca starch', async ({ request }) => {
+  const pair = { en: abs('/products/dried-cassava-chips'), vi: abs('/vi/san-pham/san-lat-kho') };
+  for (const path of ['/products/dried-cassava-chips', '/vi/san-pham/san-lat-kho']) {
+    const h = head(await (await request.get(path)).text());
+    expect(h.hreflang, path).toEqual({ ...pair, 'x-default': pair.en });
+  }
+  const xml = await (await request.get('/sitemap.xml')).text();
+  expect(xml).toContain(`<loc>${pair.en}</loc>`);
+  expect(xml).toContain(`<loc>${pair.vi}</loc>`);
+  expect(xml).toContain(`<loc>${abs('/products/tapioca-starch')}</loc>`);
+});
+
 test('robots.txt allows crawling and points to the sitemap', async ({ request }) => {
   const robots = await (await request.get('/robots.txt')).text();
   expect(robots).toMatch(/User-Agent: \*\s+Allow: \//i);
@@ -313,6 +330,16 @@ test.describe('language switch', () => {
     await expect(page).toHaveURL(/\/contact\?product=Passion\+fruit&utm_source=li$/);
     await expect(page.locator('h1').first()).toHaveText('Partner with us');
     await expect(select).toHaveValue('Passion fruit');
+  });
+
+  test('a product page switches to its pair: dried cassava chips ↔ sắn lát khô', async ({ page }) => {
+    await page.goto('/products/dried-cassava-chips');
+    await switchTo(page, 'Tiếng Việt');
+    await expect(page).toHaveURL(/\/vi\/san-pham\/san-lat-kho$/);
+    await expect(page.locator('h1').first()).toHaveText('Sắn lát khô cho khách hàng công nghiệp');
+    await switchTo(page, 'English');
+    await expect(page).toHaveURL(/\/products\/dried-cassava-chips$/);
+    await expect(page.locator('h1').first()).toHaveText('Dried Cassava Chips for Industrial Buyers');
   });
 
   test('the #hash survives the switch', async ({ page }) => {
