@@ -7633,9 +7633,26 @@ article[id] {
     border-radius: 0;
   }
 
+  /* Closed launcher, phones: an icon-only 52px circle so it does not cover page content; the button keeps its
+     aria-label as its accessible name. Desktop and the open chat are unchanged. */
   .hmv-floating-chat-launcher {
     bottom: 16px;
     right: 16px;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+  }
+
+  .hmv-floating-chat-launcher .launcher-text,
+  .hmv-floating-chat-launcher .launcher-badge {
+    display: none;
+  }
+
+  .hmv-floating-chat-launcher .launcher-icon-wrap {
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -9721,59 +9738,358 @@ article[id] {
   gap: 32px
 }
 
-.landing-facts {
+/* Buyer page hero (views/products/ProductMoneyHero.jsx). Mobile order follows the DOM: copy, then photographs or the
+   evidence panel, then the trust facts. */
+.money-hero {
+  background: var(--surface);
+  padding: 40px 0 48px;
+  border-bottom: 1px solid var(--border)
+}
+
+.money-hero-grid {
   display: grid;
-  margin: 0 0 32px
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "copy media" "trust media";
+  gap: 28px 64px
 }
 
-.landing-facts>div {
-  display: grid;
-  grid-template-columns: 150px 1fr;
-  gap: 20px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px
+.money-hero-copy {
+  grid-area: copy
 }
 
-.landing-facts dt {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--brand)
+.money-hero-media {
+  grid-area: media;
+  align-self: center
 }
 
-.landing-facts dd {
+.money-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--farm-green-ink);
+  margin-bottom: 18px
+}
+
+.money-hero h1 {
+  font-family: 'Plus Jakarta Sans', var(--font-sans);
+  font-size: clamp(34px, 4.2vw, 54px);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -.025em;
+  color: var(--ink);
+  text-wrap: balance
+}
+
+.money-lead {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--ink-muted);
+  max-width: 34em;
+  margin: 20px 0 30px
+}
+
+.money-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px 28px
+}
+
+.money-see-also {
+  margin-top: 22px;
+  font-size: 13px
+}
+
+.money-see-also a {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 3px
+}
+
+.money-trust {
+  grid-area: trust;
+  list-style: none;
   margin: 0;
+  padding: 20px 0 0;
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+  align-self: start
+}
+
+.money-trust li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--ink)
 }
 
-.landing-figures {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
+.money-trust svg {
+  flex: none;
+  color: var(--farm-green-ink)
+}
+
+.money-photos {
   margin: 0
 }
 
-.landing-figures>div {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 10px;
-  padding: 24px;
-  background: var(--surface);
-  border-top: 3px solid var(--brand)
+.money-photo-frame {
+  position: relative
 }
 
-.landing-figures dt {
-  font-size: 13px;
+.money-photo-main {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: var(--shadow-product)
+}
+
+.money-photo-detail {
+  position: absolute;
+  right: -28px;
+  bottom: -28px;
+  width: 30%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 6px solid var(--background);
+  box-shadow: 0 18px 36px -18px rgb(0 29 89 / .45)
+}
+
+.money-photos figcaption {
+  max-width: 62%;
+  margin-top: 16px;
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--ink-muted)
 }
 
-.landing-figures dd {
+.money-panel {
+  background: var(--navy);
+  color: var(--primary-foreground);
+  border-radius: 14px;
+  padding: 26px 30px;
+  box-shadow: var(--shadow-product)
+}
+
+.money-panel-label,
+.money-intertek h3 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--cyan-light)
+}
+
+.money-panel h2 {
+  font-family: 'Plus Jakarta Sans', var(--font-sans);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: inherit;
+  margin: 4px 0 14px
+}
+
+.money-figures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 26px;
+  border-top: 1px solid rgb(255 255 255 / .16)
+}
+
+.money-figures>div {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 14px 18px 14px 0;
+  border-bottom: 1px solid rgb(255 255 255 / .16)
+}
+
+.money-figures>div:nth-child(even) {
+  padding: 14px 0 14px 18px;
+  border-left: 1px solid rgb(255 255 255 / .16)
+}
+
+.money-figures dt {
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgb(255 255 255 / .74)
+}
+
+.money-figures dd,
+.money-intertek dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-foreground)
+}
+
+.money-figure-amount,
+.money-intertek dd {
+  font-family: 'Plus Jakarta Sans', var(--font-sans);
+  font-size: 28px;
   font-weight: 800;
-  line-height: 1.1;
+  letter-spacing: -.02em;
+  line-height: 1.1
+}
+
+.money-panel-note {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgb(255 255 255 / .72)
+}
+
+.money-intertek {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  column-gap: 36px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgb(255 255 255 / .16)
+}
+
+.money-intertek h3 {
+  grid-column: 1 / -1
+}
+
+.money-intertek dl {
+  display: flex;
+  gap: 32px;
+  margin: 10px 0 0
+}
+
+.money-intertek dt {
+  font-size: 12px;
+  color: rgb(255 255 255 / .74)
+}
+
+.money-intertek dd {
+  margin-top: 2px
+}
+
+.money-intertek-source .money-panel-note {
+  margin-top: 4px
+}
+
+.money-intertek-report {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums
+}
+
+.money-proof {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 26px 0;
+  border-bottom: 1px solid var(--border)
+}
+
+.money-proof>div {
+  padding: 0 24px;
+  border-left: 1px solid var(--border)
+}
+
+.money-proof>div:first-child {
+  padding-left: 0;
+  border-left: 0
+}
+
+.money-proof dt {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--brand)
+}
+
+.money-proof dd {
+  margin: 6px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
   color: var(--ink)
+}
+
+@media(max-width:900px) {
+  .money-hero {
+    padding: 28px 0 44px
+  }
+
+  .money-hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: "copy" "media" "trust"
+  }
+
+  .money-photo-detail {
+    right: 12px;
+    bottom: -22px;
+    width: 32%
+  }
+
+  .money-photos figcaption {
+    max-width: 60%
+  }
+
+  .money-proof {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 20px
+  }
+
+  .money-proof>div:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0
+  }
+}
+
+@media(max-width:600px) {
+  .money-lead {
+    font-size: 15px;
+    margin: 16px 0 24px
+  }
+
+  .money-actions .day-cta {
+    width: 100%;
+    height: auto;
+    min-height: 54px;
+    padding: 14px 22px;
+    white-space: normal;
+    text-align: center
+  }
+
+  .money-panel {
+    padding: 24px 20px
+  }
+
+  .money-figures dt {
+    font-size: 12px
+  }
+
+  .money-intertek {
+    grid-template-columns: minmax(0, 1fr)
+  }
+
+  .money-intertek-source {
+    margin-top: 12px
+  }
+
+  .money-figure-amount,
+  .money-intertek dd {
+    font-size: 24px
+  }
+
+  .money-proof dd {
+    font-size: 14px
+  }
 }
 
 .landing-table-wrap {
@@ -9882,9 +10198,3 @@ article[id] {
   margin-top: 10px
 }
 
-@media(max-width:600px) {
-  .landing-facts>div {
-    grid-template-columns: 1fr;
-    gap: 4px
-  }
-}

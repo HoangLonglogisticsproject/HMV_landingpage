@@ -60,6 +60,9 @@ const reportDate = lang =>
     { day: '2-digit', month: lang === 'vi' ? '2-digit' : 'short', year: 'numeric', timeZone: 'UTC' });
 const percent = n => quantity(n, '%');
 const mgPerKg = (n, prefix) => quantity(n, ' mg/kg', prefix);
+// The two results the hero quotes, shared with the full results table.
+const STARCH = [t('Starch', 'Tinh bột'), percent(71.1)];
+const MOISTURE = [t('Moisture', 'Độ ẩm'), percent(11.55)];
 
 export const productPages = {
   'passion-fruit': definePage({
@@ -70,9 +73,10 @@ export const productPages = {
         'Nguồn chanh dây tươi Việt Nam cho khách hàng B2B. Trao đổi giống, kích cỡ, Brix, đóng gói, mùa vụ và yêu cầu thị trường đích với HMV Global.',
       ),
     },
+    // The growing area leads the hero, with the cut-fruit product photo (data/productPhotos.js) as its detail.
+    heroPhoto: photo(photos.farm, 1280, 960, 'farm'),
     evidencePhoto: photo(photos.fruitWeighing, 960, 1280, 'weighing'),
     gallery: [
-      photo(photos.farm, 1280, 960, 'farm'),
       photo(photos.grower, 960, 1280, 'grower'),
       photo(photos.farmTeam, 1308, 1600, 'farmTeam'),
     ],
@@ -82,10 +86,21 @@ export const productPages = {
         'HMV Global coordinates fresh passion-fruit sourcing and supply-chain execution for international wholesale buyers, importers and distributors.',
         'HMV Global điều phối nguồn hàng chanh dây tươi và thực thi chuỗi cung ứng cho khách hàng B2B, nhà nhập khẩu và nhà phân phối quốc tế.',
       ),
+      hero: {
+        eyebrow: t('VIETNAM PASSION FRUIT · B2B SOURCING', 'CHANH DÂY VIỆT NAM · NGUỒN HÀNG B2B'),
+        secondary: { target: 'requirements', label: t('View Product Requirements', 'Xem yêu cầu sản phẩm') },
+        trust: [
+          t('Fresh whole fruit', 'Trái tươi nguyên quả'),
+          t('Vietnam origin', 'Xuất xứ Việt Nam'),
+          t('Field sample inspection', 'Kiểm tra mẫu tại vườn'),
+          t('Buyer-defined specification', 'Quy cách theo yêu cầu người mua'),
+        ],
+      },
       facts: [
         [FACT.product, t('Fresh whole passion fruit', 'Chanh dây tươi nguyên quả')],
         [FACT.origin, t('Vietnam', 'Việt Nam')],
-        [t('Specifications', 'Thông số'), t('Defined with each buyer: variety, size, Brix, packaging and season', 'Thống nhất với từng khách hàng: giống, kích cỡ, Brix, đóng gói và mùa vụ')],
+        [t('Quality model', 'Mô hình chất lượng'), t('Buyer-defined specification', 'Quy cách theo yêu cầu người mua')],
+        [t('Requirements', 'Yêu cầu'), t('Variety · Size · Brix · Packaging · Season', 'Giống · Kích cỡ · Brix · Đóng gói · Mùa vụ')],
       ],
       audience: {
         eyebrow: t('FOR WHOLESALE BUYERS', 'DÀNH CHO KHÁCH HÀNG B2B'),
@@ -186,6 +201,16 @@ export const productPages = {
         'HMV Global coordinates dried cassava chip supply from Vietnam and Cambodia for importers, feed manufacturers, starch processors and bioethanol producers, from origin selection to container delivery.',
         'HMV Global điều phối nguồn cung sắn lát khô từ Việt Nam và Campuchia cho nhà nhập khẩu, nhà sản xuất thức ăn chăn nuôi, nhà chế biến tinh bột và nhà sản xuất bioethanol, từ chọn vùng nguyên liệu đến giao container.',
       ),
+      hero: {
+        eyebrow: t('VIETNAM & CAMBODIA · BULK SUPPLY', 'VIỆT NAM & CAMPUCHIA · CUNG ỨNG KHỐI LƯỢNG LỚN'),
+        secondary: { target: 'quality', label: t('View Quality Reference', 'Xem tham chiếu chất lượng') },
+        intertek: {
+          title: t('Intertek reference', 'Tham chiếu Intertek'),
+          results: [STARCH, MOISTURE],
+          report: `Intertek ${INTERTEK.report}`,
+          caption: t('Analyzed sample · not a fixed shipment specification', 'Mẫu đã phân tích · không phải thông số cố định cho lô hàng'),
+        },
+      },
       facts: [
         [FACT.product, t('Dried cassava chips', 'Sắn lát khô')],
         [FACT.origin, t('Vietnam · Cambodia', 'Việt Nam · Campuchia')],
@@ -228,8 +253,8 @@ export const productPages = {
         title: t('Quality reference: an analysed sample', 'Tham chiếu chất lượng: một mẫu đã phân tích'),
         head: [t('Parameter', 'Chỉ tiêu'), t('Result', 'Kết quả')],
         rows: [
-          [t('Starch', 'Tinh bột'), percent(71.1)],
-          [t('Moisture', 'Độ ẩm'), percent(11.55)],
+          STARCH,
+          MOISTURE,
           [t('Raw fiber', 'Xơ thô'), percent(2.99)],
           [t('Ash', 'Tro'), percent(1.86)],
           [t('Sand & silica', 'Cát sạn (sand & silica)'), percent(0.45)],

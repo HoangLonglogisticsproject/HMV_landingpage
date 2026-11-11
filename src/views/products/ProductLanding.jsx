@@ -1,10 +1,7 @@
-import { ArrowUpRight, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { DetailLayout } from '@/components/layout/DetailLayout';
+import { Check } from 'lucide-react';
 import { ProductRfq } from '@/features/inquiries/ProductRfq';
-import { Link } from '@/lib/navigation';
-import { productPhotos } from '@/data/productPhotos';
 import Image from '@/lib/image';
+import { ProductMoneyHero } from './ProductMoneyHero';
 
 // Section heading: eyebrow, h2 and an optional intro line.
 const Heading = ({ eyebrow, title, text }) => (
@@ -35,80 +32,24 @@ const Photo = ({ photo, lang, sizes }) => (
   </figure>
 );
 
-// A product page built for buyers (data/productPages.js): hero, buyer requirements, evidence, figures, the requirements
-// to agree, workflow, images and the product RFQ. Sections without content are left out.
+// A product page built for buyers (data/productPages.js): its own hero (ProductMoneyHero), then buyer requirements,
+// quality results, evidence, the requirements to agree, applications, workflow, images and the product RFQ. Sections
+// without content are left out; backgrounds alternate in the order the sections appear on either page.
 export function ProductLanding({ lang, product, page }) {
   const c = page[lang];
-  const hero = productPhotos[product.id];
   return (
-    <DetailLayout lang={lang} title={c.h1} description={c.lead} contactCta={false}>
-      <section className="section-pad">
-        <div className={`content-width ${hero ? 'product-detail' : ''}`}>
-          {hero && (
-            <figure className="product-detail-photo">
-              <Image
-                src={hero.src}
-                width={hero.width}
-                height={hero.height}
-                sizes="(max-width: 600px) calc(100vw - 40px), (max-width: 1280px) 45vw, 530px"
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-                alt={lang === 'vi' ? hero.altVi : hero.altEn}
-              />
-              <figcaption>{lang === 'vi' ? hero.sourceVi : hero.sourceEn}</figcaption>
-            </figure>
-          )}
-          <div>
-            <dl className="landing-facts">
-              {c.facts.map(([term, value]) => (
-                <div key={term}>
-                  <dt>{term}</dt>
-                  <dd>{value}</dd>
-                </div>
-              ))}
-            </dl>
-            <Button asChild size="lg" variant="brand">
-              <a href="#rfq">
-                {c.rfq.title}
-                <ArrowUpRight />
-              </a>
-            </Button>
-            {c.seeAlso && (
-              <p className="commercial-note">
-                <Link to={`/products/${c.seeAlso.id}`}>{c.seeAlso.text}</Link>
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
+    <>
+      <ProductMoneyHero lang={lang} product={product} page={page} />
 
-      <section className="section-pad landing-alt">
+      <section className="section-pad">
         <div className="content-width">
           <Heading {...c.audience} />
           <Cards items={c.audience.items} />
         </div>
       </section>
 
-      {c.figures && (
-        <section className="section-pad">
-          <div className="content-width">
-            <Heading {...c.figures} />
-            <dl className="landing-figures">
-              {c.figures.items.map(f => (
-                <div key={f.label}>
-                  <dt>{f.label}</dt>
-                  <dd>{f.value}</dd>
-                </div>
-              ))}
-            </dl>
-            <p className="commercial-note">{c.figures.note}</p>
-          </div>
-        </section>
-      )}
-
       {c.quality && (
-        <section className="section-pad landing-alt">
+        <section className="section-pad landing-alt" id="quality">
           <div className="content-width">
             <Heading {...c.quality} />
             <div className="landing-table-wrap">
@@ -135,7 +76,7 @@ export function ProductLanding({ lang, product, page }) {
       )}
 
       {c.evidence && (
-        <section className="section-pad">
+        <section className="section-pad landing-alt">
           <div className="content-width product-detail">
             <div>
               <Heading eyebrow={c.evidence.eyebrow} title={c.evidence.title} />
@@ -155,7 +96,7 @@ export function ProductLanding({ lang, product, page }) {
       )}
 
       {c.requirements && (
-        <section className="section-pad landing-alt">
+        <section className="section-pad" id="requirements">
           <div className="content-width">
             <Heading {...c.requirements} />
             <Cards items={c.requirements.items} />
@@ -173,7 +114,7 @@ export function ProductLanding({ lang, product, page }) {
         </section>
       )}
 
-      <section className="section-pad">
+      <section className="section-pad landing-alt">
         <div className="content-width">
           <Heading {...c.workflow} />
           <ol className="landing-steps">
@@ -189,7 +130,7 @@ export function ProductLanding({ lang, product, page }) {
       </section>
 
       {page.gallery.length > 0 && (
-        <section className="section-pad landing-alt">
+        <section className="section-pad">
           <div className="content-width">
             <Heading {...c.gallery} />
             <div className="landing-gallery">
@@ -203,6 +144,6 @@ export function ProductLanding({ lang, product, page }) {
       )}
 
       <ProductRfq lang={lang} product={product} text={c.rfq} fields={page.rfqFields} />
-    </DetailLayout>
+    </>
   );
 }

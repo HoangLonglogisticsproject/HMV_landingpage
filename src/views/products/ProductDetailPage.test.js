@@ -58,6 +58,9 @@ for (const id of Object.keys(productPages)) {
       assert.equal(container.querySelector('#rfq input[name="product"]').value, product.en);
       assert.equal(container.querySelector('#rfq input[readonly]').value, product[lang]);
       assert.equal(container.querySelector('a[href="#rfq"]').textContent, productPages[id][lang].rfq.title);
+      // The hero's second link jumps to a section of the same page.
+      const { target } = productPages[id][lang].hero.secondary;
+      assert.ok(container.querySelector(`a[href="#${target}"]`) && container.querySelector(`section#${target}`), target);
     });
   }
 }
@@ -94,7 +97,7 @@ test('cassava page: the Intertek results, report and capacity figures exactly, w
     const { quality, figures } = productPages['dried-cassava-chips'][lang];
     const texts = selector => [...container.querySelectorAll(selector)].map(e => e.textContent);
     assert.deepEqual(texts('.landing-table tbody td'), CASSAVA_FACTS[lang].results, lang);
-    assert.deepEqual(texts('.landing-figures dd'), CASSAVA_FACTS[lang].figures, lang);
+    assert.deepEqual(texts('.money-figures dd'), CASSAVA_FACTS[lang].figures, lang);
     assert.ok(container.textContent.includes(CASSAVA_FACTS[lang].source), lang);
     assert.ok(container.textContent.includes(quality.note), lang);
     assert.ok(container.textContent.includes(figures.note), lang);
