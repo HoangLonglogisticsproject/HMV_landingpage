@@ -201,7 +201,7 @@ export const productPages = {
         title: 'Supply planned around your plant',
         text: 'For importers, feed manufacturers, starch processors and bioethanol producers buying dried cassava chips by the container.',
         items: [
-          { title: 'Origin & sampling', text: 'Origin areas are selected for your application, inspected in the field, then sampled and analysed.' },
+          { title: 'Origin & sampling', text: 'Origin areas are selected for your application and inspected in the field. Samples are taken and analysed according to the agreed requirements.' },
           { title: 'Consolidation & loading', text: 'Lots are consolidated and loaded into containers to your loading and packaging requirement.' },
           { title: 'Documentation & delivery', text: 'Trade documents and delivery follow the agreed Incoterm and destination.' },
         ],
@@ -250,7 +250,7 @@ export const productPages = {
         steps: [
           { title: 'Origin selection', text: 'Origin areas chosen for your application.' },
           { title: 'Field inspection', text: 'Material checked at origin.' },
-          { title: 'Sampling & analysis', text: 'Samples taken and analysed.' },
+          { title: 'Sampling & analysis', text: 'Samples taken and analysed as agreed.' },
           { title: 'Consolidation', text: 'Lots consolidated for shipment.' },
           { title: 'Container loading', text: 'Loaded to your requirement.' },
           { title: 'Documentation & delivery', text: 'Documents and delivery on the agreed terms.' },
@@ -279,7 +279,7 @@ export const productPages = {
         title: 'Nguồn cung theo kế hoạch nhà máy của bạn',
         text: 'Dành cho nhà nhập khẩu, nhà sản xuất thức ăn chăn nuôi, nhà chế biến tinh bột và nhà sản xuất bioethanol mua sắn lát khô theo container.',
         items: [
-          { title: 'Vùng nguyên liệu & lấy mẫu', text: 'Vùng nguyên liệu được chọn theo mục đích sử dụng, kiểm tra tại hiện trường, sau đó lấy mẫu và phân tích.' },
+          { title: 'Vùng nguyên liệu & lấy mẫu', text: 'Vùng nguyên liệu được chọn theo mục đích sử dụng và kiểm tra tại hiện trường. Việc lấy mẫu và phân tích thực hiện theo các chỉ tiêu đã thống nhất.' },
           { title: 'Gom hàng & đóng container', text: 'Các lô hàng được gom và đóng container theo yêu cầu đóng hàng và quy cách của bạn.' },
           { title: 'Chứng từ & giao hàng', text: 'Chứng từ thương mại và giao hàng theo Incoterm và điểm đến đã thống nhất.' },
         ],
@@ -328,7 +328,7 @@ export const productPages = {
         steps: [
           { title: 'Chọn vùng nguyên liệu', text: 'Vùng nguyên liệu phù hợp mục đích sử dụng.' },
           { title: 'Kiểm tra hiện trường', text: 'Kiểm tra nguyên liệu tại nguồn.' },
-          { title: 'Lấy mẫu & phân tích', text: 'Lấy mẫu và phân tích.' },
+          { title: 'Lấy mẫu & phân tích', text: 'Lấy mẫu và phân tích theo yêu cầu đã thống nhất.' },
           { title: 'Gom hàng', text: 'Gom các lô để xuất hàng.' },
           { title: 'Đóng container', text: 'Đóng hàng theo yêu cầu của bạn.' },
           { title: 'Chứng từ & giao hàng', text: 'Chứng từ và giao hàng theo điều kiện đã thống nhất.' },
