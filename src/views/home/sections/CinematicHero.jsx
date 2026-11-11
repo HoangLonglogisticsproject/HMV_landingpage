@@ -1,15 +1,12 @@
 'use client';
-import { Link } from '@/lib/navigation';
-import { ArrowDown, ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { openTradeDesk } from '@/features/trade-desk/open';
 import macroOcean from '@/assets/hmv-macro-ocean.webp';
 import fruitFarmPhoto from '@/assets/fruitFarm.webp';
 import Image from '@/lib/image';
 
-const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-
 export function CinematicHero({ lang }) {
-  const go = () => document.getElementById('value-journey')?.scrollIntoView({ behavior: reduce() ? 'auto' : 'smooth' });
   const vi = lang === 'vi';
   return (
     <header className="day-hero">
@@ -18,9 +15,10 @@ export function CinematicHero({ lang }) {
           <p className="day-kicker">HMV GLOBAL · VIETNAM → EUROPE & USA</p>
           {vi ? <h1>Bám rễ từ đất lành.<span>Vươn tầm ra thế giới.</span></h1> : <h1>Rooted in the land.<span>Connecting the world.</span></h1>}
           <p className="day-sub">{vi ? 'Nông sản cao cấp. Chuỗi cung ứng tích hợp liền mạch.' : 'Premium Agri-Commodities. Seamless Integrated Supply Chain.'}</p>
+          {/* The HMV Trade Desk is the primary conversion path; both open it. */}
           <div className="day-actions">
-            <Button type="button" size="lg" className="day-cta" onClick={go}>{vi ? 'Khám phá hệ sinh thái' : 'Explore Our Ecosystem'}<ArrowDown size={18} /></Button>
-            <Link className="text-link" to="/contact">{vi ? 'Yêu cầu báo giá' : 'Request a quote'}<ArrowUpRight size={18} /></Link>
+            <Button type="button" size="lg" className="day-cta" onClick={() => openTradeDesk({ source: 'home_hero' })}>{vi ? 'Nhận phương án cung ứng' : 'Request a Supply Plan'}<ArrowUpRight size={18} /></Button>
+            <button type="button" className="text-link" onClick={() => openTradeDesk({ source: 'home_hero_secondary' })}>{vi ? 'Trao đổi yêu cầu với HMV' : 'Discuss Your Requirements'}<ArrowUpRight size={18} /></button>
           </div>
         </div>
         <div className="day-visual">

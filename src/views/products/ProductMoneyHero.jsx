@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUpRight, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
 import { Link } from '@/lib/navigation';
 import { productPhotos } from '@/data/productPhotos';
 import Image from '@/lib/image';
@@ -93,12 +93,11 @@ export function ProductMoneyHero({ lang, product, page }) {
             <h1>{c.h1}</h1>
             <p className="money-lead">{c.lead}</p>
             <div className="money-actions">
-              <Button asChild size="lg" className="day-cta">
-                <a href="#rfq">
-                  {c.rfq.title}
-                  <ArrowUpRight size={18} />
-                </a>
-              </Button>
+              {/* The HMV Trade Desk, with this product preselected; the RFQ (#rfq) stays lower on the page. */}
+              <TradeDeskButton size="lg" className="day-cta" product={product.id} source="product_hero">
+                {c.rfq.title}
+                <ArrowUpRight size={18} />
+              </TradeDeskButton>
               <a className="text-link" href={`#${hero.secondary.target}`}>
                 {hero.secondary.label}
                 <ArrowDown size={16} />

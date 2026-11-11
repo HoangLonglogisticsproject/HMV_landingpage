@@ -17,6 +17,9 @@
       "@/lib/image": [
         "./src/next/image.tsx"
       ],
+      "@/lib/inquiry": [
+        "./src/next/inquiry-client.js"
+      ],
       "@/*": [
         "./src/*"
       ]

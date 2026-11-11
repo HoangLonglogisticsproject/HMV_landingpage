@@ -1,0 +1,75 @@
+import { APPLICATIONS, ORIGINS, TRANSPORT, VOLUME_UNITS, productById, requirementsFor } from '@/features/trade-desk/rules';
+import { validateInquiry } from '@/features/trade-desk/validation';
+import { createReference } from './reference';
+
+// Inquiry service behind POST /api/inquiry: validation → record → delivery adapter. Results:
+// { status: 'accepted', reference } | 'invalid' (with `errors`) | 'unavailable' (no adapter) | 'failed' (delivery).
+
+/** The record a delivery adapter receives: the validated inquiry with English labels for the commercial team. */
+export function toRecord(value, { reference, createdAt }) {
+  const requirements = requirementsFor(value).filter(r => value.requirements[r.key]).map(r => ({
+    key: r.key,
+    label: r.label.en,
+    value: r.kind === 'choice' ? r.options.find(o => o.id === value.requirements[r.key]).label.en : value.requirements[r.key],
+  }));
+  const product = productById(value.product);
+  return {
+    reference,
+    createdAt,
+    locale: value.locale,
+    goal: value.goal,
+    product: product ? { id: product.id, name: product.en } : null,
+    goods: value.goods,
+    origin: value.goal === 'sourcing' ? ORIGINS[value.origin].en : value.origin,
+    destination: value.destination,
+    volume: value.volume.amount ? `${value.volume.amount} ${VOLUME_UNITS[value.volume.unit].en}` : '',
+    application: APPLICATIONS[value.product]?.[value.application]?.en ?? '',
+    transport: TRANSPORT[value.transport]?.en ?? '',
+    requirements,
+    notes: value.notes,
+    contact: value.contact,
+    source: value.context,
+    // Submitting requires the contact-consent checkbox: its timestamp is the submission's.
+    consent: { contactAcceptedAt: createdAt },
+  };
+}
+
+/**
+ * @param {{ adapter: { deliver(record: object): Promise<void> } | null, now?: () => Date,
+ *   newReference?: (date: Date) => string, cache?: Map<string, any>, ttlMs?: number }} options
+ */
+export function createInquiryService({ adapter, now = () => new Date(), newReference = createReference, cache = new Map(), ttlMs = 15 * 60_000 }) {
+  async function deliver(value) {
+    const date = now();
+    const reference = newReference(date);
+    try {
+      await adapter.deliver(toRecord(value, { reference, createdAt: date.toISOString() }));
+      return { status: 'accepted', reference };
+    } catch (error) {
+      // The reference and the cause only: never contact details.
+      console.error(`inquiry ${reference} not delivered: ${error instanceof Error ? error.message : error}`);
+      return { status: 'failed' };
+    }
+  }
+
+  return async function submit(input) {
+    const result = validateInquiry(input);
+    if (!result.ok) return { status: 'invalid', errors: result.errors };
+    if (!adapter) return { status: 'unavailable' };
+    if (result.spam) return { status: 'accepted', reference: newReference(now()) };
+
+    // Duplicate submits (double click, retry after a lost response) share one delivery and one reference.
+    // ponytail: per server instance; a durable idempotency store (or the CRM's own) is needed across instances.
+    const key = result.value.idempotencyKey;
+    const clock = now().getTime();
+    const prior = cache.get(key);
+    if (prior && prior.expires > clock) return prior.result;
+    const pending = deliver(result.value).then(outcome => {
+      if (outcome.status !== 'accepted') cache.delete(key);
+      return outcome;
+    });
+    cache.set(key, { result: pending, expires: clock + ttlMs });
+    for (const [k, entry] of cache) if (cache.size > 500 || entry.expires <= clock) cache.delete(k); else break;
+    return pending;
+  };
+}
