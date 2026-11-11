@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
-import { ArrowUpRight, Mail, MapPin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Mail, MapPin } from 'lucide-react';
 import { address } from '@/data/hmv';
 import { toRfqRow } from './rfq';
 import { createInquiryMailto } from './inquiry';
+import { RfqSubmit } from './RfqSubmit';
 
 const commodities = ['Passion Fruit', 'Dried Cassava Chips', 'Cavendish Bananas', 'Dragon Fruit', 'Spices (Pepper, Cinnamon, Star Anise)', 'Cashew Nuts', 'Tapioca Starch', 'Other'];
 const leaders = [
@@ -49,15 +49,7 @@ export function TradeRfq({ lang }) {
             <label className="rfq-wide">{L('Destination Port', 'Cảng đến')}<input name="port" maxLength={100} placeholder={L('e.g. Rotterdam, Los Angeles', 'VD: Rotterdam, Los Angeles')} /></label>
             <label className="rfq-wide">{L('Message', 'Lời nhắn')}<textarea name="message" rows={4} required maxLength={3000} /></label>
           </div>
-          {state === 'done' ? (
-            <div className="rfq-success" role="status"><span>✓</span><p>{L('Email draft prepared. Send it from your email application, or write to vannguyen@hmvglobal.com directly.', 'Đã chuẩn bị email. Hãy gửi từ ứng dụng email của bạn, hoặc liên hệ trực tiếp vannguyen@hmvglobal.com.')}</p><button type="button" onClick={() => setState('idle')}>{L('Prepare another request', 'Soạn yêu cầu khác')}</button></div>
-          ) : (
-            <>
-              <Button type="submit" size="lg" className="day-cta rfq-submit">{L('Prepare RFQ email', 'Soạn email yêu cầu báo giá')}<ArrowUpRight size={18} /></Button>
-              <p className="form-note">{L('Opens a draft in your email app. Your request is not sent until you send that email.', 'Mở bản nháp trong ứng dụng email. Yêu cầu chỉ được gửi khi bạn gửi email đó.')}</p>
-            </>
-          )}
-          {state === 'invalid' && <p role="alert" className="rfq-error">{L('Please check your company, work email and commodity.', 'Vui lòng kiểm tra tên doanh nghiệp, email và sản phẩm.')}</p>}
+          <RfqSubmit lang={lang} state={state} onReset={() => setState('idle')} invalidText={L('Please check your company, work email and commodity.', 'Vui lòng kiểm tra tên doanh nghiệp, email và sản phẩm.')} />
         </form>
       </div>
     </section>

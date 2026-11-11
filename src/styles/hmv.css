@@ -3886,7 +3886,7 @@ article[id] {
   font-weight: 700
 }
 
-.rfq-success p {
+.rfq-success-message {
   flex: 1;
   font-weight: 600;
   min-width: 200px
@@ -9769,7 +9769,7 @@ article[id] {
 
 .landing-figures dd {
   margin: 0;
-  font-family: 'Plus Jakarta Sans';
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 26px;
   font-weight: 800;
   line-height: 1.1;

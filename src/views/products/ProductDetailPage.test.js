@@ -74,13 +74,28 @@ test('a product-page RFQ cannot switch product, and the draft carries the page p
   assert.equal(createInquiryMailto.mock.calls.at(-1)[0].product, 'Dried cassava chips');
 });
 
-test('cassava page: the Intertek results carry their source and note, the capacity figures theirs', async () => {
+// The dossier facts as rendered: written once in data/productPages.js and formatted per language.
+const CASSAVA_FACTS = {
+  en: {
+    results: ['71.1%', '11.55%', '2.99%', '1.86%', '0.45%', 'Not detected', '0.17 mg/kg', '0.28 mg/kg', '<0.02 mg/kg'],
+    figures: ['50,000 MT/month', '10,000 MT/month', '150 containers/month', '250 containers/month'],
+    source: 'Source: Intertek Vietnam analysis report AGRIVIETNAM2026-1700, dated 05 Oct 2026. The reported values apply to the analyzed sample.',
+  },
+  vi: {
+    results: ['71,1%', '11,55%', '2,99%', '1,86%', '0,45%', 'Không phát hiện', '0,17 mg/kg', '0,28 mg/kg', '<0,02 mg/kg'],
+    figures: ['50.000 tấn/tháng', '10.000 tấn/tháng', '150 container/tháng', '250 container/tháng'],
+    source: 'Nguồn: Báo cáo phân tích Intertek Việt Nam AGRIVIETNAM2026-1700 ngày 05/10/2026. Các giá trị áp dụng cho mẫu được phân tích.',
+  },
+};
+
+test('cassava page: the Intertek results, report and capacity figures exactly, with their notes', async () => {
   for (const lang of ['en', 'vi']) {
     await renderProduct(lang, 'dried-cassava-chips');
     const { quality, figures } = productPages['dried-cassava-chips'][lang];
-    assert.equal(container.querySelectorAll('.landing-table tbody tr').length, 9, lang);
-    assert.ok(container.textContent.includes(quality.source), lang);
-    assert.ok(quality.source.includes('AGRIVIETNAM2026-1700'), lang);
+    const texts = selector => [...container.querySelectorAll(selector)].map(e => e.textContent);
+    assert.deepEqual(texts('.landing-table tbody td'), CASSAVA_FACTS[lang].results, lang);
+    assert.deepEqual(texts('.landing-figures dd'), CASSAVA_FACTS[lang].figures, lang);
+    assert.ok(container.textContent.includes(CASSAVA_FACTS[lang].source), lang);
     assert.ok(container.textContent.includes(quality.note), lang);
     assert.ok(container.textContent.includes(figures.note), lang);
     await act(() => root.unmount());
@@ -101,7 +116,7 @@ test('the RFQ hands the product, the page requirements and the Incoterm to the e
   assert.equal(data.product, 'Passion fruit');
   assert.equal(data.incoterm, 'CIF');
   assert.deepEqual(data.requirements.find(([label]) => label === 'Brix / grade requirement'), ['Brix / grade requirement', 'Brix 14']);
-  assert.ok(container.querySelector('#rfq [role="status"]'));
+  assert.ok(container.querySelector('#rfq output.rfq-success-message'));
 });
 
 test('an unknown product id renders the not-found heading', async () => {

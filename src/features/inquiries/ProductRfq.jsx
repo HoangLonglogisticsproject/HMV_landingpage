@@ -1,9 +1,8 @@
 'use client';
 import { useState } from 'react';
-import { ArrowUpRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { toRfqRow } from './rfq';
 import { createInquiryMailto } from './inquiry';
+import { RfqSubmit } from './RfqSubmit';
 
 const INCOTERMS = ['EXW', 'FCA', 'FOB', 'CFR', 'CIF', 'DAP', 'DDP'];
 
@@ -54,7 +53,7 @@ export function ProductRfq({ lang, product, text, fields }) {
             ))}
             <label>{L('Destination port / market', 'Cảng đến / thị trường đích')}<input name="port" maxLength={100} placeholder={L('e.g. Rotterdam, Los Angeles', 'VD: Rotterdam, Los Angeles')} /></label>
             <label>
-              Incoterm
+              <span>Incoterm</span>
               <select name="incoterm" defaultValue="">
                 <option value="">{L('To be discussed', 'Sẽ trao đổi')}</option>
                 {INCOTERMS.map(i => <option key={i}>{i}</option>)}
@@ -62,15 +61,7 @@ export function ProductRfq({ lang, product, text, fields }) {
             </label>
             <label className="rfq-wide">{L('Other requirements', 'Yêu cầu khác')}<textarea name="message" rows={4} maxLength={3000} /></label>
           </div>
-          {state === 'done' ? (
-            <div className="rfq-success" role="status"><span>✓</span><p>{L('Email draft prepared. Send it from your email application, or write to vannguyen@hmvglobal.com directly.', 'Đã chuẩn bị email. Hãy gửi từ ứng dụng email của bạn, hoặc liên hệ trực tiếp vannguyen@hmvglobal.com.')}</p><button type="button" onClick={() => setState('idle')}>{L('Prepare another request', 'Soạn yêu cầu khác')}</button></div>
-          ) : (
-            <>
-              <Button type="submit" size="lg" className="day-cta rfq-submit">{L('Prepare RFQ email', 'Soạn email yêu cầu báo giá')}<ArrowUpRight size={18} /></Button>
-              <p className="form-note">{L('Opens a draft in your email app. Your request is not sent until you send that email.', 'Mở bản nháp trong ứng dụng email. Yêu cầu chỉ được gửi khi bạn gửi email đó.')}</p>
-            </>
-          )}
-          {state === 'invalid' && <p role="alert" className="rfq-error">{L('Please check your company, work email and product.', 'Vui lòng kiểm tra tên doanh nghiệp, email và sản phẩm.')}</p>}
+          <RfqSubmit lang={lang} state={state} onReset={() => setState('idle')} invalidText={L('Please check your company, work email and product.', 'Vui lòng kiểm tra tên doanh nghiệp, email và sản phẩm.')} />
         </form>
       </div>
     </section>
