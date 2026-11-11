@@ -4,11 +4,16 @@ import { DetailLayout } from '@/components/layout/DetailLayout';
 import { Link } from '@/lib/navigation';
 import { copy, stages, photoCopy } from '@/data/hmv';
 import { productPhotos } from '@/data/productPhotos';
+import { productPages } from '@/data/productPages';
 import { productMeta } from '../meta';
+import { ProductLanding } from './ProductLanding';
 import Image from '@/lib/image';
 
 // Product page body, shared by both builds. `product` is undefined for an unknown id on the Vite site only.
+// Products with buyer-page content (data/productPages.js) get the full page; the others the generic one.
 export function ProductView({ lang, product }) {
+  const page = product && productPages[product.id];
+  if (page) return <ProductLanding lang={lang} product={product} page={page} />;
   const t = copy[lang];
   const photo = product && productPhotos[product.id];
   return (

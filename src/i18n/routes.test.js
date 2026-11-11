@@ -12,6 +12,9 @@ test('every page and product round-trips between locales', () => {
   }
   assert.equal(localizePath('/', 'vi'), '/vi');
   assert.equal(localizePath('/products/passion-fruit', 'vi'), '/vi/san-pham/chanh-day');
+  // Dried cassava chips and tapioca starch are separate products with separate URLs.
+  assert.equal(localizePath('/products/dried-cassava-chips', 'vi'), '/vi/san-pham/san-lat-kho');
+  assert.equal(localizePath('/products/tapioca-starch', 'vi'), '/vi/san-pham/tinh-bot-san');
   assert.equal(localizePath('/blog/exporting-passion-fruit-eu', 'vi'), '/vi/tin-tuc/xuat-khau-chanh-day-eu');
   // Unknown (CMS) slugs keep their slug; the article route resolves them.
   assert.equal(localizePath('/blog/cms-only-slug', 'vi'), '/vi/tin-tuc/cms-only-slug');
@@ -71,6 +74,8 @@ test('the language switch drops `lang` and keeps meaningful parameters', () => {
   assert.equal(switchHref('/about', '', 'vi'), '/vi/about');
   assert.equal(switchHref('/vi/san-pham/chanh-day', '?lang=vi', 'en'), '/products/passion-fruit');
   assert.equal(switchHref('/products/passion-fruit', '?utm_source=li', 'vi'), '/vi/san-pham/chanh-day?utm_source=li');
+  assert.equal(switchHref('/products/dried-cassava-chips', '', 'vi'), '/vi/san-pham/san-lat-kho');
+  assert.equal(switchHref('/vi/san-pham/san-lat-kho', '?lang=vi', 'en'), '/products/dried-cassava-chips');
   // Known alternate slug: link straight to it.
   assert.equal(switchHref('/vi/tin-tuc/xuat-khau-chanh-day-eu', '?lang=vi', 'en'), '/blog/exporting-passion-fruit-eu');
   assert.equal(switchHref('/blog/exporting-passion-fruit-eu', '', 'vi'), '/vi/tin-tuc/xuat-khau-chanh-day-eu');

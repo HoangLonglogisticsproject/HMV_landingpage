@@ -10,21 +10,33 @@ test('descriptions: Trade Solutions differs from Supply Chain; product descripti
     assert.notDeepEqual(tradeSolutionsMeta(lang), supplyChainMeta(lang), lang);
     assert.notEqual(tradeSolutionsMeta(lang).description, supplyChainMeta(lang).description, lang);
     const descriptions = products.map(p => productMeta(lang, p).description);
-    assert.equal(descriptions.length, 6, lang);
+    assert.equal(descriptions.length, 7, lang);
     assert.ok(descriptions.every(d => d.trim()), lang);
     assert.equal(new Set(descriptions).size, descriptions.length, lang);
   }
 });
 
-test('titles: main commercial pages and the six products are unique per language', () => {
+const product = id => products.find(p => p.id === id);
+
+test('titles: main commercial pages and the seven products are unique per language', () => {
   for (const lang of ['en', 'vi']) {
     const pages = [homeMeta, supplyChainMeta, tradeSolutionsMeta, logisticsMeta].map(m => m(lang).title);
     assert.equal(new Set(pages).size, pages.length, lang);
     const titles = products.map(p => productMeta(lang, p).title);
-    assert.equal(new Set(titles).size, 6, lang);
+    assert.equal(new Set(titles).size, 7, lang);
   }
-  assert.equal(productMeta('en', products[1]).title, 'Vietnam Cavendish Bananas Sourcing for Wholesale Buyers');
-  assert.equal(productMeta('vi', products[1]).title, 'Chuối Cavendish Việt Nam cho nhu cầu thu mua B2B');
+  assert.equal(productMeta('en', product('bananas')).title, 'Vietnam Cavendish Bananas Sourcing for Wholesale Buyers');
+  assert.equal(productMeta('vi', product('bananas')).title, 'Chuối Cavendish Việt Nam cho nhu cầu thu mua B2B');
+});
+
+test('buyer pages: their own titles; Dried Cassava Chips and Tapioca Starch never share one', () => {
+  assert.equal(productMeta('en', product('passion-fruit')).title, 'Vietnam Passion Fruit Sourcing for Wholesale Buyers');
+  assert.equal(productMeta('vi', product('passion-fruit')).title, 'Chanh dây Việt Nam cho nhu cầu thu mua B2B');
+  assert.equal(productMeta('en', product('dried-cassava-chips')).title, 'Vietnam Dried Cassava Chips for Industrial Buyers');
+  assert.equal(productMeta('vi', product('dried-cassava-chips')).title, 'Sắn lát khô Việt Nam cho khách hàng công nghiệp & B2B');
+  for (const lang of ['en', 'vi']) {
+    assert.notEqual(productMeta(lang, product('dried-cassava-chips')).title, productMeta(lang, product('tapioca-starch')).title, lang);
+  }
 });
 
 test('product metadata: an unknown product (Vite soft 404) falls back to the not-found heading', () => {

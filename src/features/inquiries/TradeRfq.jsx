@@ -6,7 +6,7 @@ import { address } from '@/data/hmv';
 import { toRfqRow } from './rfq';
 import { createInquiryMailto } from './inquiry';
 
-const commodities = ['Passion Fruit', 'Cavendish Bananas', 'Dragon Fruit', 'Spices (Pepper, Cinnamon, Star Anise)', 'Cashew Nuts', 'Tapioca Starch', 'Other'];
+const commodities = ['Passion Fruit', 'Dried Cassava Chips', 'Cavendish Bananas', 'Dragon Fruit', 'Spices (Pepper, Cinnamon, Star Anise)', 'Cashew Nuts', 'Tapioca Starch', 'Other'];
 const leaders = [
   ['Mr. Ho Quang Minh', { en: 'Chairman', vi: 'Chủ tịch' }, 'minhho@hmvglobal.com'],
   ['Mr. Hieu Truong', { en: 'Managing Director', vi: 'Giám đốc điều hành' }, 'hieutruong@hmvglobal.com'],

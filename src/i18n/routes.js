@@ -13,6 +13,7 @@ export const PAGES = ['/', '/about', '/supply-chain', '/trade-solutions', '/acti
 /** @type {Record<string, string>} */
 export const PRODUCT_SLUG_VI = {
   'passion-fruit': 'chanh-day',
+  'dried-cassava-chips': 'san-lat-kho',
   bananas: 'chuoi-cavendish',
   'dragon-fruit': 'thanh-long',
   spices: 'gia-vi',

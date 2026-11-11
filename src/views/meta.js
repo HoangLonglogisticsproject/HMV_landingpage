@@ -3,6 +3,7 @@
 // DetailLayout also use them as their visible heading and lead; Supply Chain, Trade Solutions and product pages
 // keep their nav label or product name as the heading, since their titles target buyer search intent.
 import { baseUrl, copy } from '@/data/hmv';
+import { productPages } from '@/data/productPages';
 import { regulationCopy } from '@/data/regulations';
 import { articleCopy } from './article/copy';
 
@@ -87,8 +88,11 @@ export const packagingMeta = lang => PACKAGING[lang];
 
 // `product` is undefined for an unknown id on the Vite site, which renders a not-found heading (Next.js: 404).
 // Titles follow wholesale sourcing intent; the EN product name is title-cased ("Cavendish bananas" → "Cavendish Bananas").
+// Products with a buyer page (data/productPages.js) carry their own title and description.
 export const productMeta = (lang, product) => {
   if (!product) return { title: copy[lang].notfound, description: copy[lang].chainText };
+  const seo = productPages[product.id]?.seo[lang];
+  if (seo) return seo;
   if (lang === 'vi') {
     return {
       title: `${product.vi} Việt Nam cho nhu cầu thu mua B2B`,
