@@ -95,6 +95,8 @@
   --hero-grade: saturate(.9) contrast(1.08);
   --day-sky: radial-gradient(120% 90% at 80% 0%, #e0f2fe 0%, #f8fafc 55%, #ffffff 100%);
   --farm-green: #10b981;
+  /* Farm green dark enough for small text on light surfaces (4.5:1 on --surface) */
+  --farm-green-ink: #047857;
   --ocean-blue: #0284c7;
   --glass: rgb(255 255 255 / .62);
   --map-land: #cbd5e1;
