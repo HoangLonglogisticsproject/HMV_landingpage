@@ -44,7 +44,7 @@ jobs:
       - run: npm run next:build
         env:
           SITE_INDEXABLE: 'true'
-      - run: npx playwright test -c playwright.next.config.js --grep "robots: "
+      - run: 'npx playwright test -c playwright.next.config.js --grep "robots: "'
         env:
           SITE_INDEXABLE: 'true'
           EXPECT_SITE_INDEXABLE: 'true'
