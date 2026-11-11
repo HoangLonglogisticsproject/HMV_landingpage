@@ -44,19 +44,21 @@ test('contact page renders the inquiry form with expected fields', async ({ page
 //  - select defaultValue={params.get('product') || ''}
 //  - URL param 'Passion fruit' → defaultValue 'Passion fruit' → matches option → preselected
 
-// Buyer pages (passion fruit, dried cassava chips) carry their own RFQ (ProductRfq): the hero CTA jumps to it and its
-// product select is preselected to the page's product.
+// Buyer pages (passion fruit, dried cassava chips) carry their own RFQ (ProductRfq): the hero CTA jumps to it, and it is
+// fixed to the page's product (read-only field, no product select).
 for (const [id, product, cta] of [
   ['passion-fruit', 'Passion fruit', 'Discuss Your Passion Fruit Requirements'],
   ['dried-cassava-chips', 'Dried cassava chips', 'Request a Cassava Supply Proposal'],
 ]) {
-  test(`${id} page CTA opens its RFQ with "${product}" preselected`, async ({ page }) => {
+  test(`${id} page CTA opens its RFQ fixed to "${product}"`, async ({ page }) => {
     await page.goto(`/products/${id}?lang=en`);
     await page.locator('a[href="#rfq"]', { hasText: cta }).click();
     await expect(page).toHaveURL(/#rfq$/);
     const rfq = page.locator('section#rfq');
     await expect(rfq).toBeInViewport();
-    await expect(rfq.locator('select[name="product"]')).toHaveValue(product);
+    await expect(rfq.locator('input[readonly]')).toHaveValue(product);
+    await expect(rfq.locator('input[type="hidden"][name="product"]')).toHaveValue(product);
+    await expect(rfq.locator('select[name="product"]')).toHaveCount(0);
   });
 }
 

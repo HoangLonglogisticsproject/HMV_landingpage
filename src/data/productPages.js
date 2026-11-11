@@ -1,7 +1,8 @@
 // Content of the product pages that go beyond the generic product page: buyer-facing sections, SEO and the RFQ fields.
 // Claims are limited to verified evidence. Passion fruit: fresh whole fruit, HMV-supplied photographs of a growing area,
 // cut-fruit samples and field sample inspection; Brix, capacity, certification, farm or factory ownership and lab results
-// are not asserted. Dried cassava chips: the HMV cassava dossier (network capacity, one Intertek-analysed sample).
+// are not asserted. Dried cassava chips: the HMV cassava dossier (network capacity, one Intertek-analysed sample:
+// report AGRIVIETNAM2026-1700, 05/10/2026).
 // Rendered by views/products/ProductLanding.jsx; titles and descriptions by productMeta() in views/meta.js.
 import { photos, photoCopy } from './hmv.js';
 
@@ -231,6 +232,7 @@ export const productPages = {
           ['Cadmium (Cd)', '0.28 mg/kg'],
           ['Mercury (Hg)', '<0.02 mg/kg'],
         ],
+        source: 'Source: Intertek Vietnam analysis report AGRIVIETNAM2026-1700, dated 05 Oct 2026. The reported values apply to the analyzed sample.',
         note: 'These values are results from the analyzed Intertek sample, not fixed specifications for every shipment. Final lot specifications are agreed in the contract.',
       },
       applications: {
@@ -308,6 +310,7 @@ export const productPages = {
           ['Cadimi (Cd)', '0,28 mg/kg'],
           ['Thủy ngân (Hg)', '<0,02 mg/kg'],
         ],
+        source: 'Nguồn: Báo cáo phân tích Intertek Việt Nam AGRIVIETNAM2026-1700 ngày 05/10/2026. Các giá trị áp dụng cho mẫu được phân tích.',
         note: 'Các giá trị trên là kết quả của mẫu được Intertek phân tích, không phải thông số cố định cho mọi lô hàng. Chỉ tiêu từng lô được thống nhất trong hợp đồng.',
       },
       applications: {

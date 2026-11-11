@@ -2,14 +2,13 @@
 import { useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { products } from '@/data/hmv';
 import { toRfqRow } from './rfq';
 import { createInquiryMailto } from './inquiry';
 
 const INCOTERMS = ['EXW', 'FCA', 'FOB', 'CFR', 'CIF', 'DAP', 'DDP'];
 
-// The RFQ of a product page: the page's product preselected, its requirement fields (`fields`, from data/productPages.js)
-// after the shared ones. Same validation and email hand-off as the home RFQ (TradeRfq): a draft is prepared, never sent.
+// The RFQ of a product page: fixed to the page's product (not selectable), with its requirement fields (`fields`, from
+// data/productPages.js) after the shared ones. Same validation and email hand-off as the home RFQ (TradeRfq): a draft is prepared, never sent.
 export function ProductRfq({ lang, product, text, fields }) {
   const vi = lang === 'vi';
   const L = (e, v) => (vi ? v : e);
@@ -33,11 +32,11 @@ export function ProductRfq({ lang, product, text, fields }) {
           <div className="rfq-fields">
             <label>{L('Company Name', 'Tên doanh nghiệp')}<input name="company" required maxLength={150} autoComplete="organization" /></label>
             <label>{L('Work Email', 'Email công việc')}<input name="email" type="email" required maxLength={255} autoComplete="email" inputMode="email" /></label>
+            {/* Fixed to the page's product: the requirement fields below belong to it. */}
             <label>
               {L('Product', 'Sản phẩm')}
-              <select name="product" required defaultValue={product.en}>
-                {products.map(p => <option key={p.id} value={p.en}>{p[lang]}</option>)}
-              </select>
+              <input value={product[lang]} readOnly aria-readonly="true" />
+              <input type="hidden" name="product" value={product.en} />
             </label>
             <label>{text.volume}<input name="volume" maxLength={100} placeholder={text.volumePlaceholder} /></label>
             {fields.map(f => (

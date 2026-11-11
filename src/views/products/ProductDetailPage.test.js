@@ -50,22 +50,37 @@ for (const lang of ['en', 'vi']) {
 // Buyer pages: their own heading and title, and an RFQ with the page's product preselected.
 for (const id of Object.keys(productPages)) {
   for (const lang of ['en', 'vi']) {
-    test(`${lang} ${id} buyer page: heading, title and the RFQ preselected to the product`, async () => {
+    test(`${lang} ${id} buyer page: heading, title and an RFQ fixed to the product`, async () => {
       const product = products.find(p => p.id === id);
       await renderProduct(lang, id);
       assert.equal(container.querySelector('h1').textContent, productPages[id][lang].h1);
       assert.equal(document.title, `${productPages[id].seo[lang].title} | HMV Global`);
-      assert.equal(container.querySelector('#rfq select[name="product"]').value, product.en);
+      assert.equal(container.querySelector('#rfq input[name="product"]').value, product.en);
+      assert.equal(container.querySelector('#rfq input[readonly]').value, product[lang]);
       assert.equal(container.querySelector('a[href="#rfq"]').textContent, productPages[id][lang].rfq.title);
     });
   }
 }
 
-test('cassava page: the Intertek results and capacity figures carry their notes', async () => {
+// The requirement fields belong to the page's product, so its RFQ offers no product choice.
+test('a product-page RFQ cannot switch product, and the draft carries the page product', async () => {
+  await renderProduct('en', 'dried-cassava-chips');
+  const form = container.querySelector('#rfq form');
+  assert.equal(form.querySelectorAll('select[name="product"], input[name="product"]:not([type="hidden"])').length, 0);
+  assert.ok(![...form.querySelectorAll('select option')].some(o => products.some(p => p.en === o.value)));
+  form.elements.namedItem('company').value = 'Feed Co';
+  form.elements.namedItem('email').value = 'buyer@example.com';
+  await act(() => form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+  assert.equal(createInquiryMailto.mock.calls.at(-1)[0].product, 'Dried cassava chips');
+});
+
+test('cassava page: the Intertek results carry their source and note, the capacity figures theirs', async () => {
   for (const lang of ['en', 'vi']) {
     await renderProduct(lang, 'dried-cassava-chips');
     const { quality, figures } = productPages['dried-cassava-chips'][lang];
     assert.equal(container.querySelectorAll('.landing-table tbody tr').length, 9, lang);
+    assert.ok(container.textContent.includes(quality.source), lang);
+    assert.ok(quality.source.includes('AGRIVIETNAM2026-1700'), lang);
     assert.ok(container.textContent.includes(quality.note), lang);
     assert.ok(container.textContent.includes(figures.note), lang);
     await act(() => root.unmount());

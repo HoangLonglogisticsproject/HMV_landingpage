@@ -22,7 +22,7 @@ export const photoCopy = {
 export const baseUrl = 'https://www.hmv-global.com';
 export const address = 'Floor 5, 240 Nguyen Dinh Chinh St., Phu Nhuan Ward, Ho Chi Minh City, Vietnam';
 export const products = [
- {id:'passion-fruit', en:'Passion fruit', vi:'Chanh dây', subEn:'Yellow & purple · Fresh, purée & concentrate', subVi:'Vàng & tím · Tươi, purée & cô đặc', category:'01', specs:['Product form / Dạng hàng','Brix & acidity / Brix & độ axit','Packaging / Quy cách đóng gói','Temperature / Nhiệt độ bảo quản']},
+ {id:'passion-fruit', en:'Passion fruit', vi:'Chanh dây', subEn:'Fresh whole fruit · Buyer-defined specifications', subVi:'Trái tươi nguyên quả · Quy cách theo nhu cầu', category:'01', specs:['Product form / Dạng hàng','Brix & acidity / Brix & độ axit','Packaging / Quy cách đóng gói','Temperature / Nhiệt độ bảo quản']},
  {id:'dried-cassava-chips', en:'Dried cassava chips', vi:'Sắn lát khô', subEn:'Feed, starch processing & bioethanol', subVi:'Thức ăn chăn nuôi, chế biến tinh bột & bioethanol', category:'02', specs:['Starch content / Hàm lượng tinh bột','Moisture / Độ ẩm','Sand & silica / Cát sạn','Loading & packaging / Đóng hàng & quy cách']},
  {id:'bananas', en:'Cavendish bananas', vi:'Chuối Cavendish', subEn:'Fresh fruit · Export requirements', subVi:'Trái cây tươi · Yêu cầu xuất khẩu',category:'03',specs:['Fruit size / Kích cỡ quả','Maturity / Độ chín','Carton weight / Trọng lượng thùng','Cold chain / Chuỗi lạnh']},
  {id:'dragon-fruit', en:'Dragon fruit', vi:'Thanh long', subEn:'White & red flesh · Fresh fruit', subVi:'Ruột trắng & đỏ · Trái cây tươi',category:'04',specs:['Flesh colour / Màu ruột','Fruit grade / Phân hạng','Packaging / Đóng gói','Destination requirements / Yêu cầu thị trường']},

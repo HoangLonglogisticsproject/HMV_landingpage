@@ -128,6 +128,7 @@ export function ProductLanding({ lang, product, page }) {
                 </tbody>
               </table>
             </div>
+            <p className="commercial-note">{c.quality.source}</p>
             <p className="commercial-note">{c.quality.note}</p>
           </div>
         </section>
