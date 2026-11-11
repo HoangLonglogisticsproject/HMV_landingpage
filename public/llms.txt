@@ -4,7 +4,7 @@
 HMV connects agricultural sourcing, processing coordination, buyer quality requirements and international trade. Logistics supports the trade. The target buyer markets are Europe and the United States. Target markets are not proof of existing customers or deliveries.
 
 ## Public pages
-Pages are bilingual (English and Vietnamese) at a single locale-free URL; append `?lang=vi` for the Vietnamese rendering.
+Pages are bilingual, each language at its own URL. English: the paths below, products at `/products/...`, articles at `/blog/...`. Vietnamese: the same pages under `/vi` (for example `/vi/about`), products at `/vi/san-pham/...`, articles at `/vi/tin-tuc/...`.
 - [Overview](https://www.hmv-global.com/)
 - [Company story](https://www.hmv-global.com/about)
 - [Supply-chain approach](https://www.hmv-global.com/supply-chain)
@@ -16,7 +16,7 @@ Pages are bilingual (English and Vietnamese) at a single locale-free URL; append
 - [Business inquiries](https://www.hmv-global.com/contact)
 
 ## Agricultural portfolio
-Yellow and purple passion fruit (fresh, puree and concentrate), Cavendish bananas, white and red flesh dragon fruit, pepper, cinnamon, star anise, cashew nuts and tapioca starch.
+Fresh whole passion fruit (specifications defined with each buyer), dried cassava chips, Cavendish bananas, white and red flesh dragon fruit, pepper, cinnamon, star anise, cashew nuts and tapioca starch. Dried cassava chips and tapioca starch are separate products.
 
 ## Verified contact information
 HMV Global Co., LTD. Floor 5, 240 Nguyen Dinh Chinh St., Phu Nhuan Ward, Ho Chi Minh City, Vietnam.
@@ -25,6 +25,6 @@ Chairman: Mr. Ho Quang Minh, minhho@hmvglobal.com.
 Managing Director: Mr. Hieu Truong, hieutruong@hmvglobal.com.
 
 ## Important factual boundaries
-Photographs were supplied by HMV. Factory photos do not establish HMV ownership, agricultural processing, hygiene certification or production capacity. Outdoor photos do not establish farm ownership or sourcing traceability. No supermarket customers, shipment routes, certifications, lab results, prices, production volumes or facility ownership are asserted. Supply-chain stages describe a proposed coordination approach, not live tracking or verified performance. Exact specifications, origin, partners, availability, Incoterms and delivery terms require confirmation by quotation.
+Photographs were supplied by HMV. Factory photos do not establish HMV ownership, agricultural processing, hygiene certification or production capacity. Outdoor photos do not establish farm ownership or sourcing traceability. No supermarket customers, shipment routes, certifications, prices or facility ownership are asserted. The dried cassava chips page shows the results of one identified Intertek analysed sample (report AGRIVIETNAM2026-1700, 05 Oct 2026); they apply to that sample only and are not fixed specifications for every shipment. Its capacity figures describe HMV Global network capability, not guaranteed output for every buyer. Supply-chain stages describe a proposed coordination approach, not live tracking or verified performance. Final lot specifications, origin, partners, availability, Incoterms, delivery and other commercial terms are confirmed for each proposal and contract.
 The vision and mission statements are draft editorial proposals based on HMV's supplied positioning, pending company approval.
 The inquiry form prepares an email draft; it does not independently deliver or store inquiries.

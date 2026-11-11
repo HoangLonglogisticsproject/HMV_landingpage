@@ -1,9 +1,10 @@
 import type { NextConfig } from 'next';
 import { INDEX_ALIASES, LOCALES, canonicalUrl, localizePath } from './src/i18n/routes.js';
+import { isSiteIndexable } from './src/next/indexability.js';
 
-// Fail-safe: every response carries noindex unless the deployment is explicitly the public production site.
-// Set SITE_INDEXABLE=true on the production environment only, at cutover (docs/architecture/MIGRATION_ROADMAP.md).
-const indexable = process.env.SITE_INDEXABLE === 'true';
+// Fail-safe: every response carries noindex unless the deployment is the public production site (Vercel production,
+// or SITE_INDEXABLE=true); SITE_INDEXABLE=false keeps it noindex. The robots metadata follows the same decision.
+const indexable = isSiteIndexable(process.env);
 
 // Collection URLs without a page of their own, in every locale. Requests with ?lang= skip these: proxy.ts resolves
 // them in one hop.

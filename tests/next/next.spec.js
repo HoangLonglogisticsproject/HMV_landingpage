@@ -270,13 +270,34 @@ for (const [from, hops] of CHAINS) {
   });
 }
 
-// Fail-safe for test deployments: every page and 404 is noindex (header and meta) unless SITE_INDEXABLE=true.
-// Redirect responses have no indexable body; their targets are covered here.
-test('pages and 404s are noindex until SITE_INDEXABLE=true', async ({ request }) => {
-  for (const path of [...URLS.map(u => u.path), ...NOT_FOUND, ...ARTICLE_NOT_FOUND]) {
+// Indexing (src/next/indexability.js), from the served HTTP responses. By default, the fail-safe of test and preview
+// builds: every page is noindex, header and meta. With EXPECT_SITE_INDEXABLE=true, run against a build made with
+// SITE_INDEXABLE=true (CI's production smoke, `--grep "robots: "`): pages carry no noindex at all. 404s are noindex in
+// both. Redirect responses have no indexable body; their targets are covered here.
+const EXPECT_INDEXABLE = process.env.EXPECT_SITE_INDEXABLE === 'true';
+
+test(`robots: pages are ${EXPECT_INDEXABLE ? 'indexable (production)' : 'noindex outside production'}`, async ({ request }) => {
+  for (const { path } of URLS) {
     const res = await request.get(path, { maxRedirects: 0 });
-    expect(res.headers()['x-robots-tag'], path).toBe('noindex, nofollow');
-    expect(head(await res.text()).robots, path).toContain('noindex');
+    expect(res.status(), path).toBe(200);
+    const header = res.headers()['x-robots-tag'];
+    const meta = head(await res.text()).robots;
+    if (EXPECT_INDEXABLE) {
+      expect(header ?? '', `${path} X-Robots-Tag`).not.toContain('noindex');
+      expect(meta ?? '', `${path} meta robots`).not.toContain('noindex');
+    } else {
+      expect(header, `${path} X-Robots-Tag`).toBe('noindex, nofollow');
+      expect(meta, `${path} meta robots`).toContain('noindex');
+    }
+  }
+});
+
+test('robots: 404s are noindex', async ({ request }) => {
+  for (const path of [...NOT_FOUND, ...ARTICLE_NOT_FOUND]) {
+    const res = await request.get(path, { maxRedirects: 0 });
+    expect(res.status(), path).toBe(404);
+    expect(head(await res.text()).robots, `${path} meta robots`).toContain('noindex');
+    if (!EXPECT_INDEXABLE) expect(res.headers()['x-robots-tag'], `${path} X-Robots-Tag`).toBe('noindex, nofollow');
   }
 });
 

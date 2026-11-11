@@ -3,11 +3,12 @@
 import type { Metadata } from 'next';
 import { baseUrl } from '@/data/hmv';
 import { LOCALES, localizePath } from '@/i18n/routes';
+import { isSiteIndexable } from './indexability';
 
 export type Lang = 'en' | 'vi';
 
-// Fail-safe default, as in next.config.ts: noindex unless SITE_INDEXABLE=true (production only, at cutover).
-const indexable = process.env.SITE_INDEXABLE === 'true';
+// The same decision as the X-Robots-Tag header in next.config.ts: noindex except on the public production site.
+const indexable = isSiteIndexable(process.env);
 const NOINDEX = { index: false, follow: false };
 
 const SITE_NAME = 'HMV Global';

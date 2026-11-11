@@ -1,6 +1,7 @@
 # Build and test gate for both builds during the migration (docs/architecture/MIGRATION_ROADMAP.md, PR-02): the Vite
 # site that production serves today, and the Next.js site. Read-only: no secrets, no deployment, no indexing switch
-# (SITE_INDEXABLE is unset, so the Next.js suite also checks the noindex fail-safe).
+# (SITE_INDEXABLE is unset, so the Next.js suite also checks the noindex fail-safe; a production smoke then checks an
+# indexable build).
 name: CI
 
 on:
@@ -38,6 +39,15 @@ jobs:
       - run: npx playwright test
       - run: npx playwright test -c playwright.cms.config.js
       - run: npx playwright test -c playwright.next.config.js
+      # Production smoke: rebuilt as an indexable production deployment, served by `next start` with the same
+      # environment; only the robots tests run, expecting pages without noindex and 404s still noindex.
+      - run: npm run next:build
+        env:
+          SITE_INDEXABLE: 'true'
+      - run: 'npx playwright test -c playwright.next.config.js --grep "robots: "'
+        env:
+          SITE_INDEXABLE: 'true'
+          EXPECT_SITE_INDEXABLE: 'true'
       # Last: it rebuilds .next with CMS_CONTENT=true against the mock CMS (tests/next-cms/serve.js).
       - run: npx playwright test -c playwright.next-cms.config.js
       - run: npx playwright test -c playwright.next-cms-stale.config.js
