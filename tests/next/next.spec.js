@@ -270,9 +270,10 @@ for (const [from, hops] of CHAINS) {
   });
 }
 
-// Fail-safe for test deployments: every page and 404 is noindex (header and meta) unless SITE_INDEXABLE=true.
-// Redirect responses have no indexable body; their targets are covered here.
-test('pages and 404s are noindex until SITE_INDEXABLE=true', async ({ request }) => {
+// Fail-safe for test and preview deployments: every page and 404 is noindex (header and meta) unless the build is a
+// Vercel production deployment or SITE_INDEXABLE=true (src/next/indexability.js). Redirect responses have no
+// indexable body; their targets are covered here.
+test('pages and 404s are noindex outside production', async ({ request }) => {
   for (const path of [...URLS.map(u => u.path), ...NOT_FOUND, ...ARTICLE_NOT_FOUND]) {
     const res = await request.get(path, { maxRedirects: 0 });
     expect(res.headers()['x-robots-tag'], path).toBe('noindex, nofollow');
