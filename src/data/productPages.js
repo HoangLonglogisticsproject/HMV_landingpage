@@ -16,6 +16,15 @@ const t = (en, vi) => lang => (lang === 'vi' ? vi : en);
 /** A card or step: [title, text] in each language. */
 const card = (en, vi) => ({ title: t(en[0], vi[0]), text: t(en[1], vi[1]) });
 
+// RFQ requirement fields (features/inquiries/ProductRfq.jsx), as [en, vi] pairs. The English label is the one written
+// into the email draft, like the other inquiry fields.
+const pair = ([en, vi]) => ({ en, vi });
+const field = (name, label, placeholder) => ({ name, label: pair(label), placeholder: pair(placeholder) });
+const choice = (name, label, options) => ({ name, label: pair(label), options: options.map(pair) });
+
+// Fact labels shared by the product pages.
+const FACT = { product: t('Product', 'Sản phẩm'), origin: t('Origin', 'Xuất xứ') };
+
 /** A number written once, formatted per language (50000 → "50,000" / "50.000"), with a prefix and a unit. */
 const quantity = (n, unit, prefix = '') => lang =>
   `${prefix}${n.toLocaleString(LOCALES[lang])}${typeof unit === 'function' ? unit(lang) : unit}`;
@@ -67,14 +76,6 @@ export const productPages = {
       photo(photos.grower, 960, 1280, 'grower'),
       photo(photos.farmTeam, 1308, 1600, 'farmTeam'),
     ],
-    // Each page's own requirement fields, after the shared ones (features/inquiries/ProductRfq.jsx). The English label
-    // is the one written into the email draft, like the other inquiry fields.
-    rfqFields: [
-      { name: 'form', label: { en: 'Product form', vi: 'Dạng hàng' }, placeholder: { en: 'e.g. fresh whole fruit', vi: 'VD: trái tươi nguyên quả' } },
-      { name: 'grade', label: { en: 'Brix / grade requirement', vi: 'Yêu cầu Brix / phân hạng' }, placeholder: { en: 'Your minimum Brix or size grade', vi: 'Brix tối thiểu hoặc phân hạng kích cỡ' } },
-      { name: 'packaging', label: { en: 'Packaging', vi: 'Quy cách đóng gói' }, placeholder: { en: 'e.g. carton type and net weight', vi: 'VD: loại thùng và khối lượng tịnh' } },
-      { name: 'certification', label: { en: 'Certification requirement', vi: 'Yêu cầu chứng nhận' }, placeholder: { en: 'Certificates your market requires', vi: 'Chứng nhận thị trường của bạn yêu cầu' } },
-    ],
     content: {
       h1: t('Fresh Passion Fruit from Vietnam', 'Chanh dây tươi từ Việt Nam'),
       lead: t(
@@ -82,8 +83,8 @@ export const productPages = {
         'HMV Global điều phối nguồn hàng chanh dây tươi và thực thi chuỗi cung ứng cho khách hàng B2B, nhà nhập khẩu và nhà phân phối quốc tế.',
       ),
       facts: [
-        [t('Product', 'Sản phẩm'), t('Fresh whole passion fruit', 'Chanh dây tươi nguyên quả')],
-        [t('Origin', 'Xuất xứ'), t('Vietnam', 'Việt Nam')],
+        [FACT.product, t('Fresh whole passion fruit', 'Chanh dây tươi nguyên quả')],
+        [FACT.origin, t('Vietnam', 'Việt Nam')],
         [t('Specifications', 'Thông số'), t('Defined with each buyer: variety, size, Brix, packaging and season', 'Thống nhất với từng khách hàng: giống, kích cỡ, Brix, đóng gói và mùa vụ')],
       ],
       audience: {
@@ -160,6 +161,12 @@ export const productPages = {
         volumePlaceholder: t('e.g. containers per month', 'VD: số container mỗi tháng'),
       },
     },
+    rfqFields: [
+      field('form', ['Product form', 'Dạng hàng'], ['e.g. fresh whole fruit', 'VD: trái tươi nguyên quả']),
+      field('grade', ['Brix / grade requirement', 'Yêu cầu Brix / phân hạng'], ['Your minimum Brix or size grade', 'Brix tối thiểu hoặc phân hạng kích cỡ']),
+      field('packaging', ['Packaging', 'Quy cách đóng gói'], ['e.g. carton type and net weight', 'VD: loại thùng và khối lượng tịnh']),
+      field('certification', ['Certification requirement', 'Yêu cầu chứng nhận'], ['Certificates your market requires', 'Chứng nhận thị trường của bạn yêu cầu']),
+    ],
   }),
 
   'dried-cassava-chips': definePage({
@@ -173,20 +180,6 @@ export const productPages = {
     // ponytail: no cassava photographs are in the repository yet; `gallery` stays empty until first-party images are
     // added (a field image may name Tân Biên, Tây Ninh only where the dossier identifies that material).
     gallery: [],
-    rfqFields: [
-      {
-        name: 'application',
-        label: { en: 'Application', vi: 'Mục đích sử dụng' },
-        options: [
-          { en: 'Animal feed', vi: 'Thức ăn chăn nuôi' },
-          { en: 'Bioethanol', vi: 'Bioethanol' },
-          { en: 'Starch processing', vi: 'Chế biến tinh bột' },
-        ],
-      },
-      { name: 'starch', label: { en: 'Required starch %', vi: 'Hàm lượng tinh bột yêu cầu (%)' }, placeholder: { en: 'Minimum %', vi: 'Tối thiểu (%)' } },
-      { name: 'moisture', label: { en: 'Maximum moisture %', vi: 'Độ ẩm tối đa (%)' }, placeholder: { en: 'Maximum %', vi: 'Tối đa (%)' } },
-      { name: 'packaging', label: { en: 'Loading / packaging requirement', vi: 'Yêu cầu đóng hàng / quy cách' }, placeholder: { en: 'e.g. bulk or bagged, container size', vi: 'VD: hàng rời hoặc đóng bao, loại container' } },
-    ],
     content: {
       h1: t('Dried Cassava Chips for Industrial Buyers', 'Sắn lát khô cho khách hàng công nghiệp'),
       lead: t(
@@ -194,8 +187,8 @@ export const productPages = {
         'HMV Global điều phối nguồn cung sắn lát khô từ Việt Nam và Campuchia cho nhà nhập khẩu, nhà sản xuất thức ăn chăn nuôi, nhà chế biến tinh bột và nhà sản xuất bioethanol, từ chọn vùng nguyên liệu đến giao container.',
       ),
       facts: [
-        [t('Product', 'Sản phẩm'), t('Dried cassava chips', 'Sắn lát khô')],
-        [t('Origin', 'Xuất xứ'), t('Vietnam · Cambodia', 'Việt Nam · Campuchia')],
+        [FACT.product, t('Dried cassava chips', 'Sắn lát khô')],
+        [FACT.origin, t('Vietnam · Cambodia', 'Việt Nam · Campuchia')],
         [t('Applications', 'Ứng dụng'), t('Animal feed · Starch processing · Bioethanol', 'Thức ăn chăn nuôi · Chế biến tinh bột · Bioethanol')],
         [t('Quality reference', 'Tham chiếu chất lượng'), t('Intertek-analysed sample, results below', 'Mẫu do Intertek phân tích, kết quả bên dưới')],
       ],
@@ -286,5 +279,15 @@ export const productPages = {
         volumePlaceholder: t('Metric tons per month', 'Số tấn mỗi tháng'),
       },
     },
+    rfqFields: [
+      choice('application', ['Application', 'Mục đích sử dụng'], [
+        ['Animal feed', 'Thức ăn chăn nuôi'],
+        ['Bioethanol', 'Bioethanol'],
+        ['Starch processing', 'Chế biến tinh bột'],
+      ]),
+      field('starch', ['Required starch %', 'Hàm lượng tinh bột yêu cầu (%)'], ['Minimum %', 'Tối thiểu (%)']),
+      field('moisture', ['Maximum moisture %', 'Độ ẩm tối đa (%)'], ['Maximum %', 'Tối đa (%)']),
+      field('packaging', ['Loading / packaging requirement', 'Yêu cầu đóng hàng / quy cách'], ['e.g. bulk or bagged, container size', 'VD: hàng rời hoặc đóng bao, loại container']),
+    ],
   }),
 };
