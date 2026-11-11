@@ -7637,6 +7637,26 @@ article[id] {
     bottom: 16px;
     right: 16px;
   }
+
+  /* Closed launcher, phones: an icon-only 52px circle so it does not cover page content; the button keeps its
+     aria-label as its accessible name. Desktop and the open chat are unchanged. */
+  .hmv-floating-chat-launcher {
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+  }
+
+  .hmv-floating-chat-launcher .launcher-text,
+  .hmv-floating-chat-launcher .launcher-badge {
+    display: none;
+  }
+
+  .hmv-floating-chat-launcher .launcher-icon-wrap {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 /* ==========================================================================
