@@ -2,12 +2,10 @@
 // feedback. Only fields and values the rules allow survive; strings are trimmed; unknown keys are dropped. What the
 // buyer types has one length limit, the same in the field (maxLength), here and in the CMS contract: over it is an
 // error for that field, never a silently shortened value.
-import { APPLICATIONS, GOALS, TRANSPORT, VOLUME_UNITS, originsFor, productById, requirementsFor } from './rules';
+import { APPLICATIONS, TRANSPORT, VOLUME_UNITS, originsFor, productById, requirementsFor } from './rules';
 
 /** Character limits of the buyer's text fields (DeskSteps and TradeDesk use them as maxLength). */
 export const LIMITS = {
-  goods: 200,
-  origin: 120,
   destination: 120,
   'volume.amount': 20,
   requirement: 200,
@@ -56,12 +54,9 @@ export function validateInquiry(input) {
     return v;
   };
 
-  const goal = GOALS.some(g => g.id === body.goal) ? body.goal : (fail('goal'), 'sourcing');
-  const sourcing = goal === 'sourcing';
-  const product = sourcing ? (productById(body.product) ? body.product : (fail('product'), null)) : null;
-  const goods = sourcing ? '' : typed('goods', body.goods);
-  if (!sourcing && !goods) fail('goods');
-  const origin_ = sourcing ? (originsFor(product).includes(body.origin) ? body.origin : originsFor(product)[0]) : typed('origin', body.origin);
+  // Every inquiry is for one product; its origin is one the product offers (its first by default).
+  const product = productById(body.product) ? body.product : (fail('product'), null);
+  const origin_ = originsFor(product).includes(body.origin) ? body.origin : originsFor(product)[0];
   const destination = typed('destination', body.destination);
   const notes = typed('notes', body.notes);
 
@@ -73,7 +68,7 @@ export function validateInquiry(input) {
 
   const given = body.requirements && typeof body.requirements === 'object' ? body.requirements : {};
   const requirements = {};
-  for (const r of requirementsFor({ goal, product })) {
+  for (const r of requirementsFor({ product })) {
     const value = typed(`requirements.${r.key}`, given[r.key], LIMITS.requirement);
     if (!value) continue;
     if (r.kind === 'choice' && !r.options.some(o => o.id === value)) fail(`requirements.${r.key}`);
@@ -107,9 +102,7 @@ export function validateInquiry(input) {
     value: {
       idempotencyKey,
       locale: body.locale === 'vi' ? 'vi' : 'en',
-      goal,
       product,
-      goods,
       origin: origin_,
       destination,
       volume: { amount, unit },

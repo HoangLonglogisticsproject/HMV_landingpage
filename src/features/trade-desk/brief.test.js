@@ -8,15 +8,16 @@ const keys = brief => missingInformation(brief).map(m => m.key);
 const pending = 'to be confirmed';
 
 test('rules: each product asks for its own controlled requirements', () => {
-  const passion = requirementsFor({ goal: 'sourcing', product: 'passion-fruit' }).map(r => r.key);
+  const passion = requirementsFor({ product: 'passion-fruit' }).map(r => r.key);
   assert.deepEqual(passion, ['variety', 'sizeWeight', 'brix', 'packaging', 'deliveryWindow', 'destinationPort', 'destinationRequirements']);
-  const cassava = requirementsFor({ goal: 'sourcing', product: 'dried-cassava-chips' }).map(r => r.key);
+  const cassava = requirementsFor({ product: 'dried-cassava-chips' }).map(r => r.key);
   assert.deepEqual(cassava, ['starch', 'moisture', 'loading', 'incoterm', 'destinationPort', 'deliveryWindow']);
   // Other products: their specification points from data/hmv.js, then route and terms.
-  const bananas = requirementsFor({ goal: 'sourcing', product: 'bananas' }).map(r => r.key);
+  const bananas = requirementsFor({ product: 'bananas' }).map(r => r.key);
   assert.deepEqual(bananas, ['spec-fruit-size', 'spec-maturity', 'spec-carton-weight', 'spec-cold-chain', 'destinationPort', 'deliveryWindow', 'certification', 'incoterm']);
-  assert.deepEqual(requirementsFor({ goal: 'sourcing', product: null }), []);
-  assert.ok(requirementsFor({ goal: 'customs' }).some(r => r.key === 'hsCode'));
+  assert.deepEqual(requirementsFor({ product: null }), []);
+  // Every requirement belongs to a product: none for an unknown id, including the former goals.
+  for (const product of ['logistics', 'customs', '__proto__']) assert.deepEqual(requirementsFor({ product }), []);
 });
 
 test('what HMV still needs shrinks as the brief is completed', () => {
@@ -75,6 +76,7 @@ test('the inquiry carries the brief, contact, consent and context; blank require
   assert.deepEqual(inquiry.requirements, { brix: '14+' });
   assert.deepEqual(inquiry.consent, { contact: true });
   assert.equal(inquiry.website, '');
+  assert.equal('goal' in inquiry || 'goods' in inquiry, false);
   assert.equal(validateInquiry(inquiry).ok, true);
 });
 

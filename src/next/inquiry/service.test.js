@@ -2,13 +2,13 @@ import { afterEach, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { createHash, createHmac } from 'node:crypto';
 import { createInquiryService } from './service.js';
-import { bodyHash, cmsAdapter, deliveryAdapterFromEnv, memoryAdapter, signCmsRequest, webhookAdapter } from './adapters.js';
+import { bodyHash, cmsAdapter, cmsPayload, deliveryAdapterFromEnv, memoryAdapter, signCmsRequest, webhookAdapter } from './adapters.js';
 import { createReference } from './reference.js';
+import { validateInquiry } from '../../features/trade-desk/validation.js';
 
 const inquiry = overrides => ({
   idempotencyKey: '0f3b6d2e-1c4a-4e8b-9a77-2f1d3c4b5a69',
   locale: 'en',
-  goal: 'sourcing',
   product: 'passion-fruit',
   origin: 'vietnam',
   destination: 'Rotterdam',
@@ -39,9 +39,7 @@ test('an accepted inquiry is delivered once as a labelled record with a public r
       reference: undefined,
       createdAt: '2026-11-12T08:00:00.000Z',
       locale: 'en',
-      goal: 'sourcing',
       product: { id: 'passion-fruit', name: 'Passion fruit' },
-      goods: '',
       origin: 'Vietnam',
       destination: 'Rotterdam',
       volume: '2 containers',
@@ -159,9 +157,9 @@ const SIGNING_TEST_VECTOR = {
   secret: 'hmv-shared-test-vector-secret-0123456789abcdef',
   timestamp: '1767225600',
   idempotencyKey: '0f3b6d2e-1c4a-4e8b-9a77-2f1d3c4b5a69',
-  body: '{"locale":"en","goal":"customs","goods":"Test cargo","requirements":{},"contact":{"company":"Example Co","email":"buyer@example.com"},"consentAt":"2026-01-01T00:00:00.000Z"}',
-  bodySha256: 'f440d4e1f37ac7063006f0ce11896b0eee0632451af410d48ed7c5f5b873dec1',
-  signature: '7c05a879b426c6be25faf502b443dc310a71424044bf4d32b617e137d8d2d920',
+  body: '{"locale":"en","productId":"dried-cassava-chips","origin":"vietnam","destination":"Singapore","volume":{"amount":"5000","unit":"mt_month"},"application":"bioethanol","transport":"sea_fcl","requirements":{},"contact":{"company":"Example Co","email":"buyer@example.com"},"consentAt":"2026-01-01T00:00:00.000Z"}',
+  bodySha256: '20fe22d201ffaf572bf56b405b8e5695a6e8f270f1312238c40cc078e7431d9c',
+  signature: '37a0452e58562fb1d41ff58ad73f4cc362cd6586e529d2b958476a905d5f4d91',
 };
 
 /**
@@ -192,6 +190,26 @@ test('CMS signature: the shared test vector (timestamp, key and exact body)', ()
   assert.notEqual(signCmsRequest(v.secret, v.timestamp, v.idempotencyKey, JSON.stringify(JSON.parse(v.body), null, 1)), v.signature);
 });
 
+test('the vector body is a product-led inquiry exactly as the adapter serializes it', () => {
+  const { ok, value } = validateInquiry({
+    idempotencyKey: SIGNING_TEST_VECTOR.idempotencyKey,
+    locale: 'en',
+    product: 'dried-cassava-chips',
+    origin: 'vietnam',
+    destination: 'Singapore',
+    volume: { amount: '5000', unit: 'mt_month' },
+    application: 'bioethanol',
+    transport: 'sea_fcl',
+    contact: { company: 'Example Co', email: 'buyer@example.com' },
+    consent: { contact: true },
+  });
+  assert.equal(ok, true);
+  // No page context here: `source` is empty, and the vector leaves it out.
+  const { source, ...payload } = cmsPayload(value, '2026-01-01T00:00:00.000Z');
+  assert.equal(JSON.stringify(source), '{}');
+  assert.equal(JSON.stringify(payload), SIGNING_TEST_VECTOR.body);
+});
+
 test('CMS adapter: signed request with ids, no honeypot; the buyer gets the CMS reference', async () => {
   const fake = fakeCms(() => ({ status: 201, body: { reference: 'HMV-2026-7KQ4XM', duplicate: false } }));
   const submit = createInquiryService({ adapter: cms(fake.fetchImpl), now });
@@ -209,7 +227,6 @@ test('CMS adapter: signed request with ids, no honeypot; the buyer gets the CMS 
   assert.doesNotMatch(JSON.stringify(headers), /buyer@example\.com|Example Foods/);
   assert.deepEqual(body, {
     locale: 'en',
-    goal: 'sourcing',
     productId: 'passion-fruit',
     origin: 'vietnam',
     destination: 'Rotterdam',

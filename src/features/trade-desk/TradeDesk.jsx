@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from 'radix-ui';
 import { ArrowLeft, ArrowRight, ArrowUpRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { GOALS, productById } from './rules';
+import { productById } from './rules';
 import { track } from '@/lib/analytics';
 import { contactChannels, sendInquiry } from '@/lib/inquiry';
 import { createInquiryMailto } from '@/features/inquiries/inquiry';
@@ -24,7 +24,7 @@ const STEP_IDS = ['requirements', 'review', 'complete', 'brief'];
 // The step that shows each field the validation can name; requirements.* are on step 3. Anything else (a malformed
 // idempotency key, a broken body) is not the buyer's to fix: it is a failed send.
 const FIELD_STEP = {
-  goal: 0, product: 0, goods: 0, origin: 0, destination: 0, 'volume.amount': 0, notes: 2,
+  product: 0, destination: 0, 'volume.amount': 0, notes: 2,
   'contact.company': 3, 'contact.email': 3, 'contact.name': 3, 'contact.phone': 3, 'consent.contact': 3,
 };
 const stepOf = field => (field.startsWith('requirements.') ? 2 : FIELD_STEP[field]);
@@ -33,7 +33,7 @@ const controlOf = field => (field === 'volume.amount' ? 'volume' : field.replace
 // randomUUID needs a secure context; getRandomValues does not (plain-http previews).
 const newKey = () => crypto.randomUUID?.() ?? Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
 
-/** @param {{ lang: 'en' | 'vi', request: { product?: string, goal?: string, source?: string } }} props */
+/** @param {{ lang: 'en' | 'vi', request: { product?: string, source?: string } }} props */
 export function TradeDesk({ lang, request }) {
   const t = deskCopy[lang];
   const uid = useId().replace(/:/g, '');
@@ -64,13 +64,13 @@ export function TradeDesk({ lang, request }) {
   const main = useRef(null);
 
   // A new brief. Consent is given per inquiry, so it is asked again; after a sent inquiry the contact is cleared too.
-  const startBrief = ({ product = null, goal } = {}) => {
+  const startBrief = ({ product = null } = {}) => {
     if (reference) {
       setContact({ company: '', email: '', name: '', phone: '' });
       setWebsite('');
     }
     setConsent(false);
-    setBrief(emptyBrief({ goal: productById(product) ? 'sourcing' : goal, product }));
+    setBrief(emptyBrief({ product }));
     setStep(0);
     setReference('');
     setAcknowledged(false);
@@ -85,9 +85,9 @@ export function TradeDesk({ lang, request }) {
   // An acceptance the buyer has not seen yet (it arrived while the desk was closed) is shown, never replaced.
   if (request !== handled) {
     setHandled(request);
-    const { product = null, goal } = request;
-    const fresh = reference ? acknowledged : (product && product !== brief.product) || (goal && goal !== brief.goal);
-    if (fresh) startBrief({ product, goal });
+    const { product = null } = request;
+    const fresh = reference ? acknowledged : Boolean(product) && product !== brief.product;
+    if (fresh) startBrief({ product });
     setOpen(true);
   }
   const openChange = next => {
@@ -106,31 +106,27 @@ export function TradeDesk({ lang, request }) {
 
   const summary = summarize(brief, lang, { pending: t.pending });
   const update = patch => setBrief(b => ({ ...b, ...patch }));
-  const setGoal = goal => {
-    setBrief(b => emptyBrief({ goal, product: goal === 'sourcing' ? b.product : null }));
-    track('trade_goal_selected', { goal });
-  };
   const setProduct = product => {
     setBrief(b => withProduct(b, product));
     track('trade_product_selected', { product, source: 'chosen' });
   };
   const go = next => {
     setStep(next);
-    track('trade_requirement_progress', { goal: brief.goal, product: brief.product ?? undefined, step: STEP_IDS[next], progress: progress(brief) });
-    if (next === 3) track('trade_brief_generated', { goal: brief.goal, product: brief.product ?? undefined, missing: summary.missing.length });
+    track('trade_requirement_progress', { product: brief.product ?? undefined, step: STEP_IDS[next], progress: progress(brief) });
+    if (next === 3) track('trade_brief_generated', { product: brief.product ?? undefined, missing: summary.missing.length });
   };
   // A missing-information chip: core fields are on step 1, requirements on step 3.
   const pick = item => {
     focusKey.current = item.key;
-    const target = ['product', 'goods', 'origin', 'destination', 'volume'].includes(item.key) ? 0 : 2;
+    const target = ['product', 'destination', 'volume'].includes(item.key) ? 0 : 2;
     if (target === step) document.getElementById(fieldId(uid, item.key))?.focus();
     else go(target);
   };
-  const canContinue = brief.goal === 'sourcing' ? Boolean(brief.product) : brief.goods.trim() !== '';
+  const canContinue = Boolean(brief.product);
   const product = productById(brief.product);
-  const facts = { goal: brief.goal, product: brief.product ?? undefined };
-  // The product (or the goal), never the buyer's free text: it goes into the follow-up links.
-  const subject = product?.[lang] ?? GOALS.find(g => g.id === brief.goal).label[lang];
+  const facts = { product: brief.product ?? undefined };
+  // The product name, never the buyer's free text: it goes into the follow-up links.
+  const subject = product?.[lang];
   const channels = reference ? followUpChannels(contactChannels, { lang, reference, subject }) : [];
 
   const startContact = () => {
@@ -201,7 +197,7 @@ export function TradeDesk({ lang, request }) {
     const en = summarize(brief, 'en', { pending: 'to be confirmed' });
     window.location.assign(createInquiryMailto({
       ...contact,
-      product: product?.en ?? brief.goods,
+      product: product?.en,
       destination: brief.destination,
       volume: en.rows.find(r => r.key === 'volume')?.value,
       requirements: [...en.rows.filter(r => ['route', 'application', 'transport'].includes(r.key)), ...en.requirements].map(r => [r.label, r.value]),
@@ -271,7 +267,7 @@ export function TradeDesk({ lang, request }) {
                     {t.steps[step]}
                   </h3>
                   <fieldset className="desk-lock" disabled={status === 'sending'}>
-                  {step === 0 && <RequirementsStep uid={uid} lang={lang} t={t} brief={brief} setGoal={setGoal} setProduct={setProduct} update={update} errorFor={errorFor} />}
+                  {step === 0 && <RequirementsStep uid={uid} lang={lang} t={t} brief={brief} setProduct={setProduct} update={update} errorFor={errorFor} />}
                   {step === 1 && <ReviewStep lang={lang} t={t} brief={brief} summary={summary} onPick={pick} />}
                   {step === 2 && <CompleteStep uid={uid} lang={lang} t={t} brief={brief} update={update} errorFor={errorFor} />}
                   {step === 3 && (
@@ -331,7 +327,7 @@ export function TradeDesk({ lang, request }) {
                     )}
                     {step === 0 && (
                       <>
-                        {!canContinue && <p className="desk-note">{brief.goal === 'sourcing' ? t.chooseProduct : t.describeGoods}</p>}
+                        {!canContinue && <p className="desk-note">{t.chooseProduct}</p>}
                         <Button type="button" size="lg" className="day-cta" disabled={!canContinue} onClick={() => go(1)}>
                           {t.review}
                           <ArrowRight size={18} />

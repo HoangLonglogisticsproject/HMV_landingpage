@@ -1,18 +1,14 @@
-// HMV Trade Desk business rules: goals, products, origins, units and the requirements HMV asks a buyer to define.
-// Controlled data only. The review lists what is missing from these rules and nothing else; no requirement, claim or
-// value is generated. Product-specific lists follow the approved buyer pages (data/productPages.js).
+// HMV Trade Desk business rules: products, origins, units and the requirements HMV asks a buyer to define. Every
+// inquiry is product-led: route, Incoterm, packaging, delivery window and certification are requirements of the
+// product's supply plan, never inquiries of their own. Controlled data only. The review lists what is missing from
+// these rules and nothing else; no requirement, claim or value is generated. Product-specific lists follow the
+// approved buyer pages (data/productPages.js).
 import { products } from '@/data/hmv';
 
 const t = (en, vi) => ({ en, vi });
 const text = (key, label) => ({ key, kind: 'text', label });
 const choice = (key, label, options) => ({ key, kind: 'choice', label, options });
 const option = (id, label) => ({ id, label });
-
-export const GOALS = [
-  option('sourcing', t('Product sourcing', 'Tìm nguồn hàng')),
-  option('logistics', t('Logistics', 'Logistics')),
-  option('customs', t('Customs & compliance', 'Hải quan & tuân thủ')),
-];
 
 export const ORIGINS = { vietnam: t('Vietnam', 'Việt Nam'), cambodia: t('Cambodia', 'Campuchia') };
 /** Origins HMV sources a product from: Vietnam; dried cassava chips also Cambodia (HMV cassava dossier). */
@@ -76,52 +72,23 @@ const specRequirements = product =>
     return text(`spec-${slug(en)}`, t(en, vi));
   });
 
-const GOAL_REQUIREMENTS = {
-  logistics: [
-    choice('cargoType', t('Cargo type', 'Loại hàng'), [
-      option('general', t('General cargo', 'Hàng thông thường')),
-      option('reefer', t('Temperature-controlled', 'Hàng cần kiểm soát nhiệt độ')),
-      option('dangerous', t('Dangerous goods', 'Hàng nguy hiểm')),
-      option('oversized', t('Oversized / project cargo', 'Hàng quá khổ / hàng dự án')),
-    ]),
-    text('readyDate', t('Cargo ready date', 'Ngày hàng sẵn sàng')),
-    INCOTERM,
-    text('packaging', t('Packing details', 'Quy cách đóng gói')),
-  ],
-  customs: [
-    choice('service', t('Service needed', 'Dịch vụ cần hỗ trợ'), [
-      option('import', t('Import clearance', 'Thông quan nhập khẩu')),
-      option('export', t('Export clearance', 'Thông quan xuất khẩu')),
-      option('documents', t('Documents & certificates review', 'Rà soát chứng từ & chứng nhận')),
-      option('dg', t('Dangerous-goods classification', 'Phân loại hàng nguy hiểm')),
-    ]),
-    text('hsCode', t('HS code, if known', 'Mã HS (nếu có)')),
-    text('timing', t('Required timing', 'Thời gian cần hoàn thành')),
-  ],
-};
-
 export const productById = id => products.find(p => p.id === id);
 
-/** The requirement fields of a brief: by product for sourcing, by goal otherwise. */
-export function requirementsFor({ goal, product }) {
-  if (goal !== 'sourcing') return GOAL_REQUIREMENTS[goal] ?? [];
+/** The requirement fields of a brief's product; none until a product is chosen. */
+export function requirementsFor({ product }) {
   const p = productById(product);
   if (!p) return [];
   return PRODUCT_REQUIREMENTS[p.id] ?? [...specRequirements(p), DESTINATION_PORT, DELIVERY_WINDOW, CERTIFICATION, INCOTERM];
 }
 
-// The core of each goal, asked first: what HMV needs before anything else.
-const CORE = {
-  sourcing: [['product', t('Product', 'Sản phẩm')], ['destination', t('Destination', 'Điểm đến')], ['volume', t('Estimated volume', 'Sản lượng dự kiến')]],
-  logistics: [['goods', t('Cargo description', 'Mô tả hàng hóa')], ['origin', t('Origin', 'Điểm đi')], ['destination', t('Destination', 'Điểm đến')], ['volume', t('Estimated volume', 'Sản lượng dự kiến')]],
-  customs: [['goods', t('Goods', 'Hàng hóa')], ['destination', t('Destination country', 'Quốc gia đến')]],
-};
+// The core of every brief, asked first: what HMV needs before anything else.
+const CORE = [['product', t('Product', 'Sản phẩm')], ['destination', t('Destination', 'Điểm đến')], ['volume', t('Estimated volume', 'Sản lượng dự kiến')]];
 const filled = value => String(value ?? '').trim() !== '';
 
-/** Everything HMV asks for in a brief, in asking order: the goal's core fields, the application where the product has
- * them, then the requirements. Each entry: { key, label, core, done }. */
+/** Everything HMV asks for in a brief, in asking order: the core fields, the application where the product has them,
+ * then the requirements. Each entry: { key, label, core, done }. */
 export function checklist(brief) {
-  const core = (CORE[brief.goal] ?? []).map(([key, label]) => (
+  const core = CORE.map(([key, label]) => (
     { key, label, core: true, done: filled(key === 'volume' ? brief.volume?.amount : brief[key]) }
   ));
   const application = APPLICATIONS[brief.product]

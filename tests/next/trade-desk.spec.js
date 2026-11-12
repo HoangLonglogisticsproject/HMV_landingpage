@@ -30,7 +30,10 @@ test('home: "Request a Supply Plan" opens the desk; Escape closes it; focus stay
   await page.goto('/');
   await page.getByRole('button', { name: 'Request a Supply Plan' }).click();
   await expect(desk(page)).toBeVisible();
-  await expect(desk(page)).toContainText('Trade inquiry & sourcing desk');
+  await expect(desk(page)).toContainText('Integrated agricultural supply and trade execution');
+  // Product-led: the first step is the product, with no goal to choose.
+  await expect(desk(page).getByRole('group', { name: 'Product', exact: true })).toBeVisible();
+  await expect(desk(page)).not.toContainText('What do you need?');
   for (let i = 0; i < 12; i++) await page.keyboard.press('Tab');
   expect(await desk(page).evaluate(el => el.contains(document.activeElement))).toBe(true);
   await page.keyboard.press('Escape');
@@ -43,8 +46,9 @@ test('Vietnamese home: the desk opens in Vietnamese', async ({ page }) => {
   await page.goto('/vi');
   await page.getByRole('button', { name: 'Nhận phương án cung ứng' }).click();
   const d = page.getByRole('dialog', { name: 'HMV Trade Desk' });
-  await expect(d).toContainText('Tiếp nhận & chuẩn hóa yêu cầu giao thương');
-  await expect(d.getByRole('radio', { name: 'Tìm nguồn hàng' })).toBeChecked();
+  await expect(d).toContainText('Phương án cung ứng và thực thi giao thương nông sản xuyên suốt');
+  await expect(d.getByRole('radio', { name: 'Chanh dây' })).toBeVisible();
+  await expect(d).not.toContainText('Bạn cần hỗ trợ gì?');
 });
 
 test('product page: the desk opens with the product preselected and its own requirements', async ({ page }) => {
@@ -74,7 +78,10 @@ test('inquiry accepted: brief before contact, reference shown, generate_lead onl
   expect(posted).toMatchObject({ product: 'passion-fruit', destination: 'Rotterdam, Netherlands', contact: { company: 'Example Foods B.V.', email: 'buyer@example.com' }, consent: { contact: true } });
   expect(posted.context).toMatchObject({ page: '/products/passion-fruit', utm: { source: 'linkedin', medium: 'social' } });
   const events = await dataLayer(page);
-  expect(events.at(-1)).toEqual({ event: 'generate_lead', goal: 'sourcing', product: 'passion-fruit', locale: 'en' });
+  expect(events.at(-1)).toEqual({ event: 'generate_lead', product: 'passion-fruit', locale: 'en' });
+  expect(JSON.stringify(events)).not.toMatch(/goal/);
+  expect(posted).not.toHaveProperty('goal');
+  expect(posted).not.toHaveProperty('goods');
   expect(JSON.stringify(events)).not.toMatch(/buyer@example\.com|Example Foods|Rotterdam/);
   // This build has no NEXT_PUBLIC_HMV_* channels: no follow-up links rather than broken ones.
   await expect(desk(page).locator('.desk-follow-up')).toHaveCount(0);
@@ -100,7 +107,6 @@ test('POST /api/inquiry: validates, and without a delivery adapter refuses with 
   const inquiry = {
     idempotencyKey: '9d2c4e6a-1b3f-4a5c-8e7d-6f5a4b3c2d1e',
     locale: 'en',
-    goal: 'sourcing',
     product: 'passion-fruit',
     contact: { company: 'Example Foods', email: 'buyer@example.com' },
     consent: { contact: true },
@@ -133,7 +139,7 @@ test('the existing RFQs remain as the fallback', async ({ page }) => {
 function deskCodeLoads(page) {
   const loaded = { desk: false };
   page.on('response', async res => {
-    if (/\/_next\/static\/chunks\/.+\.js$/.test(res.url()) && (await res.text().catch(() => '')).includes('Trade inquiry & sourcing desk')) loaded.desk = true;
+    if (/\/_next\/static\/chunks\/.+\.js$/.test(res.url()) && (await res.text().catch(() => '')).includes('Integrated agricultural supply and trade execution')) loaded.desk = true;
   });
   return loaded;
 }
@@ -163,7 +169,8 @@ test('navigation: "HMV Trade Desk" opens the desk (desktop bar or mobile drawer)
   if (test.info().project.name === 'chromium-mobile') await page.getByRole('button', { name: 'Open navigation' }).click();
   await page.locator('nav .nav-support-btn').click();
   await expect(desk(page)).toBeVisible();
-  await expect(desk(page).getByRole('radio', { name: 'Product sourcing' })).toBeChecked();
+  await expect(desk(page).getByRole('radio', { name: 'Passion fruit', exact: true })).toBeVisible();
+  await expect(desk(page).getByRole('button', { name: 'Review requirement' })).toBeDisabled();
 });
 
 test('the consent checkbox links the privacy notice, in the buyer language', async ({ page }) => {

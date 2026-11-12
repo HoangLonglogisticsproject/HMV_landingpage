@@ -5,7 +5,6 @@ import { validateInquiry } from './validation.js';
 const valid = overrides => ({
   idempotencyKey: '0f3b6d2e-1c4a-4e8b-9a77-2f1d3c4b5a69',
   locale: 'vi',
-  goal: 'sourcing',
   product: 'dried-cassava-chips',
   origin: 'cambodia',
   destination: 'Qinzhou, China',
@@ -87,15 +86,17 @@ test('text over its limit is an error for that field, never silently shortened',
   assert.deepEqual(over.errors.sort(), [
     'contact.company', 'contact.email', 'contact.name', 'contact.phone', 'destination', 'notes', 'requirements.starch', 'volume.amount',
   ].sort());
-  assert.deepEqual(validateInquiry(valid({ goal: 'logistics', product: null, goods: 'Samples', origin: at(121) })).errors, ['origin']);
+  // The origin is one the product offers: anything else is its first origin, never free text.
+  assert.equal(validateInquiry(valid({ product: 'passion-fruit', origin: 'cambodia', application: '', requirements: {} })).value.origin, 'vietnam');
+  assert.equal(validateInquiry(valid({ origin: at(121) })).value.origin, 'vietnam');
 });
 
-test('logistics and customs need a goods description; the honeypot marks spam; garbage bodies fail', () => {
-  assert.deepEqual(validateInquiry(valid({ goal: 'logistics', goods: '' })).errors, ['goods']);
-  const customs = validateInquiry(valid({ goal: 'customs', goods: 'Chemical samples', requirements: { service: 'import', hsCode: '2905' } }));
-  assert.equal(customs.ok, true);
-  assert.equal(customs.value.product, null);
-  assert.deepEqual(customs.value.requirements, { service: 'import', hsCode: '2905' });
+test('every inquiry names a product; goal and goods are not part of it; the honeypot marks spam; garbage bodies fail', () => {
+  assert.deepEqual(validateInquiry(valid({ product: null })).errors, ['product']);
+  assert.deepEqual(validateInquiry(valid({ product: 'logistics', goods: 'Samples' })).errors, ['product']);
+  const legacy = validateInquiry(valid({ goal: 'customs', goods: 'Chemical samples' }));
+  assert.equal(legacy.ok, true);
+  assert.equal('goal' in legacy.value || 'goods' in legacy.value, false);
   assert.equal(validateInquiry(valid({ website: 'http://spam' })).spam, true);
   assert.equal(validateInquiry(null).ok, false);
   assert.equal(validateInquiry(valid({ volume: { amount: 'lots', unit: 'mt' } })).errors[0], 'volume.amount');

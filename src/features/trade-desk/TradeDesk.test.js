@@ -71,8 +71,11 @@ test('opens from a call to action with the product preselected, in English', asy
   assert.equal(dialog(), null);
   await open({ product: 'passion-fruit', source: 'product_hero' });
   assert.equal(dialog().querySelector('h2').textContent, 'HMV Trade Desk');
-  assert.ok(dialog().textContent.includes('Trade inquiry & sourcing desk'));
+  assert.ok(dialog().textContent.includes('Integrated agricultural supply and trade execution'));
+  // Product-led: the desk opens on the product requirement; there is no goal to choose.
   assert.equal(dialog().querySelector('input[type="radio"][value="passion-fruit"]').checked, true);
+  assert.equal(dialog().querySelector('[name$="-goal"]'), null);
+  assert.doesNotMatch(dialog().textContent, /What do you need\?|Product sourcing|Customs & compliance|Cargo or goods/);
   assert.deepEqual(window.dataLayer, [
     { event: 'trade_desk_open', source: 'product_hero', product: 'passion-fruit', locale: 'en' },
     { event: 'trade_product_selected', product: 'passion-fruit', source: 'preselected' },
@@ -84,9 +87,40 @@ test('Vietnamese: the desk, its steps and its controls in Vietnamese', async () 
   await render('vi');
   await open({ source: 'home_hero' });
   const text = dialog().textContent;
-  for (const s of ['Tiếp nhận & chuẩn hóa yêu cầu giao thương', 'Nhu cầu', 'Phân tích yêu cầu', 'Bổ sung thông tin', 'Phương án & báo giá', 'Tìm nguồn hàng', 'Chanh dây']) {
+  for (const s of ['Phương án cung ứng và thực thi giao thương nông sản xuyên suốt', 'Nhu cầu', 'Phân tích yêu cầu', 'Bổ sung thông tin', 'Phương án & báo giá', 'Sản phẩm', 'Chanh dây']) {
     assert.ok(text.includes(s), s);
   }
+  assert.doesNotMatch(text, /Bạn cần hỗ trợ gì\?|Tìm nguồn hàng|Hải quan & tuân thủ/);
+});
+
+test('from the dried cassava chips page: the product, its origins and applications on step 1, ready to continue', async () => {
+  await render();
+  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
+  assert.equal(dialog().querySelector('input[value="dried-cassava-chips"]').checked, true);
+  assert.equal(dialog().querySelector('input[value="vietnam"]').checked, true);
+  assert.ok(dialog().querySelector('input[value="cambodia"]'));
+  assert.ok(dialog().querySelector('input[value="bioethanol"]'));
+  assert.equal(button('Review requirement').disabled, false);
+});
+
+test('changing the product clears what belonged to the previous one; the destination stays', async () => {
+  await render();
+  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
+  await click(dialog().querySelector('input[value="cambodia"]'));
+  await click(dialog().querySelector('input[value="bioethanol"]'));
+  await type(field('destination'), 'Qinzhou');
+  await type(field('volume'), '5000');
+  await click(dialog().querySelector('input[value="passion-fruit"]'));
+  // Passion fruit: Vietnam only (no origin choice), no application list, containers instead of MT / month.
+  assert.equal(dialog().querySelector('input[value="cambodia"]'), null);
+  assert.equal(dialog().querySelector('input[value="bioethanol"]'), null);
+  assert.equal(field('volume').value, '');
+  assert.equal(field('destination').value, 'Qinzhou');
+  await click(button('Review requirement'));
+  await click(button('See preliminary brief'));
+  const brief = dialog().querySelector('.desk-brief').textContent;
+  assert.ok(brief.includes('Vietnam → Qinzhou'));
+  assert.doesNotMatch(brief, /Cambodia|Bioethanol|5000/);
 });
 
 test('keyboard: focus moves into the desk on open; Escape and the close button close it', async () => {
@@ -132,11 +166,12 @@ test('preliminary brief before any contact detail: summary, next action, disclai
   assert.ok(brief.includes('Preliminary Supply Brief'));
   assert.ok(brief.includes('Vietnam → Rotterdam'));
   assert.ok(brief.includes('The HMV commercial team reviews this brief'));
+  assert.ok(brief.includes('prepares an integrated supply proposal for this requirement'));
   assert.ok(brief.includes('Availability, specifications, pricing and delivery terms are confirmed by HMV in the commercial proposal.'));
   assert.doesNotMatch(brief.replace(/Availability, specifications, pricing[^.]*\./, ''), /\$|USD|price|in stock|available|guarantee|certified|transit|\d+\s*days/i);
   assert.ok(field('contact.email'));
   // Missing: the volume and the seven passion-fruit requirements.
-  assert.deepEqual(window.dataLayer.find(e => e.event === 'trade_brief_generated'), { event: 'trade_brief_generated', goal: 'sourcing', product: 'passion-fruit', missing: 8 });
+  assert.deepEqual(window.dataLayer.find(e => e.event === 'trade_brief_generated'), { event: 'trade_brief_generated', product: 'passion-fruit', missing: 8 });
 });
 
 test('contact validation: company, work email and consent are checked before anything is sent', async () => {
@@ -178,7 +213,9 @@ test('successful inquiry: one request even on a double click, the reference show
 
   await act(async () => accept({ status: 201, body: { reference: 'HMV-2026-7KQ4XM' } }));
   assert.ok(dialog().textContent.includes('HMV-2026-7KQ4XM'));
-  assert.deepEqual(window.dataLayer.at(-1), { event: 'generate_lead', goal: 'sourcing', product: 'passion-fruit', locale: 'en' });
+  assert.deepEqual(window.dataLayer.at(-1), { event: 'generate_lead', product: 'passion-fruit', locale: 'en' });
+  // No goal event or property anywhere.
+  assert.doesNotMatch(JSON.stringify(window.dataLayer), /goal/);
   // Nothing personal or free-text in analytics.
   assert.doesNotMatch(JSON.stringify(window.dataLayer), /buyer@example\.com|Example Foods|Rotterdam/);
 
@@ -323,7 +360,7 @@ test('a response for an earlier brief never changes the current one', async () =
   assert.doesNotMatch(dialog().textContent, /HMV-2026-OLDONE|Sent to the HMV commercial team/);
   assert.equal(dialog().querySelector('input[value="dried-cassava-chips"]').checked, true);
   // The earlier inquiry was accepted: its lead is counted, for its own product.
-  assert.deepEqual(window.dataLayer.filter(e => e.event === 'generate_lead'), [{ event: 'generate_lead', goal: 'sourcing', product: 'passion-fruit', locale: 'en' }]);
+  assert.deepEqual(window.dataLayer.filter(e => e.event === 'generate_lead'), [{ event: 'generate_lead', product: 'passion-fruit', locale: 'en' }]);
 });
 
 test('the email draft fallback keeps the route, origin included', async () => {

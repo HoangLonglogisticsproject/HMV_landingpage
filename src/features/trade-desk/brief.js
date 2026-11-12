@@ -9,13 +9,11 @@ import {
 /** DOM id of a brief field: shared by the steps and the desk's focus handling. */
 export const fieldId = (uid, key) => `${uid}-${key}`;
 
-/** @param {{ goal?: string, product?: string | null }} [start] */
-export function emptyBrief({ goal = 'sourcing', product = null } = {}) {
+/** @param {{ product?: string | null }} [start] */
+export function emptyBrief({ product = null } = {}) {
   return {
-    goal,
     product: productById(product) ? product : null,
-    goods: '',
-    origin: goal === 'sourcing' ? originsFor(product)[0] : '',
+    origin: originsFor(product)[0],
     destination: '',
     volume: { amount: '', unit: defaultUnit(product) },
     application: '',
@@ -43,17 +41,14 @@ export const withProduct = (brief, product) => {
 
 const filled = value => String(value ?? '').trim() !== '';
 
-/** Origin as displayed: a sourcing origin from the rules, otherwise what the buyer typed. */
-const originLabel = (brief, lang) => (brief.goal === 'sourcing' ? ORIGINS[brief.origin]?.[lang] : brief.origin) ?? '';
-
 /** The brief as rows of known values, in the buyer's language. `pending`: the placeholder for an unknown destination. */
 export function summarize(brief, lang, { pending }) {
   const product = productById(brief.product);
-  const origin = originLabel(brief, lang);
+  const origin = ORIGINS[brief.origin]?.[lang] ?? '';
   const destination = brief.destination.trim();
   const rows = [];
   const row = (key, label, value) => filled(value) && rows.push({ key, label, value });
-  row('product', { en: 'Product', vi: 'Sản phẩm' }[lang], product?.[lang] ?? brief.goods.trim());
+  row('product', { en: 'Product', vi: 'Sản phẩm' }[lang], product?.[lang]);
   if (filled(origin) || filled(destination)) {
     row('route', { en: 'Route', vi: 'Tuyến' }[lang], `${origin || pending} → ${destination || pending}`);
   }
@@ -84,9 +79,7 @@ export function toInquiry(brief, { contact, consent, locale, context, idempotenc
   return {
     idempotencyKey,
     locale,
-    goal: brief.goal,
     product: brief.product,
-    goods: brief.goods,
     origin: brief.origin,
     destination: brief.destination,
     volume: brief.volume,

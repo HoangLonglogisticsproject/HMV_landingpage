@@ -13,7 +13,6 @@ const post = (body, type = 'application/json') =>
 const inquiry = {
   idempotencyKey: '7c1e2a90-4b5d-4c3e-8f21-0a9b8c7d6e5f',
   locale: 'vi',
-  goal: 'sourcing',
   product: 'dried-cassava-chips',
   contact: { company: 'Feed Co', email: 'buyer@example.com' },
   consent: { contact: true },

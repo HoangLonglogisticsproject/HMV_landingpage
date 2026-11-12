@@ -1,7 +1,7 @@
 // Optional follow-up after a sent inquiry: links that open WhatsApp, Zalo or email for the buyer to write to HMV.
 // Nothing is sent automatically. Configured per deployment (`contactChannels` from the `@/lib/inquiry` port); an
-// unset or malformed channel is left out rather than shown broken. Only the reference and the product (or goal) go
-// into a link: never the buyer's email, phone, company or free-text requirements.
+// unset or malformed channel is left out rather than shown broken. Only the reference and the product name go into a
+// link: never the buyer's email, phone, company or free-text requirements.
 
 const WHATSAPP = /^\d{8,15}$/;
 const ZALO = /^https:\/\/(oa\.)?zalo\.me\/[\w./-]+$/;
@@ -19,7 +19,7 @@ const MESSAGE = {
 
 /**
  * @param {{ whatsapp?: string, zalo?: string, email?: string }} config
- * @param {{ lang: 'en' | 'vi', reference: string, subject: string }} inquiry `subject`: the product or goal name
+ * @param {{ lang: 'en' | 'vi', reference: string, subject: string }} inquiry `subject`: the product name
  * @returns {{ id: 'whatsapp' | 'zalo' | 'email', href: string }[]} in display order; the first is the primary one
  */
 export function followUpChannels(config, { lang, reference, subject }) {

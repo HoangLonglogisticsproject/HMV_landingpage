@@ -3,12 +3,11 @@
 // slugs) or numbers. Emails, names, companies, phone numbers and free text are dropped by construction.
 const EVENTS = {
   trade_desk_open: ['source', 'product', 'locale'],
-  trade_goal_selected: ['goal'],
   trade_product_selected: ['product', 'source'],
-  trade_requirement_progress: ['goal', 'product', 'step', 'progress'],
-  trade_brief_generated: ['goal', 'product', 'missing'],
-  trade_contact_start: ['goal', 'product'],
-  generate_lead: ['goal', 'product', 'locale'],
+  trade_requirement_progress: ['product', 'step', 'progress'],
+  trade_brief_generated: ['product', 'missing'],
+  trade_contact_start: ['product'],
+  generate_lead: ['product', 'locale'],
 };
 const CATEGORY = /^[a-z0-9_-]{1,40}$/;
 

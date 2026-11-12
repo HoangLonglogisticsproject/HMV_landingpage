@@ -5,7 +5,7 @@ const isPair = v => Object.keys(v).length === 2 && 'en' in v && 'vi' in v;
 
 const COPY = {
   deskName: 'HMV Trade Desk',
-  description: t('Trade inquiry & sourcing desk', 'Tiếp nhận & chuẩn hóa yêu cầu giao thương'),
+  description: t('Integrated agricultural supply and trade execution', 'Phương án cung ứng và thực thi giao thương nông sản xuyên suốt'),
   close: t('Close', 'Đóng'),
   steps: [
     t('Requirements', 'Nhu cầu'),
@@ -15,8 +15,8 @@ const COPY = {
   ],
   guidance: [
     t(
-      'Start with what you need. Leave anything you do not know yet: HMV helps complete it.',
-      'Bắt đầu với nhu cầu của bạn. Thông tin chưa rõ có thể để trống: HMV sẽ cùng bạn hoàn thiện.',
+      'Start with the product you need. Leave anything you do not know yet: HMV helps complete it.',
+      'Bắt đầu với sản phẩm bạn cần. Thông tin chưa rõ có thể để trống: HMV sẽ cùng bạn hoàn thiện.',
     ),
     t(
       'Your requirement as HMV reads it, and what the commercial team needs to prepare an accurate proposal.',
@@ -33,12 +33,8 @@ const COPY = {
   ],
   yourBrief: t('Your brief', 'Phương án của bạn'),
   emptyBrief: t('Your answers appear here as you build the brief.', 'Thông tin bạn nhập sẽ hiển thị tại đây.'),
-  goal: t('What do you need?', 'Bạn cần hỗ trợ gì?'),
   product: t('Product', 'Sản phẩm'),
-  goods: t('Cargo or goods', 'Hàng hóa'),
-  goodsPlaceholder: t('e.g. 2 pallets of chemical samples', 'VD: 2 pallet mẫu hóa chất'),
-  origin: t('Origin', 'Điểm đi'),
-  originPlaceholder: t('Country or city', 'Quốc gia hoặc thành phố'),
+  origin: t('Origin', 'Xuất xứ'),
   destination: t('Destination (country or port)', 'Điểm đến (quốc gia hoặc cảng)'),
   destinationPlaceholder: t('e.g. Rotterdam, Netherlands', 'VD: Rotterdam, Hà Lan'),
   volume: t('Estimated volume', 'Sản lượng dự kiến'),
@@ -48,7 +44,6 @@ const COPY = {
   transport: t('Transport preference, if known', 'Phương thức vận chuyển (nếu đã có)'),
   optional: t('optional', 'không bắt buộc'),
   chooseProduct: t('Choose a product to continue.', 'Chọn sản phẩm để tiếp tục.'),
-  describeGoods: t('Describe the cargo or goods to continue.', 'Mô tả hàng hóa để tiếp tục.'),
   back: t('Back', 'Quay lại'),
   continue: t('Continue', 'Tiếp tục'),
   review: t('Review requirement', 'Xem phân tích'),
@@ -70,8 +65,8 @@ const COPY = {
   toConfirm: t('Information to confirm', 'Thông tin cần xác nhận'),
   next: t('Next HMV action', 'Bước tiếp theo của HMV'),
   nextText: t(
-    'The HMV commercial team reviews this brief, confirms the missing information with you and prepares a commercial proposal.',
-    'Bộ phận kinh doanh HMV xem xét phương án này, xác nhận các thông tin còn thiếu với bạn và chuẩn bị phương án thương mại.',
+    'The HMV commercial team reviews this brief, confirms the missing information with you and prepares an integrated supply proposal for this requirement.',
+    'Bộ phận kinh doanh HMV xem xét phương án này, xác nhận các thông tin còn thiếu với bạn và chuẩn bị phương án cung ứng xuyên suốt cho yêu cầu này.',
   ),
   disclaimer: t(
     'Availability, specifications, pricing and delivery terms are confirmed by HMV in the commercial proposal.',
@@ -94,8 +89,6 @@ const COPY = {
     'consent.contact': t('Confirm that HMV may contact you.', 'Xác nhận HMV có thể liên hệ với bạn.'),
     'contact.name': t('Use up to 100 characters.', 'Tối đa 100 ký tự.'),
     product: t('Choose a product.', 'Chọn một sản phẩm.'),
-    goods: t('Describe the cargo or goods, up to 200 characters.', 'Mô tả hàng hóa, tối đa 200 ký tự.'),
-    origin: t('Use up to 120 characters.', 'Tối đa 120 ký tự.'),
     destination: t('Use up to 120 characters.', 'Tối đa 120 ký tự.'),
     'volume.amount': t('Enter a number, for example 2 or 5000.', 'Nhập một số, ví dụ 2 hoặc 5000.'),
     notes: t('Use up to 2,000 characters.', 'Tối đa 2.000 ký tự.'),

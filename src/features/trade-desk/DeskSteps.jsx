@@ -1,7 +1,7 @@
 import { Check, Plus } from 'lucide-react';
 import { products } from '@/data/hmv';
 import { productPages } from '@/data/productPages';
-import { APPLICATIONS, GOALS, ORIGINS, TRANSPORT, VOLUME_UNITS, originsFor, requirementsFor } from './rules';
+import { APPLICATIONS, ORIGINS, TRANSPORT, VOLUME_UNITS, originsFor, requirementsFor } from './rules';
 import { fieldId } from './brief';
 import { LIMITS } from './validation';
 
@@ -56,48 +56,33 @@ export function TextField({ uid, name, label, hint, value, onChange, error, ...i
   );
 }
 
-/** Step 1, Requirements: the goal, then its core fields. Nothing is required except the product (or the goods). */
-export function RequirementsStep({ uid, lang, t, brief, setGoal, setProduct, update, errorFor }) {
-  const sourcing = brief.goal === 'sourcing';
+/** Step 1, Requirements: the product, then the core of its supply requirement. Only the product is required. */
+export function RequirementsStep({ uid, lang, t, brief, setProduct, update, errorFor }) {
   const origins = originsFor(brief.product);
   return (
     <>
-      <Chips uid={uid} name="goal" lang={lang} legend={t.goal} options={GOALS} value={brief.goal} onChange={setGoal} />
-      {sourcing ? (
-        <>
-          <Chips uid={uid} name="product" lang={lang} legend={t.product} options={products.map(p => ({ id: p.id, label: { en: p.en, vi: p.vi } }))} value={brief.product} onChange={setProduct} error={errorFor('product')} />
-          {brief.product && origins.length > 1 && (
-            <Chips uid={uid} name="origin" lang={lang} legend={t.origin} options={asOptions(ORIGINS, origins)} value={brief.origin} onChange={v => update({ origin: v })} />
-          )}
-        </>
-      ) : (
-        <>
-          <TextField uid={uid} name="goods" label={t.goods} placeholder={t.goodsPlaceholder} value={brief.goods} onChange={v => update({ goods: v })} maxLength={LIMITS.goods} error={errorFor('goods')} />
-          <TextField uid={uid} name="origin" label={t.origin} hint={t.optional} placeholder={t.originPlaceholder} value={brief.origin} onChange={v => update({ origin: v })} maxLength={LIMITS.origin} error={errorFor('origin')} />
-        </>
+      <Chips uid={uid} name="product" lang={lang} legend={t.product} options={products.map(p => ({ id: p.id, label: { en: p.en, vi: p.vi } }))} value={brief.product} onChange={setProduct} error={errorFor('product')} />
+      {brief.product && origins.length > 1 && (
+        <Chips uid={uid} name="origin" lang={lang} legend={t.origin} options={asOptions(ORIGINS, origins)} value={brief.origin} onChange={v => update({ origin: v })} />
       )}
       <TextField uid={uid} name="destination" label={t.destination} hint={t.optional} placeholder={t.destinationPlaceholder} value={brief.destination} onChange={v => update({ destination: v })} maxLength={LIMITS.destination} error={errorFor('destination')} />
-      {brief.goal !== 'customs' && (
-        <div className="desk-field desk-volume">
-          <label htmlFor={fieldId(uid, 'volume')}>
-            {t.volume}
-            <small>{t.optional}</small>
-          </label>
-          <div>
-            <input id={fieldId(uid, 'volume')} inputMode="decimal" maxLength={LIMITS['volume.amount']} placeholder={t.volumePlaceholder} value={brief.volume.amount} onChange={e => update({ volume: { ...brief.volume, amount: e.target.value } })} {...invalid(uid, 'volume', errorFor('volume.amount'))} />
-            <select aria-label={t.unit} value={brief.volume.unit} onChange={e => update({ volume: { ...brief.volume, unit: e.target.value } })}>
-              {Object.entries(VOLUME_UNITS).map(([id, label]) => <option key={id} value={id}>{label[lang]}</option>)}
-            </select>
-          </div>
-          <FieldError uid={uid} name="volume" error={errorFor('volume.amount')} />
+      <div className="desk-field desk-volume">
+        <label htmlFor={fieldId(uid, 'volume')}>
+          {t.volume}
+          <small>{t.optional}</small>
+        </label>
+        <div>
+          <input id={fieldId(uid, 'volume')} inputMode="decimal" maxLength={LIMITS['volume.amount']} placeholder={t.volumePlaceholder} value={brief.volume.amount} onChange={e => update({ volume: { ...brief.volume, amount: e.target.value } })} {...invalid(uid, 'volume', errorFor('volume.amount'))} />
+          <select aria-label={t.unit} value={brief.volume.unit} onChange={e => update({ volume: { ...brief.volume, unit: e.target.value } })}>
+            {Object.entries(VOLUME_UNITS).map(([id, label]) => <option key={id} value={id}>{label[lang]}</option>)}
+          </select>
         </div>
-      )}
+        <FieldError uid={uid} name="volume" error={errorFor('volume.amount')} />
+      </div>
       {APPLICATIONS[brief.product] && (
         <Chips uid={uid} name="application" lang={lang} legend={t.application} hint={t.optional} options={asOptions(APPLICATIONS[brief.product])} value={brief.application} onChange={v => update({ application: v })} />
       )}
-      {brief.goal !== 'customs' && (
-        <Chips uid={uid} name="transport" lang={lang} legend={t.transport} hint={t.optional} options={asOptions(TRANSPORT)} value={brief.transport} onChange={v => update({ transport: v })} />
-      )}
+      <Chips uid={uid} name="transport" lang={lang} legend={t.transport} hint={t.optional} options={asOptions(TRANSPORT)} value={brief.transport} onChange={v => update({ transport: v })} />
     </>
   );
 }

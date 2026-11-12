@@ -2,6 +2,14 @@
 
 Where a buyer's inquiry goes after **Send to HMV Commercial Team**, and what the buyer sees.
 
+HMV's positioning: *Integrated agricultural supply and trade execution* (*Phương án cung ứng và thực thi giao thương
+nông sản xuyên suốt*). Every Trade Desk inquiry is **product-led**: step 1 is the product (preselected from a product
+page), destination, estimated volume, application where the product has them, and preferred transport. Route,
+Incoterm, packaging/loading, delivery window, certification and destination requirements are requirements of that
+product's supply plan; there is no goal (sourcing / logistics / customs) to choose and no free-text goods field. The
+preliminary brief says HMV prepares an integrated supply proposal for the requirement; it promises no service the
+buyer did not ask about.
+
 ```
 Trade Desk (browser) ── POST /api/inquiry (same origin) ──► app/api/inquiry/route.ts
                                                             │ validateInquiry (src/features/trade-desk/validation.js)
@@ -48,7 +56,7 @@ and uses that same string for the hash and as the fetch body; the CMS hashes the
 re-serialized JSON). Headers captured in transit therefore cannot be replayed with a different body within the
 300-second window: the CMS answers 401.
 
-No contact data is in the headers. The body (`cmsPayload` in `adapters.js`) carries controlled ids (product, origin,
+No contact data is in the headers. The body (`cmsPayload` in `adapters.js`) carries controlled ids (product — always present — origin,
 unit, application, transport, requirement options), the contact, `source` (landing path, referrer **origin**, UTM)
 and `consentAt`. The honeypot field is never sent: a filled honeypot is answered as accepted and not delivered.
 
@@ -59,12 +67,13 @@ Shared test vector (asserted in this repo's `src/next/inquiry/service.test.js` a
 secret          hmv-shared-test-vector-secret-0123456789abcdef
 timestamp       1767225600
 idempotencyKey  0f3b6d2e-1c4a-4e8b-9a77-2f1d3c4b5a69
-body            {"locale":"en","goal":"customs","goods":"Test cargo","requirements":{},"contact":{"company":"Example Co","email":"buyer@example.com"},"consentAt":"2026-01-01T00:00:00.000Z"}
-bodySha256      f440d4e1f37ac7063006f0ce11896b0eee0632451af410d48ed7c5f5b873dec1
-signature       7c05a879b426c6be25faf502b443dc310a71424044bf4d32b617e137d8d2d920
+body            {"locale":"en","productId":"dried-cassava-chips","origin":"vietnam","destination":"Singapore","volume":{"amount":"5000","unit":"mt_month"},"application":"bioethanol","transport":"sea_fcl","requirements":{},"contact":{"company":"Example Co","email":"buyer@example.com"},"consentAt":"2026-01-01T00:00:00.000Z"}
+bodySha256      20fe22d201ffaf572bf56b405b8e5695a6e8f270f1312238c40cc078e7431d9c
+signature       37a0452e58562fb1d41ff58ad73f4cc362cd6586e529d2b958476a905d5f4d91
 ```
 
-(`body` is the exact string, without a trailing newline.)
+(`body` is the exact string, without a trailing newline. It is a valid product-led inquiry: `cmsPayload` produces it
+for that brief without page context, and the CMS accepts it.)
 
 | CMS answer | `/api/inquiry` | Buyer sees |
 | --- | --- | --- |
@@ -99,7 +108,7 @@ or the CMS answers 400 and buyers get the failure state.
 `SiteShell` mounts `TradeDeskHost` (small): it records the visit context (landing page, referrer, UTM in
 `sessionStorage`), listens for `openTradeDesk()`, counts `trade_desk_open`, and loads the desk with `React.lazy` on the
 first open. The first open is kept while the code loads (a "Opening HMV Trade Desk…" status shows meanwhile), with its
-product and goal. Measured on `next build` (initial `<script>` chunks of the page):
+product. Measured on `next build` (initial `<script>` chunks of the page):
 
 | Route | Before (desk eager, support chat) | After (desk lazy, no chat) |
 | --- | --- | --- |
@@ -117,7 +126,7 @@ The sent state can offer links for the buyer to continue, if configured at build
 | `NEXT_PUBLIC_HMV_ZALO_URL` | `https://zalo.me/<number or OA path>` | VI only, first |
 | `NEXT_PUBLIC_HMV_SALES_EMAIL` | `sales@…` | Both, last |
 
-An unset or malformed value hides that link. The links carry a fixed message with the reference and product (or goal)
+An unset or malformed value hides that link. The links carry a fixed message with the reference and product name
 only, e.g. `Hello HMV, I submitted inquiry HMV-2026-7KQ4XM regarding Dried cassava chips.` — never the buyer's email,
 phone, company or free text. Nothing is sent automatically; there is no WhatsApp or Zalo API integration.
 

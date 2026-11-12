@@ -45,10 +45,8 @@ export function cmsPayload(inquiry, consentAt) {
   const utm = Object.fromEntries(Object.entries(context.utm).filter(([, v]) => v));
   return {
     locale: inquiry.locale,
-    goal: inquiry.goal,
-    productId: given(inquiry.product),
-    goods: given(inquiry.goods),
-    origin: given(inquiry.origin),
+    productId: inquiry.product,
+    origin: inquiry.origin,
     destination: given(inquiry.destination),
     volume: inquiry.volume.amount ? inquiry.volume : undefined,
     application: given(inquiry.application),

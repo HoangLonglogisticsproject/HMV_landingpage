@@ -62,7 +62,7 @@ for (const id of Object.keys(productPages)) {
       assert.equal(cta.textContent, productPages[id][lang].rfq.title);
       const opened = new Promise(resolve => window.addEventListener('open-hmv-trade-desk', e => resolve(e.detail), { once: true }));
       cta.click();
-      assert.deepEqual(await opened, { product: id, goal: undefined, source: 'product_hero' });
+      assert.deepEqual(await opened, { product: id, source: 'product_hero' });
       // The hero's second link jumps to a section of the same page.
       const { target } = productPages[id][lang].hero.secondary;
       assert.ok(container.querySelector(`a[href="#${target}"]`) && container.querySelector(`section#${target}`), target);
