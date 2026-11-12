@@ -294,6 +294,21 @@ test('CMS delivery is configured by server environment: https (or this machine) 
   assert.equal(deliveryAdapterFromEnv({ INQUIRY_DELIVERY: 'cms', CMS_INQUIRY_URL: url }), null);
   assert.equal(deliveryAdapterFromEnv({ INQUIRY_DELIVERY: 'cms', CMS_INQUIRY_URL: 'http://cms.example/x', CMS_INQUIRY_SECRET: secret }), null);
   assert.equal(deliveryAdapterFromEnv({ INQUIRY_DELIVERY: 'cms', CMS_INQUIRY_URL: 'http://localhost:4000/x', CMS_INQUIRY_SECRET: secret }).name, 'cms');
+  assert.equal(deliveryAdapterFromEnv({ INQUIRY_DELIVERY: 'cms', CMS_INQUIRY_URL: 'http://127.0.0.1:4000/x', CMS_INQUIRY_SECRET: secret }).name, 'cms');
+  // Plain http only to this machine, read from the parsed host: look-alikes are refused.
+  for (const deceptive of [
+    'http://localhost.evil.example/x',
+    'http://127.0.0.1.evil.example/x',
+    'http://localhost@evil.example/x',
+    'http://evil.example/localhost/x',
+    'http://evil.example/?u=http://localhost/',
+    'ftp://localhost/x',
+    'not a url',
+  ]) {
+    assert.equal(deliveryAdapterFromEnv({ INQUIRY_DELIVERY: 'cms', CMS_INQUIRY_URL: deceptive, CMS_INQUIRY_SECRET: secret }), null, deceptive);
+  }
+  // The webhook stays https only, also for this machine.
+  assert.equal(deliveryAdapterFromEnv({ INQUIRY_DELIVERY: 'webhook', INQUIRY_WEBHOOK_URL: 'http://localhost/hook' }), null);
 });
 
 test('the inquiry fingerprint is independent of key order and changes with any value', async () => {
@@ -302,4 +317,29 @@ test('the inquiry fingerprint is independent of key order and changes with any v
   assert.equal(a, '{"a":{"x":"é","y":[1,2]},"b":1}');
   assert.equal(inquiryFingerprint({ a: { x: 'é', y: [1, 2] }, b: 1, idempotencyKey: 'k2', website: 'x' }), a);
   assert.notEqual(inquiryFingerprint({ a: { x: 'é', y: [2, 1] }, b: 1 }), a);
+  // Pinned byte for byte: null and undefined, nested arrays and objects, escaping, falsy values.
+  assert.equal(
+    inquiryFingerprint({ b: undefined, a: null, c: [null, { z: 1, y: 'x' }, [], {}], d: '"q"\\ é', e: 0, f: false, idempotencyKey: 'k', website: 'w' }),
+    '{"a":null,"b":null,"c":[null,{"y":"x","z":1},[],{}],"d":"\\"q\\"\\\\ é","e":0,"f":false}',
+  );
+  const draft = {
+    idempotencyKey: 'k',
+    website: '',
+    locale: 'en',
+    product: 'dried-cassava-chips',
+    origin: 'vietnam',
+    destination: 'Qinzhou, China',
+    volume: { amount: '5000', unit: 'mt_month' },
+    application: 'feed',
+    transport: 'sea_fcl',
+    requirements: { starch: '70', incoterm: 'CIF' },
+    notes: 'Monthly',
+    contact: { company: 'Feed Co', email: 'buyer@example.com', name: '', phone: '' },
+    consent: { contact: true },
+    context: { page: '/products/dried-cassava-chips', landingPage: '/', referrer: '', utm: { source: 'linkedin', medium: null, campaign: null } },
+  };
+  assert.equal(
+    inquiryFingerprint(draft),
+    '{"application":"feed","consent":{"contact":true},"contact":{"company":"Feed Co","email":"buyer@example.com","name":"","phone":""},"context":{"landingPage":"/","page":"/products/dried-cassava-chips","referrer":"","utm":{"campaign":null,"medium":null,"source":"linkedin"}},"destination":"Qinzhou, China","locale":"en","notes":"Monthly","origin":"vietnam","product":"dried-cassava-chips","requirements":{"incoterm":"CIF","starch":"70"},"transport":"sea_fcl","volume":{"amount":"5000","unit":"mt_month"}}',
+  );
 });

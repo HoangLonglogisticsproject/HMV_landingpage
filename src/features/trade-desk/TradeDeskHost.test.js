@@ -40,7 +40,8 @@ test('the desk loads on the first open, which is kept (product preselected) whil
   assert.equal(sessionStorage.getItem('hmv_utm'), JSON.stringify({ source: 'linkedin', medium: null, campaign: null }));
 
   await act(async () => openTradeDesk({ product: 'dried-cassava-chips', source: 'product_hero' }));
-  assert.equal(document.querySelector('[role="status"]').textContent, 'Đang mở HMV Trade Desk…');
+  // The loading state is an <output> (implicit role "status").
+  assert.equal(document.querySelector('output.desk-loading').textContent, 'Đang mở HMV Trade Desk…');
 
   // Still loading a while later: no desk yet, the open request is kept.
   await act(async () => new Promise(resolve => setTimeout(resolve, 20)));
@@ -54,7 +55,7 @@ test('the desk loads on the first open, which is kept (product preselected) whil
   const dialog = document.querySelector('[role="dialog"]');
   assert.ok(dialog);
   assert.equal(dialog.querySelector('input[type="radio"][value="dried-cassava-chips"]').checked, true);
-  assert.equal(document.querySelector('[role="status"]'), null);
+  assert.equal(document.querySelector('output.desk-loading'), null);
   assert.deepEqual(window.dataLayer.map(e => e.event), ['trade_desk_open', 'trade_product_selected']);
 });
 

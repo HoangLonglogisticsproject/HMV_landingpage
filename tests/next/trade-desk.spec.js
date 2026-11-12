@@ -1,12 +1,11 @@
 // @ts-check
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
 import { test, expect } from '@playwright/test';
 
 /**
  * HMV Trade Desk on the Next.js build: entry points, the four steps, submission through POST /api/inquiry and its
  * analytics. The browser flow mocks the API response (page.route); the real endpoint is exercised directly, and with no
- * delivery adapter configured (as in CI) it validates and then refuses with 503.
+ * delivery adapter configured (as in CI) it validates and then refuses with 503. The phone layout and the local-build
+ * chunk check are in trade-desk.mobile.spec.js and trade-desk.local-build.spec.js.
  */
 
 const desk = page => page.getByRole('dialog', { name: 'HMV Trade Desk' });
@@ -118,16 +117,6 @@ test('POST /api/inquiry: validates, and without a delivery adapter refuses with 
   if (!process.env.PLAYWRIGHT_BASE_URL) expect((await request.post('/api/inquiry', { data: inquiry })).status()).toBe(503);
 });
 
-test('mobile: the desk is a full-screen sheet', async ({ page }) => {
-  test.skip(test.info().project.name !== 'chromium-mobile', 'phone layout');
-  await page.goto('/products/passion-fruit');
-  await page.getByRole('button', { name: 'Discuss Your Passion Fruit Requirements' }).click();
-  const box = await desk(page).boundingBox();
-  const viewport = page.viewportSize();
-  expect(box).toMatchObject({ x: 0, y: 0, width: viewport?.width, height: viewport?.height });
-  await expect(desk(page).getByRole('button', { name: 'Review requirement' })).toBeInViewport();
-});
-
 test('the existing RFQs remain as the fallback', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('section#initiate-trade form.rfq-form')).toBeAttached();
@@ -183,16 +172,4 @@ test('the consent checkbox links the privacy notice, in the buyer language', asy
   const res = await page.request.get('/vi/privacy');
   expect(res.status()).toBe(200);
   expect(await res.text()).not.toMatch(/GDPR|CCPA/);
-});
-
-test('no CMS address, secret or signing code in any browser chunk', () => {
-  test.skip(Boolean(process.env.PLAYWRIGHT_BASE_URL), 'reads the local build');
-  const files = [];
-  const walk = dir => readdirSync(dir, { withFileTypes: true }).forEach(e => (e.isDirectory() ? walk(join(dir, e.name)) : e.name.endsWith('.js') && files.push(join(dir, e.name))));
-  walk('.next/static');
-  expect(files.length).toBeGreaterThan(0);
-  for (const file of files) {
-    const js = readFileSync(file, 'utf8');
-    expect(js, file).not.toMatch(/CMS_INQUIRY_(URL|SECRET)|x-hmv-signature|x-hmv-timestamp|integrations\/trade-inquiries/i);
-  }
 });

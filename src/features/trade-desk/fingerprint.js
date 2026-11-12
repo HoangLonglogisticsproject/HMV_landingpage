@@ -6,13 +6,19 @@
 // Code-unit order, explicitly: the same on every machine (localeCompare would depend on the runtime's locale).
 const byCodeUnit = (a, b) => (a < b ? -1 : Number(a > b));
 
-const canonical = value => {
+function canonical(value) {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
   if (value && typeof value === 'object') {
-    return `{${Object.keys(value).sort(byCodeUnit).map(k => `${JSON.stringify(k)}:${canonical(value[k])}`).join(',')}}`;
+    const members = Object.keys(value).sort(byCodeUnit).map(key => member(key, value[key]));
+    return `{${members.join(',')}}`;
   }
   return JSON.stringify(value ?? null);
-};
+}
+
+/** One object member: `"key":value`. */
+function member(key, value) {
+  return `${JSON.stringify(key)}:${canonical(value)}`;
+}
 
 /** @param {Record<string, unknown>} inquiry */
 export const inquiryFingerprint = ({ idempotencyKey: _key, website: _honeypot, ...content }) => canonical(content);

@@ -318,6 +318,29 @@ test('an exact retry keeps the idempotency key; an edited brief or contact gets 
   assert.notEqual(keys[2], keys[1]);
 });
 
+test('a 409 (the key was used for other content) drops the submission identity: the retry takes a new key', async () => {
+  sendInquiry.mockResolvedValueOnce({ status: 409, body: { error: 'conflict' } });
+  await render();
+  await toContact();
+  await send();
+  assert.ok(dialog().querySelector('.desk-failed').textContent.includes('could not be sent'));
+  sendInquiry.mockResolvedValueOnce({ status: 201, body: { reference: 'HMV-2026-NEWKEY' } });
+  await click(button('Try again'));
+  const [first, second] = sendInquiry.mock.calls.map(([inquiry]) => inquiry.idempotencyKey);
+  assert.notEqual(second, first);
+  assert.ok(dialog().textContent.includes('HMV-2026-NEWKEY'));
+});
+
+test('the contact inputs keep their types, autocomplete, limits and required flags', async () => {
+  await render();
+  await toContact();
+  const input = name => field(`contact.${name}`);
+  assert.deepEqual(
+    ['company', 'email', 'name', 'phone'].map(n => [input(n).type, input(n).getAttribute('autocomplete'), input(n).maxLength, input(n).required]),
+    [['text', 'organization', 150, true], ['email', 'email', 254, true], ['text', 'name', 100, false], ['tel', 'tel', 40, false]],
+  );
+});
+
 test('an acceptance that arrives while the desk is closed is shown on the next open; a new inquiry only on request', async () => {
   let accept;
   sendInquiry.mockReturnValueOnce(new Promise(resolve => { accept = resolve; }));

@@ -63,7 +63,8 @@ export function TradeDeskHost({ lang }) {
   const { Desk, attempt } = desk;
   return (
     <LoadBoundary key={attempt} fallback={failed}>
-      <Suspense fallback={<div className="desk-overlay desk-loading" role="status">{t.loading}</div>}>
+      {/* <output>: a status announced to assistive technology (implicit role "status"). */}
+      <Suspense fallback={<output className="desk-overlay desk-loading">{t.loading}</output>}>
         <Desk lang={lang} request={request} />
       </Suspense>
     </LoadBoundary>

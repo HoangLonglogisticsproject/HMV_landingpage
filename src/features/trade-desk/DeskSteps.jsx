@@ -1,4 +1,5 @@
-import { Check, Plus } from 'lucide-react';
+import { ArrowUpRight, Check, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { products } from '@/data/hmv';
 import { productPages } from '@/data/productPages';
 import { APPLICATIONS, ORIGINS, TRANSPORT, VOLUME_UNITS, originsFor, requirementsFor } from './rules';
@@ -199,5 +200,71 @@ export function BriefStep({ lang, t, brief, summary, onPick }) {
       <p>{t.nextText}</p>
       <p className="desk-disclaimer">{t.disclaimer}</p>
     </section>
+  );
+}
+
+// Step 4's contact fields: [name, autocomplete, required]. Email and phone have their own input types.
+const CONTACT_FIELDS = [['company', 'organization', true], ['email', 'email', true], ['name', 'name', false], ['phone', 'tel', false]];
+const CONTACT_INPUT_TYPE = { email: 'email', phone: 'tel' };
+
+/** The submit button's text for the send status. */
+const submitText = (t, status) => {
+  if (status === 'sending') return t.sending;
+  if (status === 'failed') return t.retry;
+  return t.submit;
+};
+
+/**
+ * Step 4's contact form: the buyer's details, consent with its privacy notice, the honeypot, and the send state (retry
+ * and the email draft after a failure). State and submission live in TradeDesk.jsx.
+ */
+export function ContactForm({ uid, lang, t, contact, setContact, consent, setConsent, website, setWebsite, status, errorFor, onSubmit, onFocus, onMailto }) {
+  const sending = status === 'sending';
+  return (
+    <form className="desk-contact" onSubmit={onSubmit} onFocus={onFocus} noValidate>
+      <h4 className="desk-subhead">{t.contactTitle}</h4>
+      <div className="desk-contact-grid">
+        {CONTACT_FIELDS.map(([name, auto, required]) => {
+          const field = `contact.${name}`;
+          return (
+            <div className="desk-field" key={name}>
+              <label htmlFor={fieldId(uid, field)}>
+                {t[name]}
+                <small>{required ? t.required : t.optional}</small>
+              </label>
+              <input
+                id={fieldId(uid, field)}
+                type={CONTACT_INPUT_TYPE[name] ?? 'text'}
+                autoComplete={auto}
+                required={required}
+                maxLength={LIMITS[field]}
+                value={contact[name]}
+                onChange={e => setContact(c => ({ ...c, [name]: e.target.value }))}
+                {...invalid(uid, field, errorFor(field))}
+              />
+              <FieldError uid={uid} name={field} error={errorFor(field)} />
+            </div>
+          );
+        })}
+      </div>
+      {/* Honeypot: hidden from people and assistive technology; bots fill it. */}
+      <input className="desk-hp" type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" value={website} onChange={e => setWebsite(e.target.value)} />
+      <label className="desk-consent" htmlFor={fieldId(uid, 'consent.contact')}>
+        <input id={fieldId(uid, 'consent.contact')} type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} {...invalid(uid, 'consent.contact', errorFor('consent.contact'))} />
+        <span>{t.consent}</span>
+      </label>
+      <a className="desk-privacy text-link" href={lang === 'vi' ? '/vi/privacy' : '/privacy'} target="_blank" rel="noopener">{t.privacy}</a>
+      <FieldError uid={uid} name="consent.contact" error={errorFor('consent.contact')} />
+      {status === 'failed' && (
+        <div className="desk-failed" role="alert">
+          <p>{t.failed}</p>
+          <button type="button" className="text-link" onClick={onMailto}>{t.mailto}</button>
+        </div>
+      )}
+      <Button type="submit" size="lg" className="day-cta desk-submit" disabled={sending} aria-busy={sending}>
+        {submitText(t, status)}
+        <ArrowUpRight size={18} />
+      </Button>
+    </form>
   );
 }

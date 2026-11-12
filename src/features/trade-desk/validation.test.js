@@ -102,3 +102,43 @@ test('every inquiry names a product; goal and goods are not part of it; the hone
   assert.equal(validateInquiry(valid({ volume: { amount: 'lots', unit: 'mt' } })).errors[0], 'volume.amount');
   assert.equal(validateInquiry(valid({ context: { page: '//evil.example', referrer: 'javascript:alert(1)' } })).value.context.page, '');
 });
+
+test('email shape: one @, a local part, no whitespace, a dotted domain; length is checked separately', () => {
+  const email = value => validateInquiry(valid({ contact: { company: 'Feed Co', email: value } }));
+  for (const ok of ['buyer@example.com', 'Buyer@Example.com', 'procurement.eu+cassava@feed-co.example.com', 'a@acme.com', ' buyer@example.com ']) {
+    assert.equal(email(ok).ok, true, ok);
+  }
+  assert.equal(email('Buyer@Example.com').value.contact.email, 'buyer@example.com');
+  for (const bad of [
+    '', 'buyer.example.com', 'buyer@', '@example.com', // no @, or nothing on one side
+    'buyer@@example.com', 'buyer@team@example.com', // more than one @
+    'buyer @example.com', 'buyer@exa mple.com', 'buyer@example.com\tx', // whitespace
+    'buyer@example', 'buyer@example.', 'buyer@.example.com', 'buyer@example..com', 'buyer@example.c', // no usable domain
+  ]) {
+    assert.deepEqual(email(bad).errors, ['contact.email'], bad);
+  }
+  // Long input is refused quickly and only for its length (no backtracking pattern involved).
+  assert.deepEqual(email(`${'a'.repeat(250)}@x.example`).errors, ['contact.email']);
+  assert.deepEqual(email(`${'a@'.repeat(5000)}x`).errors, ['contact.email']);
+});
+
+test('digits: phone and volume accept the same characters as before', () => {
+  for (const phone of ['', '+84 909 000 000', '(028) 3822-1234', '0909.000.000']) assert.equal(validateInquiry(valid({ contact: { company: 'Feed Co', email: 'a@b.co', phone } })).ok, true, phone);
+  for (const phone of ['+84 909 abc', '٠١٢', '0909/000']) assert.deepEqual(validateInquiry(valid({ contact: { company: 'Feed Co', email: 'a@b.co', phone } })).errors, ['contact.phone'], phone);
+  for (const amount of ['5000', '5,000', '5.000,5', '2 500']) assert.equal(validateInquiry(valid({ volume: { amount, unit: 'mt' } })).ok, true, amount);
+  for (const amount of ['lots', ',5', '٥']) assert.deepEqual(validateInquiry(valid({ volume: { amount, unit: 'mt' } })).errors, ['volume.amount'], amount);
+});
+
+test('errors come in checking order: plan, requirements, contact, consent, then the key', () => {
+  const result = validateInquiry({
+    product: 'logistics',
+    destination: 'x'.repeat(121),
+    notes: 'x'.repeat(2001),
+    volume: { amount: 'lots' },
+    contact: { company: 'E', email: 'nope', phone: 'call me' },
+    idempotencyKey: 'bad key',
+  });
+  assert.deepEqual(result.errors, ['product', 'destination', 'notes', 'volume.amount', 'contact.company', 'contact.email', 'contact.phone', 'consent.contact', 'idempotencyKey']);
+  const requirement = validateInquiry(valid({ requirements: { starch: 'x'.repeat(201), incoterm: 'XYZ' }, contact: { company: 'E', email: 'a@b.co' } }));
+  assert.deepEqual(requirement.errors, ['requirements.starch', 'requirements.incoterm', 'contact.company']);
+});

@@ -22,5 +22,6 @@ export function track(event, params = {}) {
       safe[key] = value;
     }
   }
-  (window.dataLayer ||= []).push({ event, ...safe });
+  if (!window.dataLayer) window.dataLayer = [];
+  window.dataLayer.push({ event, ...safe });
 }

@@ -27,10 +27,11 @@ export function followUpChannels(config, { lang, reference, subject }) {
   const whatsapp = config.whatsapp?.replace(/[\s+().-]/g, '') ?? '';
   const zalo = config.zalo?.trim() ?? '';
   const email = config.email?.trim() ?? '';
+  const emailSubject = `${reference} — ${subject}`;
   const hrefs = {
     whatsapp: WHATSAPP.test(whatsapp) && `https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`,
     zalo: ZALO.test(zalo) && zalo,
-    email: EMAIL.test(email) && `mailto:${email}?subject=${encodeURIComponent(`${reference} — ${subject}`)}&body=${encodeURIComponent(message)}`,
+    email: EMAIL.test(email) && `mailto:${email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(message)}`,
   };
   return ORDER[lang].filter(id => hrefs[id]).map(id => ({ id, href: hrefs[id] }));
 }

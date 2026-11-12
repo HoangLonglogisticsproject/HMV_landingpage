@@ -8,12 +8,12 @@ import { track } from '@/lib/analytics';
 import { contactChannels, sendInquiry } from '@/lib/inquiry';
 import { createInquiryMailto } from '@/features/inquiries/inquiry';
 import { emptyBrief, fieldId, progress, summarize, toInquiry, withProduct } from './brief';
-import { LIMITS, validateInquiry } from './validation';
+import { validateInquiry } from './validation';
 import { inquiryFingerprint } from './fingerprint';
 import { deskCopy } from './copy';
 import { visitContext } from './visit';
 import { followUpChannels } from './channels';
-import { BriefStep, CompleteStep, RequirementsStep, ReviewStep, SummaryList } from './DeskSteps';
+import { BriefStep, CompleteStep, ContactForm, RequirementsStep, ReviewStep, SummaryList } from './DeskSteps';
 
 // HMV Trade Desk: helps a buyer structure a trade requirement and sends it to the HMV commercial team. Loaded and
 // mounted by TradeDeskHost on the first openTradeDesk(); each call arrives as a new `request`. The structured brief
@@ -30,13 +30,15 @@ const FIELD_STEP = {
 const stepOf = field => (field.startsWith('requirements.') ? 2 : FIELD_STEP[field]);
 /** The control a field error points at (its fieldId key). */
 const controlOf = field => (field === 'volume.amount' ? 'volume' : field.replace(/^requirements\./, ''));
+/** POST /api/inquiry accepted the inquiry: 201 with the reference the CMS issued. */
+const isAccepted = ({ status, body }) => status === 201 && typeof body.reference === 'string';
 // randomUUID needs a secure context; getRandomValues does not (plain-http previews).
 const newKey = () => crypto.randomUUID?.() ?? Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
 
 /** @param {{ lang: 'en' | 'vi', request: { product?: string, source?: string } }} props */
 export function TradeDesk({ lang, request }) {
   const t = deskCopy[lang];
-  const uid = useId().replace(/:/g, '');
+  const uid = useId().replaceAll(':', '');
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [brief, setBrief] = useState(() => emptyBrief());
@@ -152,44 +154,56 @@ export function TradeDesk({ lang, request }) {
     return true;
   };
 
+  /** The inquiry as it would be sent now and its fingerprint: an exact retry keeps the key, any change takes a new one. */
+  const prepare = () => {
+    const draft = toInquiry(brief, { contact, consent, locale: lang, context: visitContext(), website });
+    const fingerprint = inquiryFingerprint(draft);
+    const key = submission?.fingerprint === fingerprint ? submission.key : newKey();
+    return { inquiry: { ...draft, idempotencyKey: key }, fingerprint };
+  };
+
+  /** A response for the brief still on screen: its reference, the field errors to correct, or the failure state. */
+  const settle = (response, accepted) => {
+    if (accepted) {
+      setReference(response.body.reference);
+      setAcknowledged(false);
+      setStatus('idle');
+      return;
+    }
+    // 409: this key was used for other content; the next attempt takes a new one.
+    if (response.status === 409) setSubmission(null);
+    setStatus(response.status === 400 && showErrors(response.body.fields ?? []) ? 'idle' : 'failed');
+  };
+
+  /** Sends a validated inquiry of brief `sent.generation`: an accepted lead is counted, but only that brief is updated. */
+  async function deliver(inquiry, sent) {
+    inFlight.current = sent.generation;
+    setStatus('sending');
+    try {
+      const response = await sendInquiry(inquiry);
+      const accepted = isAccepted(response);
+      if (accepted) track('generate_lead', { ...sent.facts, locale: lang });
+      if (live.current === sent.generation) settle(response, accepted);
+    } catch {
+      if (live.current === sent.generation) setStatus('failed');
+    } finally {
+      if (inFlight.current === sent.generation) inFlight.current = -1;
+    }
+  }
+
   async function send(event) {
     event.preventDefault();
     if (inFlight.current === generation) return;
-    const context = visitContext();
-    const draft = toInquiry(brief, { contact, consent, locale: lang, context, website });
-    const fingerprint = inquiryFingerprint(draft);
-    const key = submission?.fingerprint === fingerprint ? submission.key : newKey();
-    const inquiry = { ...draft, idempotencyKey: key };
+    const { inquiry, fingerprint } = prepare();
     const check = validateInquiry(inquiry);
     if (!check.ok) {
       if (!showErrors(check.errors)) setStatus('failed');
       return;
     }
     setFieldErrors([]);
-    setSubmission({ fingerprint, key });
+    setSubmission({ fingerprint, key: inquiry.idempotencyKey });
     // While it is sent the brief cannot change (the step controls are locked); a new brief can be started.
-    const sent = { generation, facts };
-    inFlight.current = generation;
-    setStatus('sending');
-    try {
-      const { status: code, body: data } = await sendInquiry(inquiry);
-      const accepted = code === 201 && typeof data.reference === 'string';
-      if (accepted) track('generate_lead', { ...sent.facts, locale: lang });
-      if (live.current !== sent.generation) return;
-      if (accepted) {
-        setReference(data.reference);
-        setAcknowledged(false);
-        setStatus('idle');
-      } else {
-        // 409: this key was used for other content; the next attempt takes a new one.
-        if (code === 409) setSubmission(null);
-        setStatus(code === 400 && showErrors(data.fields ?? []) ? 'idle' : 'failed');
-      }
-    } catch {
-      if (live.current === sent.generation) setStatus('failed');
-    } finally {
-      if (inFlight.current === sent.generation) inFlight.current = -1;
-    }
+    await deliver(inquiry, { generation, facts });
   }
 
   // The fallback when the API cannot take the brief: the same brief as an email draft, route (origin) included.
@@ -210,8 +224,6 @@ export function TradeDesk({ lang, request }) {
     if (!fieldErrors.includes(name)) return null;
     return t.errors[name] ?? (name.startsWith('requirements.') ? t.errors.requirement : t.errors.field);
   };
-  const err = name => fieldErrors.includes(name) && <span className="desk-error" id={`${fieldId(uid, name)}-error`}>{errorFor(name)}</span>;
-  const describedBy = name => (fieldErrors.includes(name) ? `${fieldId(uid, name)}-error` : undefined);
 
   return (
     <Dialog.Root open={open} onOpenChange={openChange}>
@@ -273,49 +285,22 @@ export function TradeDesk({ lang, request }) {
                   {step === 3 && (
                     <>
                       <BriefStep lang={lang} t={t} brief={brief} summary={summary} onPick={pick} />
-                      <form className="desk-contact" onSubmit={send} onFocus={startContact} noValidate>
-                        <h4 className="desk-subhead">{t.contactTitle}</h4>
-                        <div className="desk-contact-grid">
-                          {[['company', 'organization', true], ['email', 'email', true], ['name', 'name', false], ['phone', 'tel', false]].map(([name, auto, required]) => (
-                            <div className="desk-field" key={name}>
-                              <label htmlFor={fieldId(uid, `contact.${name}`)}>
-                                {t[name]}
-                                <small>{required ? t.required : t.optional}</small>
-                              </label>
-                              <input
-                                id={fieldId(uid, `contact.${name}`)}
-                                type={name === 'email' ? 'email' : name === 'phone' ? 'tel' : 'text'}
-                                autoComplete={auto}
-                                required={required}
-                                maxLength={LIMITS[`contact.${name}`]}
-                                aria-invalid={fieldErrors.includes(`contact.${name}`) || undefined}
-                                aria-describedby={describedBy(`contact.${name}`)}
-                                value={contact[name]}
-                                onChange={e => setContact(c => ({ ...c, [name]: e.target.value }))}
-                              />
-                              {err(`contact.${name}`)}
-                            </div>
-                          ))}
-                        </div>
-                        {/* Honeypot: hidden from people and assistive technology; bots fill it. */}
-                        <input className="desk-hp" type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" value={website} onChange={e => setWebsite(e.target.value)} />
-                        <label className="desk-consent" htmlFor={fieldId(uid, 'consent.contact')}>
-                          <input id={fieldId(uid, 'consent.contact')} type="checkbox" checked={consent} aria-invalid={fieldErrors.includes('consent.contact') || undefined} aria-describedby={describedBy('consent.contact')} onChange={e => setConsent(e.target.checked)} />
-                          <span>{t.consent}</span>
-                        </label>
-                        <a className="desk-privacy text-link" href={lang === 'vi' ? '/vi/privacy' : '/privacy'} target="_blank" rel="noopener">{t.privacy}</a>
-                        {err('consent.contact')}
-                        {status === 'failed' && (
-                          <div className="desk-failed" role="alert">
-                            <p>{t.failed}</p>
-                            <button type="button" className="text-link" onClick={mailto}>{t.mailto}</button>
-                          </div>
-                        )}
-                        <Button type="submit" size="lg" className="day-cta desk-submit" disabled={status === 'sending'} aria-busy={status === 'sending'}>
-                          {status === 'sending' ? t.sending : status === 'failed' ? t.retry : t.submit}
-                          <ArrowUpRight size={18} />
-                        </Button>
-                      </form>
+                      <ContactForm
+                        uid={uid}
+                        lang={lang}
+                        t={t}
+                        contact={contact}
+                        setContact={setContact}
+                        consent={consent}
+                        setConsent={setConsent}
+                        website={website}
+                        setWebsite={setWebsite}
+                        status={status}
+                        errorFor={errorFor}
+                        onSubmit={send}
+                        onFocus={startContact}
+                        onMailto={mailto}
+                      />
                     </>
                   )}
                   <nav className="desk-nav" aria-label={t.steps[step]}>

@@ -104,6 +104,20 @@ export function memoryAdapter() {
 }
 
 /**
+ * A CMS ingestion URL the adapter may use: https, or plain http to this machine only (local testing). The host is
+ * read from the parsed URL, so a look-alike such as http://localhost.evil.example is not this machine.
+ */
+const isCmsUrl = url => {
+  if (url.startsWith('https://')) return true;
+  try {
+    const { protocol, hostname } = new URL(url);
+    return protocol === 'http:' && (hostname === 'localhost' || hostname === '127.0.0.1');
+  } catch {
+    return false;
+  }
+};
+
+/**
  * The adapter configured by environment, or null when none is (the API then answers 503 and no inquiry is lost
  * silently). INQUIRY_DELIVERY=cms with CMS_INQUIRY_URL (https; plain http only to this machine, for local testing)
  * and a CMS_INQUIRY_SECRET of 32+ characters; INQUIRY_DELIVERY=webhook with an https INQUIRY_WEBHOOK_URL (and
@@ -114,11 +128,10 @@ export function memoryAdapter() {
 export function deliveryAdapterFromEnv(env) {
   if (env.INQUIRY_DELIVERY === 'cms') {
     const url = env.CMS_INQUIRY_URL ?? '';
-    const secure = /^https:\/\//.test(url) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(url);
-    if (!secure || (env.CMS_INQUIRY_SECRET ?? '').length < CMS_SECRET_MIN_LENGTH) return null;
+    if (!isCmsUrl(url) || (env.CMS_INQUIRY_SECRET ?? '').length < CMS_SECRET_MIN_LENGTH) return null;
     return cmsAdapter({ url, secret: env.CMS_INQUIRY_SECRET });
   }
-  if (env.INQUIRY_DELIVERY === 'webhook' && /^https:\/\//.test(env.INQUIRY_WEBHOOK_URL ?? '')) {
+  if (env.INQUIRY_DELIVERY === 'webhook' && (env.INQUIRY_WEBHOOK_URL ?? '').startsWith('https://')) {
     return webhookAdapter({ url: env.INQUIRY_WEBHOOK_URL, secret: env.INQUIRY_WEBHOOK_SECRET });
   }
   if (env.INQUIRY_DELIVERY === 'log' && env.NODE_ENV !== 'production') {
