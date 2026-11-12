@@ -21,7 +21,8 @@ import { BriefStep, CompleteStep, RequirementsStep, ReviewStep, SummaryList } fr
 
 const STEP_IDS = ['requirements', 'review', 'complete', 'brief'];
 const CONTACT_FIELDS = ['contact.company', 'contact.email', 'contact.phone', 'consent.contact'];
-const newKey = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+// randomUUID needs a secure context; getRandomValues does not (plain-http previews).
+const newKey = () => crypto.randomUUID?.() ?? Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
 
 /** @param {{ lang: 'en' | 'vi', request: { product?: string, goal?: string, source?: string } }} props */
 export function TradeDesk({ lang, request }) {
@@ -38,10 +39,11 @@ export function TradeDesk({ lang, request }) {
   const [reference, setReference] = useState('');
   // The brief's idempotency key: kept across retries of one brief, new for a new brief.
   const [key, setKey] = useState(newKey);
-  const [handled, setHandled] = useState(null);
+  // The last open request acted on (null before the first).
+  const [handled, setHandled] = useState(/** @type {object | null} */ (null));
   const inFlight = useRef(false);
   // The brief key trade_contact_start was last counted for.
-  const contactStarted = useRef(null);
+  const contactStarted = useRef('');
   const focusKey = useRef(null);
   const heading = useRef(null);
   const main = useRef(null);
