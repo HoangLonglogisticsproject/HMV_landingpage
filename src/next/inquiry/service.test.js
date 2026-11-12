@@ -278,3 +278,11 @@ test('CMS delivery is configured by server environment: https (or this machine) 
   assert.equal(deliveryAdapterFromEnv({ INQUIRY_DELIVERY: 'cms', CMS_INQUIRY_URL: 'http://cms.example/x', CMS_INQUIRY_SECRET: secret }), null);
   assert.equal(deliveryAdapterFromEnv({ INQUIRY_DELIVERY: 'cms', CMS_INQUIRY_URL: 'http://localhost:4000/x', CMS_INQUIRY_SECRET: secret }).name, 'cms');
 });
+
+test('the inquiry fingerprint is independent of key order and changes with any value', async () => {
+  const { inquiryFingerprint } = await import('@/features/trade-desk/fingerprint');
+  const a = inquiryFingerprint({ idempotencyKey: 'k1', b: 1, a: { y: [1, 2], x: 'é' } });
+  assert.equal(a, '{"a":{"x":"é","y":[1,2]},"b":1}');
+  assert.equal(inquiryFingerprint({ a: { x: 'é', y: [1, 2] }, b: 1, idempotencyKey: 'k2', website: 'x' }), a);
+  assert.notEqual(inquiryFingerprint({ a: { x: 'é', y: [2, 1] }, b: 1 }), a);
+});

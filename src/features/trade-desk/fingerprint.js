@@ -3,10 +3,13 @@
 // The Trade Desk keeps an idempotency key for exactly one fingerprint; the inquiry service refuses a key reused with
 // another one.
 
+// Code-unit order, explicitly: the same on every machine (localeCompare would depend on the runtime's locale).
+const byCodeUnit = (a, b) => (a < b ? -1 : Number(a > b));
+
 const canonical = value => {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
   if (value && typeof value === 'object') {
-    return `{${Object.keys(value).sort().map(k => `${JSON.stringify(k)}:${canonical(value[k])}`).join(',')}}`;
+    return `{${Object.keys(value).sort(byCodeUnit).map(k => `${JSON.stringify(k)}:${canonical(value[k])}`).join(',')}}`;
   }
   return JSON.stringify(value ?? null);
 };
