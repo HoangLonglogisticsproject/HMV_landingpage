@@ -17,7 +17,7 @@ const invalid = (uid, name, error) => (error ? { 'aria-invalid': true, 'aria-des
 /** Radio buttons drawn as chips: one choice, keyboard and screen-reader native. */
 export function Chips({ uid, name, legend, options, value, onChange, lang, hint, error }) {
   return (
-    <fieldset className="desk-field" {...invalid(uid, name, error)}>
+    <fieldset className="desk-field">
       <legend>
         {legend}
         {hint && <small>{hint}</small>}
@@ -32,6 +32,7 @@ export function Chips({ uid, name, legend, options, value, onChange, lang, hint,
               value={o.id}
               checked={value === o.id}
               onChange={() => onChange(o.id)}
+              {...invalid(uid, name, error)}
             />
             <span>{o.label[lang]}</span>
           </label>

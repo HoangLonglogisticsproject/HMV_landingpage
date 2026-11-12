@@ -30,5 +30,7 @@ export default defineConfig({
         url: 'http://localhost:4175',
         reuseExistingServer: !process.env.CI,
         timeout: 60_000,
+        // No delivery adapter, whatever the shell exports: a local run must never send a real inquiry (503 expected).
+        env: { INQUIRY_DELIVERY: '' },
       },
 });

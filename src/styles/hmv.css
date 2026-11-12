@@ -9407,6 +9407,11 @@ article[id] {
   background: rgb(0 20 55 / .55)
 }
 
+/* TradeDesk: locks the step controls while a brief is being sent; generates no box of its own. */
+.desk-lock {
+  display: contents
+}
+
 /* TradeDeskHost while the desk's code loads (first open on a slow connection). */
 .desk-loading {
   display: grid;

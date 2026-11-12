@@ -63,7 +63,13 @@ export function TradeDesk({ lang, request }) {
   const heading = useRef(null);
   const main = useRef(null);
 
+  // A new brief. Consent is given per inquiry, so it is asked again; after a sent inquiry the contact is cleared too.
   const startBrief = ({ product = null, goal } = {}) => {
+    if (reference) {
+      setContact({ company: '', email: '', name: '', phone: '' });
+      setWebsite('');
+    }
+    setConsent(false);
     setBrief(emptyBrief({ goal: productById(product) ? 'sourcing' : goal, product }));
     setStep(0);
     setReference('');
@@ -133,11 +139,10 @@ export function TradeDesk({ lang, request }) {
     track('trade_contact_start', facts);
   };
 
-  // What the buyer would send now, without the visit context: a response applies only while this is unchanged.
-  const content = inquiryFingerprint(toInquiry(brief, { contact, consent, locale: lang, context: null }));
-  const live = useRef({ generation, content });
+  // The brief on screen, for responses that arrive later: one for an earlier brief changes nothing.
+  const live = useRef(generation);
   useEffect(() => {
-    live.current = { generation, content };
+    live.current = generation;
   });
 
   /** Field errors from the validation (here or the server's): shown on their step, the first one focused. */
@@ -166,21 +171,18 @@ export function TradeDesk({ lang, request }) {
     }
     setFieldErrors([]);
     setSubmission({ fingerprint, key });
-    const sent = { generation, content, facts };
-    // A response for a brief that is no longer on screen (a new brief, or this one edited since) changes nothing.
-    const current = () => live.current.generation === sent.generation && live.current.content === sent.content;
+    // While it is sent the brief cannot change (the step controls are locked); a new brief can be started.
+    const sent = { generation, facts };
     inFlight.current = generation;
     setStatus('sending');
     try {
       const { status: code, body: data } = await sendInquiry(inquiry);
       const accepted = code === 201 && typeof data.reference === 'string';
       if (accepted) track('generate_lead', { ...sent.facts, locale: lang });
-      if (live.current.generation !== sent.generation) return;
-      if (accepted && current()) {
+      if (live.current !== sent.generation) return;
+      if (accepted) {
         setReference(data.reference);
         setAcknowledged(false);
-        setStatus('idle');
-      } else if (accepted) {
         setStatus('idle');
       } else {
         // 409: this key was used for other content; the next attempt takes a new one.
@@ -188,7 +190,7 @@ export function TradeDesk({ lang, request }) {
         setStatus(code === 400 && showErrors(data.fields ?? []) ? 'idle' : 'failed');
       }
     } catch {
-      if (live.current.generation === sent.generation) setStatus('failed');
+      if (live.current === sent.generation) setStatus('failed');
     } finally {
       if (inFlight.current === sent.generation) inFlight.current = -1;
     }
@@ -268,6 +270,7 @@ export function TradeDesk({ lang, request }) {
                     <span>{step + 1} / 4</span>
                     {t.steps[step]}
                   </h3>
+                  <fieldset className="desk-lock" disabled={status === 'sending'}>
                   {step === 0 && <RequirementsStep uid={uid} lang={lang} t={t} brief={brief} setGoal={setGoal} setProduct={setProduct} update={update} errorFor={errorFor} />}
                   {step === 1 && <ReviewStep lang={lang} t={t} brief={brief} summary={summary} onPick={pick} />}
                   {step === 2 && <CompleteStep uid={uid} lang={lang} t={t} brief={brief} update={update} errorFor={errorFor} />}
@@ -351,6 +354,7 @@ export function TradeDesk({ lang, request }) {
                       </Button>
                     )}
                   </nav>
+                  </fieldset>
                 </>
               )}
             </div>

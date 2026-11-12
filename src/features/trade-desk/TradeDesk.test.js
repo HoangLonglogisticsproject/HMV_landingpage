@@ -342,3 +342,45 @@ test('the email draft fallback keeps the route, origin included', async () => {
   const [draft] = createInquiryMailto.mock.calls[0];
   assert.deepEqual(draft.requirements.find(([label]) => label === 'Route'), ['Route', 'Cambodia → Qinzhou, China']);
 });
+
+test('while a brief is being sent its controls are locked; the acceptance is shown when it arrives', async () => {
+  let accept;
+  sendInquiry.mockReturnValueOnce(new Promise(resolve => { accept = resolve; }));
+  await render();
+  await toContact();
+  await send();
+  // Disabled through the locked fieldset (`:disabled` is the effective state; the property is only the attribute).
+  assert.equal(field('contact.company').matches(':disabled'), true);
+  assert.equal(button('Back').matches(':disabled'), true);
+  await act(async () => accept({ status: 201, body: { reference: 'HMV-2026-LOCKED' } }));
+  assert.ok(dialog().textContent.includes('HMV-2026-LOCKED'));
+});
+
+test('a new inquiry after a sent one asks for consent again and does not reuse the contact', async () => {
+  sendInquiry.mockResolvedValueOnce({ status: 201, body: { reference: 'HMV-2026-FIRST1' } });
+  await render();
+  await toContact();
+  await send();
+  await click(button('Start a new inquiry'));
+  await click(button('Review requirement'));
+  await click(button('See preliminary brief'));
+  assert.equal(field('contact.company').value, '');
+  assert.equal(field('contact.email').value, '');
+  assert.equal(field('consent.contact').checked, false);
+});
+
+test('a choice error is on the focused radio itself', async () => {
+  await render();
+  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
+  await click(button('Review requirement'));
+  await click(button('See preliminary brief'));
+  await type(field('contact.company'), 'Feed Co');
+  await type(field('contact.email'), 'buyer@example.com');
+  await click(field('consent.contact'));
+  sendInquiry.mockResolvedValueOnce({ status: 400, body: { error: 'invalid', fields: ['requirements.incoterm'] } });
+  await send();
+  const radio = document.activeElement;
+  assert.equal(radio.type, 'radio');
+  assert.equal(radio.getAttribute('aria-invalid'), 'true');
+  assert.ok(document.getElementById(radio.getAttribute('aria-describedby')).textContent.includes('Check this answer'));
+});
