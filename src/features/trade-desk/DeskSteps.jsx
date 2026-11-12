@@ -218,7 +218,7 @@ const submitText = (t, status) => {
  * Step 4's contact form: the buyer's details, consent with its privacy notice, the honeypot, and the send state (retry
  * and the email draft after a failure). State and submission live in TradeDesk.jsx.
  */
-export function ContactForm({ uid, lang, t, contact, setContact, consent, setConsent, website, setWebsite, status, errorFor, onSubmit, onFocus, onMailto }) {
+export function ContactForm({ uid, lang, t, contact, onContactChange, consent, onConsentChange, website, setWebsite, status, errorFor, onSubmit, onFocus, onMailto }) {
   const sending = status === 'sending';
   return (
     <form className="desk-contact" onSubmit={onSubmit} onFocus={onFocus} noValidate>
@@ -239,7 +239,7 @@ export function ContactForm({ uid, lang, t, contact, setContact, consent, setCon
                 required={required}
                 maxLength={LIMITS[field]}
                 value={contact[name]}
-                onChange={e => setContact(c => ({ ...c, [name]: e.target.value }))}
+                onChange={e => onContactChange(name, e.target.value)}
                 {...invalid(uid, field, errorFor(field))}
               />
               <FieldError uid={uid} name={field} error={errorFor(field)} />
@@ -250,7 +250,7 @@ export function ContactForm({ uid, lang, t, contact, setContact, consent, setCon
       {/* Honeypot: hidden from people and assistive technology; bots fill it. */}
       <input className="desk-hp" type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" value={website} onChange={e => setWebsite(e.target.value)} />
       <label className="desk-consent" htmlFor={fieldId(uid, 'consent.contact')}>
-        <input id={fieldId(uid, 'consent.contact')} type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} {...invalid(uid, 'consent.contact', errorFor('consent.contact'))} />
+        <input id={fieldId(uid, 'consent.contact')} type="checkbox" checked={consent} onChange={e => onConsentChange(e.target.checked)} {...invalid(uid, 'consent.contact', errorFor('consent.contact'))} />
         <span>{t.consent}</span>
       </label>
       <a className="desk-privacy text-link" href={lang === 'vi' ? '/vi/privacy' : '/privacy'} target="_blank" rel="noopener">{t.privacy}</a>

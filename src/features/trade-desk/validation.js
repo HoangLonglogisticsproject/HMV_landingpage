@@ -38,18 +38,22 @@ const origin = value => {
   }
 };
 
+/** No dot at the start or end and no two in a row: every dot-separated part is non-empty. */
+const dotsInside = part => !part.startsWith('.') && !part.endsWith('.') && !part.includes('..');
+
 /**
  * The shape of an email address, checked without a backtracking pattern: exactly one @ after a local part, no
- * whitespace, and a domain with a dot inside it (no empty label) ending in a top-level part of 2+ characters. The CMS
- * checks the address fully (class-validator isEmail); this refuses what a buyer mistypes, never more than the CMS does
- * for an ordinary address.
+ * whitespace, dots only inside the local part and the domain, and a domain with a dot ending in a top-level part of
+ * 2+ characters. The CMS checks the address fully (class-validator isEmail); this refuses what a buyer mistypes, never
+ * more than the CMS does for an ordinary address.
  */
 function isEmailShape(value) {
   const at = value.indexOf('@');
   if (at < 1 || at !== value.lastIndexOf('@') || /\s/.test(value)) return false;
+  const local = value.slice(0, at);
   const domain = value.slice(at + 1);
   const lastDot = domain.lastIndexOf('.');
-  return lastDot > 0 && domain.length - lastDot > 2 && !domain.startsWith('.') && !domain.includes('..');
+  return dotsInside(local) && dotsInside(domain) && lastDot > 0 && domain.length - lastDot > 2;
 }
 
 /** The fields with an error, in the order they are checked. `typed` reads buyer text against its length limit. */
@@ -111,6 +115,16 @@ function checkContact(body, { fail, typed }) {
   if (!PHONE.test(contact.phone)) fail('contact.phone');
   if (body.consent?.contact !== true) fail('consent.contact');
   return contact;
+}
+
+/**
+ * The contact fields (and consent) these values would fail on, by the send's own rules: lets the Trade Desk drop the
+ * error of a field the buyer has corrected without waiting for the next send.
+ */
+export function contactErrors(contact, consent) {
+  const check = errorList();
+  checkContact({ contact, consent: { contact: consent } }, check);
+  return check.errors;
 }
 
 /** Where the visit came from: same-site paths, the referrer's origin and plain UTM values, nothing more. */

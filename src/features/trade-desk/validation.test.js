@@ -105,7 +105,7 @@ test('every inquiry names a product; goal and goods are not part of it; the hone
 
 test('email shape: one @, a local part, no whitespace, a dotted domain; length is checked separately', () => {
   const email = value => validateInquiry(valid({ contact: { company: 'Feed Co', email: value } }));
-  for (const ok of ['buyer@example.com', 'Buyer@Example.com', 'procurement.eu+cassava@feed-co.example.com', 'a@acme.com', ' buyer@example.com ']) {
+  for (const ok of ['buyer@example.com', 'Buyer@Example.com', 'first.last@example.com', 'procurement.eu+cassava@feed-co.example.com', 'a@acme.com', ' buyer@example.com ']) {
     assert.equal(email(ok).ok, true, ok);
   }
   assert.equal(email('Buyer@Example.com').value.contact.email, 'buyer@example.com');
@@ -113,6 +113,7 @@ test('email shape: one @, a local part, no whitespace, a dotted domain; length i
     '', 'buyer.example.com', 'buyer@', '@example.com', // no @, or nothing on one side
     'buyer@@example.com', 'buyer@team@example.com', // more than one @
     'buyer @example.com', 'buyer@exa mple.com', 'buyer@example.com\tx', // whitespace
+    'buyer..name@example.com', '.buyer@example.com', 'buyer.@example.com', // dots in the local part (as the CMS)
     'buyer@example', 'buyer@example.', 'buyer@.example.com', 'buyer@example..com', 'buyer@example.c', // no usable domain
   ]) {
     assert.deepEqual(email(bad).errors, ['contact.email'], bad);
@@ -141,4 +142,11 @@ test('errors come in checking order: plan, requirements, contact, consent, then 
   assert.deepEqual(result.errors, ['product', 'destination', 'notes', 'volume.amount', 'contact.company', 'contact.email', 'contact.phone', 'consent.contact', 'idempotencyKey']);
   const requirement = validateInquiry(valid({ requirements: { starch: 'x'.repeat(201), incoterm: 'XYZ' }, contact: { company: 'E', email: 'a@b.co' } }));
   assert.deepEqual(requirement.errors, ['requirements.starch', 'requirements.incoterm', 'contact.company']);
+});
+
+test('contactErrors: the contact fields and consent that the send would refuse, by the same rules', async () => {
+  const { contactErrors } = await import('./validation.js');
+  const ok = { company: 'Feed Co', email: 'buyer@example.com', name: '', phone: '' };
+  assert.deepEqual(contactErrors(ok, true), []);
+  assert.deepEqual(contactErrors({ ...ok, company: 'E', email: 'buyer..name@example.com', phone: 'call me' }, false), ['contact.company', 'contact.email', 'contact.phone', 'consent.contact']);
 });

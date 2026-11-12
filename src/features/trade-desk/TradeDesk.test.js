@@ -183,6 +183,40 @@ test('contact validation: company, work email and consent are checked before any
   assert.equal(document.activeElement, field('contact.company'));
 });
 
+test('a corrected contact field loses its error at once; other errors stay; nothing appears on untouched fields', async () => {
+  await render();
+  await toContact({ company: '', email: 'not-an-email' }, { consent: false });
+  await send();
+  assert.equal(sendInquiry.mock.calls.length, 0);
+  const errors = () => [...dialog().querySelectorAll('.desk-error')].map(e => e.textContent);
+  assert.deepEqual(errors(), ['Enter your company name.', 'Enter a valid work email.', 'Confirm that HMV may contact you.']);
+
+  // Still invalid: the error stays.
+  await type(field('contact.email'), 'buyer..name@example.com');
+  assert.equal(field('contact.email').getAttribute('aria-invalid'), 'true');
+  // Corrected: its error, aria-invalid and aria-describedby go; the company and consent errors stay.
+  await type(field('contact.email'), 'buyer@example.com');
+  assert.deepEqual(errors(), ['Enter your company name.', 'Confirm that HMV may contact you.']);
+  assert.equal(field('contact.email').hasAttribute('aria-invalid'), false);
+  assert.equal(field('contact.email').hasAttribute('aria-describedby'), false);
+  assert.equal(field('contact.company').getAttribute('aria-invalid'), 'true');
+  // A field without an error gets none while typing, even an invalid value.
+  await type(field('contact.phone'), 'call me');
+  assert.equal(field('contact.phone').hasAttribute('aria-invalid'), false);
+  // Consent given: its error goes too.
+  await click(field('consent.contact'));
+  assert.deepEqual(errors(), ['Enter your company name.']);
+  assert.equal(sendInquiry.mock.calls.length, 0);
+
+  // The next send still checks everything: the phone typed above is now an error.
+  await type(field('contact.company'), 'Feed Co');
+  assert.deepEqual(errors(), []);
+  await send();
+  assert.equal(sendInquiry.mock.calls.length, 0);
+  assert.deepEqual(errors(), ['Use digits, spaces and + ( ) - only.']);
+  assert.equal(document.activeElement, field('contact.phone'));
+});
+
 test('consent is required: without it nothing is sent and the checkbox is pointed out', async () => {
   await render();
   await toContact(undefined, { consent: false });

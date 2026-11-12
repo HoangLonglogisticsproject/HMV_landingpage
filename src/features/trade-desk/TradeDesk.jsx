@@ -8,7 +8,7 @@ import { track } from '@/lib/analytics';
 import { contactChannels, sendInquiry } from '@/lib/inquiry';
 import { createInquiryMailto } from '@/features/inquiries/inquiry';
 import { emptyBrief, fieldId, progress, summarize, toInquiry, withProduct } from './brief';
-import { validateInquiry } from './validation';
+import { contactErrors, validateInquiry } from './validation';
 import { inquiryFingerprint } from './fingerprint';
 import { deskCopy } from './copy';
 import { visitContext } from './visit';
@@ -219,6 +219,21 @@ export function TradeDesk({ lang, request }) {
     }));
   };
 
+  // A field with an error that the buyer corrects loses it at once, checked by the send's rules; an untouched or still
+  // invalid field keeps its state, so no message appears before a send.
+  const clearIfCorrected = (field, errorsNow) => {
+    if (fieldErrors.includes(field) && !errorsNow().includes(field)) setFieldErrors(errors => errors.filter(f => f !== field));
+  };
+  const changeContact = (name, value) => {
+    const next = { ...contact, [name]: value };
+    setContact(next);
+    clearIfCorrected(`contact.${name}`, () => contactErrors(next, consent));
+  };
+  const changeConsent = checked => {
+    setConsent(checked);
+    clearIfCorrected('consent.contact', () => contactErrors(contact, checked));
+  };
+
   /** The message for a field with an error, or null. */
   const errorFor = name => {
     if (!fieldErrors.includes(name)) return null;
@@ -290,9 +305,9 @@ export function TradeDesk({ lang, request }) {
                         lang={lang}
                         t={t}
                         contact={contact}
-                        setContact={setContact}
+                        onContactChange={changeContact}
                         consent={consent}
-                        setConsent={setConsent}
+                        onConsentChange={changeConsent}
                         website={website}
                         setWebsite={setWebsite}
                         status={status}
