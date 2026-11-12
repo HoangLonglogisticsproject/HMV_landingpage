@@ -47,6 +47,55 @@ test('bad requests: not JSON (415), unparsable (400) and oversized (413)', async
   assert.equal((await POST(post({ ...inquiry, notes: 'x'.repeat(25_000) }))).status, 413);
 });
 
+/** A streamed (chunked) request body: `chunks` of bytes, counting how many were pulled. */
+function streamed(chunks, headers = {}) {
+  const pulled = { count: 0 };
+  // highWaterMark 0: nothing is pulled ahead, so `count` is what the reader actually asked for.
+  const body = new ReadableStream({
+    pull(controller) {
+      if (pulled.count === chunks.length) return controller.close();
+      controller.enqueue(chunks[pulled.count++]);
+    },
+  }, { highWaterMark: 0 });
+  const request = new Request('http://localhost/api/inquiry', { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body, duplex: 'half' });
+  return { request, pulled };
+}
+
+test('body limit (20 000 bytes): a larger Content-Length is refused unread; a chunked body is read only to the limit', async () => {
+  const { POST } = await route();
+  // Declared too large: 413 before any byte is read.
+  const declared = streamed([new Uint8Array(10)], { 'content-length': '20001' });
+  assert.equal((await POST(declared.request)).status, 413);
+  assert.equal(declared.pulled.count, 0);
+  // No length, 100 chunks of 1 000 bytes: refused once past 20 000, the rest never pulled.
+  const chunked = streamed(Array.from({ length: 100 }, () => new Uint8Array(1000).fill(32)));
+  assert.equal((await POST(chunked.request)).status, 413);
+  assert.ok(chunked.pulled.count <= 22, `pulled ${chunked.pulled.count} chunks`);
+});
+
+test('body limit counts UTF-8 bytes; a multi-byte character split across chunks decodes intact', async () => {
+  const { readBodyLimited } = await import('./body.js');
+  const json = JSON.stringify({ ...inquiry, notes: 'Sắn lát khô — chất lượng ổn định' });
+  const bytes = new TextEncoder().encode(json);
+  const at = bytes.indexOf(0xe1); // the first byte of a 3-byte Vietnamese character
+  const split = streamed([bytes.slice(0, at + 1), bytes.slice(at + 1)]);
+  assert.equal(await readBodyLimited(split.request, 20_000), json);
+  // 6 667 three-byte characters: 6 667 characters, 20 001 bytes: over the limit.
+  const wide = streamed([new TextEncoder().encode('ắ'.repeat(6667))]);
+  assert.equal(await readBodyLimited(wide.request, 20_000), null);
+  const fits = streamed([new TextEncoder().encode('ắ'.repeat(6666))]);
+  assert.equal((await readBodyLimited(fits.request, 20_000)).length, 6666);
+});
+
+test('the same idempotency key with another inquiry is a 409', async () => {
+  vi.spyOn(console, 'info').mockImplementation(() => {});
+  const { POST } = await route({ INQUIRY_DELIVERY: 'log', NODE_ENV: 'test' });
+  assert.equal((await POST(post(inquiry))).status, 201);
+  const changed = await POST(post({ ...inquiry, contact: { company: 'Other Co', email: 'other@example.com' } }));
+  assert.equal(changed.status, 409);
+  assert.deepEqual(await changed.json(), { error: 'conflict' });
+});
+
 test('INQUIRY_DELIVERY=cms: 201 with the reference the CMS issued; a CMS failure is a 502', async () => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
   let status = 201;

@@ -57,3 +57,29 @@ test('the desk loads on the first open, which is kept (product preselected) whil
   assert.equal(document.querySelector('[role="status"]'), null);
   assert.deepEqual(window.dataLayer.map(e => e.event), ['trade_desk_open', 'trade_product_selected']);
 });
+
+test('first-touch attribution: the landing page, referrer and campaign of the first page load stay together', async () => {
+  history.replaceState(null, '', '/?utm_source=newsletter&utm_campaign=a');
+  await act(async () => root.render(h(TradeDeskHost, { lang: 'en' })));
+  await act(async () => root.unmount());
+  // A later page of the same visit, from campaign B: the stored first touch is unchanged.
+  history.replaceState(null, '', '/products/bananas?utm_source=linkedin&utm_campaign=b');
+  root = createRoot(container);
+  await act(async () => root.render(h(TradeDeskHost, { lang: 'en' })));
+  const { visitContext } = await import('./visit.js');
+  const context = visitContext();
+  assert.equal(context.landingPage, '/');
+  assert.deepEqual(context.utm, { source: 'newsletter', medium: null, campaign: 'a' });
+  assert.equal(context.page, '/products/bananas');
+});
+
+test('trade_desk_open carries a product only when it is a real product id', async () => {
+  await act(async () => root.render(h(TradeDeskHost, { lang: 'en' })));
+  await act(async () => openTradeDesk({ product: 'alice-smith', source: 'home_hero' }));
+  await act(async () => openTradeDesk({ product: 'bananas', source: 'product_hero' }));
+  assert.deepEqual(window.dataLayer, [
+    { event: 'trade_desk_open', source: 'home_hero', locale: 'en' },
+    { event: 'trade_desk_open', source: 'product_hero', product: 'bananas', locale: 'en' },
+    { event: 'trade_product_selected', product: 'bananas', source: 'preselected' },
+  ]);
+});

@@ -4,12 +4,15 @@ import assert from 'node:assert/strict';
 import { act, createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
 import { contactChannels, sendInquiry } from '@/lib/inquiry';
+import { createInquiryMailto } from '@/features/inquiries/inquiry';
 import { TradeDeskHost } from './TradeDeskHost.jsx';
 import { openTradeDesk } from './open.js';
 
 // The inquiry port is the only I/O: each test decides what the API answers.
 // contactChannels: what NEXT_PUBLIC_HMV_* configure on the site; a test may clear them.
 vi.mock('@/lib/inquiry', () => ({ sendInquiry: vi.fn(), contactChannels: {} }));
+// The email draft fallback: recorded, and a hash link so jsdom does not try to navigate.
+vi.mock('@/features/inquiries/inquiry', () => ({ createInquiryMailto: vi.fn(() => '#email-draft') }));
 const CHANNELS = { whatsapp: '+84 909 000 000', zalo: 'https://zalo.me/0909000000', email: 'sales@hmv.example' };
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -28,18 +31,16 @@ const events = () => (window.dataLayer ?? []).map(e => e.event);
 async function render(lang = 'en') {
   await act(async () => root.render(h(TradeDeskHost, { lang })));
 }
+const tick = () => act(async () => new Promise(resolve => setTimeout(resolve, 10)));
+/** Opens the desk and waits, inside act, until it is on screen: the first open loads the desk's module. */
 const open = async detail => {
-  await act(async () => {
-    openTradeDesk(detail);
-    // The first open loads the desk's module: let it resolve inside act so React commits the desk.
-    await import('./TradeDesk.jsx');
-    await new Promise(resolve => setTimeout(resolve, 0));
-  });
+  await act(async () => openTradeDesk(detail));
+  for (let i = 0; i < 300 && !dialog(); i++) await tick();
   assert.ok(dialog());
 };
 
 // From a product page to the preliminary brief with the contact form filled in.
-async function toContact(contact = { company: 'Example Foods B.V.', email: 'buyer@example.com' }) {
+async function toContact(contact = { company: 'Example Foods B.V.', email: 'buyer@example.com' }, { consent = true } = {}) {
   await open({ product: 'passion-fruit', source: 'product_hero' });
   await type(field('destination'), 'Rotterdam, Netherlands');
   await type(field('volume'), '2');
@@ -47,13 +48,15 @@ async function toContact(contact = { company: 'Example Foods B.V.', email: 'buye
   await click(button('See preliminary brief'));
   if (contact.company) await type(field('contact.company'), contact.company);
   if (contact.email) await type(field('contact.email'), contact.email);
-  await click(field('consent.contact'));
+  if (consent) await click(field('consent.contact'));
 }
+const send = () => click(button('Send to HMV Commercial Team'));
 
 beforeEach(async () => {
   container = document.body.appendChild(document.createElement('div'));
   root = createRoot(container);
   sendInquiry.mockReset();
+  createInquiryMailto.mockClear();
   Object.assign(contactChannels, CHANNELS);
   delete window.dataLayer;
   sessionStorage.clear();
@@ -145,6 +148,15 @@ test('contact validation: company, work email and consent are checked before any
   assert.equal(document.activeElement, field('contact.company'));
 });
 
+test('consent is required: without it nothing is sent and the checkbox is pointed out', async () => {
+  await render();
+  await toContact(undefined, { consent: false });
+  await send();
+  assert.equal(sendInquiry.mock.calls.length, 0);
+  assert.deepEqual([...dialog().querySelectorAll('.desk-error')].map(e => e.textContent), ['Confirm that HMV may contact you.']);
+  assert.equal(document.activeElement, field('consent.contact'));
+});
+
 test('successful inquiry: one request even on a double click, the reference shown, generate_lead only after acceptance', async () => {
   let accept;
   sendInquiry.mockReturnValue(new Promise(resolve => { accept = resolve; }));
@@ -215,4 +227,118 @@ test('failed delivery: the answers stay, an email draft is offered, no lead is c
   assert.ok(dialog().textContent.includes('HMV-2026-RETRY2'));
   // The retry reuses the brief's idempotency key, so the server can de-duplicate.
   assert.equal(sendInquiry.mock.calls[0][0].idempotencyKey, sendInquiry.mock.calls[1][0].idempotencyKey);
+});
+
+test('every validation error is shown on its step and field, before sending and when the server names one', async () => {
+  await render();
+  await open({ product: 'passion-fruit', source: 'product_hero' });
+  await type(field('volume'), 'lots');
+  await click(button('Review requirement'));
+  await click(button('See preliminary brief'));
+  await type(field('contact.company'), 'Example Foods B.V.');
+  await type(field('contact.email'), 'buyer@example.com');
+  await click(field('consent.contact'));
+  await send();
+  // Not sent: back on step 1, the volume field focused, marked and explained.
+  assert.equal(sendInquiry.mock.calls.length, 0);
+  assert.equal(document.activeElement, field('volume'));
+  assert.equal(field('volume').getAttribute('aria-invalid'), 'true');
+  assert.ok(dialog().textContent.includes('Enter a number, for example 2 or 5000.'));
+
+  await type(field('volume'), '2');
+  await click(button('Review requirement'));
+  await click(button('See preliminary brief'));
+  // The server refuses a requirement: shown on step 3 at that field, not as a generic failure.
+  sendInquiry.mockResolvedValueOnce({ status: 400, body: { error: 'invalid', fields: ['requirements.brix'] } });
+  await send();
+  assert.equal(document.activeElement, field('brix'));
+  assert.ok(dialog().textContent.includes('Check this answer'));
+  assert.equal(dialog().querySelector('.desk-failed'), null);
+});
+
+test('a request that times out restores the controls and offers the retry and the email draft, answers kept', async () => {
+  sendInquiry.mockRejectedValueOnce(new DOMException('The operation was aborted.', 'AbortError'));
+  await render();
+  await toContact();
+  await send();
+  assert.ok(dialog().querySelector('.desk-failed').textContent.includes('could not be sent'));
+  assert.equal(button('Try again').disabled, false);
+  assert.equal(field('contact.company').value, 'Example Foods B.V.');
+  assert.ok(button('Prepare an email instead'));
+});
+
+test('an exact retry keeps the idempotency key; an edited brief or contact gets a new one', async () => {
+  sendInquiry.mockResolvedValue({ status: 502, body: { error: 'failed' } });
+  await render();
+  await toContact();
+  await send();
+  await click(button('Try again'));
+  await type(field('contact.company'), 'Example Foods Ltd');
+  await click(button('Try again'));
+  const keys = sendInquiry.mock.calls.map(([inquiry]) => inquiry.idempotencyKey);
+  assert.equal(keys.length, 3);
+  assert.equal(keys[1], keys[0]);
+  assert.notEqual(keys[2], keys[1]);
+});
+
+test('an acceptance that arrives while the desk is closed is shown on the next open; a new inquiry only on request', async () => {
+  let accept;
+  sendInquiry.mockReturnValueOnce(new Promise(resolve => { accept = resolve; }));
+  await render();
+  await toContact();
+  await send();
+  await click(dialog().querySelector('button[aria-label="Close"]'));
+  assert.equal(dialog(), null);
+  await act(async () => accept({ status: 201, body: { reference: 'HMV-2026-CLOSED' } }));
+  // Reopened, even from another product's call to action: the acceptance, not a new brief.
+  await open({ product: 'bananas', source: 'product_hero' });
+  assert.ok(dialog().textContent.includes('HMV-2026-CLOSED'));
+  await click(button('Start a new inquiry'));
+  assert.doesNotMatch(dialog().textContent, /HMV-2026-CLOSED/);
+  assert.equal(dialog().querySelector('input[value="bananas"]').checked, true);
+});
+
+test('once the buyer has seen the acceptance, the next open starts a new brief', async () => {
+  sendInquiry.mockResolvedValueOnce({ status: 201, body: { reference: 'HMV-2026-SEEN22' } });
+  await render();
+  await toContact();
+  await send();
+  assert.ok(dialog().textContent.includes('HMV-2026-SEEN22'));
+  await click(button('Close'));
+  await open({ product: 'bananas', source: 'product_hero' });
+  assert.doesNotMatch(dialog().textContent, /HMV-2026-SEEN22/);
+  assert.equal(dialog().querySelector('input[value="bananas"]').checked, true);
+});
+
+test('a response for an earlier brief never changes the current one', async () => {
+  let accept;
+  sendInquiry.mockReturnValueOnce(new Promise(resolve => { accept = resolve; }));
+  await render();
+  await toContact();
+  await send();
+  // Before the answer arrives, the buyer opens the desk for another product: a new brief.
+  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
+  assert.equal(dialog().querySelector('input[value="dried-cassava-chips"]').checked, true);
+  await act(async () => accept({ status: 201, body: { reference: 'HMV-2026-OLDONE' } }));
+  assert.doesNotMatch(dialog().textContent, /HMV-2026-OLDONE|Sent to the HMV commercial team/);
+  assert.equal(dialog().querySelector('input[value="dried-cassava-chips"]').checked, true);
+  // The earlier inquiry was accepted: its lead is counted, for its own product.
+  assert.deepEqual(window.dataLayer.filter(e => e.event === 'generate_lead'), [{ event: 'generate_lead', goal: 'sourcing', product: 'passion-fruit', locale: 'en' }]);
+});
+
+test('the email draft fallback keeps the route, origin included', async () => {
+  sendInquiry.mockResolvedValueOnce({ status: 502, body: { error: 'failed' } });
+  await render();
+  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
+  await click(dialog().querySelector('input[value="cambodia"]'));
+  await type(field('destination'), 'Qinzhou, China');
+  await click(button('Review requirement'));
+  await click(button('See preliminary brief'));
+  await type(field('contact.company'), 'Feed Co');
+  await type(field('contact.email'), 'buyer@example.com');
+  await click(field('consent.contact'));
+  await send();
+  await click(button('Prepare an email instead'));
+  const [draft] = createInquiryMailto.mock.calls[0];
+  assert.deepEqual(draft.requirements.find(([label]) => label === 'Route'), ['Route', 'Cambodia → Qinzhou, China']);
 });

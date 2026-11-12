@@ -32,10 +32,9 @@ test('a valid inquiry is normalised: allowed values only, email lowercased, no q
   assert.deepEqual(v.context, { page: '/vi/san-pham/san-lat-kho', landingPage: '/', referrer: 'https://www.google.com', utm: { source: 'linkedin', medium: 'social', campaign: 'q4' } });
 });
 
-test('invalid contact, consent, product and requirement values are refused, by field', () => {
+test('invalid contact, consent and product values are refused, by field', () => {
   const result = validateInquiry(valid({
     product: 'gold',
-    requirements: { incoterm: 'XYZ' },
     contact: { company: 'A', email: 'nope', phone: '<script>' },
     consent: { contact: false },
     idempotencyKey: 'x',
@@ -44,15 +43,20 @@ test('invalid contact, consent, product and requirement values are refused, by f
   assert.deepEqual(result.errors.sort(), ['consent.contact', 'contact.company', 'contact.email', 'contact.phone', 'idempotencyKey', 'product'].sort());
 });
 
-test('unknown fields and requirement keys are dropped; strings are capped; enums fall back', () => {
+test('an unknown option of a choice requirement is refused for a valid product', () => {
+  const result = validateInquiry(valid({ product: 'dried-cassava-chips', requirements: { incoterm: 'XYZ', starch: '70' } }));
+  assert.equal(result.ok, false);
+  assert.deepEqual(result.errors, ['requirements.incoterm']);
+});
+
+test('unknown fields and requirement keys are dropped; enums fall back', () => {
   const result = validateInquiry(valid({
     product: 'passion-fruit',
     origin: 'cambodia',
     application: 'feed',
     transport: 'teleport',
     volume: { amount: '2', unit: 'barrels' },
-    requirements: { brix: 'x'.repeat(500), starch: '70', admin: true },
-    notes: 'n'.repeat(5000),
+    requirements: { brix: '14+', starch: '70', admin: true },
     extra: 'ignored',
   }));
   assert.equal(result.ok, true);
@@ -62,9 +66,28 @@ test('unknown fields and requirement keys are dropped; strings are capped; enums
   assert.equal(v.transport, '');
   assert.equal(v.volume.unit, 'containers');
   assert.deepEqual(Object.keys(v.requirements), ['brix']);
-  assert.equal(v.requirements.brix.length, 200);
-  assert.equal(v.notes.length, 2000);
   assert.equal('extra' in v, false);
+});
+
+test('text over its limit is an error for that field, never silently shortened', () => {
+  const at = n => 'x'.repeat(n);
+  // At the limit: accepted unchanged (the same limits are the fields' maxLength and the CMS contract).
+  const ok = validateInquiry(valid({ destination: at(120), notes: at(2000), requirements: { starch: at(200) } }));
+  assert.equal(ok.ok, true);
+  assert.equal(ok.value.destination.length, 120);
+  assert.equal(ok.value.notes.length, 2000);
+  // Over it: refused, by field.
+  const over = validateInquiry(valid({
+    destination: at(121),
+    notes: at(2001),
+    requirements: { starch: at(201) },
+    volume: { amount: '1'.repeat(21), unit: 'mt' },
+    contact: { company: at(151), email: `${at(250)}@x.example`, name: at(101), phone: '1'.repeat(41) },
+  }));
+  assert.deepEqual(over.errors.sort(), [
+    'contact.company', 'contact.email', 'contact.name', 'contact.phone', 'destination', 'notes', 'requirements.starch', 'volume.amount',
+  ].sort());
+  assert.deepEqual(validateInquiry(valid({ goal: 'logistics', product: null, goods: 'Samples', origin: at(121) })).errors, ['origin']);
 });
 
 test('logistics and customs need a goods description; the honeypot marks spam; garbage bodies fail', () => {

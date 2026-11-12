@@ -5,13 +5,17 @@ import { createHash, createHmac } from 'node:crypto';
 // adapter that issues the reference (the CMS) resolves with `{ reference }`, which the buyer is shown instead of the
 // local one. The Trade Desk UI and the inquiry service do not know which adapter is used.
 
-/** HTTPS webhook (automation platform, CRM endpoint or email relay): the record as JSON, signed with HMAC-SHA256. */
+/**
+ * HTTPS webhook (automation platform, CRM endpoint or email relay): the record as JSON, signed with HMAC-SHA256. The
+ * idempotency key is the inquiry's own (stable across retries), not the record's reference, which is drawn anew for
+ * each attempt: the destination must deduplicate on it.
+ */
 export function webhookAdapter({ url, secret, fetchImpl = fetch, timeoutMs = 8000 }) {
   return {
     name: 'webhook',
-    async deliver(record) {
+    async deliver(record, inquiry) {
       const body = JSON.stringify(record);
-      const headers = { 'content-type': 'application/json', 'idempotency-key': record.reference };
+      const headers = { 'content-type': 'application/json', 'idempotency-key': inquiry.idempotencyKey };
       if (secret) headers['x-hmv-signature'] = `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`;
       const res = await fetchImpl(url, { method: 'POST', headers, body, signal: AbortSignal.timeout(timeoutMs) });
       if (!res.ok) throw new Error(`webhook responded ${res.status}`);

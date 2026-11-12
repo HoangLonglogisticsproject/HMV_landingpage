@@ -11,11 +11,26 @@ export const contactChannels = {
   zalo: process.env.NEXT_PUBLIC_HMV_ZALO_URL,
   email: process.env.NEXT_PUBLIC_HMV_SALES_EMAIL,
 };
-export async function sendInquiry(inquiry) {
-  const res = await fetch('/api/inquiry', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(inquiry),
-  });
-  return { status: res.status, body: await res.json().catch(() => ({})) };
+
+/** The browser's wait for /api/inquiry: above the server's own 8 s CMS timeout, so a slow but working delivery fits. */
+export const SEND_TIMEOUT_MS = 15_000;
+
+/**
+ * POST the inquiry; rejects (AbortError) when no answer arrives within `timeoutMs`, so the Trade Desk can offer a
+ * retry and the email draft instead of waiting forever.
+ */
+export async function sendInquiry(inquiry, { timeoutMs = SEND_TIMEOUT_MS, fetchImpl = fetch } = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetchImpl('/api/inquiry', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(inquiry),
+      signal: controller.signal,
+    });
+    return { status: res.status, body: await res.json().catch(() => ({})) };
+  } finally {
+    clearTimeout(timer);
+  }
 }

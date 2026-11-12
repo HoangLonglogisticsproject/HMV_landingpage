@@ -77,3 +77,13 @@ test('the inquiry carries the brief, contact, consent and context; blank require
   assert.equal(inquiry.website, '');
   assert.equal(validateInquiry(inquiry).ok, true);
 });
+
+test('changing product never reinterprets an amount in another unit', () => {
+  const cassava = { ...withProduct(emptyBrief(), 'dried-cassava-chips'), volume: { amount: '5000', unit: 'mt_month' } };
+  // MT / month (cassava) to containers (passion fruit): the amount is cleared, not read as 5000 containers.
+  assert.deepEqual(withProduct(cassava, 'passion-fruit').volume, { amount: '', unit: 'containers' });
+  const passion = { ...withProduct(emptyBrief(), 'passion-fruit'), volume: { amount: '2', unit: 'containers' } };
+  // Same unit (containers to containers): the amount stays.
+  assert.deepEqual(withProduct(passion, 'bananas').volume, { amount: '2', unit: 'containers' });
+  assert.equal(summarize(withProduct(cassava, 'passion-fruit'), 'en', { pending }).rows.some(r => r.key === 'volume'), false);
+});

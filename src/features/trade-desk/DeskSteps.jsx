@@ -3,15 +3,21 @@ import { products } from '@/data/hmv';
 import { productPages } from '@/data/productPages';
 import { APPLICATIONS, GOALS, ORIGINS, TRANSPORT, VOLUME_UNITS, originsFor, requirementsFor } from './rules';
 import { fieldId } from './brief';
+import { LIMITS } from './validation';
 
-// The four steps of the HMV Trade Desk and their controls. Presentational: state lives in TradeDesk.jsx.
+// The four steps of the HMV Trade Desk and their controls. Presentational: state lives in TradeDesk.jsx. A field error
+// (from the validation, here or on the server) is shown under its control, which is marked invalid.
 
 const asOptions = (map, ids = Object.keys(map)) => ids.map(id => ({ id, label: map[id] }));
+const errorId = (uid, name) => `${fieldId(uid, name)}-error`;
+const FieldError = ({ uid, name, error }) => error && <span className="desk-error" id={errorId(uid, name)}>{error}</span>;
+/** aria attributes of a control with or without an error. */
+const invalid = (uid, name, error) => (error ? { 'aria-invalid': true, 'aria-describedby': errorId(uid, name) } : {});
 
 /** Radio buttons drawn as chips: one choice, keyboard and screen-reader native. */
-export function Chips({ uid, name, legend, options, value, onChange, lang, hint }) {
+export function Chips({ uid, name, legend, options, value, onChange, lang, hint, error }) {
   return (
-    <fieldset className="desk-field">
+    <fieldset className="desk-field" {...invalid(uid, name, error)}>
       <legend>
         {legend}
         {hint && <small>{hint}</small>}
@@ -31,24 +37,26 @@ export function Chips({ uid, name, legend, options, value, onChange, lang, hint 
           </label>
         ))}
       </div>
+      <FieldError uid={uid} name={name} error={error} />
     </fieldset>
   );
 }
 
-export function TextField({ uid, name, label, hint, value, onChange, ...input }) {
+export function TextField({ uid, name, label, hint, value, onChange, error, ...input }) {
   return (
     <div className="desk-field">
       <label htmlFor={fieldId(uid, name)}>
         {label}
         {hint && <small>{hint}</small>}
       </label>
-      <input id={fieldId(uid, name)} value={value} onChange={e => onChange(e.target.value)} maxLength={200} {...input} />
+      <input id={fieldId(uid, name)} value={value} onChange={e => onChange(e.target.value)} {...invalid(uid, name, error)} {...input} />
+      <FieldError uid={uid} name={name} error={error} />
     </div>
   );
 }
 
 /** Step 1, Requirements: the goal, then its core fields. Nothing is required except the product (or the goods). */
-export function RequirementsStep({ uid, lang, t, brief, setGoal, setProduct, update }) {
+export function RequirementsStep({ uid, lang, t, brief, setGoal, setProduct, update, errorFor }) {
   const sourcing = brief.goal === 'sourcing';
   const origins = originsFor(brief.product);
   return (
@@ -56,18 +64,18 @@ export function RequirementsStep({ uid, lang, t, brief, setGoal, setProduct, upd
       <Chips uid={uid} name="goal" lang={lang} legend={t.goal} options={GOALS} value={brief.goal} onChange={setGoal} />
       {sourcing ? (
         <>
-          <Chips uid={uid} name="product" lang={lang} legend={t.product} options={products.map(p => ({ id: p.id, label: { en: p.en, vi: p.vi } }))} value={brief.product} onChange={setProduct} />
+          <Chips uid={uid} name="product" lang={lang} legend={t.product} options={products.map(p => ({ id: p.id, label: { en: p.en, vi: p.vi } }))} value={brief.product} onChange={setProduct} error={errorFor('product')} />
           {brief.product && origins.length > 1 && (
             <Chips uid={uid} name="origin" lang={lang} legend={t.origin} options={asOptions(ORIGINS, origins)} value={brief.origin} onChange={v => update({ origin: v })} />
           )}
         </>
       ) : (
         <>
-          <TextField uid={uid} name="goods" label={t.goods} placeholder={t.goodsPlaceholder} value={brief.goods} onChange={v => update({ goods: v })} />
-          <TextField uid={uid} name="origin" label={t.origin} hint={t.optional} placeholder={t.originPlaceholder} value={brief.origin} onChange={v => update({ origin: v })} />
+          <TextField uid={uid} name="goods" label={t.goods} placeholder={t.goodsPlaceholder} value={brief.goods} onChange={v => update({ goods: v })} maxLength={LIMITS.goods} error={errorFor('goods')} />
+          <TextField uid={uid} name="origin" label={t.origin} hint={t.optional} placeholder={t.originPlaceholder} value={brief.origin} onChange={v => update({ origin: v })} maxLength={LIMITS.origin} error={errorFor('origin')} />
         </>
       )}
-      <TextField uid={uid} name="destination" label={t.destination} hint={t.optional} placeholder={t.destinationPlaceholder} value={brief.destination} onChange={v => update({ destination: v })} />
+      <TextField uid={uid} name="destination" label={t.destination} hint={t.optional} placeholder={t.destinationPlaceholder} value={brief.destination} onChange={v => update({ destination: v })} maxLength={LIMITS.destination} error={errorFor('destination')} />
       {brief.goal !== 'customs' && (
         <div className="desk-field desk-volume">
           <label htmlFor={fieldId(uid, 'volume')}>
@@ -75,11 +83,12 @@ export function RequirementsStep({ uid, lang, t, brief, setGoal, setProduct, upd
             <small>{t.optional}</small>
           </label>
           <div>
-            <input id={fieldId(uid, 'volume')} inputMode="decimal" maxLength={20} placeholder={t.volumePlaceholder} value={brief.volume.amount} onChange={e => update({ volume: { ...brief.volume, amount: e.target.value } })} />
+            <input id={fieldId(uid, 'volume')} inputMode="decimal" maxLength={LIMITS['volume.amount']} placeholder={t.volumePlaceholder} value={brief.volume.amount} onChange={e => update({ volume: { ...brief.volume, amount: e.target.value } })} {...invalid(uid, 'volume', errorFor('volume.amount'))} />
             <select aria-label={t.unit} value={brief.volume.unit} onChange={e => update({ volume: { ...brief.volume, unit: e.target.value } })}>
               {Object.entries(VOLUME_UNITS).map(([id, label]) => <option key={id} value={id}>{label[lang]}</option>)}
             </select>
           </div>
+          <FieldError uid={uid} name="volume" error={errorFor('volume.amount')} />
         </div>
       )}
       {APPLICATIONS[brief.product] && (
@@ -150,7 +159,7 @@ export function ReviewStep({ lang, t, brief, summary, onPick }) {
 }
 
 /** Step 3, Complete requirements: the controlled requirement fields, then optional free text. */
-export function CompleteStep({ uid, lang, t, brief, update }) {
+export function CompleteStep({ uid, lang, t, brief, update, errorFor }) {
   const setRequirement = (key, value) => update({ requirements: { ...brief.requirements, [key]: value } });
   return (
     <>
@@ -158,16 +167,17 @@ export function CompleteStep({ uid, lang, t, brief, update }) {
         <Chips uid={uid} name="application" lang={lang} legend={t.application} options={asOptions(APPLICATIONS[brief.product])} value={brief.application} onChange={v => update({ application: v })} />
       )}
       {requirementsFor(brief).map(r => (r.kind === 'choice' ? (
-        <Chips key={r.key} uid={uid} name={r.key} lang={lang} legend={r.label[lang]} options={r.options} value={brief.requirements[r.key] ?? ''} onChange={v => setRequirement(r.key, v)} />
+        <Chips key={r.key} uid={uid} name={r.key} lang={lang} legend={r.label[lang]} options={r.options} value={brief.requirements[r.key] ?? ''} onChange={v => setRequirement(r.key, v)} error={errorFor(`requirements.${r.key}`)} />
       ) : (
-        <TextField key={r.key} uid={uid} name={r.key} label={r.label[lang]} value={brief.requirements[r.key] ?? ''} onChange={v => setRequirement(r.key, v)} />
+        <TextField key={r.key} uid={uid} name={r.key} label={r.label[lang]} value={brief.requirements[r.key] ?? ''} onChange={v => setRequirement(r.key, v)} maxLength={LIMITS.requirement} error={errorFor(`requirements.${r.key}`)} />
       )))}
       <div className="desk-field">
         <label htmlFor={fieldId(uid, 'notes')}>
           {t.notes}
           <small>{t.notesHint}</small>
         </label>
-        <textarea id={fieldId(uid, 'notes')} rows={4} maxLength={2000} value={brief.notes} onChange={e => update({ notes: e.target.value })} />
+        <textarea id={fieldId(uid, 'notes')} rows={4} maxLength={LIMITS.notes} value={brief.notes} onChange={e => update({ notes: e.target.value })} {...invalid(uid, 'notes', errorFor('notes'))} />
+        <FieldError uid={uid} name="notes" error={errorFor('notes')} />
       </div>
     </>
   );

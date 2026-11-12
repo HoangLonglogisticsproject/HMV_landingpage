@@ -91,18 +91,52 @@ test('invalid input, no delivery adapter and spam: answered without delivering',
   assert.equal(adapter.records.length, 0);
 });
 
-test('webhook adapter: signed JSON with the reference as idempotency key; non-2xx is a failure', async () => {
+test('webhook adapter: signed JSON with the inquiry key as idempotency key; non-2xx is a failure', async () => {
   const calls = [];
   const fetchImpl = async (url, init) => { calls.push([url, init]); return { ok: calls.length === 1, status: calls.length === 1 ? 202 : 500 }; };
   const adapter = webhookAdapter({ url: 'https://hooks.example/hmv', secret: 's3cret', fetchImpl });
   const record = { reference: 'HMV-2026-ABCDEF', product: null };
-  await adapter.deliver(record);
+  await adapter.deliver(record, { idempotencyKey: '0f3b6d2e-1c4a-4e8b-9a77-2f1d3c4b5a69' });
   const [url, init] = calls[0];
   assert.equal(url, 'https://hooks.example/hmv');
-  assert.equal(init.headers['idempotency-key'], 'HMV-2026-ABCDEF');
+  assert.equal(init.headers['idempotency-key'], '0f3b6d2e-1c4a-4e8b-9a77-2f1d3c4b5a69');
   assert.equal(init.headers['x-hmv-signature'], `sha256=${createHmac('sha256', 's3cret').update(init.body).digest('hex')}`);
   assert.deepEqual(JSON.parse(init.body), record);
-  await assert.rejects(adapter.deliver(record), /500/);
+  await assert.rejects(adapter.deliver(record, { idempotencyKey: 'k' }), /500/);
+});
+
+test('webhook: a retry after a lost response carries the same idempotency key, whatever reference it draws', async () => {
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+  const calls = [];
+  // The first delivery reaches the webhook but its answer never arrives; the retry is answered.
+  const fetchImpl = async (url, init) => {
+    calls.push(init);
+    if (calls.length === 1) throw new Error('timeout');
+    return { ok: true, status: 202 };
+  };
+  const submit = createInquiryService({ adapter: webhookAdapter({ url: 'https://hooks.example/hmv', fetchImpl }), now });
+  assert.deepEqual(await submit(inquiry()), { status: 'failed' });
+  assert.equal((await submit(inquiry())).status, 'accepted');
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].headers['idempotency-key'], inquiry().idempotencyKey);
+  assert.equal(calls[1].headers['idempotency-key'], calls[0].headers['idempotency-key']);
+  assert.notEqual(JSON.parse(calls[0].body).reference, undefined);
+});
+
+test('the same key with other content is a conflict: never the first result, never replacing it', async () => {
+  const adapter = memoryAdapter();
+  const submit = createInquiryService({ adapter, now });
+  const first = await submit(inquiry());
+  assert.equal(first.status, 'accepted');
+  // Same key, a changed contact: refused, nothing delivered.
+  assert.deepEqual(await submit(inquiry({ contact: { company: 'Other Foods', email: 'other@example.com', name: '', phone: '' } })), { status: 'conflict' });
+  assert.equal(adapter.records.length, 1);
+  // The original entry stands: the exact retry still gets the first result.
+  assert.deepEqual(await submit(inquiry()), first);
+  // Key order in the request does not matter: same content, same fingerprint.
+  const reordered = Object.fromEntries(Object.entries(inquiry()).reverse());
+  assert.deepEqual(await submit(reordered), first);
+  assert.equal(adapter.records.length, 1);
 });
 
 test('delivery is configured by environment only; nothing configured means no adapter', () => {

@@ -8,7 +8,8 @@ import { track } from '@/lib/analytics';
 import { contactChannels, sendInquiry } from '@/lib/inquiry';
 import { createInquiryMailto } from '@/features/inquiries/inquiry';
 import { emptyBrief, fieldId, progress, summarize, toInquiry, withProduct } from './brief';
-import { validateInquiry } from './validation';
+import { LIMITS, validateInquiry } from './validation';
+import { inquiryFingerprint } from './fingerprint';
 import { deskCopy } from './copy';
 import { visitContext } from './visit';
 import { followUpChannels } from './channels';
@@ -20,7 +21,15 @@ import { BriefStep, CompleteStep, RequirementsStep, ReviewStep, SummaryList } fr
 // POST /api/inquiry, never to analytics.
 
 const STEP_IDS = ['requirements', 'review', 'complete', 'brief'];
-const CONTACT_FIELDS = ['contact.company', 'contact.email', 'contact.phone', 'consent.contact'];
+// The step that shows each field the validation can name; requirements.* are on step 3. Anything else (a malformed
+// idempotency key, a broken body) is not the buyer's to fix: it is a failed send.
+const FIELD_STEP = {
+  goal: 0, product: 0, goods: 0, origin: 0, destination: 0, 'volume.amount': 0, notes: 2,
+  'contact.company': 3, 'contact.email': 3, 'contact.name': 3, 'contact.phone': 3, 'consent.contact': 3,
+};
+const stepOf = field => (field.startsWith('requirements.') ? 2 : FIELD_STEP[field]);
+/** The control a field error points at (its fieldId key). */
+const controlOf = field => (field === 'volume.amount' ? 'volume' : field.replace(/^requirements\./, ''));
 // randomUUID needs a secure context; getRandomValues does not (plain-http previews).
 const newKey = () => crypto.randomUUID?.() ?? Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
 
@@ -37,31 +46,48 @@ export function TradeDesk({ lang, request }) {
   const [status, setStatus] = useState('idle');
   const [fieldErrors, setFieldErrors] = useState([]);
   const [reference, setReference] = useState('');
-  // The brief's idempotency key: kept across retries of one brief, new for a new brief.
-  const [key, setKey] = useState(newKey);
+  // Whether the buyer has seen the accepted result: it is kept, and shown on the next open, until they have.
+  const [acknowledged, setAcknowledged] = useState(false);
+  // Counts the briefs of this desk: a response to an earlier brief never changes the current one.
+  const [generation, setGeneration] = useState(0);
+  // The last submission of this brief: its content fingerprint and idempotency key. An exact retry reuses the key; a
+  // changed brief or contact gets a new one, so a key always stands for one exact inquiry.
+  const [submission, setSubmission] = useState(/** @type {{ fingerprint: string, key: string } | null} */ (null));
   // The last open request acted on (null before the first).
   const [handled, setHandled] = useState(/** @type {object | null} */ (null));
-  const inFlight = useRef(false);
-  // The brief key trade_contact_start was last counted for.
-  const contactStarted = useRef('');
+  // The generation whose submission is in flight: one request at a time per brief.
+  const inFlight = useRef(-1);
+  // The brief generation trade_contact_start was last counted for.
+  const contactStarted = useRef(-1);
   const focusKey = useRef(null);
   const heading = useRef(null);
   const main = useRef(null);
+
+  const startBrief = ({ product = null, goal } = {}) => {
+    setBrief(emptyBrief({ goal: productById(product) ? 'sourcing' : goal, product }));
+    setStep(0);
+    setReference('');
+    setAcknowledged(false);
+    setStatus('idle');
+    setFieldErrors([]);
+    setSubmission(null);
+    setGeneration(g => g + 1);
+  };
+
   // Each open request (a new object from TradeDeskHost, which also counts it in analytics) opens the desk: a new brief
-  // after a sent one, or when opened for another product; otherwise the buyer's answers are kept.
+  // after a sent one the buyer has seen, or when opened for another product; otherwise the buyer's answers are kept.
+  // An acceptance the buyer has not seen yet (it arrived while the desk was closed) is shown, never replaced.
   if (request !== handled) {
     setHandled(request);
     const { product = null, goal } = request;
-    if (reference || (product && product !== brief.product) || (goal && goal !== brief.goal)) {
-      setBrief(emptyBrief({ goal: productById(product) ? 'sourcing' : goal, product }));
-      setStep(0);
-      setReference('');
-      setStatus('idle');
-      setFieldErrors([]);
-      setKey(newKey());
-    }
+    const fresh = reference ? acknowledged : (product && product !== brief.product) || (goal && goal !== brief.goal);
+    if (fresh) startBrief({ product, goal });
     setOpen(true);
   }
+  const openChange = next => {
+    setOpen(next);
+    if (!next && reference) setAcknowledged(true);
+  };
 
   // A step change scrolls the step to the top and moves focus to its heading, or to the field a chip pointed at.
   useEffect(() => {
@@ -102,43 +128,73 @@ export function TradeDesk({ lang, request }) {
   const channels = reference ? followUpChannels(contactChannels, { lang, reference, subject }) : [];
 
   const startContact = () => {
-    if (contactStarted.current === key) return;
-    contactStarted.current = key;
+    if (contactStarted.current === generation) return;
+    contactStarted.current = generation;
     track('trade_contact_start', facts);
+  };
+
+  // What the buyer would send now, without the visit context: a response applies only while this is unchanged.
+  const content = inquiryFingerprint(toInquiry(brief, { contact, consent, locale: lang, context: null }));
+  const live = useRef({ generation, content });
+  useEffect(() => {
+    live.current = { generation, content };
+  });
+
+  /** Field errors from the validation (here or the server's): shown on their step, the first one focused. */
+  const showErrors = fields => {
+    const own = fields.filter(f => stepOf(f) !== undefined).sort((a, b) => stepOf(a) - stepOf(b));
+    setFieldErrors(own);
+    if (!own.length) return false;
+    focusKey.current = controlOf(own[0]);
+    if (stepOf(own[0]) === step) document.getElementById(fieldId(uid, focusKey.current))?.focus();
+    else go(stepOf(own[0]));
+    return true;
   };
 
   async function send(event) {
     event.preventDefault();
-    if (inFlight.current) return;
-    const inquiry = toInquiry(brief, { contact, consent, locale: lang, context: visitContext(), idempotencyKey: key, website });
+    if (inFlight.current === generation) return;
+    const context = visitContext();
+    const draft = toInquiry(brief, { contact, consent, locale: lang, context, website });
+    const fingerprint = inquiryFingerprint(draft);
+    const key = submission?.fingerprint === fingerprint ? submission.key : newKey();
+    const inquiry = { ...draft, idempotencyKey: key };
     const check = validateInquiry(inquiry);
-    const invalid = check.ok ? [] : check.errors.filter(f => CONTACT_FIELDS.includes(f));
-    setFieldErrors(invalid);
-    if (invalid.length) {
-      document.getElementById(fieldId(uid, invalid[0]))?.focus();
+    if (!check.ok) {
+      if (!showErrors(check.errors)) setStatus('failed');
       return;
     }
-    inFlight.current = true;
+    setFieldErrors([]);
+    setSubmission({ fingerprint, key });
+    const sent = { generation, content, facts };
+    // A response for a brief that is no longer on screen (a new brief, or this one edited since) changes nothing.
+    const current = () => live.current.generation === sent.generation && live.current.content === sent.content;
+    inFlight.current = generation;
     setStatus('sending');
     try {
       const { status: code, body: data } = await sendInquiry(inquiry);
-      if (code === 201 && typeof data.reference === 'string') {
+      const accepted = code === 201 && typeof data.reference === 'string';
+      if (accepted) track('generate_lead', { ...sent.facts, locale: lang });
+      if (live.current.generation !== sent.generation) return;
+      if (accepted && current()) {
         setReference(data.reference);
+        setAcknowledged(false);
         setStatus('idle');
-        track('generate_lead', { ...facts, locale: lang });
+      } else if (accepted) {
+        setStatus('idle');
       } else {
-        const fields = (data.fields ?? []).filter(f => CONTACT_FIELDS.includes(f));
-        setFieldErrors(fields);
-        setStatus(fields.length ? 'idle' : 'failed');
+        // 409: this key was used for other content; the next attempt takes a new one.
+        if (code === 409) setSubmission(null);
+        setStatus(code === 400 && showErrors(data.fields ?? []) ? 'idle' : 'failed');
       }
     } catch {
-      setStatus('failed');
+      if (live.current.generation === sent.generation) setStatus('failed');
     } finally {
-      inFlight.current = false;
+      if (inFlight.current === sent.generation) inFlight.current = -1;
     }
   }
 
-  // The fallback when the API cannot take the brief: the same brief as an email draft.
+  // The fallback when the API cannot take the brief: the same brief as an email draft, route (origin) included.
   const mailto = () => {
     const en = summarize(brief, 'en', { pending: 'to be confirmed' });
     window.location.assign(createInquiryMailto({
@@ -146,16 +202,21 @@ export function TradeDesk({ lang, request }) {
       product: product?.en ?? brief.goods,
       destination: brief.destination,
       volume: en.rows.find(r => r.key === 'volume')?.value,
-      requirements: [...en.rows.filter(r => ['application', 'transport'].includes(r.key)), ...en.requirements].map(r => [r.label, r.value]),
+      requirements: [...en.rows.filter(r => ['route', 'application', 'transport'].includes(r.key)), ...en.requirements].map(r => [r.label, r.value]),
       message: brief.notes,
     }));
   };
 
-  const err = name => fieldErrors.includes(name) && <span className="desk-error" id={`${fieldId(uid, name)}-error`}>{t.errors[name]}</span>;
+  /** The message for a field with an error, or null. */
+  const errorFor = name => {
+    if (!fieldErrors.includes(name)) return null;
+    return t.errors[name] ?? (name.startsWith('requirements.') ? t.errors.requirement : t.errors.field);
+  };
+  const err = name => fieldErrors.includes(name) && <span className="desk-error" id={`${fieldId(uid, name)}-error`}>{errorFor(name)}</span>;
   const describedBy = name => (fieldErrors.includes(name) ? `${fieldId(uid, name)}-error` : undefined);
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root open={open} onOpenChange={openChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="desk-overlay" />
         <Dialog.Content className="desk" aria-describedby={`${uid}-description`} lang={lang}>
@@ -199,6 +260,7 @@ export function TradeDesk({ lang, request }) {
                   <Dialog.Close asChild>
                     <Button type="button" size="lg" className="day-cta">{t.done}</Button>
                   </Dialog.Close>
+                  <button type="button" className="text-link" onClick={() => startBrief(handled ?? {})}>{t.newInquiry}</button>
                 </section>
               ) : (
                 <>
@@ -206,9 +268,9 @@ export function TradeDesk({ lang, request }) {
                     <span>{step + 1} / 4</span>
                     {t.steps[step]}
                   </h3>
-                  {step === 0 && <RequirementsStep uid={uid} lang={lang} t={t} brief={brief} setGoal={setGoal} setProduct={setProduct} update={update} />}
+                  {step === 0 && <RequirementsStep uid={uid} lang={lang} t={t} brief={brief} setGoal={setGoal} setProduct={setProduct} update={update} errorFor={errorFor} />}
                   {step === 1 && <ReviewStep lang={lang} t={t} brief={brief} summary={summary} onPick={pick} />}
-                  {step === 2 && <CompleteStep uid={uid} lang={lang} t={t} brief={brief} update={update} />}
+                  {step === 2 && <CompleteStep uid={uid} lang={lang} t={t} brief={brief} update={update} errorFor={errorFor} />}
                   {step === 3 && (
                     <>
                       <BriefStep lang={lang} t={t} brief={brief} summary={summary} onPick={pick} />
@@ -226,7 +288,7 @@ export function TradeDesk({ lang, request }) {
                                 type={name === 'email' ? 'email' : name === 'phone' ? 'tel' : 'text'}
                                 autoComplete={auto}
                                 required={required}
-                                maxLength={name === 'email' ? 254 : 150}
+                                maxLength={LIMITS[`contact.${name}`]}
                                 aria-invalid={fieldErrors.includes(`contact.${name}`) || undefined}
                                 aria-describedby={describedBy(`contact.${name}`)}
                                 value={contact[name]}

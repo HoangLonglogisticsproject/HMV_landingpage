@@ -5,7 +5,9 @@
 
 const WHATSAPP = /^\d{8,15}$/;
 const ZALO = /^https:\/\/(oa\.)?zalo\.me\/[\w./-]+$/;
-const EMAIL = /^[^\s@?&]+@[^\s@?&]+\.[^\s@?&]+$/;
+// A plain mailbox only: characters with a meaning in a URL (# ? & % / …) are refused, not escaped into a link that
+// might address another mailbox.
+const EMAIL = /^[A-Za-z0-9._+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
 
 /** Channel order: Zalo first for Vietnamese buyers; WhatsApp first otherwise, where Zalo is little used. */
 const ORDER = { en: ['whatsapp', 'email'], vi: ['zalo', 'whatsapp', 'email'] };

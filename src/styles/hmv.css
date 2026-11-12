@@ -9415,6 +9415,17 @@ article[id] {
   font-weight: 600
 }
 
+/* TradeDeskHost when the desk's code could not load: a short message with retry and close. */
+.desk-load-failed {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 24px 28px;
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink)
+}
+
 .desk {
   position: fixed;
   z-index: 10001;

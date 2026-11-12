@@ -1,19 +1,21 @@
 import { deliveryAdapterFromEnv } from '@/next/inquiry/adapters';
+import { readBodyLimited } from '@/next/inquiry/body';
 import { createInquiryService } from '@/next/inquiry/service';
 
 // HMV Trade Desk inquiries: JSON body (src/features/trade-desk/brief.js toInquiry) → validation → inquiry service →
 // delivery adapter (src/next/inquiry). Same-origin only: no CORS headers, and a JSON body needs a CORS preflight.
-// 201 { reference } | 400 { error: 'invalid', fields } | 413 | 502 delivery failed | 503 no delivery configured.
-const MAX_BODY = 20_000;
+// 201 { reference } | 400 { error: 'invalid', fields } | 409 key reused for another inquiry | 413 | 502 delivery
+// failed | 503 no delivery configured.
+const MAX_BODY_BYTES = 20_000;
 const submit = createInquiryService({ adapter: deliveryAdapterFromEnv(process.env) });
-const STATUS = { invalid: 400, unavailable: 503, failed: 502 } as const;
+const STATUS = { invalid: 400, conflict: 409, unavailable: 503, failed: 502 } as const;
 
 export async function POST(request: Request) {
   if (!request.headers.get('content-type')?.startsWith('application/json')) {
     return Response.json({ error: 'unsupported_media_type' }, { status: 415 });
   }
-  const text = await request.text();
-  if (text.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 });
+  const text = await readBodyLimited(request, MAX_BODY_BYTES);
+  if (text === null) return Response.json({ error: 'too_large' }, { status: 413 });
   let body: unknown;
   try {
     body = JSON.parse(text);

@@ -72,6 +72,21 @@ signature       7c05a879b426c6be25faf502b443dc310a71424044bf4d32b617e137d8d2d920
 | 200 `{reference, duplicate:true}` (same key again) | 201 `{reference}` | The same reference; nothing new is created or emailed |
 | 400 / 401 (incl. a body changed after signing) / 503 / timeout / no reference | 502 | "Could not be sent", answers kept, **Try again** (same key) and **Prepare an email instead** |
 
+Submission rules (browser and `/api/inquiry`):
+
+- The browser waits at most 15 s for `/api/inquiry` (`AbortController` in `src/next/inquiry-client.js`), then shows the
+  retry and email draft with the buyer's answers kept.
+- One idempotency key per exact inquiry: an exact retry reuses it; any changed brief or contact value gets a new key
+  (`src/features/trade-desk/fingerprint.js`). The server keeps each key's content fingerprint and answers **409** to a
+  key reused with other content, never the first inquiry's reference.
+- Every validation error, the browser's or the server's, is shown at its field on its step.
+- A response for a brief that is no longer on screen (a new brief, or this one edited) changes nothing; an acceptance
+  that arrives while the desk is closed is shown on the next open, until the buyer starts a new inquiry.
+- The body is read with a 20 000-byte limit: a larger `Content-Length` is refused unread, a chunked body is cut off at
+  the limit (413).
+- The webhook adapter sends the inquiry's idempotency key as `idempotency-key` (stable across retries; the record's
+  reference is drawn anew for each attempt), so the destination can deduplicate.
+
 Only a 201 from `/api/inquiry` shows the sent state and emits `generate_lead`. Failures are logged with the idempotency
 key and the CMS status/error code only, never contact details.
 
@@ -114,8 +129,14 @@ review before launch.
 
 ## Before production
 
+Delivery is activated only when every item below is in place.
+
 1. CMS deployed with HTTPS and `TRADE_INQUIRY_INGEST_ENABLED=true`.
 2. Vercel (Production): `INQUIRY_DELIVERY=cms`, `CMS_INQUIRY_URL`, `CMS_INQUIRY_SECRET` (server-only).
 3. Optional `NEXT_PUBLIC_HMV_*` channels (then redeploy: they are inlined at build).
 4. A test inquiry on a preview deployment, seen in the CMS Sales Inbox with the same reference the buyer saw.
-5. Rate limiting for `/api/inquiry` at the edge (Vercel Firewall) if spam appears; there is no in-memory limiter.
+5. **Edge rate limiting for `POST /api/inquiry` is a prerequisite for turning delivery on.** Without it, any caller can
+   send valid inquiries with fresh idempotency keys, and each one is a CMS write and a notification email. Configure a
+   Vercel Firewall (WAF) rate-limit rule on `POST /api/inquiry` per client IP (for example a few requests per minute,
+   then deny or challenge) before setting `INQUIRY_DELIVERY=cms` in Production, and verify it on a preview. The site
+   has no in-memory limiter by design: serverless instances do not share memory, so one would not limit anything.

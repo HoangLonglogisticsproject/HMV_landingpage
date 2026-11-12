@@ -1,13 +1,13 @@
 // First-touch context of the visit (landing page, external referrer, UTM): this session only, never personal data.
-// Recorded on every page load by TradeDeskHost, read when the Trade Desk submits.
+// Recorded once, on the first page load of the session (TradeDeskHost), and read when the Trade Desk submits: the
+// landing page, the referrer and the campaign always describe the same arrival.
 
 export function rememberVisit() {
   try {
     const store = sessionStorage;
-    if (!store.getItem('hmv_landing')) {
-      store.setItem('hmv_landing', location.pathname);
-      store.setItem('hmv_referrer', document.referrer);
-    }
+    if (store.getItem('hmv_landing')) return;
+    store.setItem('hmv_landing', location.pathname);
+    store.setItem('hmv_referrer', document.referrer);
     const params = new URLSearchParams(location.search);
     const utm = { source: params.get('utm_source'), medium: params.get('utm_medium'), campaign: params.get('utm_campaign') };
     if (Object.values(utm).some(Boolean)) store.setItem('hmv_utm', JSON.stringify(utm));

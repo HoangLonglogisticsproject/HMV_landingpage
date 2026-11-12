@@ -93,6 +93,9 @@ test('inquiry not delivered: error with the email fallback, answers kept, no lea
   expect((await dataLayer(page)).some(e => e.event === 'generate_lead')).toBe(false);
 });
 
+// Media type and validation are checked on every target: neither can create an inquiry. The valid request is sent only
+// to the local build (no delivery adapter, so 503): a hosted preview may have INQUIRY_DELIVERY=cms, and a test must never
+// create a real CMS inquiry.
 test('POST /api/inquiry: validates, and without a delivery adapter refuses with 503', async ({ request }) => {
   const inquiry = {
     idempotencyKey: '9d2c4e6a-1b3f-4a5c-8e7d-6f5a4b3c2d1e',
@@ -105,8 +108,8 @@ test('POST /api/inquiry: validates, and without a delivery adapter refuses with 
   const invalid = await request.post('/api/inquiry', { data: { ...inquiry, contact: { company: 'E', email: 'x' } } });
   expect(invalid.status()).toBe(400);
   expect(await invalid.json()).toEqual({ error: 'invalid', fields: ['contact.company', 'contact.email'] });
-  expect((await request.post('/api/inquiry', { data: inquiry })).status()).toBe(503);
   expect((await request.post('/api/inquiry', { headers: { 'content-type': 'text/plain' }, data: 'x' })).status()).toBe(415);
+  if (!process.env.PLAYWRIGHT_BASE_URL) expect((await request.post('/api/inquiry', { data: inquiry })).status()).toBe(503);
 });
 
 test('mobile: the desk is a full-screen sheet', async ({ page }) => {

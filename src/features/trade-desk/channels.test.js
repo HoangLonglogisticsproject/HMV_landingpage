@@ -32,3 +32,15 @@ test('unset or malformed channels are left out, never rendered broken', () => {
   assert.deepEqual(followUpChannels({ zalo: 'https://example.com/zalo' }, { lang: 'vi', ...sent }), []);
   assert.deepEqual(followUpChannels({ zalo: 'https://oa.zalo.me/123' }, { lang: 'vi', ...sent }).map(c => c.id), ['zalo']);
 });
+
+test('email: a mailbox with URL-reserved characters is refused; subject and body are encoded', () => {
+  for (const email of ['sales#export@hmv.example', 'sales?cc=x@hmv.example', 'sales%40x@hmv.example', 'sales&x@hmv.example', 'a@b'])
+    assert.deepEqual(followUpChannels({ email }, { lang: 'en', ...sent }), [], email);
+  const [mail] = followUpChannels({ email: 'sales+export@hmv.example' }, { lang: 'en', reference: 'HMV-2026-7KQ4XM', subject: 'Spices & herbs #1?' });
+  const url = new URL(mail.href);
+  assert.equal(url.protocol, 'mailto:');
+  assert.equal(url.pathname, 'sales+export@hmv.example');
+  assert.equal(new URLSearchParams(url.search).get('subject'), 'HMV-2026-7KQ4XM — Spices & herbs #1?');
+  assert.equal(new URLSearchParams(url.search).get('body'), 'Hello HMV, I submitted inquiry HMV-2026-7KQ4XM regarding Spices & herbs #1?.');
+  assert.equal(url.hash, '');
+});

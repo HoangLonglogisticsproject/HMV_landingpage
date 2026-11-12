@@ -25,15 +25,21 @@ export function emptyBrief({ goal = 'sourcing', product = null } = {}) {
   };
 }
 
-/** The brief after choosing a product: origin and volume unit follow the product; answers to other products' fields go. */
-export const withProduct = (brief, product) => ({
-  ...brief,
-  product,
-  origin: originsFor(product)[0],
-  volume: { ...brief.volume, unit: defaultUnit(product) },
-  application: '',
-  requirements: {},
-});
+/**
+ * The brief after choosing a product: origin and volume unit follow the product; answers to other products' fields go.
+ * An amount is kept only while its unit stays: 5000 MT / month never becomes 5000 containers.
+ */
+export const withProduct = (brief, product) => {
+  const unit = defaultUnit(product);
+  return {
+    ...brief,
+    product,
+    origin: originsFor(product)[0],
+    volume: unit === brief.volume.unit ? brief.volume : { amount: '', unit },
+    application: '',
+    requirements: {},
+  };
+};
 
 const filled = value => String(value ?? '').trim() !== '';
 
