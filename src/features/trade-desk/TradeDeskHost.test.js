@@ -7,6 +7,16 @@ import { TradeDeskHost } from './TradeDeskHost.jsx';
 import { openTradeDesk } from './open.js';
 
 vi.mock('@/lib/inquiry', () => ({ sendInquiry: vi.fn(), contactChannels: {} }));
+// The desk's module loads only when the test releases it: a slow connection, deterministically.
+const load = vi.hoisted(() => {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  return { gate, release: () => release() };
+});
+vi.mock('./TradeDesk.jsx', async importOriginal => {
+  await load.gate;
+  return importOriginal();
+});
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 let root, container;
@@ -32,7 +42,12 @@ test('the desk loads on the first open, which is kept (product preselected) whil
   await act(async () => openTradeDesk({ product: 'dried-cassava-chips', source: 'product_hero' }));
   assert.equal(document.querySelector('[role="status"]').textContent, 'Đang mở HMV Trade Desk…');
 
+  // Still loading a while later: no desk yet, the open request is kept.
+  await act(async () => new Promise(resolve => setTimeout(resolve, 20)));
+  assert.equal(document.querySelector('[role="dialog"]'), null);
+
   await act(async () => {
+    load.release();
     await import('./TradeDesk.jsx');
     await new Promise(resolve => setTimeout(resolve, 0));
   });
