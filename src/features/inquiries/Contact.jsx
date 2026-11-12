@@ -1,13 +1,12 @@
 import { Suspense } from 'react';
 import {
   ArrowUpRight,
+  ClipboardList,
   Mail,
   MapPin,
-  Headphones,
   PhoneCall,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Link } from '@/lib/navigation';
+import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
 import { copy, address } from '@/data/hmv';
 import { ContactForm, ContactFormFromUrl } from './ContactForm';
 export function Contact({ lang, full = false }) {
@@ -25,13 +24,11 @@ export function Contact({ lang, full = false }) {
             <p>{t.contactText}</p>
           </div>
           {!full && (
-            <Button asChild variant="secondary" size="lg">
-              <Link to="/contact">
-                <Headphones size={16} />
-                {t.support || '24/7 Support'}
-                <ArrowUpRight />
-              </Link>
-            </Button>
+            <TradeDeskButton variant="secondary" size="lg" source="home_contact">
+              <ClipboardList size={16} />
+              {t.support}
+              <ArrowUpRight />
+            </TradeDeskButton>
           )}
         </div>
         {full && (
@@ -41,22 +38,16 @@ export function Contact({ lang, full = false }) {
             </Suspense>
             <aside>
               <div className="office-block support-desk-card">
-                <div className="support-live-badge">
-                  <span className="live-status-dot" />
-                  <strong>
-                    {vi ? 'TRỰC TUYẾN 24/7' : '24/7 LIVE SUPPORT'}
-                  </strong>
-                </div>
-                <h3>
-                  {vi
-                    ? 'Bàn Điều Phối & Hỗ Trợ 24/7'
-                    : '24/7 Priority Support Desk'}
-                </h3>
+                <h3>HMV Trade Desk</h3>
                 <p>
                   {vi
-                    ? 'Bộ phận thương mại và chuỗi cung ứng túc trực 24/7 phản hồi yêu cầu báo giá nông sản, tư vấn hạ tầng điện gió và xử lý thủ tục vận chuyển.'
-                    : 'Our global trade and logistics desk is available 24/7 to process RFQs, coordinate wind energy projects and monitor shipments.'}
+                    ? 'Mô tả sản phẩm, khối lượng, điểm đến và yêu cầu trong bốn bước. Yêu cầu được gửi tới bộ phận thương mại HMV kèm mã tham chiếu.'
+                    : 'Describe the product, volume, destination and requirements in four steps. Your inquiry reaches the HMV commercial team with a reference number.'}
                 </p>
+                <TradeDeskButton size="lg" className="day-cta" source="contact_page">
+                  {vi ? 'Mở HMV Trade Desk' : 'Open HMV Trade Desk'}
+                  <ArrowUpRight size={18} />
+                </TradeDeskButton>
                 <div className="support-desk-channels">
                   <a href="tel:+84909123456" className="support-channel-link">
                     <PhoneCall size={14} />

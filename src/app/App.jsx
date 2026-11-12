@@ -13,6 +13,7 @@ import { ActivitiesView } from '@/views/activities/ActivitiesView';
 import { ContactView } from '@/views/contact/ContactView';
 import { InsightsPage } from '@/views/insights/InsightsPage';
 import { RegulationsView } from '@/views/regulations/RegulationsView';
+import { PrivacyView } from '@/views/privacy/PrivacyView';
 import { PackagingView } from '@/views/packaging-logistics/PackagingView';
 import { LogisticsHubPage } from '@/views/logistics/LogisticsHubPage';
 import { ProductDetailPage } from '@/views/products/ProductDetailPage';
@@ -23,6 +24,7 @@ import {
   contactMeta,
   packagingMeta,
   regulationsMeta,
+  privacyMeta,
   supplyChainMeta,
   tradeSolutionsMeta,
 } from '@/views/meta';
@@ -46,6 +48,7 @@ export default function App() {
               <Route path="/contact" element={<StaticPage view={ContactView} meta={contactMeta} />} />
               <Route path="/insights" element={<InsightsPage />} />
               <Route path="/regulations" element={<StaticPage view={RegulationsView} meta={regulationsMeta} />} />
+              <Route path="/privacy" element={<StaticPage view={PrivacyView} meta={privacyMeta} />} />
               <Route path="/packaging-logistics" element={<StaticPage view={PackagingView} meta={packagingMeta} />} />
               <Route path="/logistics" element={<LogisticsHubPage />} />
               <Route path="/products/:id" element={<ProductDetailPage />} />

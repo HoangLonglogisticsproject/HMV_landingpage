@@ -3,12 +3,14 @@ import { afterEach, beforeEach, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { act, createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
-import { sendInquiry } from '@/lib/inquiry';
-import { TradeDesk } from './TradeDesk.jsx';
+import { contactChannels, sendInquiry } from '@/lib/inquiry';
+import { TradeDeskHost } from './TradeDeskHost.jsx';
 import { openTradeDesk } from './open.js';
 
 // The inquiry port is the only I/O: each test decides what the API answers.
-vi.mock('@/lib/inquiry', () => ({ sendInquiry: vi.fn() }));
+// contactChannels: what NEXT_PUBLIC_HMV_* configure on the site; a test may clear them.
+vi.mock('@/lib/inquiry', () => ({ sendInquiry: vi.fn(), contactChannels: {} }));
+const CHANNELS = { whatsapp: '+84 909 000 000', zalo: 'https://zalo.me/0909000000', email: 'sales@hmv.example' };
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 let root, container;
@@ -22,10 +24,19 @@ const type = (el, value) => act(async () => {
 });
 const events = () => (window.dataLayer ?? []).map(e => e.event);
 
+// Through the host, as on the site: the desk's code loads on the first open.
 async function render(lang = 'en') {
-  await act(async () => root.render(h(TradeDesk, { lang })));
+  await act(async () => root.render(h(TradeDeskHost, { lang })));
 }
-const open = detail => act(async () => openTradeDesk(detail));
+const open = async detail => {
+  await act(async () => {
+    openTradeDesk(detail);
+    // The first open loads the desk's module: let it resolve inside act so React commits the desk.
+    await import('./TradeDesk.jsx');
+    await new Promise(resolve => setTimeout(resolve, 0));
+  });
+  assert.ok(dialog());
+};
 
 // From a product page to the preliminary brief with the contact form filled in.
 async function toContact(contact = { company: 'Example Foods B.V.', email: 'buyer@example.com' }) {
@@ -43,6 +54,7 @@ beforeEach(async () => {
   container = document.body.appendChild(document.createElement('div'));
   root = createRoot(container);
   sendInquiry.mockReset();
+  Object.assign(contactChannels, CHANNELS);
   delete window.dataLayer;
   sessionStorage.clear();
 });
@@ -157,6 +169,33 @@ test('successful inquiry: one request even on a double click, the reference show
   assert.deepEqual(window.dataLayer.at(-1), { event: 'generate_lead', goal: 'sourcing', product: 'passion-fruit', locale: 'en' });
   // Nothing personal or free-text in analytics.
   assert.doesNotMatch(JSON.stringify(window.dataLayer), /buyer@example\.com|Example Foods|Rotterdam/);
+
+  // Optional follow-up: English order is WhatsApp, then email; links carry the reference and product only.
+  const links = [...dialog().querySelectorAll('.desk-follow-up a')];
+  assert.deepEqual(links.map(a => a.textContent), ['Message HMV on WhatsApp', 'Email the HMV commercial team']);
+  assert.equal(decodeURIComponent(links[0].href), 'https://wa.me/84909000000?text=Hello HMV, I submitted inquiry HMV-2026-7KQ4XM regarding Passion fruit.');
+  for (const a of links) assert.doesNotMatch(decodeURIComponent(a.href), /buyer@example\.com|Example Foods|Rotterdam/);
+});
+
+test('the consent checkbox has a privacy notice link in the buyer language', async () => {
+  await render('vi');
+  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
+  await click(button('Xem phân tích'));
+  await click(button('Xem phương án sơ bộ'));
+  const link = dialog().querySelector('.desk-privacy');
+  assert.equal(link.textContent, 'Thông báo quyền riêng tư');
+  assert.equal(link.getAttribute('href'), '/vi/privacy');
+  assert.equal(link.target, '_blank');
+});
+
+test('without configured channels the sent state shows no follow-up links', async () => {
+  for (const k of Object.keys(CHANNELS)) delete contactChannels[k];
+  sendInquiry.mockResolvedValueOnce({ status: 201, body: { reference: 'HMV-2026-7KQ4XM' } });
+  await render();
+  await toContact();
+  await click(button('Send to HMV Commercial Team'));
+  assert.ok(dialog().textContent.includes('HMV-2026-7KQ4XM'));
+  assert.equal(dialog().querySelector('.desk-follow-up'), null);
 });
 
 test('failed delivery: the answers stay, an email draft is offered, no lead is counted, and a retry works', async () => {
@@ -165,6 +204,9 @@ test('failed delivery: the answers stay, an email draft is offered, no lead is c
   await toContact();
   await click(button('Send to HMV Commercial Team'));
   assert.ok(dialog().querySelector('[role="alert"]').textContent.includes('could not be sent'));
+  // Never a sent state or follow-up links before the server accepted the inquiry.
+  assert.doesNotMatch(dialog().textContent, /Sent to the HMV commercial team|HMV-\d{4}-/);
+  assert.equal(dialog().querySelector('.desk-follow-up'), null);
   assert.ok(button('Prepare an email instead'));
   assert.equal(field('contact.company').value, 'Example Foods B.V.');
   assert.equal(events().includes('generate_lead'), false);

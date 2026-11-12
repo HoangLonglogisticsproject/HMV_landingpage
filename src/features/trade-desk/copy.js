@@ -55,6 +55,7 @@ export const deskCopy = {
     phone: 'WhatsApp / phone',
     required: 'required',
     consent: 'HMV Global may contact me about this inquiry.',
+    privacy: 'Privacy notice',
     submit: 'Send to HMV Commercial Team',
     sending: 'Sending…',
     errors: {
@@ -69,6 +70,8 @@ export const deskCopy = {
     sentTitle: 'Sent to the HMV commercial team',
     reference: 'Inquiry reference',
     sentText: 'The commercial team reviews your brief and contacts you about the next step. Keep this reference for follow-up.',
+    followUp: 'Want to add something? Optional, quote your reference:',
+    channels: { whatsapp: 'Message HMV on WhatsApp', zalo: 'Message HMV on Zalo', email: 'Email the HMV commercial team' },
     done: 'Close',
   },
   vi: {
@@ -126,6 +129,7 @@ export const deskCopy = {
     phone: 'WhatsApp / điện thoại',
     required: 'bắt buộc',
     consent: 'Tôi đồng ý để HMV Global liên hệ về yêu cầu này.',
+    privacy: 'Thông báo quyền riêng tư',
     submit: 'Gửi yêu cầu cho bộ phận kinh doanh HMV',
     sending: 'Đang gửi…',
     errors: {
@@ -140,6 +144,8 @@ export const deskCopy = {
     sentTitle: 'Đã gửi tới bộ phận kinh doanh HMV',
     reference: 'Mã yêu cầu',
     sentText: 'Bộ phận kinh doanh HMV sẽ xem xét phương án và liên hệ với bạn về bước tiếp theo. Vui lòng lưu mã này để tiện trao đổi.',
+    followUp: 'Muốn bổ sung thông tin? Không bắt buộc, vui lòng nêu mã yêu cầu:',
+    channels: { whatsapp: 'Nhắn HMV qua WhatsApp', zalo: 'Nhắn HMV qua Zalo', email: 'Gửi email cho bộ phận kinh doanh HMV' },
     done: 'Đóng',
   },
 };

@@ -3,50 +3,28 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from 'radix-ui';
 import { ArrowLeft, ArrowRight, ArrowUpRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { productById } from './rules';
+import { GOALS, productById } from './rules';
 import { track } from '@/lib/analytics';
-import { sendInquiry } from '@/lib/inquiry';
+import { contactChannels, sendInquiry } from '@/lib/inquiry';
 import { createInquiryMailto } from '@/features/inquiries/inquiry';
 import { emptyBrief, fieldId, progress, summarize, toInquiry, withProduct } from './brief';
 import { validateInquiry } from './validation';
 import { deskCopy } from './copy';
-import { OPEN_TRADE_DESK } from './open';
+import { visitContext } from './visit';
+import { followUpChannels } from './channels';
 import { BriefStep, CompleteStep, RequirementsStep, ReviewStep, SummaryList } from './DeskSteps';
 
-// HMV Trade Desk: helps a buyer structure a trade requirement and sends it to the HMV commercial team. Mounted once
-// (SiteShell), opened by openTradeDesk(). The structured brief is the source of truth; the buyer sees the preliminary
-// brief before any contact detail is asked; submission goes to POST /api/inquiry, never to analytics.
+// HMV Trade Desk: helps a buyer structure a trade requirement and sends it to the HMV commercial team. Loaded and
+// mounted by TradeDeskHost on the first openTradeDesk(); each call arrives as a new `request`. The structured brief
+// is the source of truth; the buyer sees the preliminary brief before any contact detail is asked; submission goes to
+// POST /api/inquiry, never to analytics.
 
 const STEP_IDS = ['requirements', 'review', 'complete', 'brief'];
 const CONTACT_FIELDS = ['contact.company', 'contact.email', 'contact.phone', 'consent.contact'];
 const newKey = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
 
-// First-touch context of the visit (landing page, external referrer, UTM): this session only, never personal data.
-function rememberVisit() {
-  try {
-    const store = sessionStorage;
-    if (!store.getItem('hmv_landing')) {
-      store.setItem('hmv_landing', location.pathname);
-      store.setItem('hmv_referrer', document.referrer);
-    }
-    const params = new URLSearchParams(location.search);
-    const utm = { source: params.get('utm_source'), medium: params.get('utm_medium'), campaign: params.get('utm_campaign') };
-    if (Object.values(utm).some(Boolean)) store.setItem('hmv_utm', JSON.stringify(utm));
-  } catch {
-    // Storage blocked: the inquiry goes without visit context.
-  }
-}
-function visitContext() {
-  const page = location.pathname;
-  try {
-    const store = sessionStorage;
-    return { page, landingPage: store.getItem('hmv_landing') || page, referrer: store.getItem('hmv_referrer') || '', utm: JSON.parse(store.getItem('hmv_utm') || '{}') };
-  } catch {
-    return { page, landingPage: page, referrer: '', utm: {} };
-  }
-}
-
-export function TradeDesk({ lang }) {
+/** @param {{ lang: 'en' | 'vi', request: { product?: string, goal?: string, source?: string } }} props */
+export function TradeDesk({ lang, request }) {
   const t = deskCopy[lang];
   const uid = useId().replace(/:/g, '');
   const [open, setOpen] = useState(false);
@@ -58,40 +36,30 @@ export function TradeDesk({ lang }) {
   const [status, setStatus] = useState('idle');
   const [fieldErrors, setFieldErrors] = useState([]);
   const [reference, setReference] = useState('');
-  const key = useRef(newKey());
+  // The brief's idempotency key: kept across retries of one brief, new for a new brief.
+  const [key, setKey] = useState(newKey);
+  const [handled, setHandled] = useState(null);
   const inFlight = useRef(false);
-  const contactStarted = useRef(false);
+  // The brief key trade_contact_start was last counted for.
+  const contactStarted = useRef(null);
   const focusKey = useRef(null);
   const heading = useRef(null);
   const main = useRef(null);
-  // The latest brief and reference, for the open handler registered once.
-  const state = useRef({ brief, reference });
-  useEffect(() => {
-    state.current = { brief, reference };
-  });
-
-  useEffect(() => {
-    rememberVisit();
-    const onOpen = event => {
-      const { product = null, goal, source = 'unknown' } = event.detail ?? {};
-      const current = state.current;
-      // A new brief after a sent one, or when opened for another product; otherwise the buyer's answers are kept.
-      if (current.reference || (product && product !== current.brief.product) || (goal && goal !== current.brief.goal)) {
-        setBrief(emptyBrief({ goal: productById(product) ? 'sourcing' : goal, product }));
-        setStep(0);
-        setReference('');
-        setStatus('idle');
-        setFieldErrors([]);
-        key.current = newKey();
-        contactStarted.current = false;
-      }
-      setOpen(true);
-      track('trade_desk_open', { source, product: product ?? undefined, locale: lang });
-      if (productById(product)) track('trade_product_selected', { product, source: 'preselected' });
-    };
-    window.addEventListener(OPEN_TRADE_DESK, onOpen);
-    return () => window.removeEventListener(OPEN_TRADE_DESK, onOpen);
-  }, [lang]);
+  // Each open request (a new object from TradeDeskHost, which also counts it in analytics) opens the desk: a new brief
+  // after a sent one, or when opened for another product; otherwise the buyer's answers are kept.
+  if (request !== handled) {
+    setHandled(request);
+    const { product = null, goal } = request;
+    if (reference || (product && product !== brief.product) || (goal && goal !== brief.goal)) {
+      setBrief(emptyBrief({ goal: productById(product) ? 'sourcing' : goal, product }));
+      setStep(0);
+      setReference('');
+      setStatus('idle');
+      setFieldErrors([]);
+      setKey(newKey());
+    }
+    setOpen(true);
+  }
 
   // A step change scrolls the step to the top and moves focus to its heading, or to the field a chip pointed at.
   useEffect(() => {
@@ -127,17 +95,20 @@ export function TradeDesk({ lang }) {
   const canContinue = brief.goal === 'sourcing' ? Boolean(brief.product) : brief.goods.trim() !== '';
   const product = productById(brief.product);
   const facts = { goal: brief.goal, product: brief.product ?? undefined };
+  // The product (or the goal), never the buyer's free text: it goes into the follow-up links.
+  const subject = product?.[lang] ?? GOALS.find(g => g.id === brief.goal).label[lang];
+  const channels = reference ? followUpChannels(contactChannels, { lang, reference, subject }) : [];
 
   const startContact = () => {
-    if (contactStarted.current) return;
-    contactStarted.current = true;
+    if (contactStarted.current === key) return;
+    contactStarted.current = key;
     track('trade_contact_start', facts);
   };
 
   async function send(event) {
     event.preventDefault();
     if (inFlight.current) return;
-    const inquiry = toInquiry(brief, { contact, consent, locale: lang, context: visitContext(), idempotencyKey: key.current, website });
+    const inquiry = toInquiry(brief, { contact, consent, locale: lang, context: visitContext(), idempotencyKey: key, website });
     const check = validateInquiry(inquiry);
     const invalid = check.ok ? [] : check.errors.filter(f => CONTACT_FIELDS.includes(f));
     setFieldErrors(invalid);
@@ -168,14 +139,14 @@ export function TradeDesk({ lang }) {
   // The fallback when the API cannot take the brief: the same brief as an email draft.
   const mailto = () => {
     const en = summarize(brief, 'en', { pending: 'to be confirmed' });
-    window.location.href = createInquiryMailto({
+    window.location.assign(createInquiryMailto({
       ...contact,
       product: product?.en ?? brief.goods,
       destination: brief.destination,
       volume: en.rows.find(r => r.key === 'volume')?.value,
       requirements: [...en.rows.filter(r => ['application', 'transport'].includes(r.key)), ...en.requirements].map(r => [r.label, r.value]),
       message: brief.notes,
-    });
+    }));
   };
 
   const err = name => fieldErrors.includes(name) && <span className="desk-error" id={`${fieldId(uid, name)}-error`}>{t.errors[name]}</span>;
@@ -212,6 +183,17 @@ export function TradeDesk({ lang }) {
                   <p className="desk-label">{t.reference}</p>
                   <p className="desk-reference-id">{reference}</p>
                   <p>{t.sentText}</p>
+                  {channels.length > 0 && (
+                    <div className="desk-follow-up">
+                      <p className="desk-note">{t.followUp}</p>
+                      {channels.map(({ id, href }, i) => (
+                        <a key={id} href={href} className={i === 0 ? 'desk-channel primary' : 'desk-channel'} target={id === 'email' ? undefined : '_blank'} rel="noopener noreferrer">
+                          {t.channels[id]}
+                          <ArrowUpRight size={16} />
+                        </a>
+                      ))}
+                    </div>
+                  )}
                   <Dialog.Close asChild>
                     <Button type="button" size="lg" className="day-cta">{t.done}</Button>
                   </Dialog.Close>
@@ -242,7 +224,7 @@ export function TradeDesk({ lang }) {
                                 type={name === 'email' ? 'email' : name === 'phone' ? 'tel' : 'text'}
                                 autoComplete={auto}
                                 required={required}
-                                maxLength={name === 'email' ? 255 : 150}
+                                maxLength={name === 'email' ? 254 : 150}
                                 aria-invalid={fieldErrors.includes(`contact.${name}`) || undefined}
                                 aria-describedby={describedBy(`contact.${name}`)}
                                 value={contact[name]}
@@ -258,6 +240,7 @@ export function TradeDesk({ lang }) {
                           <input id={fieldId(uid, 'consent.contact')} type="checkbox" checked={consent} aria-invalid={fieldErrors.includes('consent.contact') || undefined} aria-describedby={describedBy('consent.contact')} onChange={e => setConsent(e.target.checked)} />
                           <span>{t.consent}</span>
                         </label>
+                        <a className="desk-privacy text-link" href={lang === 'vi' ? '/vi/privacy' : '/privacy'} target="_blank" rel="noopener">{t.privacy}</a>
                         {err('consent.contact')}
                         {status === 'failed' && (
                           <div className="desk-failed" role="alert">

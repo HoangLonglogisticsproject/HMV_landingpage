@@ -35,7 +35,7 @@ export function toRecord(value, { reference, createdAt }) {
 }
 
 /**
- * @param {{ adapter: { deliver(record: object): Promise<void> } | null, now?: () => Date,
+ * @param {{ adapter: { deliver(record: object, inquiry: object): Promise<{ reference: string } | void> } | null, now?: () => Date,
  *   newReference?: (date: Date) => string, cache?: Map<string, any>, ttlMs?: number }} options
  */
 export function createInquiryService({ adapter, now = () => new Date(), newReference = createReference, cache = new Map(), ttlMs = 15 * 60_000 }) {
@@ -43,11 +43,12 @@ export function createInquiryService({ adapter, now = () => new Date(), newRefer
     const date = now();
     const reference = newReference(date);
     try {
-      await adapter.deliver(toRecord(value, { reference, createdAt: date.toISOString() }));
-      return { status: 'accepted', reference };
+      const receipt = await adapter.deliver(toRecord(value, { reference, createdAt: date.toISOString() }), value);
+      // A destination that issues references (the CMS) is authoritative: the buyer quotes the one it stored.
+      return { status: 'accepted', reference: receipt?.reference ?? reference };
     } catch (error) {
-      // The reference and the cause only: never contact details.
-      console.error(`inquiry ${reference} not delivered: ${error instanceof Error ? error.message : error}`);
+      // The idempotency key and the cause only: never contact details.
+      console.error(`inquiry ${value.idempotencyKey} not delivered: ${error instanceof Error ? error.message : error}`);
       return { status: 'failed' };
     }
   }
@@ -59,7 +60,8 @@ export function createInquiryService({ adapter, now = () => new Date(), newRefer
     if (result.spam) return { status: 'accepted', reference: newReference(now()) };
 
     // Duplicate submits (double click, retry after a lost response) share one delivery and one reference.
-    // ponytail: per server instance; a durable idempotency store (or the CRM's own) is needed across instances.
+    // ponytail: per server instance; across instances the CMS's unique idempotency key makes it durable (a webhook
+    // destination must deduplicate on its own).
     const key = result.value.idempotencyKey;
     const clock = now().getTime();
     const prior = cache.get(key);

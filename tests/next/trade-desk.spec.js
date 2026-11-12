@@ -1,4 +1,6 @@
 // @ts-check
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { test, expect } from '@playwright/test';
 
 /**
@@ -74,6 +76,8 @@ test('inquiry accepted: brief before contact, reference shown, generate_lead onl
   const events = await dataLayer(page);
   expect(events.at(-1)).toEqual({ event: 'generate_lead', goal: 'sourcing', product: 'passion-fruit', locale: 'en' });
   expect(JSON.stringify(events)).not.toMatch(/buyer@example\.com|Example Foods|Rotterdam/);
+  // This build has no NEXT_PUBLIC_HMV_* channels: no follow-up links rather than broken ones.
+  await expect(desk(page).locator('.desk-follow-up')).toHaveCount(0);
 });
 
 test('inquiry not delivered: error with the email fallback, answers kept, no lead counted', async ({ page }) => {
@@ -120,4 +124,65 @@ test('the existing RFQs remain as the fallback', async ({ page }) => {
   await expect(page.locator('section#initiate-trade form.rfq-form')).toBeAttached();
   await page.goto('/products/dried-cassava-chips');
   await expect(page.locator('section#rfq input[type="hidden"][name="product"]')).toHaveValue('Dried cassava chips');
+});
+
+// Chunks a page loads, read from the network: whether the desk's code (its copy) is among them.
+function deskCodeLoads(page) {
+  const loaded = { desk: false };
+  page.on('response', async res => {
+    if (/\/_next\/static\/chunks\/.+\.js$/.test(res.url()) && (await res.text().catch(() => '')).includes('Trade inquiry & sourcing desk')) loaded.desk = true;
+  });
+  return loaded;
+}
+
+test('lazy: the desk code loads on the first open; on a slow connection that open is kept, product included', async ({ page }) => {
+  const loaded = deskCodeLoads(page);
+  await page.goto('/products/dried-cassava-chips');
+  await page.waitForLoadState('networkidle');
+  expect(loaded.desk).toBe(false);
+  // From here on, every script takes 1.5 s: the desk chunk arrives well after the click.
+  await page.route('**/_next/static/chunks/**', async route => {
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    await route.continue();
+  });
+  await page.getByRole('button', { name: 'Request a Cassava Supply Proposal' }).click();
+  await expect(page.getByRole('status')).toHaveText('Opening HMV Trade Desk…');
+  await expect(desk(page).getByRole('radio', { name: 'Dried cassava chips', exact: true })).toBeChecked({ timeout: 15_000 });
+  expect(loaded.desk).toBe(true);
+  const events = (await dataLayer(page)).map(e => e.event);
+  expect(events.filter(e => e === 'trade_desk_open')).toHaveLength(1);
+});
+
+test('navigation: "HMV Trade Desk" opens the desk (desktop bar or mobile drawer); there is no support chat', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#chat-launcher-btn, .hmv-floating-chat-launcher')).toHaveCount(0);
+  await expect(page.locator('body')).not.toContainText(/24\/7 Support|Support Chat|LIVE SUPPORT/);
+  if (test.info().project.name === 'chromium-mobile') await page.getByRole('button', { name: 'Open navigation' }).click();
+  await page.locator('nav .nav-support-btn').click();
+  await expect(desk(page)).toBeVisible();
+  await expect(desk(page).getByRole('radio', { name: 'Product sourcing' })).toBeChecked();
+});
+
+test('the consent checkbox links the privacy notice, in the buyer language', async ({ page }) => {
+  await page.goto('/vi/san-pham/san-lat-kho');
+  await page.getByRole('button', { name: 'Yêu cầu phương án cung ứng sắn lát' }).click();
+  const d = page.getByRole('dialog', { name: 'HMV Trade Desk' });
+  await d.getByRole('button', { name: 'Xem phân tích' }).click();
+  await d.getByRole('button', { name: 'Xem phương án sơ bộ' }).click();
+  await expect(d.getByRole('link', { name: 'Thông báo quyền riêng tư' })).toHaveAttribute('href', '/vi/privacy');
+  const res = await page.request.get('/vi/privacy');
+  expect(res.status()).toBe(200);
+  expect(await res.text()).not.toMatch(/GDPR|CCPA/);
+});
+
+test('no CMS address, secret or signing code in any browser chunk', () => {
+  test.skip(Boolean(process.env.PLAYWRIGHT_BASE_URL), 'reads the local build');
+  const files = [];
+  const walk = dir => readdirSync(dir, { withFileTypes: true }).forEach(e => (e.isDirectory() ? walk(join(dir, e.name)) : e.name.endsWith('.js') && files.push(join(dir, e.name))));
+  walk('.next/static');
+  expect(files.length).toBeGreaterThan(0);
+  for (const file of files) {
+    const js = readFileSync(file, 'utf8');
+    expect(js, file).not.toMatch(/CMS_INQUIRY_(URL|SECRET)|x-hmv-signature|x-hmv-timestamp|integrations\/trade-inquiries/i);
+  }
 });

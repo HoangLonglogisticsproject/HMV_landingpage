@@ -7,7 +7,7 @@ export const LOCALES = ['en', 'vi'];
 
 // Every page's English key path. Products and articles add one key path per item (/products/<id>, /blog/<slug>).
 export const PAGES = ['/', '/about', '/supply-chain', '/trade-solutions', '/activities', '/contact', '/insights',
-  '/regulations', '/logistics', '/packaging-logistics'];
+  '/regulations', '/logistics', '/packaging-logistics', '/privacy'];
 
 // English product id (unchanged URLs) → Vietnamese slug, transliterated from the names in data/hmv.js.
 /** @type {Record<string, string>} */

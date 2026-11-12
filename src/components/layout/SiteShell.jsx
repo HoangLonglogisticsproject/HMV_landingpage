@@ -1,10 +1,9 @@
 import { Navigation } from '@/components/layout/Navigation';
 import { Footer } from '@/components/layout/Footer';
-import { SupportChatWidget } from '@/features/support-chat/SupportChatWidget';
-import { TradeDesk } from '@/features/trade-desk/TradeDesk';
+import { TradeDeskHost } from '@/features/trade-desk/TradeDeskHost';
 
-// Site chrome around page content: navigation, <main>, footer, the support chat and the HMV Trade Desk (closed until a
-// call to action opens it).
+// Site chrome around page content: navigation, <main>, footer and the HMV Trade Desk host (the desk loads when a call
+// to action first opens it).
 /** @param {{ lang: 'en' | 'vi', className?: string, children: import('react').ReactNode }} props */
 export function SiteShell({ lang, className, children }) {
   return (
@@ -14,8 +13,7 @@ export function SiteShell({ lang, className, children }) {
         {children}
       </main>
       <Footer lang={lang} />
-      <SupportChatWidget lang={lang} />
-      <TradeDesk lang={lang} />
+      <TradeDeskHost lang={lang} />
     </>
   );
 }

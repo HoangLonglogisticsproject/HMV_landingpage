@@ -18,7 +18,8 @@ src/
     pages/             usePage(key, lang): website page copy, bundled or from the CMS public pages API (+ tests)
     inquiries/         Contact, TradeRfq, mailto builder, RFQ validation (+ tests)
     regulations/       Regulations list (insights + regulations pages)
-    support-chat/      SupportChatWidget + openSupportChat()
+    trade-desk/        HMV Trade Desk: TradeDeskHost (in SiteShell, lazy-loads TradeDesk), openTradeDesk(), rules,
+                       validation, follow-up channels (+ tests); delivery: docs/inbound/TRADE_DESK_DELIVERY.md
   components/
     layout/            site chrome: SiteShell, Navigation, Footer, LanguageSwitcher, DetailLayout
     common/            PageMeta (SEO tags), BrandLogo
@@ -36,7 +37,7 @@ src/
 
 - A page never imports another page.
 - A feature never imports a page.
-- `components/layout` is site chrome and may compose features (the support chat and the contact CTA).
+- `components/layout` is site chrome and may compose features (the Trade Desk host and the contact CTA).
 - `components/ui` and `lib` stay business-agnostic: no `data/`, no copy.
 - Inside a page or feature, use relative imports. Across modules, use `@/`.
 - There are no import cycles and no unreachable modules. Keep it that way: delete code rather than leaving it unimported.

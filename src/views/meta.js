@@ -4,6 +4,7 @@
 // keep their nav label or product name as the heading, since their titles target buyer search intent.
 import { baseUrl, copy } from '@/data/hmv';
 import { productPages } from '@/data/productPages';
+import { privacyCopy } from '@/data/privacy';
 import { regulationCopy } from '@/data/regulations';
 import { articleCopy } from './article/copy';
 
@@ -53,6 +54,7 @@ const TRADE_SOLUTIONS = {
 export const tradeSolutionsMeta = lang => TRADE_SOLUTIONS[lang];
 export const activitiesMeta = lang => ({ title: copy[lang].activities, description: copy[lang].fieldText });
 export const regulationsMeta = lang => ({ title: regulationCopy[lang].title, description: regulationCopy[lang].intro });
+export const privacyMeta = lang => ({ title: privacyCopy[lang].title, description: privacyCopy[lang].intro });
 
 const INSIGHTS = {
   en: 'EcoNews: Perspectives on green supply chains, clean energy, and sustainable agriculture.',

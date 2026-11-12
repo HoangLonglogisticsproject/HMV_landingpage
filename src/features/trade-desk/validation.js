@@ -57,7 +57,7 @@ export function validateInquiry(input) {
 
   const contact = {
     company: str(body.contact?.company, 150),
-    email: str(body.contact?.email, 255).toLowerCase(),
+    email: str(body.contact?.email, 254).toLowerCase(),
     name: str(body.contact?.name, 100),
     phone: str(body.contact?.phone, 40),
   };

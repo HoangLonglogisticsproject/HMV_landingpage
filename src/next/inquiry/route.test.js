@@ -46,3 +46,21 @@ test('bad requests: not JSON (415), unparsable (400) and oversized (413)', async
   assert.equal((await POST(post('{not json'))).status, 400);
   assert.equal((await POST(post({ ...inquiry, notes: 'x'.repeat(25_000) }))).status, 413);
 });
+
+test('INQUIRY_DELIVERY=cms: 201 with the reference the CMS issued; a CMS failure is a 502', async () => {
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+  let status = 201;
+  vi.stubGlobal('fetch', vi.fn(async () => ({ status, json: async () => ({ reference: 'HMV-2026-7KQ4XM', duplicate: false }) })));
+  const { POST } = await route({
+    INQUIRY_DELIVERY: 'cms',
+    CMS_INQUIRY_URL: 'https://cms.example/api/v1/integrations/trade-inquiries',
+    CMS_INQUIRY_SECRET: 'route-test-secret-0123456789abcdef',
+  });
+  const res = await POST(post(inquiry));
+  assert.equal(res.status, 201);
+  assert.deepEqual(await res.json(), { reference: 'HMV-2026-7KQ4XM' });
+  status = 503;
+  const failed = await POST(post({ ...inquiry, idempotencyKey: 'another-key-0002' }));
+  assert.equal(failed.status, 502);
+  vi.unstubAllGlobals();
+});

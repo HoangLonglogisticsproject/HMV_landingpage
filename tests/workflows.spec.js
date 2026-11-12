@@ -11,10 +11,7 @@ import { test, expect } from '@playwright/test';
  *    - passion-fruit → option value "Passion fruit" (from products[0].en)
  *  - RFQ section: <section id="initiate-trade" class="rfq-section">
  *    - <form class="rfq-form glass">
- *  - Support chat launcher: <button id="chat-launcher-btn"
- *                              aria-label="Open 24/7 Support Chat"> (en)
- *                           only rendered when !isOpen
- *  - After clicking the launcher, the chat panel renders class="hmv-chat-panel"
+ *  - Navigation "HMV Trade Desk" button (.nav-support-btn) opens the HMV Trade Desk dialog; there is no support chat
  *  - Forms build mailto drafts; UI must never claim a message was "sent"
  */
 
@@ -110,42 +107,17 @@ test('home page RFQ form is present and has required fields', async ({ page }) =
   await expect(rfqForm.locator('button[type="submit"]')).toBeVisible();
 });
 
-// ─── Support chat ────────────────────────────────────────────────────
+// ─── HMV Trade Desk (replaces the support chat) ─────────────────────
 
-test('support chat launcher button is visible and opens the chat panel', async ({ page }) => {
+test('the navigation "HMV Trade Desk" button opens the Trade Desk; there is no support chat', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
-  await page.waitForLoadState('networkidle');
-
-  // The launcher button: id="chat-launcher-btn", aria-label="Open 24/7 Support Chat"
-  const launcher = page.locator('#chat-launcher-btn');
-  await expect(launcher).toBeVisible({ timeout: 5000 });
-  await expect(launcher).toHaveAttribute('aria-label', /support chat|hỗ trợ/i);
-
-  // Clicking it must open the chat panel
-  await launcher.click();
-  await page.waitForTimeout(400);
-
-  // Launcher must now be hidden (replaced by the open chat panel)
-  await expect(launcher).not.toBeVisible();
-
-  // Chat panel: <div class="hmv-apple-chat-modal" role="dialog">
-  const chatPanel = page.locator('.hmv-apple-chat-modal');
-  await expect(chatPanel).toBeVisible({ timeout: 3000 });
-});
-
-test('support chat is accessible via the openSupportChat() event', async ({ page }) => {
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
-
-  // Dispatch the custom event that the nav "24/7 Support" button uses
-  await page.evaluate(() =>
-    window.dispatchEvent(new CustomEvent('open-hmv-support-chat'))
-  );
-  await page.waitForTimeout(400);
-
-  // Chat panel: <div class="hmv-apple-chat-modal" role="dialog">
-  const chatPanel = page.locator('.hmv-apple-chat-modal');
-  await expect(chatPanel).toBeVisible({ timeout: 3000 });
+  await expect(page.locator('#chat-launcher-btn')).toHaveCount(0);
+  const cta = page.locator('nav .nav-support-btn');
+  await expect(cta).toHaveText('HMV Trade Desk');
+  await expect(page.locator('body')).not.toContainText(/24\/7 Support|Support Chat|LIVE SUPPORT/);
+  await cta.click();
+  await expect(page.getByRole('dialog', { name: 'HMV Trade Desk' })).toBeVisible({ timeout: 8000 });
 });
 
 // ─── Mailto draft — must never claim message was sent ───────────────

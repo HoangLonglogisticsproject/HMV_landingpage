@@ -1,5 +1,4 @@
-// Opens the HMV Trade Desk (mounted once in SiteShell) from any page or CTA, without sharing state: the same pattern
-// as the support chat. `product`: a product id to preselect; `source`: a slug for analytics (where it was opened).
+// Opens the HMV Trade Desk (TradeDeskHost, mounted once in SiteShell) from any page or CTA, without sharing state. `product`: a product id to preselect; `source`: a slug for analytics (where it was opened).
 export const OPEN_TRADE_DESK = 'open-hmv-trade-desk';
 
 /** @param {{ product?: string, goal?: string, source?: string }} [detail] */
