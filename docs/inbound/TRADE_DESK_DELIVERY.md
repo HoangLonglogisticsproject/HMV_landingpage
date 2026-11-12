@@ -41,7 +41,12 @@ Per request (8 s timeout):
 | --- | --- |
 | `Idempotency-Key` | The Trade Desk's per-brief key (a UUID; reused when the buyer retries the same brief) |
 | `X-HMV-Timestamp` | Unix seconds |
-| `X-HMV-Signature` | lower-case hex `HMAC-SHA256(CMS_INQUIRY_SECRET, "<timestamp>.<idempotency key>")` |
+| `X-HMV-Signature` | lower-case hex `HMAC-SHA256(CMS_INQUIRY_SECRET, "<timestamp>.<idempotency key>.<bodySha256>")` |
+
+`bodySha256` is the lower-case hex SHA-256 of the exact body string sent. The adapter serializes the payload **once**
+and uses that same string for the hash and as the fetch body; the CMS hashes the raw bytes it receives (never
+re-serialized JSON). Headers captured in transit therefore cannot be replayed with a different body within the
+300-second window: the CMS answers 401.
 
 No contact data is in the headers. The body (`cmsPayload` in `adapters.js`) carries controlled ids (product, origin,
 unit, application, transport, requirement options), the contact, `source` (landing path, referrer **origin**, UTM)
@@ -54,14 +59,18 @@ Shared test vector (asserted in this repo's `src/next/inquiry/service.test.js` a
 secret          hmv-shared-test-vector-secret-0123456789abcdef
 timestamp       1767225600
 idempotencyKey  0f3b6d2e-1c4a-4e8b-9a77-2f1d3c4b5a69
-signature       07793521e0fd555bb265faff963e5bcb9ebb252c6781190a75e4a53f32e1be60
+body            {"locale":"en","goal":"customs","goods":"Test cargo","requirements":{},"contact":{"company":"Example Co","email":"buyer@example.com"},"consentAt":"2026-01-01T00:00:00.000Z"}
+bodySha256      f440d4e1f37ac7063006f0ce11896b0eee0632451af410d48ed7c5f5b873dec1
+signature       7c05a879b426c6be25faf502b443dc310a71424044bf4d32b617e137d8d2d920
 ```
+
+(`body` is the exact string, without a trailing newline.)
 
 | CMS answer | `/api/inquiry` | Buyer sees |
 | --- | --- | --- |
 | 201 `{reference}` | 201 `{reference}` | "Sent to the HMV commercial team" with the **CMS** reference `HMV-YYYY-XXXXXX` |
 | 200 `{reference, duplicate:true}` (same key again) | 201 `{reference}` | The same reference; nothing new is created or emailed |
-| 400 / 401 / 503 / timeout / no reference | 502 | "Could not be sent", answers kept, **Try again** (same key) and **Prepare an email instead** |
+| 400 / 401 (incl. a body changed after signing) / 503 / timeout / no reference | 502 | "Could not be sent", answers kept, **Try again** (same key) and **Prepare an email instead** |
 
 Only a 201 from `/api/inquiry` shows the sent state and emits `generate_lead`. Failures are logged with the idempotency
 key and the CMS status/error code only, never contact details.

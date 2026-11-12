@@ -1,8 +1,8 @@
 import { afterEach, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
-import { createHmac } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import { createInquiryService } from './service.js';
-import { cmsAdapter, deliveryAdapterFromEnv, memoryAdapter, signCmsRequest, webhookAdapter } from './adapters.js';
+import { bodyHash, cmsAdapter, deliveryAdapterFromEnv, memoryAdapter, signCmsRequest, webhookAdapter } from './adapters.js';
 import { createReference } from './reference.js';
 
 const inquiry = overrides => ({
@@ -120,19 +120,28 @@ test('references: HMV-<year>-<6 unambiguous characters>', () => {
 });
 
 // Shared with the CMS (CMS_HMV backend/src/modules/trade-inquiries/trade-inquiries.spec.ts and docs/sales/TRADE_INQUIRIES.md):
-// both repositories must produce this signature, or the integration has drifted.
+// both repositories must produce this signature over these exact body bytes, or the integration has drifted.
 const SIGNING_TEST_VECTOR = {
   secret: 'hmv-shared-test-vector-secret-0123456789abcdef',
   timestamp: '1767225600',
   idempotencyKey: '0f3b6d2e-1c4a-4e8b-9a77-2f1d3c4b5a69',
-  signature: '07793521e0fd555bb265faff963e5bcb9ebb252c6781190a75e4a53f32e1be60',
+  body: '{"locale":"en","goal":"customs","goods":"Test cargo","requirements":{},"contact":{"company":"Example Co","email":"buyer@example.com"},"consentAt":"2026-01-01T00:00:00.000Z"}',
+  bodySha256: 'f440d4e1f37ac7063006f0ce11896b0eee0632451af410d48ed7c5f5b873dec1',
+  signature: '7c05a879b426c6be25faf502b443dc310a71424044bf4d32b617e137d8d2d920',
 };
 
-/** A CMS stand-in: records each request and answers with `respond(calls.length)`. */
+/**
+ * A CMS stand-in that verifies like the CMS (written independently of the adapter): HMAC over timestamp, key and the
+ * SHA-256 of the body string it received; a mismatch is 401. Otherwise it answers `respond(accepted count)`.
+ */
 function fakeCms(respond) {
   const calls = [];
   const fetchImpl = async (url, init) => {
-    calls.push({ url, headers: init.headers, body: JSON.parse(init.body) });
+    const { 'x-hmv-timestamp': ts, 'idempotency-key': key, 'x-hmv-signature': signature } = init.headers;
+    const hash = createHash('sha256').update(init.body).digest('hex');
+    const expected = createHmac('sha256', SIGNING_TEST_VECTOR.secret).update(`${ts}.${key}.${hash}`).digest('hex');
+    if (signature !== expected) return { status: 401, ok: false, json: async () => ({ code: 'SIGNATURE_INVALID' }) };
+    calls.push({ url, headers: init.headers, raw: init.body, body: JSON.parse(init.body) });
     const { status, body } = respond(calls.length);
     return { status, ok: status < 300, json: async () => body };
   };
@@ -141,9 +150,12 @@ function fakeCms(respond) {
 const cms = (fetchImpl, over = {}) =>
   cmsAdapter({ url: 'https://cms.example/api/v1/integrations/trade-inquiries', secret: SIGNING_TEST_VECTOR.secret, fetchImpl, now: () => 1767225600_000, ...over });
 
-test('CMS signature: the shared test vector', () => {
+test('CMS signature: the shared test vector (timestamp, key and exact body)', () => {
   const v = SIGNING_TEST_VECTOR;
-  assert.equal(signCmsRequest(v.secret, v.timestamp, v.idempotencyKey), v.signature);
+  assert.equal(bodyHash(v.body), v.bodySha256);
+  assert.equal(signCmsRequest(v.secret, v.timestamp, v.idempotencyKey, v.body), v.signature);
+  // The same JSON written differently is another body, another signature.
+  assert.notEqual(signCmsRequest(v.secret, v.timestamp, v.idempotencyKey, JSON.stringify(JSON.parse(v.body), null, 1)), v.signature);
 });
 
 test('CMS adapter: signed request with ids, no honeypot; the buyer gets the CMS reference', async () => {
@@ -151,13 +163,14 @@ test('CMS adapter: signed request with ids, no honeypot; the buyer gets the CMS 
   const submit = createInquiryService({ adapter: cms(fake.fetchImpl), now });
   assert.deepEqual(await submit(inquiry()), { status: 'accepted', reference: 'HMV-2026-7KQ4XM' });
 
-  const [{ url, headers, body }] = fake.calls;
+  const [{ url, headers, raw, body }] = fake.calls;
   assert.equal(url, 'https://cms.example/api/v1/integrations/trade-inquiries');
+  // Accepted by the verifying stand-in: the signature covers the exact string sent.
   assert.deepEqual(headers, {
     'content-type': 'application/json',
     'idempotency-key': SIGNING_TEST_VECTOR.idempotencyKey,
     'x-hmv-timestamp': SIGNING_TEST_VECTOR.timestamp,
-    'x-hmv-signature': SIGNING_TEST_VECTOR.signature,
+    'x-hmv-signature': signCmsRequest(SIGNING_TEST_VECTOR.secret, SIGNING_TEST_VECTOR.timestamp, SIGNING_TEST_VECTOR.idempotencyKey, raw),
   });
   assert.doesNotMatch(JSON.stringify(headers), /buyer@example\.com|Example Foods/);
   assert.deepEqual(body, {
@@ -175,6 +188,16 @@ test('CMS adapter: signed request with ids, no honeypot; the buyer gets the CMS 
   });
 });
 
+test('CMS adapter: a body changed after signing is refused by the CMS (401), and the buyer sees the failure', async () => {
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+  const fake = fakeCms(() => ({ status: 201, body: { reference: 'HMV-2026-7KQ4XM', duplicate: false } }));
+  // Headers signed for the real body, a different body on the wire.
+  const tamper = (url, init) => fake.fetchImpl(url, { ...init, body: init.body.replace('Example Foods', 'Attacker Ltd') });
+  const submit = createInquiryService({ adapter: cms(tamper), now });
+  assert.deepEqual(await submit(inquiry()), { status: 'failed' });
+  assert.equal(fake.calls.length, 0);
+});
+
 test('CMS adapter: a repeat of the same submission (200 duplicate) shows the same reference', async () => {
   const fake = fakeCms(n => ({ status: n === 1 ? 201 : 200, body: { reference: 'HMV-2026-7KQ4XM', duplicate: n > 1 } }));
   // Two server instances: no shared in-memory cache, so only the CMS deduplicates.
@@ -183,6 +206,8 @@ test('CMS adapter: a repeat of the same submission (200 duplicate) shows the sam
   assert.equal(first.reference, 'HMV-2026-7KQ4XM');
   assert.equal(again.reference, first.reference);
   assert.equal(fake.calls[0].headers['idempotency-key'], fake.calls[1].headers['idempotency-key']);
+  // An identical retry: the same body, the same signature.
+  assert.equal(fake.calls[0].raw, fake.calls[1].raw);
 });
 
 test('CMS adapter: refused signature, CMS errors and malformed replies are failures that log no contact details', async () => {

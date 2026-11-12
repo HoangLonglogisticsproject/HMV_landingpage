@@ -1,4 +1,4 @@
-import { createHmac } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 
 // Delivery adapters: where an accepted inquiry goes. One interface, `deliver(record, inquiry)` (the labelled record and
 // the validated inquiry it came from), resolving when the destination has accepted it and throwing otherwise. An
@@ -23,9 +23,15 @@ const CMS_REFERENCE = /^HMV-\d{4}-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}$/;
 /** Minimum length of the website ↔ CMS shared secret (the CMS refuses to start with a shorter one). */
 export const CMS_SECRET_MIN_LENGTH = 32;
 
-/** X-HMV-Signature for the CMS: hex HMAC-SHA256 of "<timestamp>.<idempotency key>" (docs/inbound/TRADE_DESK_DELIVERY.md). */
-export const signCmsRequest = (secret, timestamp, idempotencyKey) =>
-  createHmac('sha256', secret).update(`${timestamp}.${idempotencyKey}`).digest('hex');
+/** Hex SHA-256 of the exact body string sent. */
+export const bodyHash = body => createHash('sha256').update(body).digest('hex');
+
+/**
+ * X-HMV-Signature for the CMS: hex HMAC-SHA256 of "<timestamp>.<idempotency key>.<SHA-256 of the body>"
+ * (docs/inbound/TRADE_DESK_DELIVERY.md). `body` must be the very string sent: the CMS hashes the bytes it receives.
+ */
+export const signCmsRequest = (secret, timestamp, idempotencyKey, body) =>
+  createHmac('sha256', secret).update(`${timestamp}.${idempotencyKey}.${bodyHash(body)}`).digest('hex');
 
 const given = value => value || undefined;
 
@@ -56,7 +62,8 @@ export function cmsPayload(inquiry, consentAt) {
 }
 
 /**
- * The HMV CMS (system of record): POST to its ingestion endpoint, server to server, signed with the shared secret.
+ * The HMV CMS (system of record): POST to its ingestion endpoint, server to server, signed with the shared secret over
+ * the timestamp, the idempotency key and the body, so the headers cannot be reused with another body.
  * The idempotency key is the Trade Desk's per-submission key, so a retry of the same submission gets the inquiry the
  * CMS already has (200) instead of a second one. 201 and 200 both carry the CMS reference.
  */
@@ -66,22 +73,24 @@ export function cmsAdapter({ url, secret, fetchImpl = fetch, timeoutMs = 8000, n
     async deliver(record, inquiry) {
       const key = inquiry.idempotencyKey;
       const timestamp = String(Math.floor(now() / 1000));
+      // Serialized once: this exact string is both signed and sent.
+      const body = JSON.stringify(cmsPayload(inquiry, record.createdAt));
       const res = await fetchImpl(url, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
           'idempotency-key': key,
           'x-hmv-timestamp': timestamp,
-          'x-hmv-signature': signCmsRequest(secret, timestamp, key),
+          'x-hmv-signature': signCmsRequest(secret, timestamp, key, body),
         },
-        body: JSON.stringify(cmsPayload(inquiry, record.createdAt)),
+        body,
         signal: AbortSignal.timeout(timeoutMs),
       });
-      const body = await res.json().catch(() => ({}));
+      const reply = await res.json().catch(() => ({}));
       // The status and the CMS error code only: never the request body.
-      if (res.status !== 201 && res.status !== 200) throw new Error(`CMS responded ${res.status} ${body.code ?? ''}`.trim());
-      if (!CMS_REFERENCE.test(body.reference)) throw new Error('CMS response has no reference');
-      return { reference: body.reference };
+      if (res.status !== 201 && res.status !== 200) throw new Error(`CMS responded ${res.status} ${reply.code ?? ''}`.trim());
+      if (!CMS_REFERENCE.test(reply.reference)) throw new Error('CMS response has no reference');
+      return { reference: reply.reference };
     },
   };
 }
