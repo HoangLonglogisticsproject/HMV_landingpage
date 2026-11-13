@@ -98,11 +98,11 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 | `features/articles/RichText` | Whitelist renderer for CMS Tiptap JSON (no raw HTML); also renders the bundled articles |
 | `features/regulations/Regulations` | Regulation card list; used by InsightsPage and RegulationsPage |
 | `features/trade-desk/TradeDeskHost` | Mounted once in SiteShell: listens for `openTradeDesk()`, records the first-touch visit, loads `TradeDesk` on the first open (with an error boundary and retry) |
-| `features/trade-desk/TradeDesk` | The HMV Trade Desk dialog: the four-step brief, contact, submission to `POST /api/inquiry` (`@/lib/inquiry`), sent state and optional follow-up links |
+| `features/trade-desk/TradeDesk` | The HMV Trade Desk dialog: the conversation (product, destination, volume), the route (quotation or Customer Service), the inline contact card, submission to `POST /api/inquiry` (`@/lib/inquiry`), sent state and optional follow-up links |
 
 ## Behavior that is easy to break
 
-- **Layout persistence.** `SiteLayout` stays mounted across the standard routes, so expanded nav submenus and an open Trade Desk brief survive navigation. `/blog/:slug` renders its own `SiteShell`, so entering an article remounts the chrome, including the Trade Desk host. Moving articles under `SiteLayout` would change that.
+- **Layout persistence.** `SiteLayout` stays mounted across the standard routes, so expanded nav submenus and an open Trade Desk conversation survive navigation. `/blog/:slug` renders its own `SiteShell`, so entering an article remounts the chrome, including the Trade Desk host. Moving articles under `SiteLayout` would change that.
 - **Scroll.** `SiteLayout` scrolls to the `#hash` target (on the next animation frame, instant) or to the top whenever the path or hash changes. `ArticlePage` forces the top and sets `history.scrollRestoration = 'manual'`.
 - **HMV Trade Desk.** The commercial interaction surface (the earlier simulated support chat is no longer part of the runtime UI). Calls to action open it with `openTradeDesk()`, a window event; there is no shared state. It submits real inquiries: `POST /api/inquiry` validates them and delivers them server to server to the HMV CMS (docs/inbound/TRADE_DESK_DELIVERY.md). It shows "sent" and the reference only after the server accepted the inquiry; otherwise it offers a retry and an email draft.
 - **Legacy RFQ and contact forms.** These still send nothing themselves: they build a mailto draft (`features/inquiries/inquiry.js`) as the fallback channel, so their UI must say a draft was prepared, never that a request was sent.
