@@ -46,7 +46,7 @@ export function cmsPayload(inquiry, consentAt) {
   return {
     locale: inquiry.locale,
     productId: inquiry.product,
-    origin: inquiry.origin,
+    origin: given(inquiry.origin),
     destination: given(inquiry.destination),
     volume: inquiry.volume.amount ? inquiry.volume : undefined,
     application: given(inquiry.application),

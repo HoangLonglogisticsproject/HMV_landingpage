@@ -42,7 +42,7 @@ test('contact page renders the inquiry form with expected fields', async ({ page
 //  - URL param 'Passion fruit' → defaultValue 'Passion fruit' → matches option → preselected
 
 // Buyer pages (passion fruit, dried cassava chips): the hero CTA opens the HMV Trade Desk with the page's product
-// preselected. Their own RFQ (ProductRfq) stays lower on the page as the fallback, fixed to the product (read-only
+// known. Their own RFQ (ProductRfq) stays lower on the page as the fallback, fixed to the product (read-only
 // field, no product select).
 for (const [id, product, cta] of [
   ['passion-fruit', 'Passion fruit', 'Discuss Your Passion Fruit Requirements'],
@@ -53,7 +53,9 @@ for (const [id, product, cta] of [
     await page.getByRole('button', { name: cta }).click();
     const desk = page.getByRole('dialog', { name: 'HMV Trade Desk' });
     await expect(desk).toBeVisible();
-    await expect(desk.getByRole('radio', { name: product, exact: true })).toBeChecked();
+    // The product is known: the summary has it and the conversation starts at the destination.
+    await expect(desk.getByRole('complementary', { name: 'Your requirement' })).toContainText(product);
+    await expect(desk.getByRole('log')).toHaveText('HMVWhere would you like the goods delivered?');
     await page.keyboard.press('Escape');
     await expect(desk).toBeHidden();
     const rfq = page.locator('section#rfq');

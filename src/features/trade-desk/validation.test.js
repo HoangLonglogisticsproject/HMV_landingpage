@@ -51,7 +51,7 @@ test('an unknown option of a choice requirement is refused for a valid product',
 test('unknown fields and requirement keys are dropped; enums fall back', () => {
   const result = validateInquiry(valid({
     product: 'passion-fruit',
-    origin: 'cambodia',
+    origin: 'vietnam',
     application: 'feed',
     transport: 'teleport',
     volume: { amount: '2', unit: 'barrels' },
@@ -86,9 +86,16 @@ test('text over its limit is an error for that field, never silently shortened',
   assert.deepEqual(over.errors.sort(), [
     'contact.company', 'contact.email', 'contact.name', 'contact.phone', 'destination', 'notes', 'requirements.starch', 'volume.amount',
   ].sort());
-  // The origin is one the product offers: anything else is its first origin, never free text.
-  assert.equal(validateInquiry(valid({ product: 'passion-fruit', origin: 'cambodia', application: '', requirements: {} })).value.origin, 'vietnam');
-  assert.equal(validateInquiry(valid({ origin: at(121) })).value.origin, 'vietnam');
+});
+
+test('origin: none given stays none (never the product\'s first origin); a given one must be offered for the product', () => {
+  for (const origin of [undefined, null, '', '   ']) assert.equal(validateInquiry(valid({ origin })).value.origin, '', String(origin));
+  assert.equal(validateInquiry(valid({ origin: 'cambodia' })).value.origin, 'cambodia');
+  assert.equal(validateInquiry(valid({ product: 'passion-fruit', origin: ' vietnam ', application: '', requirements: {} })).value.origin, 'vietnam');
+  // Cambodia is offered for dried cassava chips only; anything else is an error, never replaced.
+  for (const [product, origin] of [['passion-fruit', 'cambodia'], ['dried-cassava-chips', 'thailand'], ['dried-cassava-chips', '__proto__'], ['dried-cassava-chips', 7]]) {
+    assert.deepEqual(validateInquiry(valid({ product, origin, application: '', requirements: {} })).errors, ['origin'], `${product} ${origin}`);
+  }
 });
 
 test('every inquiry names a product; goal and goods are not part of it; the honeypot marks spam; garbage bodies fail', () => {

@@ -1,91 +1,118 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { emptyBrief, progress, summarize, toInquiry, withProduct } from './brief.js';
-import { missingInformation, requirementsFor } from './rules.js';
+import { emptyBrief, isRfqReady, routeOf, stageOf, summarize, toInquiry } from './brief.js';
+import { detectLanguage } from './language.js';
+import { recognizeProduct } from './rules.js';
 import { validateInquiry } from './validation.js';
 
-const keys = brief => missingInformation(brief).map(m => m.key);
-const pending = 'to be confirmed';
+const cassava = (over = {}) => ({ ...emptyBrief({ product: 'dried-cassava-chips' }), ...over });
+const volume = { amount: '2,000', unit: 'mt_month' };
 
-test('rules: each product asks for its own controlled requirements', () => {
-  const passion = requirementsFor({ product: 'passion-fruit' }).map(r => r.key);
-  assert.deepEqual(passion, ['variety', 'sizeWeight', 'brix', 'packaging', 'deliveryWindow', 'destinationPort', 'destinationRequirements']);
-  const cassava = requirementsFor({ product: 'dried-cassava-chips' }).map(r => r.key);
-  assert.deepEqual(cassava, ['starch', 'moisture', 'loading', 'incoterm', 'destinationPort', 'deliveryWindow']);
-  // Other products: their specification points from data/hmv.js, then route and terms.
-  const bananas = requirementsFor({ product: 'bananas' }).map(r => r.key);
-  assert.deepEqual(bananas, ['spec-fruit-size', 'spec-maturity', 'spec-carton-weight', 'spec-cold-chain', 'destinationPort', 'deliveryWindow', 'certification', 'incoterm']);
-  assert.deepEqual(requirementsFor({ product: null }), []);
-  // Every requirement belongs to a product: none for an unknown id, including the former goals.
-  for (const product of ['logistics', 'customs', '__proto__']) assert.deepEqual(requirementsFor({ product }), []);
+test('readiness: product, destination and volume make a requirement ready for quotation; nothing else is needed', () => {
+  assert.equal(isRfqReady(emptyBrief()), false);
+  assert.equal(isRfqReady(cassava()), false);
+  assert.equal(isRfqReady(cassava({ destination: 'Chennai, India' })), false);
+  assert.equal(isRfqReady(cassava({ volume })), false);
+  assert.equal(isRfqReady(cassava({ destination: '   ', volume })), false);
+  assert.equal(isRfqReady(cassava({ destination: 'Chennai, India', volume })), true);
+  assert.equal(isRfqReady({ ...emptyBrief(), destination: 'Chennai', volume }), false);
 });
 
-test('what HMV still needs shrinks as the brief is completed', () => {
-  let brief = emptyBrief();
-  assert.deepEqual(keys(brief), ['product', 'destination', 'volume']);
-  brief = withProduct(brief, 'dried-cassava-chips');
-  assert.deepEqual(keys(brief).slice(0, 3), ['destination', 'volume', 'application']);
-  brief = { ...brief, destination: 'Qinzhou', volume: { amount: '5000', unit: 'mt_month' }, application: 'feed' };
-  assert.equal(keys(brief)[0], 'starch');
-  brief = { ...brief, requirements: { starch: '70', moisture: '14', loading: 'bulk', incoterm: 'CIF', destinationPort: 'Qinzhou', deliveryWindow: 'Q1' } };
-  assert.deepEqual(keys(brief), []);
-  assert.equal(progress(brief), 100);
-  assert.equal(progress(emptyBrief()), 0);
+test('routing: a ready requirement goes to HMV Sales (rfq), anything else to Customer Service (discovery)', () => {
+  assert.equal(routeOf(cassava({ destination: 'Chennai, India', volume })), 'rfq');
+  assert.equal(routeOf(cassava({ destination: 'Chennai, India' })), 'discovery');
+  assert.equal(routeOf(cassava()), 'discovery');
 });
 
-test('choosing a product resets what belonged to the previous one', () => {
-  const brief = { ...emptyBrief({ product: 'dried-cassava-chips' }), application: 'feed', requirements: { starch: '70' }, destination: 'Qinzhou' };
-  const next = withProduct(brief, 'passion-fruit');
-  assert.equal(next.product, 'passion-fruit');
-  assert.equal(next.origin, 'vietnam');
-  assert.equal(next.volume.unit, 'containers');
-  assert.equal(next.application, '');
-  assert.deepEqual(next.requirements, {});
-  assert.equal(next.destination, 'Qinzhou');
+test('the conversation asks product, then destination, then volume, then decides', () => {
+  const exploring = false;
+  assert.equal(stageOf(emptyBrief(), { exploring }), 'product');
+  assert.equal(stageOf(cassava(), { exploring }), 'destination');
+  assert.equal(stageOf(cassava({ destination: 'Chennai' }), { exploring }), 'volume');
+  assert.equal(stageOf(cassava({ destination: 'Chennai', volume }), { exploring }), 'decision');
+  // Still exploring: the decision comes without the missing destination or volume.
+  assert.equal(stageOf(cassava(), { exploring: true }), 'decision');
+  assert.equal(stageOf(cassava({ destination: 'Chennai' }), { exploring: true }), 'decision');
+  // There is no decision without a product.
+  assert.equal(stageOf(emptyBrief(), { exploring: true }), 'product');
 });
 
-test('the summary states what the buyer entered and what is missing, in both languages', () => {
-  const brief = { ...emptyBrief({ product: 'passion-fruit' }), destination: 'Rotterdam', volume: { amount: '2', unit: 'containers' }, requirements: { brix: '14+', packaging: '' } };
-  const en = summarize(brief, 'en', { pending });
-  assert.deepEqual(en.rows.map(r => [r.key, r.value]), [['product', 'Passion fruit'], ['route', 'Vietnam → Rotterdam'], ['volume', '2 containers']]);
-  assert.deepEqual(en.requirements, [{ key: 'brix', label: 'Brix requirement', value: '14+' }]);
-  assert.ok(en.missing.some(m => m.label === 'Packaging'));
-  const vi = summarize(brief, 'vi', { pending: 'cần xác nhận' });
-  assert.deepEqual(vi.rows.map(r => r.value), ['Chanh dây', 'Việt Nam → Rotterdam', '2 container']);
-  // An unknown destination is shown as pending, never guessed.
-  assert.equal(summarize({ ...brief, destination: '' }, 'en', { pending }).rows[1].value, 'Vietnam → to be confirmed');
+test('the summary has product, destination and volume only, in the buyer language', () => {
+  const brief = cassava({ destination: ' Chennai, India ', volume });
+  assert.deepEqual(summarize(brief, 'en'), { product: 'Dried cassava chips', destination: 'Chennai, India', volume: '2,000 MT / month' });
+  assert.deepEqual(summarize(brief, 'vi'), { product: 'Sắn lát khô', destination: 'Chennai, India', volume: '2,000 tấn / tháng' });
+  assert.deepEqual(summarize(emptyBrief(), 'en'), { product: '', destination: '', volume: '' });
+  // A product's usual unit comes first: MT / month for cassava chips, containers otherwise.
+  assert.equal(emptyBrief({ product: 'passion-fruit' }).volume.unit, 'containers');
+  assert.equal(emptyBrief({ product: 'not-a-product' }).product, null);
 });
 
-test('no fake commercial claims: the summary only restates the buyer input and the controlled labels', () => {
-  const brief = { ...emptyBrief({ product: 'dried-cassava-chips' }), destination: 'Qinzhou', volume: { amount: '5000', unit: 'mt_month' }, application: 'feed', transport: 'sea_fcl' };
-  for (const lang of ['en', 'vi']) {
-    const text = JSON.stringify(summarize(brief, lang, { pending }));
-    assert.doesNotMatch(text, /\b(USD|EUR|VND)\b|\$\s?\d|price|giá|in stock|available|guarantee|certified|transit|\d+\s*(days|ngày)/i, lang);
-  }
-});
-
-test('the inquiry carries the brief, contact, consent and context; blank requirements are left out', () => {
-  const brief = { ...emptyBrief({ product: 'passion-fruit' }), requirements: { brix: '14+', variety: ' ' } };
-  const inquiry = toInquiry(brief, {
+test('the inquiry leaves application, transport and requirements empty: nothing is filled in for them', () => {
+  const inquiry = toInquiry(cassava({ destination: 'Chennai, India', volume }), {
     contact: { company: 'Acme', email: 'a@acme.com', name: '', phone: '' },
     consent: true,
     locale: 'en',
-    context: { page: '/products/passion-fruit', landingPage: '/', referrer: '', utm: {} },
+    context: { page: '/products/dried-cassava-chips', landingPage: '/', referrer: '', utm: {} },
     idempotencyKey: 'abcdef12-3456',
   });
-  assert.deepEqual(inquiry.requirements, { brix: '14+' });
-  assert.deepEqual(inquiry.consent, { contact: true });
+  assert.equal(inquiry.application, '');
+  assert.equal(inquiry.transport, '');
+  assert.deepEqual(inquiry.requirements, {});
+  assert.equal(inquiry.notes, '');
   assert.equal(inquiry.website, '');
-  assert.equal('goal' in inquiry || 'goods' in inquiry, false);
-  assert.equal(validateInquiry(inquiry).ok, true);
+  const { ok, value } = validateInquiry(inquiry);
+  assert.equal(ok, true);
+  assert.deepEqual([value.application, value.transport, value.requirements], ['', '', {}]);
+  // The origin is not asked, so none is sent or assumed.
+  assert.equal('origin' in inquiry, false);
+  assert.equal(value.origin, '');
+  // A discovery inquiry, without destination and volume, is accepted too.
+  assert.equal(validateInquiry({ ...inquiry, destination: '', volume: { amount: '', unit: 'mt_month' } }).ok, true);
 });
 
-test('changing product never reinterprets an amount in another unit', () => {
-  const cassava = { ...withProduct(emptyBrief(), 'dried-cassava-chips'), volume: { amount: '5000', unit: 'mt_month' } };
-  // MT / month (cassava) to containers (passion fruit): the amount is cleared, not read as 5000 containers.
-  assert.deepEqual(withProduct(cassava, 'passion-fruit').volume, { amount: '', unit: 'containers' });
-  const passion = { ...withProduct(emptyBrief(), 'passion-fruit'), volume: { amount: '2', unit: 'containers' } };
-  // Same unit (containers to containers): the amount stays.
-  assert.deepEqual(withProduct(passion, 'bananas').volume, { amount: '2', unit: 'containers' });
-  assert.equal(summarize(withProduct(cassava, 'passion-fruit'), 'en', { pending }).rows.some(r => r.key === 'volume'), false);
+test('product recognition: the catalogue names in English and Vietnamese, with or without accents', () => {
+  const cases = [
+    ['We need dried cassava chips for our plant in India.', 'dried-cassava-chips'],
+    ['Bên tôi đang tìm sắn lát giao về Đồng Nai.', 'dried-cassava-chips'],
+    ['san lat kho', 'dried-cassava-chips'],
+    ['cassava starch for paper mills', 'tapioca-starch'],
+    ['Tinh bột sắn', 'tapioca-starch'],
+    ['Fresh bananas', 'bananas'],
+    ['chuối Cavendish', 'bananas'],
+    ['Passion fruit', 'passion-fruit'],
+    ['chanh leo', 'passion-fruit'],
+    ['dragonfruit', 'dragon-fruit'],
+    ['black pepper', 'spices'],
+    ['hạt điều', 'nuts'],
+  ];
+  for (const [text, product] of cases) assert.equal(recognizeProduct(text), product, text);
+  // Any run of whitespace is one space: still tapioca starch, never cassava chips.
+  for (const text of ['cassava starch', 'cassava  starch', 'cassava\nstarch', 'Cassava \t Starch']) {
+    assert.equal(recognizeProduct(text), 'tapioca-starch', JSON.stringify(text));
+  }
+  // Whole words only, plurals where buyers use them; Vietnamese names keep working.
+  const words = [
+    ['passion', 'passion-fruit'], ['passion fruit', 'passion-fruit'], ['passion fruits', 'passion-fruit'],
+    ['banana', 'bananas'], ['bananas', 'bananas'], ['spice', 'spices'], ['spices', 'spices'], ['peppercorns', 'spices'],
+    ['cashew', 'nuts'], ['cashews', 'nuts'], ['dragon fruits', 'dragon-fruit'],
+    ['chuối', 'bananas'], ['thanh long', 'dragon-fruit'], ['sắn', 'dried-cassava-chips'], ['hạt điều', 'nuts'], ['gia vị', 'spices'],
+  ];
+  for (const [text, product] of words) assert.equal(recognizeProduct(text), product, text);
+  for (const text of ['I am passionate about sourcing rice', 'passionate', 'spicy', 'cashewnut butter', 'bananarama']) {
+    assert.equal(recognizeProduct(text), null, text);
+  }
+  // None, or more than one: the buyer chooses.
+  for (const text of ['rice', 'chuỗi cung ứng nông sản', 'bananas and dragon fruit', 'compassion', '', null]) {
+    assert.equal(recognizeProduct(text), null, String(text));
+  }
+});
+
+test('language: decided by the words of a message, never by a place, a number or a product name', () => {
+  assert.equal(detectLanguage('We need dried cassava chips for our plant in India.'), 'en');
+  assert.equal(detectLanguage('Bên tôi đang tìm sắn lát giao về Đồng Nai'), 'vi');
+  assert.equal(detectLanguage('Giao về Chennai'), 'vi');
+  assert.equal(detectLanguage('Delivery to Đà Nẵng'), 'en');
+  for (const text of ['India', 'Chennai, India', 'Hanoi', 'Đồng Nai', '500 MT', '2,000', 'Dried cassava chips', '', undefined]) {
+    assert.equal(detectLanguage(text), null, String(text));
+  }
 });

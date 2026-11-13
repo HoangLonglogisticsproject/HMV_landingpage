@@ -1,14 +1,15 @@
 # HMV Trade Desk delivery
 
-Where a buyer's inquiry goes after **Send to HMV Commercial Team**, and what the buyer sees.
+Where a buyer's inquiry goes after **Send Request**, and what the buyer sees.
 
-HMV's positioning: *Integrated agricultural supply and trade execution* (*Phương án cung ứng và thực thi giao thương
-nông sản xuyên suốt*). Every Trade Desk inquiry is **product-led**: step 1 is the product (preselected from a product
-page), destination, estimated volume, application where the product has them, and preferred transport. Route,
-Incoterm, packaging/loading, delivery window, certification and destination requirements are requirements of that
-product's supply plan; there is no goal (sourcing / logistics / customs) to choose and no free-text goods field. The
-preliminary brief says HMV prepares an integrated supply proposal for the requirement; it promises no service the
-buyer did not ask about.
+The Trade Desk is a chat-first sales conversation, deterministic (no generated text). HMV asks three things: the
+product (already known when opened from a product page), the delivery destination and the expected volume. All three
+known: **ready for quotation**, routed to HMV Sales (**Request Quotation**). A buyer still exploring can say so at any
+question after the product: routed to HMV Customer Service (**Discuss with HMV**). Contact details are asked last, in
+an inline card. Technical and logistics points (specifications, Incoterm, packaging, certification, transport) are
+never asked: they belong to the commercial discussion. The inquiry contract keeps `application`, `transport` and
+`requirements` for earlier inquiries; the desk sends them empty and fills nothing in. The CMS derives the route from
+what it stores (product, destination and volume: Sales · RFQ; otherwise Customer Service).
 
 ```
 Trade Desk (browser) ── POST /api/inquiry (same origin) ──► app/api/inquiry/route.ts
@@ -47,7 +48,7 @@ Per request (8 s timeout):
 
 | Header | Value |
 | --- | --- |
-| `Idempotency-Key` | The Trade Desk's per-brief key (a UUID; reused when the buyer retries the same brief) |
+| `Idempotency-Key` | The Trade Desk's per-inquiry key (a UUID; reused when the buyer retries the same inquiry) |
 | `X-HMV-Timestamp` | Unix seconds |
 | `X-HMV-Signature` | lower-case hex `HMAC-SHA256(CMS_INQUIRY_SECRET, "<timestamp>.<idempotency key>.<bodySha256>")` |
 
@@ -58,7 +59,9 @@ re-serialized JSON). Headers captured in transit therefore cannot be replayed wi
 
 No contact data is in the headers. The body (`cmsPayload` in `adapters.js`) carries controlled ids (product — always present — origin,
 unit, application, transport, requirement options), the contact, `source` (landing path, referrer **origin**, UTM)
-and `consentAt`. The honeypot field is never sent: a filled honeypot is answered as accepted and not delivered.
+and `consentAt`. Empty fields are left out: the Trade Desk asks no origin, so none is sent and none is assumed (an
+origin sent explicitly must be one the product is offered from, or the inquiry is refused). The honeypot field is never
+sent: a filled honeypot is answered as accepted and not delivered.
 
 Shared test vector (asserted in this repo's `src/next/inquiry/service.test.js` and the CMS's
 `backend/src/modules/trade-inquiries/trade-inquiries.spec.ts`):
@@ -85,11 +88,12 @@ Submission rules (browser and `/api/inquiry`):
 
 - The browser waits at most 15 s for `/api/inquiry` (`AbortController` in `src/next/inquiry-client.js`), then shows the
   retry and email draft with the buyer's answers kept.
-- One idempotency key per exact inquiry: an exact retry reuses it; any changed brief or contact value gets a new key
+- One idempotency key per exact inquiry: an exact retry reuses it; any changed requirement or contact value gets a new key
   (`src/features/trade-desk/fingerprint.js`). The server keeps each key's content fingerprint and answers **409** to a
   key reused with other content, never the first inquiry's reference.
-- Every validation error, the browser's or the server's, is shown at its field on its step.
-- A response for a brief that is no longer on screen (a new brief, or this one edited) changes nothing; an acceptance
+- Every contact validation error, the browser's or the server's, is shown at its field in the contact card; an
+  amount the inquiry would refuse is pointed out where the buyer typed it.
+- A response for a conversation that is no longer on screen (a new one was started) changes nothing; an acceptance
   that arrives while the desk is closed is shown on the next open, until the buyer starts a new inquiry.
 - The body is read with a 20 000-byte limit: a larger `Content-Length` is refused unread, a chunked body is cut off at
   the limit (413).

@@ -23,6 +23,12 @@ const AMOUNT = /^\d[\d.,\s]*$/;
 const UTM = /^[\w.+\- ]*$/;
 const KEY = /^[A-Za-z0-9-]{8,64}$/;
 
+/** A volume amount the inquiry accepts (2, 5000, 2,000), within its limit: the Trade Desk checks an answer with it. */
+export const isAmount = value => {
+  const v = text(value);
+  return v.length <= LIMITS['volume.amount'] && AMOUNT.test(v);
+};
+
 /** A same-site path (no query or fragment, which can carry personal data); '' otherwise. */
 const path = value => {
   const p = str(value, 300).split(/[?#]/)[0];
@@ -69,18 +75,31 @@ function errorList() {
   return { errors, fail, typed };
 }
 
-/** The product and its supply plan. Every inquiry is for one product; its origin is one the product offers (its first by default). */
-function checkPlan(body, { fail, typed }) {
+/**
+ * The origin the buyer gave: '' when none (the Trade Desk does not ask it, so none is ever assumed); otherwise one the
+ * product is offered from, or an error. Without a known product there is nothing to check it against (that is the
+ * product's error).
+ */
+function checkOrigin(value, product, { fail }) {
+  const origin = typeof value === 'string' ? value.trim() : (value ?? '');
+  if (origin === '' || !product) return '';
+  if (!originsFor(product).includes(origin)) fail('origin');
+  return origin;
+}
+
+/** The product and its supply plan. Every inquiry is for one product. */
+function checkPlan(body, check) {
+  const { fail, typed } = check;
   const product = productById(body.product) ? body.product : null;
   if (!product) fail('product');
-  const origins = originsFor(product);
+  const origin = checkOrigin(body.origin, product, check);
   const destination = typed('destination', body.destination);
   const notes = typed('notes', body.notes);
   const amount = typed('volume.amount', body.volume?.amount);
   if (amount && !AMOUNT.test(amount)) fail('volume.amount');
   return {
     product,
-    origin: origins.includes(body.origin) ? body.origin : origins[0],
+    origin,
     destination,
     volume: { amount, unit: Object.hasOwn(VOLUME_UNITS, body.volume?.unit) ? body.volume.unit : 'containers' },
     application: Object.hasOwn(APPLICATIONS[product] ?? {}, body.application) ? body.application : '',

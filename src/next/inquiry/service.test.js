@@ -57,6 +57,21 @@ test('an accepted inquiry is delivered once as a labelled record with a public r
   );
 });
 
+test('no origin given: the record and the CMS body have none; a given origin is carried as is', async () => {
+  // As the chat-first Trade Desk sends it: no origin, application, transport or requirements.
+  const desk = inquiry({ product: 'dried-cassava-chips', origin: undefined, transport: '', requirements: {}, volume: { amount: '2,000', unit: 'mt_month' } });
+  const adapter = memoryAdapter();
+  const result = await createInquiryService({ adapter, now })(desk);
+  assert.equal(result.status, 'accepted');
+  assert.equal(adapter.records[0].origin, '');
+  const { value } = validateInquiry(desk);
+  assert.equal(value.origin, '');
+  assert.equal('origin' in JSON.parse(JSON.stringify(cmsPayload(value, '2026-11-12T08:00:00.000Z'))), false);
+  // An explicit valid origin still reaches the CMS.
+  const cambodia = validateInquiry({ ...desk, origin: 'cambodia' }).value;
+  assert.equal(cmsPayload(cambodia, '2026-11-12T08:00:00.000Z').origin, 'cambodia');
+});
+
 test('duplicate submits share one delivery and one reference, also while the first is in flight', async () => {
   const adapter = memoryAdapter();
   const submit = createInquiryService({ adapter, now });

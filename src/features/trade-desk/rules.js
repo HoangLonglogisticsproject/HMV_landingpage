@@ -1,8 +1,8 @@
-// HMV Trade Desk business rules: products, origins, units and the requirements HMV asks a buyer to define. Every
-// inquiry is product-led: route, Incoterm, packaging, delivery window and certification are requirements of the
-// product's supply plan, never inquiries of their own. Controlled data only. The review lists what is missing from
-// these rules and nothing else; no requirement, claim or value is generated. Product-specific lists follow the
-// approved buyer pages (data/productPages.js).
+// HMV Trade Desk business rules: products, origins, units and how a buyer's words name a product. The desk asks only
+// product, destination and volume; the application, transport and requirement lists below are the inquiry contract's
+// (POST /api/inquiry and the CMS still accept them from earlier inquiries), never questions the desk asks. Controlled
+// data only: no requirement, claim or value is generated. Product-specific lists follow the approved buyer pages
+// (data/productPages.js).
 import { products } from '@/data/hmv';
 
 const t = (en, vi) => ({ en, vi });
@@ -81,24 +81,27 @@ export function requirementsFor({ product }) {
   return PRODUCT_REQUIREMENTS[p.id] ?? [...specRequirements(p), DESTINATION_PORT, DELIVERY_WINDOW, CERTIFICATION, INCOTERM];
 }
 
-// The core of every brief, asked first: what HMV needs before anything else.
-const CORE = [['product', t('Product', 'Sản phẩm')], ['destination', t('Destination', 'Điểm đến')], ['volume', t('Estimated volume', 'Sản lượng dự kiến')]];
-const filled = value => String(value ?? '').trim() !== '';
+/** Without accents (đ as d). */
+const plain = text => text.normalize('NFD').replace(/\p{M}/gu, '').replaceAll('đ', 'd');
 
-/** Everything HMV asks for in a brief, in asking order: the core fields, the application where the product has them,
- * then the requirements. Each entry: { key, label, core, done }. */
-export function checklist(brief) {
-  const core = CORE.map(([key, label]) => (
-    { key, label, core: true, done: filled(key === 'volume' ? brief.volume?.amount : brief[key]) }
-  ));
-  const application = APPLICATIONS[brief.product]
-    ? [{ key: 'application', label: t('Application', 'Mục đích sử dụng'), core: true, done: filled(brief.application) }]
-    : [];
-  const requirements = requirementsFor(brief).map(({ key, label }) => (
-    { key, label, core: false, done: filled(brief.requirements?.[key]) }
-  ));
-  return [...core, ...application, ...requirements];
+// How a buyer may name each product (patterns, matched as whole words: "passionate" is not "passion"; plurals are
+// spelled out where buyers use them). A name with accents is matched with them, so "chuỗi cung ứng" (supply chain) is
+// never "chuối" (bananas); one without is matched accent-free, so "san lat" and "sắn lát" read the same. Spaces are one
+// space: the buyer's text is normalized before matching. Controlled data: nothing is inferred beyond it.
+const PRODUCT_NAMES = [
+  ['passion-fruit', ['passion', 'chanh day', 'chanh leo']],
+  ['dried-cassava-chips', ['cassava(?! starch)', 'san lat', 'san kho', '(?<!bột )sắn']],
+  ['tapioca-starch', ['tapioca', 'cassava starch', 'tinh bot san', 'tinh bot khoai mi']],
+  ['bananas', ['bananas?', 'cavendish', 'chuối']],
+  ['dragon-fruit', ['dragon ?fruits?', 'pitayas?', 'pitahayas?', 'thanh long']],
+  ['spices', ['spices?', 'pepper(?:corn)?s?', 'cinnamon', 'star anise', 'gia vi', 'ho tieu', 'hat tieu']],
+  ['nuts', ['cashews?', 'hat dieu', 'nhan dieu']],
+].map(([id, names]) => [id, names.map(name => ({ pattern: new RegExp(String.raw`(?<!\p{L})(?:${name})(?!\p{L})`, 'u'), accented: name !== plain(name) }))]);
+
+/** The one HMV product a buyer's words name, or null when they name none or several. */
+export function recognizeProduct(text) {
+  const lower = String(text ?? '').normalize('NFC').toLowerCase().replace(/\s+/g, ' ');
+  const bare = plain(lower);
+  const named = PRODUCT_NAMES.filter(([, names]) => names.some(({ pattern, accented }) => pattern.test(accented ? lower : bare)));
+  return named.length === 1 ? named[0][0] : null;
 }
-
-/** What HMV still needs: the unanswered checklist entries. */
-export const missingInformation = brief => checklist(brief).filter(item => !item.done);

@@ -54,7 +54,9 @@ test('the desk loads on the first open, which is kept (product preselected) whil
   });
   const dialog = document.querySelector('[role="dialog"]');
   assert.ok(dialog);
-  assert.equal(dialog.querySelector('input[type="radio"][value="dried-cassava-chips"]').checked, true);
+  // Product preselected: the conversation starts at the destination, in the site language.
+  assert.ok(dialog.querySelector('.desk-summary').textContent.includes('Sắn lát khô'));
+  assert.ok(dialog.textContent.includes('Anh/chị cần giao hàng đến đâu?'));
   assert.equal(document.querySelector('output.desk-loading'), null);
   assert.deepEqual(window.dataLayer.map(e => e.event), ['trade_desk_open', 'trade_product_selected']);
 });
