@@ -20,7 +20,7 @@ export function toRecord(value, { reference, createdAt }) {
     createdAt,
     locale: value.locale,
     product: { id: product.id, name: product.en },
-    origin: ORIGINS[value.origin].en,
+    origin: ORIGINS[value.origin]?.en ?? '',
     destination: value.destination,
     volume: value.volume.amount ? `${value.volume.amount} ${VOLUME_UNITS[value.volume.unit].en}` : '',
     application: APPLICATIONS[value.product]?.[value.application]?.en ?? '',

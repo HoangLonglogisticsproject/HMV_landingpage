@@ -59,7 +59,9 @@ re-serialized JSON). Headers captured in transit therefore cannot be replayed wi
 
 No contact data is in the headers. The body (`cmsPayload` in `adapters.js`) carries controlled ids (product — always present — origin,
 unit, application, transport, requirement options), the contact, `source` (landing path, referrer **origin**, UTM)
-and `consentAt`. The honeypot field is never sent: a filled honeypot is answered as accepted and not delivered.
+and `consentAt`. Empty fields are left out: the Trade Desk asks no origin, so none is sent and none is assumed (an
+origin sent explicitly must be one the product is offered from, or the inquiry is refused). The honeypot field is never
+sent: a filled honeypot is answered as accepted and not delivered.
 
 Shared test vector (asserted in this repo's `src/next/inquiry/service.test.js` and the CMS's
 `backend/src/modules/trade-inquiries/trade-inquiries.spec.ts`):

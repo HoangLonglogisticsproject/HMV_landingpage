@@ -63,8 +63,9 @@ test('the inquiry leaves application, transport and requirements empty: nothing 
   const { ok, value } = validateInquiry(inquiry);
   assert.equal(ok, true);
   assert.deepEqual([value.application, value.transport, value.requirements], ['', '', {}]);
-  // The origin is not asked: the product's first one, as the CMS also defaults it.
-  assert.equal(value.origin, 'vietnam');
+  // The origin is not asked, so none is sent or assumed.
+  assert.equal('origin' in inquiry, false);
+  assert.equal(value.origin, '');
   // A discovery inquiry, without destination and volume, is accepted too.
   assert.equal(validateInquiry({ ...inquiry, destination: '', volume: { amount: '', unit: 'mt_month' } }).ok, true);
 });
