@@ -135,9 +135,9 @@ export function ProductLanding({ lang, product, page }) {
             <Heading {...c.gallery} />
             <div className="landing-gallery">
               {page.gallery.map(p => (
-                // ponytail: widths of the current two-image gallery (auto-fit 240px columns, 24px gap, .content-width
-                // breakpoints); a gallery of one or 3+ images needs its own sizes.
-                <Photo key={p.src} photo={p} lang={lang} sizes="(max-width: 543px) calc(100vw - 40px), (max-width: 600px) calc(50vw - 32px), (max-width: 1100px) calc(50vw - 44px), (max-width: 1255px) calc(50vw - 60px), 568px" />
+                // ponytail: widths of a one- or two-image gallery (auto-fit 240px columns, 24px gap, .content-width
+                // breakpoints; one image is capped at a column's 568px); 3+ images need their own sizes.
+                <Photo key={p.src} photo={p} lang={lang} sizes={page.gallery.length > 1 ? '(max-width: 543px) calc(100vw - 40px), (max-width: 600px) calc(50vw - 32px), (max-width: 1100px) calc(50vw - 44px), (max-width: 1255px) calc(50vw - 60px), 568px' : '(max-width: 631px) calc(100vw - 40px), 568px'} />
               ))}
             </div>
             <p className="commercial-note">{c.gallery.note}</p>

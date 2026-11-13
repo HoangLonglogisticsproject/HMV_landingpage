@@ -9392,6 +9392,11 @@ article[id] {
   object-fit: cover
 }
 
+/* A single gallery photo stays the width of one column of the two-photo gallery. */
+.landing-photo:only-child {
+  max-width: 568px
+}
+
 .landing-photo figcaption {
   font-size: 12px;
   color: var(--ink-muted);

@@ -30,10 +30,10 @@ test('titles: main commercial pages and the seven products are unique per langua
 });
 
 test('buyer pages: their own titles; Dried Cassava Chips and Tapioca Starch never share one', () => {
-  assert.equal(productMeta('en', product('passion-fruit')).title, 'Vietnam Passion Fruit Sourcing for Wholesale Buyers');
-  assert.equal(productMeta('vi', product('passion-fruit')).title, 'Chanh dây Việt Nam cho nhu cầu thu mua B2B');
-  assert.equal(productMeta('en', product('dried-cassava-chips')).title, 'Vietnam Dried Cassava Chips for Industrial Buyers');
-  assert.equal(productMeta('vi', product('dried-cassava-chips')).title, 'Sắn lát khô Việt Nam cho khách hàng công nghiệp & B2B');
+  assert.equal(productMeta('en', product('passion-fruit')).title, 'Vietnam Passion Fruit Supplier for Wholesale Buyers');
+  assert.equal(productMeta('vi', product('passion-fruit')).title, 'Nguồn chanh dây Việt Nam cho nhà nhập khẩu & B2B');
+  assert.equal(productMeta('en', product('dried-cassava-chips')).title, 'Vietnam Dried Cassava Chips Supplier for Bulk Buyers');
+  assert.equal(productMeta('vi', product('dried-cassava-chips')).title, 'Sắn lát khô Việt Nam: nguồn cung số lượng lớn cho B2B');
   for (const lang of ['en', 'vi']) {
     assert.notEqual(productMeta(lang, product('dried-cassava-chips')).title, productMeta(lang, product('tapioca-starch')).title, lang);
   }

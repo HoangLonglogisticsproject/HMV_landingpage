@@ -1,12 +1,14 @@
 // Content of the product pages that go beyond the generic product page: buyer-facing sections, SEO and the RFQ fields.
 // Claims are limited to verified evidence. Passion fruit: fresh whole fruit, HMV-supplied photographs of a growing area,
 // cut-fruit samples and field sample inspection; Brix, capacity, certification, farm or factory ownership and lab results
-// are not asserted. Dried cassava chips: the HMV cassava dossier (network capacity, one Intertek-analysed sample).
+// are not asserted. Dried cassava chips: the HMV cassava dossier (network capacity, one Intertek-analysed sample) and
+// one HMV-supplied product photograph, whose location and lot are not asserted.
 // Rendered by views/products/ProductLanding.jsx; titles and descriptions by productMeta() in views/meta.js.
 //
 // One content tree per product. Only text leaves are localized, `t(en, vi)`; figures, sample results and the report are
 // written once and formatted per language. definePage() resolves the tree into `seo.en`, `seo.vi`, `en` and `vi`.
 import { photos, photoCopy } from './hmv.js';
+import { productPhotos } from './productPhotos.js';
 
 const LOCALES = { en: 'en-US', vi: 'vi-VN' };
 
@@ -63,14 +65,15 @@ const mgPerKg = (n, prefix) => quantity(n, ' mg/kg', prefix);
 // The two results the hero quotes, shared with the full results table.
 const STARCH = [t('Starch', 'Tinh bột'), percent(71.1)];
 const MOISTURE = [t('Moisture', 'Độ ẩm'), percent(11.55)];
+const CASSAVA_PHOTO = productPhotos['dried-cassava-chips'];
 
 export const productPages = {
   'passion-fruit': definePage({
     seo: {
-      title: t('Vietnam Passion Fruit Sourcing for Wholesale Buyers', 'Chanh dây Việt Nam cho nhu cầu thu mua B2B'),
+      title: t('Vietnam Passion Fruit Supplier for Wholesale Buyers', 'Nguồn chanh dây Việt Nam cho nhà nhập khẩu & B2B'),
       description: t(
-        'Fresh passion fruit sourcing from Vietnam for wholesale buyers. Discuss variety, size, Brix, packaging, season and destination requirements with HMV Global.',
-        'Nguồn chanh dây tươi Việt Nam cho khách hàng B2B. Trao đổi giống, kích cỡ, Brix, đóng gói, mùa vụ và yêu cầu thị trường đích với HMV Global.',
+        'Fresh passion fruit from Vietnam for importers, distributors and wholesale buyers. Variety, size, Brix, packaging and season agreed for your destination.',
+        'Nhà cung cấp chanh dây tươi Việt Nam cho nhà nhập khẩu, nhà phân phối và khách hàng B2B. Giống, kích cỡ, Brix, đóng gói và mùa vụ theo thị trường đích.',
       ),
     },
     // The growing area leads the hero, with the cut-fruit product photo (data/productPhotos.js) as its detail.
@@ -83,8 +86,8 @@ export const productPages = {
     content: {
       h1: t('Fresh Passion Fruit from Vietnam', 'Chanh dây tươi từ Việt Nam'),
       lead: t(
-        'HMV Global coordinates fresh passion-fruit sourcing and supply-chain execution for international wholesale buyers, importers and distributors.',
-        'HMV Global điều phối nguồn hàng chanh dây tươi và thực thi chuỗi cung ứng cho khách hàng B2B, nhà nhập khẩu và nhà phân phối quốc tế.',
+        'HMV Global is a passion fruit supplier in Vietnam for importers, distributors and wholesale buyers, coordinating fresh-fruit sourcing, field sample inspection and delivery planning for your destination.',
+        'HMV Global cung cấp nguồn chanh dây tươi Việt Nam cho nhà nhập khẩu, nhà phân phối và khách hàng B2B, điều phối nguồn hàng, kiểm tra mẫu tại vườn và kế hoạch giao hàng đến thị trường đích.',
       ),
       hero: {
         eyebrow: t('VIETNAM PASSION FRUIT · B2B SOURCING', 'CHANH DÂY VIỆT NAM · NGUỒN HÀNG B2B'),
@@ -107,7 +110,7 @@ export const productPages = {
         title: t('Built around your buyer brief', 'Xây dựng theo nhu cầu thu mua của bạn'),
         text: t(
           'For importers, distributors, wholesale buyers and procurement teams sourcing fresh passion fruit from Vietnam.',
-          'Dành cho nhà nhập khẩu, nhà phân phối, khách hàng bán buôn và bộ phận thu mua tìm nguồn chanh dây tươi từ Việt Nam.',
+          'Dành cho nhà nhập khẩu, nhà phân phối, khách hàng mua số lượng lớn và bộ phận thu mua tìm nguồn chanh dây xuất khẩu từ Việt Nam.',
         ),
         items: [
           card(['Sourcing coordination', 'Growing areas and sourcing partners are matched to the variety, season and volume in your brief.'],
@@ -186,20 +189,19 @@ export const productPages = {
 
   'dried-cassava-chips': definePage({
     seo: {
-      title: t('Vietnam Dried Cassava Chips for Industrial Buyers', 'Sắn lát khô Việt Nam cho khách hàng công nghiệp & B2B'),
+      title: t('Vietnam Dried Cassava Chips Supplier for Bulk Buyers', 'Sắn lát khô Việt Nam: nguồn cung số lượng lớn cho B2B'),
       description: t(
-        'Dried cassava chips from Vietnam and Cambodia for feed, starch-processing and bioethanol buyers: HMV Global network capacity, Intertek sample results and container supply coordination.',
-        'Sắn lát khô từ Việt Nam và Campuchia cho khách hàng thức ăn chăn nuôi, chế biến tinh bột và bioethanol: năng lực mạng lưới HMV Global, kết quả mẫu Intertek và điều phối cung ứng container.',
+        'Dried cassava chips for animal feed, starch and bioethanol manufacturers, importers and distributors. Recurring bulk supply, quoted by destination and volume.',
+        'Nguồn sắn lát khô cho nhà máy thức ăn chăn nuôi, tinh bột, bioethanol, nhà nhập khẩu và phân phối. Cung cấp số lượng lớn, báo giá theo điểm đến và sản lượng.',
       ),
     },
-    // ponytail: no cassava photographs are in the repository yet; `gallery` stays empty until first-party images are
-    // added (a field image may name Tân Biên, Tây Ninh only where the dossier identifies that material).
-    gallery: [],
+    // The product photograph of the overview cards (data/productPhotos.js): one verified image for the product.
+    gallery: [{ ...CASSAVA_PHOTO, caption: { en: CASSAVA_PHOTO.altEn, vi: CASSAVA_PHOTO.altVi } }],
     content: {
-      h1: t('Dried Cassava Chips for Industrial Buyers', 'Sắn lát khô cho khách hàng công nghiệp'),
+      h1: t('Dried Cassava Chips from Vietnam for Industrial Buyers', 'Sắn lát khô Việt Nam cho khách hàng công nghiệp'),
       lead: t(
-        'HMV Global coordinates dried cassava chip supply from Vietnam and Cambodia for importers, feed manufacturers, starch processors and bioethanol producers, from origin selection to container delivery.',
-        'HMV Global điều phối nguồn cung sắn lát khô từ Việt Nam và Campuchia cho nhà nhập khẩu, nhà sản xuất thức ăn chăn nuôi, nhà chế biến tinh bột và nhà sản xuất bioethanol, từ chọn vùng nguyên liệu đến giao container.',
+        'HMV Global supplies dried cassava chips from Vietnam and Cambodia to animal feed, starch and bioethanol manufacturers, importers and distributors buying in bulk on a recurring basis, quoted by destination and monthly volume.',
+        'HMV Global cung cấp sắn lát khô từ Việt Nam và Campuchia cho nhà máy thức ăn chăn nuôi, tinh bột, bioethanol, nhà nhập khẩu và nhà phân phối mua số lượng lớn định kỳ, báo giá theo điểm đến và sản lượng hằng tháng.',
       ),
       hero: {
         eyebrow: t('VIETNAM & CAMBODIA · BULK SUPPLY', 'VIỆT NAM & CAMPUCHIA · CUNG ỨNG KHỐI LƯỢNG LỚN'),
@@ -222,8 +224,8 @@ export const productPages = {
         eyebrow: t('FOR INDUSTRIAL BUYERS', 'DÀNH CHO KHÁCH HÀNG CÔNG NGHIỆP'),
         title: t('Supply planned around your plant', 'Nguồn cung theo kế hoạch nhà máy của bạn'),
         text: t(
-          'For importers, feed manufacturers, starch processors and bioethanol producers buying dried cassava chips by the container.',
-          'Dành cho nhà nhập khẩu, nhà sản xuất thức ăn chăn nuôi, nhà chế biến tinh bột và nhà sản xuất bioethanol mua sắn lát khô theo container.',
+          'For feed, starch and bioethanol manufacturers, importers and distributors buying dried cassava chips by the container, as a recurring monthly supply.',
+          'Dành cho nhà sản xuất thức ăn chăn nuôi, tinh bột và bioethanol, nhà nhập khẩu và nhà phân phối mua sắn lát khô theo container, cung ứng định kỳ hằng tháng.',
         ),
         items: [
           card(['Origin & sampling', 'Origin areas are selected for your application and inspected in the field. Samples are taken and analysed according to the agreed requirements.'],
@@ -274,7 +276,7 @@ export const productPages = {
       },
       applications: {
         eyebrow: t('APPLICATIONS', 'ỨNG DỤNG'),
-        title: t('Where the chips are used', 'Sắn lát khô được dùng ở đâu'),
+        title: t('Cassava chips for feed, starch and bioethanol', 'Sắn lát cho thức ăn chăn nuôi, tinh bột và bioethanol'),
         items: [
           card(['Animal feed', 'For feed manufacturers and their formulations.'], ['Thức ăn chăn nuôi', 'Cho nhà sản xuất thức ăn chăn nuôi và công thức phối trộn.']),
           card(['Starch processing', 'For starch processors.'], ['Chế biến tinh bột', 'Cho nhà chế biến tinh bột.']),
@@ -297,11 +299,16 @@ export const productPages = {
         eyebrow: t('RFQ · DRIED CASSAVA CHIPS', 'RFQ · SẮN LÁT KHÔ'),
         title: t('Request a Cassava Supply Proposal', 'Yêu cầu phương án cung ứng sắn lát'),
         lead: t(
-          'Share your monthly volume, application and quality requirements so HMV Global can prepare a supply proposal.',
-          'Chia sẻ sản lượng hằng tháng, mục đích sử dụng và yêu cầu chất lượng để HMV Global chuẩn bị phương án cung ứng.',
+          'Share your destination, monthly volume, application and quality requirements so HMV Global can prepare a quotation and supply proposal.',
+          'Chia sẻ điểm đến, sản lượng hằng tháng, mục đích sử dụng và yêu cầu chất lượng để HMV Global chuẩn bị báo giá và phương án cung ứng.',
         ),
         volume: t('Monthly volume (MT)', 'Sản lượng hằng tháng (tấn)'),
         volumePlaceholder: t('Metric tons per month', 'Số tấn mỗi tháng'),
+      },
+      gallery: {
+        eyebrow: t('THE PRODUCT', 'SẢN PHẨM'),
+        title: t('Dried cassava chips', 'Sắn lát khô'),
+        note: t('Photo supplied by HMV.', 'Ảnh do HMV cung cấp.'),
       },
     },
     rfqFields: [

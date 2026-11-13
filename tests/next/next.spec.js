@@ -46,10 +46,10 @@ const COPY = [
   { path: '/vi/supply-chain', h1: 'Chuỗi cung ứng', title: 'Thực thi chuỗi cung ứng nông sản từ Việt Nam | HMV Global' },
   { path: '/vi/san-pham/hat-dieu', h1: 'Hạt điều', title: 'Hạt điều Việt Nam cho nhu cầu thu mua B2B | HMV Global' },
   { path: '/products/nuts', h1: 'Cashew nuts', title: 'Vietnam Cashew Nuts Sourcing for Wholesale Buyers | HMV Global' },
-  { path: '/products/passion-fruit', h1: 'Fresh Passion Fruit from Vietnam', title: 'Vietnam Passion Fruit Sourcing for Wholesale Buyers | HMV Global' },
-  { path: '/vi/san-pham/chanh-day', h1: 'Chanh dây tươi từ Việt Nam', title: 'Chanh dây Việt Nam cho nhu cầu thu mua B2B | HMV Global' },
-  { path: '/products/dried-cassava-chips', h1: 'Dried Cassava Chips for Industrial Buyers', title: 'Vietnam Dried Cassava Chips for Industrial Buyers | HMV Global' },
-  { path: '/vi/san-pham/san-lat-kho', h1: 'Sắn lát khô cho khách hàng công nghiệp', title: 'Sắn lát khô Việt Nam cho khách hàng công nghiệp & B2B | HMV Global' },
+  { path: '/products/passion-fruit', h1: 'Fresh Passion Fruit from Vietnam', title: 'Vietnam Passion Fruit Supplier for Wholesale Buyers | HMV Global' },
+  { path: '/vi/san-pham/chanh-day', h1: 'Chanh dây tươi từ Việt Nam', title: 'Nguồn chanh dây Việt Nam cho nhà nhập khẩu & B2B | HMV Global' },
+  { path: '/products/dried-cassava-chips', h1: 'Dried Cassava Chips from Vietnam for Industrial Buyers', title: 'Vietnam Dried Cassava Chips Supplier for Bulk Buyers | HMV Global' },
+  { path: '/vi/san-pham/san-lat-kho', h1: 'Sắn lát khô Việt Nam cho khách hàng công nghiệp', title: 'Sắn lát khô Việt Nam: nguồn cung số lượng lớn cho B2B | HMV Global' },
   { path: '/vi/tin-tuc/xuat-khau-chanh-day-eu', title: 'Xuất khẩu Chanh dây sang Châu Âu: Tiêu chuẩn GlobalGAP và câu chuyện của HMV Global. | HMV Global' },
   // Decision D-06: one brand suffix, added by the title template.
   { path: '/logistics', title: 'Supply Chain Operations & Dangerous Goods Handling | HMV Global' },
@@ -357,10 +357,10 @@ test.describe('language switch', () => {
     await page.goto('/products/dried-cassava-chips');
     await switchTo(page, 'Tiếng Việt');
     await expect(page).toHaveURL(/\/vi\/san-pham\/san-lat-kho$/);
-    await expect(page.locator('h1').first()).toHaveText('Sắn lát khô cho khách hàng công nghiệp');
+    await expect(page.locator('h1').first()).toHaveText('Sắn lát khô Việt Nam cho khách hàng công nghiệp');
     await switchTo(page, 'English');
     await expect(page).toHaveURL(/\/products\/dried-cassava-chips$/);
-    await expect(page.locator('h1').first()).toHaveText('Dried Cassava Chips for Industrial Buyers');
+    await expect(page.locator('h1').first()).toHaveText('Dried Cassava Chips from Vietnam for Industrial Buyers');
   });
 
   test('the #hash survives the switch', async ({ page }) => {
