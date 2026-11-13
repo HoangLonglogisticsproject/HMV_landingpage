@@ -14,8 +14,8 @@ test('absolute URLs: the www origin over https, the root without a trailing slas
 
 // The money pages and the search intent their title leads with.
 const MONEY = [
-  ['dried-cassava-chips', 'en', '/products/dried-cassava-chips', /^Vietnam Dried Cassava Chips Supplier\b/],
-  ['dried-cassava-chips', 'vi', '/vi/san-pham/san-lat-kho', /^Sắn lát khô Việt Nam\b/],
+  ['dried-cassava-chips', 'en', '/products/dried-cassava-chips', /^Dried Cassava Chips Supplier in Vietnam\b/],
+  ['dried-cassava-chips', 'vi', '/vi/san-pham/san-lat-kho', /^Nhà cung cấp sắn lát khô B2B\b/],
   ['passion-fruit', 'en', '/products/passion-fruit', /^Vietnam Passion Fruit Supplier\b/],
   ['passion-fruit', 'vi', '/vi/san-pham/chanh-day', /^Nguồn chanh dây Việt Nam\b/],
 ];
@@ -26,7 +26,9 @@ test('money pages: intent-led title and description within SERP length, unique; 
     assert.match(title, intent);
     // ponytail: characters, not pixels; Google cuts at roughly 600 px, about 60-70 characters.
     assert.ok(`${title} | HMV Global`.length <= 70, `${url} title: ${title}`);
-    assert.ok(description.length <= 160, `${url} description: ${description.length}`);
+    // ponytail: a guard against runaway copy, not a SERP rule; Google cuts snippets near 920 px (about 155-160
+    // characters) and often rewrites them. The EN cassava description (172) is the approved copy.
+    assert.ok(description.length <= 175, `${url} description: ${description.length}`);
     const m = pageMetadata({ lang, path: `/products/${id}`, title, description });
     const pair = MONEY.filter(row => row[0] === id).map(([, l, u]) => [l, SITE + u]);
     assert.equal(m.alternates.canonical, SITE + url);

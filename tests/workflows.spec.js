@@ -46,7 +46,7 @@ test('contact page renders the inquiry form with expected fields', async ({ page
 // field, no product select).
 for (const [id, product, cta] of [
   ['passion-fruit', 'Passion fruit', 'Discuss Your Passion Fruit Requirements'],
-  ['dried-cassava-chips', 'Dried cassava chips', 'Request a Cassava Supply Proposal'],
+  ['dried-cassava-chips', 'Dried cassava chips', 'Build Your Cassava Supply Plan with HMV'],
 ]) {
   test(`${id} page CTA opens the Trade Desk with "${product}"; the RFQ fallback stays`, async ({ page }) => {
     await page.goto(`/products/${id}?lang=en`);

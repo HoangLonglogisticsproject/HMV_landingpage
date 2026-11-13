@@ -91,7 +91,10 @@ export function ProductMoneyHero({ lang, product, page }) {
           <div className="money-hero-copy">
             <p className="money-eyebrow">{hero.eyebrow}</p>
             <h1>{c.h1}</h1>
-            <p className="money-lead">{c.lead}</p>
+            {/* One paragraph or several. */}
+            {[c.lead].flat().map(p => (
+              <p key={p} className="money-lead">{p}</p>
+            ))}
             <div className="money-actions">
               {/* The HMV Trade Desk, with this product preselected; the RFQ (#rfq) stays lower on the page. */}
               <TradeDeskButton size="lg" className="day-cta" product={product.id} source="product_hero">

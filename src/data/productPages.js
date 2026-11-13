@@ -189,22 +189,28 @@ export const productPages = {
 
   'dried-cassava-chips': definePage({
     seo: {
-      title: t('Vietnam Dried Cassava Chips Supplier for Bulk Buyers', 'Sắn lát khô Việt Nam: nguồn cung số lượng lớn cho B2B'),
+      title: t('Dried Cassava Chips Supplier in Vietnam', 'Nhà cung cấp sắn lát khô B2B tại Việt Nam'),
       description: t(
-        'Dried cassava chips for animal feed, starch and bioethanol manufacturers, importers and distributors. Recurring bulk supply, quoted by destination and volume.',
-        'Nguồn sắn lát khô cho nhà máy thức ăn chăn nuôi, tinh bột, bioethanol, nhà nhập khẩu và phân phối. Cung cấp số lượng lớn, báo giá theo điểm đến và sản lượng.',
+        'HMV Global manages recurring bulk dried cassava chip supply for feed, starch and bioethanol buyers, coordinating sourcing, quality requirements, consolidation and delivery.',
+        'HMV Global điều phối nguồn cung sắn lát khô số lượng lớn cho nhà máy thức ăn chăn nuôi, tinh bột và bioethanol, từ nguồn hàng, chất lượng đến giao hàng.',
       ),
     },
     // The product photograph of the overview cards (data/productPhotos.js): one verified image for the product.
     gallery: [{ ...CASSAVA_PHOTO, caption: { en: CASSAVA_PHOTO.altEn, vi: CASSAVA_PHOTO.altVi } }],
     content: {
-      h1: t('Dried Cassava Chips from Vietnam for Industrial Buyers', 'Sắn lát khô Việt Nam cho khách hàng công nghiệp'),
-      lead: t(
-        'HMV Global supplies dried cassava chips from Vietnam and Cambodia to animal feed, starch and bioethanol manufacturers, importers and distributors buying in bulk on a recurring basis, quoted by destination and monthly volume.',
-        'HMV Global cung cấp sắn lát khô từ Việt Nam và Campuchia cho nhà máy thức ăn chăn nuôi, tinh bột, bioethanol, nhà nhập khẩu và nhà phân phối mua số lượng lớn định kỳ, báo giá theo điểm đến và sản lượng hằng tháng.',
-      ),
+      h1: t('Bulk Dried Cassava Chips Supply by HMV Global', 'Nguồn cung sắn lát khô số lượng lớn từ HMV Global'),
+      lead: [
+        t(
+          'HMV Global coordinates recurring dried cassava chip supply for feed, starch and bioethanol manufacturers, importers and distributors through a managed regional sourcing network.',
+          'HMV Global điều phối nguồn cung sắn lát khô định kỳ cho nhà máy thức ăn chăn nuôi, tinh bột, bioethanol, nhà nhập khẩu và nhà phân phối thông qua mạng lưới cung ứng khu vực do HMV quản lý.',
+        ),
+        t(
+          'Depending on buyer requirements, season and availability, supply may be sourced across Vietnam and Cambodia. HMV coordinates the commercial brief, quality requirements, sampling, consolidation, documentation and delivery plan for each supply proposal.',
+          'Tùy theo yêu cầu người mua, mùa vụ và khả năng cung ứng, nguồn hàng có thể được huy động từ Việt Nam và Campuchia. HMV điều phối xuyên suốt yêu cầu thương mại, tiêu chí chất lượng, lấy mẫu, gom hàng, chứng từ và kế hoạch giao hàng cho từng phương án cung ứng.',
+        ),
+      ],
       hero: {
-        eyebrow: t('VIETNAM & CAMBODIA · BULK SUPPLY', 'VIỆT NAM & CAMPUCHIA · CUNG ỨNG KHỐI LƯỢNG LỚN'),
+        eyebrow: t('HMV GLOBAL · MANAGED BULK SUPPLY', 'HMV GLOBAL · QUẢN LÝ NGUỒN CUNG SỐ LƯỢNG LỚN'),
         secondary: { target: 'quality', label: t('View Quality Reference', 'Xem tham chiếu chất lượng') },
         intertek: {
           title: t('Intertek reference', 'Tham chiếu Intertek'),
@@ -221,19 +227,22 @@ export const productPages = {
       ],
       seeAlso: { id: 'tapioca-starch', text: t('Looking for tapioca starch? It is a separate product.', 'Bạn cần tinh bột sắn? Đó là một sản phẩm riêng.') },
       audience: {
-        eyebrow: t('FOR INDUSTRIAL BUYERS', 'DÀNH CHO KHÁCH HÀNG CÔNG NGHIỆP'),
-        title: t('Supply planned around your plant', 'Nguồn cung theo kế hoạch nhà máy của bạn'),
+        eyebrow: t('WHY BUYERS WORK WITH HMV', 'VÌ SAO NGƯỜI MUA CHỌN HMV'),
+        title: t('More than access to an origin. A managed supply program.', 'Không chỉ kết nối nguồn hàng. HMV quản lý cả phương án cung ứng.'),
+        // The supply network.
         text: t(
-          'For feed, starch and bioethanol manufacturers, importers and distributors buying dried cassava chips by the container, as a recurring monthly supply.',
-          'Dành cho nhà sản xuất thức ăn chăn nuôi, tinh bột và bioethanol, nhà nhập khẩu và nhà phân phối mua sắn lát khô theo container, cung ứng định kỳ hằng tháng.',
+          "HMV's supply network includes sourcing capabilities in Vietnam and Cambodia. The applicable origin, specification, availability and commercial terms are confirmed for each proposal and shipment.",
+          'Mạng lưới cung ứng của HMV bao gồm khả năng huy động nguồn hàng tại Việt Nam và Campuchia. Xuất xứ áp dụng, thông số, khả năng cung ứng và điều kiện thương mại được xác nhận theo từng phương án và lô hàng.',
         ),
         items: [
-          card(['Origin & sampling', 'Origin areas are selected for your application and inspected in the field. Samples are taken and analysed according to the agreed requirements.'],
-            ['Vùng nguyên liệu & lấy mẫu', 'Vùng nguyên liệu được chọn theo mục đích sử dụng và kiểm tra tại hiện trường. Việc lấy mẫu và phân tích thực hiện theo các chỉ tiêu đã thống nhất.']),
-          card(['Consolidation & loading', 'Lots are consolidated and loaded into containers to your loading and packaging requirement.'],
-            ['Gom hàng & đóng container', 'Các lô hàng được gom và đóng container theo yêu cầu đóng hàng và quy cách của bạn.']),
-          card(['Documentation & delivery', 'Trade documents and delivery follow the agreed Incoterm and destination.'],
-            ['Chứng từ & giao hàng', 'Chứng từ thương mại và giao hàng theo Incoterm và điểm đến đã thống nhất.']),
+          card(['Supply Network', 'HMV coordinates sourcing across multiple supply points to support the volume and delivery schedule defined in the buyer brief.'],
+            ['Mạng lưới cung ứng', 'HMV điều phối nguồn hàng từ nhiều điểm cung ứng để đáp ứng sản lượng và lịch giao hàng trong yêu cầu thu mua của bạn.']),
+          card(['Quality Alignment', 'Quality requirements are agreed before commitment, with sampling and analysis coordinated according to the requirements of each proposal.'],
+            ['Thống nhất chất lượng', 'Tiêu chí chất lượng được thống nhất trước khi cam kết; việc lấy mẫu và phân tích được điều phối theo yêu cầu của từng phương án.']),
+          card(['Consolidation', 'Lots can be consolidated around the required shipment volume instead of relying on a single source to fulfil the entire program.'],
+            ['Gom hàng', 'Các lô hàng có thể được gom theo sản lượng cần xuất, thay vì phụ thuộc vào một nguồn duy nhất cho toàn bộ chương trình.']),
+          card(['Commercial Execution', 'HMV coordinates the commercial proposal, documentation and delivery plan through one supply process from RFQ to execution.'],
+            ['Thực thi thương mại', 'HMV điều phối đề xuất thương mại, chứng từ và kế hoạch giao hàng trong một quy trình cung ứng xuyên suốt, từ RFQ đến khi thực hiện.']),
         ],
       },
       figures: {
@@ -297,10 +306,10 @@ export const productPages = {
       },
       rfq: {
         eyebrow: t('RFQ · DRIED CASSAVA CHIPS', 'RFQ · SẮN LÁT KHÔ'),
-        title: t('Request a Cassava Supply Proposal', 'Yêu cầu phương án cung ứng sắn lát'),
+        title: t('Build Your Cassava Supply Plan with HMV', 'Xây dựng phương án cung ứng sắn lát cùng HMV'),
         lead: t(
-          'Share your destination, monthly volume, application and quality requirements so HMV Global can prepare a quotation and supply proposal.',
-          'Chia sẻ điểm đến, sản lượng hằng tháng, mục đích sử dụng và yêu cầu chất lượng để HMV Global chuẩn bị báo giá và phương án cung ứng.',
+          'Tell HMV your destination and expected monthly volume. Our team will structure the appropriate sourcing, quality and delivery proposal around your requirement.',
+          'Chia sẻ điểm đến và sản lượng dự kiến mỗi tháng. HMV sẽ xây dựng phương án nguồn hàng, chất lượng và giao hàng phù hợp với nhu cầu thu mua của bạn.',
         ),
         volume: t('Monthly volume (MT)', 'Sản lượng hằng tháng (tấn)'),
         volumePlaceholder: t('Metric tons per month', 'Số tấn mỗi tháng'),
