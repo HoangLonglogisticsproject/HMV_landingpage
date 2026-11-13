@@ -117,9 +117,10 @@ export function TradeDesk({ lang: siteLang, request }) {
   // Focus follows the conversation: the control that answers HMV's question, the route's action, the contact card's
   // first field, or the result. Focusing it also scrolls it, under the newest message, into view. On open, in place of
   // the dialog's own first-control focus (the desk's content mounts after this component's effects).
+  const control = contactOpen ? 'contact.company' : stage;
   const focusTarget = useCallback(
-    () => (reference ? sentHeading.current : document.getElementById(fieldId(uid, contactOpen ? 'contact.company' : stage))),
-    [reference, uid, contactOpen, stage],
+    () => (reference ? sentHeading.current : document.getElementById(fieldId(uid, control))),
+    [reference, uid, control],
   );
   useEffect(() => {
     if (open) focusTarget()?.focus();

@@ -36,6 +36,7 @@ const thread = () => [...dialog().querySelectorAll('.desk-msg')].map(m => `${m.q
 const panel = () => dialog().querySelector('.desk-panel').textContent;
 /** Focus is on `el` (a failure names the focused element: printing DOM nodes would exhaust memory). */
 const assertFocus = el => assert.ok(el && document.activeElement === el, `focus is on ${document.activeElement?.outerHTML.slice(0, 120)}`);
+const assertAbsent = el => assert.ok(!el, `unexpected ${el?.outerHTML?.slice(0, 120)}`);
 const events = () => (window.dataLayer ?? []).map(e => e.event);
 const errors = () => [...dialog().querySelectorAll('.desk-error')].map(e => e.textContent);
 // Technical questions the desk must never ask or list as missing.
@@ -81,7 +82,7 @@ afterEach(async () => {
 
 test('global entry: HMV asks for the product first; no steps, no questionnaire, no contact fields', async () => {
   await render('en');
-  assert.equal(dialog(), null);
+  assertAbsent(dialog());
   await open({ source: 'home_hero' });
   assert.equal(dialog().querySelector('h2').textContent, 'HMV Trade Desk');
   assert.ok(dialog().textContent.includes('B2B Agricultural Supply Desk'));
@@ -97,8 +98,8 @@ test('global entry: HMV asks for the product first; no steps, no questionnaire, 
   // No step indicator, no requirement form, no contact field before a route is chosen.
   assert.doesNotMatch(dialog().textContent, /Step|\d \/ 4|Complete requirements|still needs|Supply plan/i);
   assert.doesNotMatch(dialog().textContent, TECHNICAL);
-  assert.equal(field('contact.company'), null);
-  assert.equal(field('contact.email'), null);
+  assertAbsent(field('contact.company'));
+  assertAbsent(field('contact.email'));
   // The requirement panel: three rows, nothing known yet; not ready.
   assert.deepEqual([...dialog().querySelectorAll('.desk-summary dt')].map(d => d.textContent), ['Product', 'Destination', 'Volume']);
   assert.equal(dialog().querySelectorAll('.desk-summary .desk-pending').length, 3);
@@ -139,8 +140,8 @@ test('RFQ path: each answer is a buyer message, the conversation stays, and thre
   ]);
   // Ready: no further question, the quotation request is next and focused.
   assertFocus(button('Request Quotation'));
-  assert.equal(button("I'm still exploring"), undefined);
-  assert.equal(field('contact.company'), null);
+  assertAbsent(button("I'm still exploring"));
+  assertAbsent(field('contact.company'));
   assert.doesNotMatch(dialog().textContent, TECHNICAL);
   assert.ok(panel().includes('Chennai, India'));
   assert.ok(panel().includes('2,000 MT / month'));
@@ -167,7 +168,7 @@ test('global entry: a typed product is recognized; an unclear one is answered wi
   await open({ source: 'home_hero' });
   await say('product', 'rice');
   assert.deepEqual(thread(), ['HMV: What product are you looking for?', 'You: rice', 'HMV: Which HMV product is closest to your requirement?']);
-  assert.equal(field('destination'), null);
+  assertAbsent(field('destination'));
   await click(button('Passion fruit'));
   assert.deepEqual(thread().slice(3), ['You: Passion fruit', 'HMV: Where would you like the goods delivered?']);
   assertFocus(field('destination'));
@@ -204,8 +205,8 @@ test('discovery: a buyer still exploring is not asked to invent a destination or
     'HMV: No problem. HMV Customer Service can help clarify your requirement and connect you with the appropriate commercial team.',
   ]);
   // No volume question, no destination field: the route is the next step.
-  assert.equal(field('destination'), null);
-  assert.equal(field('volume'), null);
+  assertAbsent(field('destination'));
+  assertAbsent(field('volume'));
   assertFocus(button('Discuss with HMV'));
   assert.ok(panel().includes('Exploring requirement'));
   await click(button('Discuss with HMV'));
@@ -318,10 +319,10 @@ test('keyboard: focus moves into the desk on open; Escape and the close button c
   assert.equal(dialog().querySelector(`label[for="${field('product').id}"]`).textContent, 'Product');
   assert.equal(field('product').form.querySelector('.desk-send').type, 'submit');
   await act(async () => document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
-  assert.equal(dialog(), null);
+  assertAbsent(dialog());
   await open({ source: 'home_hero' });
   await click(dialog().querySelector('button[aria-label="Close"]'));
-  assert.equal(dialog(), null);
+  assertAbsent(dialog());
 });
 
 test('contact last: company, business email and consent are required; name and phone optional', async () => {
@@ -449,7 +450,7 @@ test('discovery accepted: the destination given and the volume left open; Custom
   assert.equal(sent.querySelector('h3').textContent, 'Inquiry received');
   assert.ok(sent.textContent.includes('HMV-2026-EXPLOR'));
   assert.ok(sent.textContent.includes('HMV Customer Service will continue the conversation and help clarify the requirement.'));
-  assert.equal(sent.querySelector('.desk-timeline'), null);
+  assertAbsent(sent.querySelector('.desk-timeline'));
   assert.doesNotMatch(sent.textContent, /Quotation/);
   assert.deepEqual(window.dataLayer.at(-1), { event: 'generate_lead', product: 'bananas', locale: 'en', route: 'discovery' });
 });
@@ -485,7 +486,7 @@ test('without configured channels the sent state shows no follow-up links', asyn
   await toContact();
   await send();
   assert.ok(dialog().textContent.includes('HMV-2026-7KQ4XM'));
-  assert.equal(dialog().querySelector('.desk-follow-up'), null);
+  assertAbsent(dialog().querySelector('.desk-follow-up'));
 });
 
 test('failed delivery: the answers stay, an email draft is offered, no lead is counted, and a retry keeps the key', async () => {
@@ -496,7 +497,7 @@ test('failed delivery: the answers stay, an email draft is offered, no lead is c
   assert.ok(dialog().querySelector('[role="alert"]').textContent.includes('could not be sent'));
   // Never a sent state or follow-up links before the server accepted the inquiry.
   assert.doesNotMatch(dialog().textContent, /inquiry received|HMV-\d{4}-/i);
-  assert.equal(dialog().querySelector('.desk-follow-up'), null);
+  assertAbsent(dialog().querySelector('.desk-follow-up'));
   assert.ok(button('Prepare an email instead'));
   assert.equal(field('contact.company').value, 'Example Foods B.V.');
   assert.equal(thread().length, 5);
@@ -568,7 +569,7 @@ test('a contact field the server refuses is shown at that field; anything else i
   await send();
   assertFocus(field('contact.email'));
   assert.deepEqual(errors(), ['Enter a valid business email.']);
-  assert.equal(dialog().querySelector('.desk-failed'), null);
+  assertAbsent(dialog().querySelector('.desk-failed'));
   sendInquiry.mockResolvedValueOnce({ status: 400, body: { error: 'invalid', fields: ['destination'] } });
   await send();
   assert.ok(dialog().querySelector('.desk-failed'));
@@ -581,7 +582,7 @@ test('an acceptance that arrives while the desk is closed is shown on the next o
   await toContact();
   await send();
   await click(dialog().querySelector('button[aria-label="Close"]'));
-  assert.equal(dialog(), null);
+  assertAbsent(dialog());
   await act(async () => accept({ status: 201, body: { reference: 'HMV-2026-CLOSED' } }));
   // Reopened, even from another product's call to action: the acceptance, not a new conversation.
   await open({ product: 'bananas', source: 'product_hero' });

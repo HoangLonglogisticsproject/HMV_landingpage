@@ -6,7 +6,7 @@ import { OPEN_TRADE_DESK } from './open';
 import { rememberVisit } from './visit';
 
 // The HMV Trade Desk's always-loaded part (SiteShell): listens for openTradeDesk() and loads the desk itself on the
-// first call, so its code (steps, rules, validation, dialog) is not in every page's initial JavaScript. Each call is
+// first call, so its code (conversation, rules, validation, dialog) is not in every page's initial JavaScript. Each call is
 // counted in analytics here and becomes a new `request` the desk reacts to; the first one is kept while the code
 // loads, so no open is lost. If the code cannot load (a new deployment, a network error), the page stays usable and
 // the buyer can retry.
