@@ -14,10 +14,19 @@ if (/(^|\.)hmv-global\.com$/i.test(new URL(baseURL).hostname)) {
 }
 const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 
+// Specs scoped by file name instead of skipped at run time: *.mobile.spec.js runs in the phone project only, and
+// *.local-build.spec.js reads this machine's .next build, so it is not collected against a hosted preview.
+const MOBILE_ONLY = /\.mobile\.spec\.js$/;
+const LOCAL_BUILD_ONLY = target ? [/\.local-build\.spec\.js$/] : [];
+
 export default defineConfig({
   ...base,
   testDir: './tests/next',
   testIgnore: undefined,
+  projects: base.projects.map(project => ({
+    ...project,
+    testIgnore: project.name === 'chromium-mobile' ? LOCAL_BUILD_ONLY : [MOBILE_ONLY, ...LOCAL_BUILD_ONLY],
+  })),
   use: {
     ...base.use,
     baseURL,
@@ -30,5 +39,7 @@ export default defineConfig({
         url: 'http://localhost:4175',
         reuseExistingServer: !process.env.CI,
         timeout: 60_000,
+        // No delivery adapter, whatever the shell exports: a local run must never send a real inquiry (503 expected).
+        env: { INQUIRY_DELIVERY: '' },
       },
 });

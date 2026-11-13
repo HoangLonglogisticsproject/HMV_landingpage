@@ -7,12 +7,12 @@ import {
   Menu,
   X,
   ArrowUpRight,
-  Headphones,
+  ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { copy, products } from '@/data/hmv';
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
-import { openSupportChat } from '@/features/support-chat/SupportChatWidget';
+import { openTradeDesk } from '@/features/trade-desk/open';
 import { regulationCopy } from '@/data/regulations';
 
 export function Navigation({ lang = 'en' }) {
@@ -591,7 +591,7 @@ export function Navigation({ lang = 'en' }) {
             </div>
           </div>
 
-          {/* RIGHT: ACTIONS (Language Switcher & 24/7 Support) */}
+          {/* RIGHT: ACTIONS (Language Switcher & HMV Trade Desk) */}
           <div className="nav-right">
             <LanguageSwitcher currentLang={lang} onSelect={close} />
 
@@ -600,18 +600,17 @@ export function Navigation({ lang = 'en' }) {
               className="nav-support-btn"
               onClick={() => {
                 close();
-                openSupportChat();
+                openTradeDesk({ source: 'nav' });
               }}
               title={
                 vi
-                  ? 'Mở cổng Hỗ trợ trực tuyến 24/7'
-                  : 'Open 24/7 Online Support Chat'
+                  ? 'Gửi yêu cầu giao thương có cấu trúc tới HMV'
+                  : 'Send HMV a structured trade inquiry'
               }
               type="button"
             >
-              <span className="live-status-dot" aria-hidden="true" />
-              <Headphones size={15} />
-              <span>{vi ? 'Hỗ trợ 24/7' : '24/7 Support'}</span>
+              <ClipboardList size={15} />
+              <span>HMV Trade Desk</span>
             </Button>
           </div>
         </div>

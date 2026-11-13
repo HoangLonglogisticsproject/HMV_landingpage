@@ -18,7 +18,8 @@ src/
     pages/             usePage(key, lang): website page copy, bundled or from the CMS public pages API (+ tests)
     inquiries/         Contact, TradeRfq, mailto builder, RFQ validation (+ tests)
     regulations/       Regulations list (insights + regulations pages)
-    support-chat/      SupportChatWidget + openSupportChat()
+    trade-desk/        HMV Trade Desk: TradeDeskHost (in SiteShell, lazy-loads TradeDesk), openTradeDesk(), rules,
+                       validation, follow-up channels (+ tests); delivery: docs/inbound/TRADE_DESK_DELIVERY.md
   components/
     layout/            site chrome: SiteShell, Navigation, Footer, LanguageSwitcher, DetailLayout
     common/            PageMeta (SEO tags), BrandLogo
@@ -36,7 +37,7 @@ src/
 
 - A page never imports another page.
 - A feature never imports a page.
-- `components/layout` is site chrome and may compose features (the support chat and the contact CTA).
+- `components/layout` is site chrome and may compose features (the Trade Desk host and the contact CTA).
 - `components/ui` and `lib` stay business-agnostic: no `data/`, no copy.
 - Inside a page or feature, use relative imports. Across modules, use `@/`.
 - There are no import cycles and no unreachable modules. Keep it that way: delete code rather than leaving it unimported.
@@ -56,6 +57,7 @@ src/
 | `/products/:id` | `views/products/ProductDetailPage` | DetailLayout. An unknown id shows the "not found" title and the CTA only. |
 | `/logistics` | `views/logistics/LogisticsHubPage` | Its own hero. Adds its own delayed smooth `#hash` scroll on top of SiteLayout's. |
 | `/packaging-logistics` | `views/packaging-logistics/PackagingLogisticsPage` | Its own hero |
+| `/privacy` | `views/privacy/PrivacyView` (`StaticPage`) | DetailLayout, no trailing CTA. Privacy notice for inquiries (`data/privacy.js`); Next.js: `/privacy` and `/vi/privacy`. Linked next to the Trade Desk consent checkbox. |
 | `/blog/:slug` | `views/article/ArticlePage` | Outside SiteLayout (see below). Static mode: a Vietnamese slug redirects to the English canonical slug; an unknown slug goes to `/insights`. CMS mode: slugs are per locale and resolved through `alternates`; unknown slugs show a not-found state (noindex). |
 | `/en/*`, `/vi/*` | `i18n/LegacyLocaleRedirect` | Sets the language and redirects to the locale-free URL. |
 | `*` | `views/not-found/NotFoundPage` | No site chrome |
@@ -95,14 +97,15 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 | `features/articles/ArticleGrid` | EcoNews cards plus loading/empty/error states; used by LatestInsights and InsightsPage |
 | `features/articles/RichText` | Whitelist renderer for CMS Tiptap JSON (no raw HTML); also renders the bundled articles |
 | `features/regulations/Regulations` | Regulation card list; used by InsightsPage and RegulationsPage |
-| `features/support-chat/SupportChatWidget` | Floating chat widget; mounted once in SiteShell |
+| `features/trade-desk/TradeDeskHost` | Mounted once in SiteShell: listens for `openTradeDesk()`, records the first-touch visit, loads `TradeDesk` on the first open (with an error boundary and retry) |
+| `features/trade-desk/TradeDesk` | The HMV Trade Desk dialog: the four-step brief, contact, submission to `POST /api/inquiry` (`@/lib/inquiry`), sent state and optional follow-up links |
 
 ## Behavior that is easy to break
 
-- **Layout persistence.** `SiteLayout` stays mounted across the standard routes, so expanded nav submenus and the chat conversation survive navigation. `/blog/:slug` renders its own `SiteShell`, so entering an article remounts the chrome, including the chat. Moving articles under `SiteLayout` would change that.
+- **Layout persistence.** `SiteLayout` stays mounted across the standard routes, so expanded nav submenus and an open Trade Desk brief survive navigation. `/blog/:slug` renders its own `SiteShell`, so entering an article remounts the chrome, including the Trade Desk host. Moving articles under `SiteLayout` would change that.
 - **Scroll.** `SiteLayout` scrolls to the `#hash` target (on the next animation frame, instant) or to the top whenever the path or hash changes. `ArticlePage` forces the top and sets `history.scrollRestoration = 'manual'`.
-- **Support chat.** The chat is opened with `openSupportChat()`, which fires a window event; there is no shared state. Its replies are simulated client-side.
-- **Forms.** Forms never send anything. They build a mailto draft (`features/inquiries/inquiry.js`), so the UI must say a draft was prepared, never that a request was sent.
+- **HMV Trade Desk.** The commercial interaction surface (the earlier simulated support chat is no longer part of the runtime UI). Calls to action open it with `openTradeDesk()`, a window event; there is no shared state. It submits real inquiries: `POST /api/inquiry` validates them and delivers them server to server to the HMV CMS (docs/inbound/TRADE_DESK_DELIVERY.md). It shows "sent" and the reference only after the server accepted the inquiry; otherwise it offers a retry and an email draft.
+- **Legacy RFQ and contact forms.** These still send nothing themselves: they build a mailto draft (`features/inquiries/inquiry.js`) as the fallback channel, so their UI must say a draft was prepared, never that a request was sent.
 - **SEO.** `PageMeta` writes the title, description and OG/Twitter tags directly and the canonical link through Helmet. `index.html` holds the static fallback tags and the Organization JSON-LD.
 
 ## Adding things

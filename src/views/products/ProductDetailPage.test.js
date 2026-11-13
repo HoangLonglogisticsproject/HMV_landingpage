@@ -57,7 +57,12 @@ for (const id of Object.keys(productPages)) {
       assert.equal(document.title, `${productPages[id].seo[lang].title} | HMV Global`);
       assert.equal(container.querySelector('#rfq input[name="product"]').value, product.en);
       assert.equal(container.querySelector('#rfq input[readonly]').value, product[lang]);
-      assert.equal(container.querySelector('a[href="#rfq"]').textContent, productPages[id][lang].rfq.title);
+      // The hero call to action opens the HMV Trade Desk with this product; the RFQ above stays as the fallback.
+      const cta = container.querySelector('.money-actions button');
+      assert.equal(cta.textContent, productPages[id][lang].rfq.title);
+      const opened = new Promise(resolve => window.addEventListener('open-hmv-trade-desk', e => resolve(e.detail), { once: true }));
+      cta.click();
+      assert.deepEqual(await opened, { product: id, source: 'product_hero' });
       // The hero's second link jumps to a section of the same page.
       const { target } = productPages[id][lang].hero.secondary;
       assert.ok(container.querySelector(`a[href="#${target}"]`) && container.querySelector(`section#${target}`), target);

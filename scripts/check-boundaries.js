@@ -1,7 +1,8 @@
 // Dependency direction between the migration layers (docs/architecture/NEXTJS_TARGET_ARCHITECTURE.md §2):
 //   shared → shared · vite → shared · next → shared. Nothing else: shared code knows neither framework.
-// Shared code reaches navigation and images only through the `@/lib/navigation` and `@/lib/image` ports, which each
-// build maps to its own implementation (vite.config.js alias, tsconfig.json `paths`). Run by `npm run lint`; tested by
+// Shared code reaches navigation, images and the inquiry endpoint only through the `@/lib/navigation`, `@/lib/image`
+// and `@/lib/inquiry` ports, which each build maps to its own implementation (vite.config.js alias, tsconfig.json
+// `paths`). Run by `npm run lint`; tested by
 // check-boundaries.test.js.
 // MIGRATION-ONLY: the Vite layer is deleted at cleanup (PR-12); then only the `next` rules remain useful.
 import { readFileSync, readdirSync } from 'node:fs';
@@ -24,7 +25,7 @@ const LAYERS = {
 };
 const PACKAGES = { next: /^(next|server-only)(\/|$)/, vite: /^(react-router|react-router-dom|react-helmet-async)$/ };
 const ALLOWED = { shared: ['shared'], vite: ['shared', 'vite'], next: ['shared', 'next'] };
-const PORTS = new Set(['@/lib/navigation', '@/lib/image']);
+const PORTS = new Set(['@/lib/navigation', '@/lib/image', '@/lib/inquiry']);
 const EXTENSIONS = ['', '.js', '.jsx', '.ts', '.tsx', '/index.js', '/index.jsx'];
 // `import … from`, `import '…'`, `export … from`, `import('…')`
 const IMPORT = /\b(?:from|import)\s*(?:\(\s*)?['"]([^'"\n]+)['"]/g;
