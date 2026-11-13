@@ -102,6 +102,17 @@ test('edit: a mistyped destination is corrected from the requirement panel, by k
   await expect(desk(page).getByLabel('Expected volume', { exact: true })).toHaveCount(0);
 });
 
+test('a new product while the desk is open starts a new conversation: no unsent draft, its question focused', async ({ page }) => {
+  await page.goto('/products/passion-fruit');
+  await page.getByRole('button', { name: 'Discuss Your Passion Fruit Requirements' }).click();
+  await desk(page).getByLabel('Delivery destination', { exact: true }).fill('Rotterdam (not sent)');
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-hmv-trade-desk', { detail: { product: 'bananas', source: 'test' } })));
+  await expect(desk(page).locator('.desk-summary')).toContainText('Cavendish bananas');
+  const destination = desk(page).getByLabel('Delivery destination', { exact: true });
+  await expect(destination).toHaveValue('');
+  await expect(destination).toBeFocused();
+});
+
 test('RFQ accepted: contact last, reference and the commercial process, generate_lead only after acceptance, no PII', async ({ page }) => {
   let posted;
   await page.route('**/api/inquiry', async route => {

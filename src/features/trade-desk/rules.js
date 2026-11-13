@@ -82,24 +82,25 @@ export function requirementsFor({ product }) {
 }
 
 /** Without accents (đ as d). */
-const plain = text => text.normalize('NFD').replace(/\p{M}/gu, '').replace(/đ/g, 'd');
+const plain = text => text.normalize('NFD').replace(/\p{M}/gu, '').replaceAll('đ', 'd');
 
-// How a buyer may name each product (patterns, from the start of a word). A name with accents is matched with them, so
-// "chuỗi cung ứng" (supply chain) is never "chuối" (bananas); one without is matched accent-free, so "san lat" and
-// "sắn lát" read the same. Controlled data: nothing is inferred beyond it.
+// How a buyer may name each product (patterns, matched as whole words: "passionate" is not "passion"; plurals are
+// spelled out where buyers use them). A name with accents is matched with them, so "chuỗi cung ứng" (supply chain) is
+// never "chuối" (bananas); one without is matched accent-free, so "san lat" and "sắn lát" read the same. Spaces are one
+// space: the buyer's text is normalized before matching. Controlled data: nothing is inferred beyond it.
 const PRODUCT_NAMES = [
   ['passion-fruit', ['passion', 'chanh day', 'chanh leo']],
   ['dried-cassava-chips', ['cassava(?! starch)', 'san lat', 'san kho', '(?<!bột )sắn']],
   ['tapioca-starch', ['tapioca', 'cassava starch', 'tinh bot san', 'tinh bot khoai mi']],
-  ['bananas', ['banana', 'cavendish', 'chuối']],
-  ['dragon-fruit', ['dragon ?fruit', 'pitaya', 'pitahaya', 'thanh long']],
-  ['spices', ['spice', 'pepper', 'cinnamon', 'star anise', 'gia vi', 'ho tieu', 'hat tieu']],
-  ['nuts', ['cashew', 'hat dieu', 'nhan dieu']],
-].map(([id, names]) => [id, names.map(name => ({ pattern: new RegExp(String.raw`(?<!\p{L})(?:${name})`, 'u'), accented: name !== plain(name) }))]);
+  ['bananas', ['bananas?', 'cavendish', 'chuối']],
+  ['dragon-fruit', ['dragon ?fruits?', 'pitayas?', 'pitahayas?', 'thanh long']],
+  ['spices', ['spices?', 'pepper(?:corn)?s?', 'cinnamon', 'star anise', 'gia vi', 'ho tieu', 'hat tieu']],
+  ['nuts', ['cashews?', 'hat dieu', 'nhan dieu']],
+].map(([id, names]) => [id, names.map(name => ({ pattern: new RegExp(String.raw`(?<!\p{L})(?:${name})(?!\p{L})`, 'u'), accented: name !== plain(name) }))]);
 
 /** The one HMV product a buyer's words name, or null when they name none or several. */
 export function recognizeProduct(text) {
-  const lower = String(text ?? '').normalize('NFC').toLowerCase();
+  const lower = String(text ?? '').normalize('NFC').toLowerCase().replace(/\s+/g, ' ');
   const bare = plain(lower);
   const named = PRODUCT_NAMES.filter(([, names]) => names.some(({ pattern, accented }) => pattern.test(accented ? lower : bare)));
   return named.length === 1 ? named[0][0] : null;

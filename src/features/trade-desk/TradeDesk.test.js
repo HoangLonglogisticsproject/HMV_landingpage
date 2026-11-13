@@ -821,3 +821,21 @@ test('Vietnamese: the edit action is "Sửa"', async () => {
   await ready();
   assert.deepEqual(editButtons(), ['Sửa Sản phẩm', 'Sửa Điểm đến', 'Sửa Sản lượng']);
 });
+
+test('a new conversation while the desk is open: no unsent draft carries over, and its question has focus', async () => {
+  await render();
+  await open({ product: 'passion-fruit', source: 'product_hero' });
+  await type(field('destination'), 'Rotterdam (not sent)');
+  // Opened for another product before the destination was sent: the same question, in a new conversation.
+  await open({ product: 'bananas', source: 'product_hero' });
+  assert.ok(dialog().querySelector('.desk-summary').textContent.includes('Cavendish bananas'));
+  assert.deepEqual(thread(), ['HMV: Where would you like the goods delivered?']);
+  assert.equal(field('destination').value, '');
+  assertFocus(field('destination'));
+  // An edit in the new conversation still focuses its question.
+  await say('destination', 'Dubai');
+  await say('volume', '4');
+  await click(button('Edit Volume'));
+  assertFocus(field('volume'));
+  assert.equal(field('volume').value, '');
+});

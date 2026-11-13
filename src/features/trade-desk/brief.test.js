@@ -86,6 +86,21 @@ test('product recognition: the catalogue names in English and Vietnamese, with o
     ['hạt điều', 'nuts'],
   ];
   for (const [text, product] of cases) assert.equal(recognizeProduct(text), product, text);
+  // Any run of whitespace is one space: still tapioca starch, never cassava chips.
+  for (const text of ['cassava starch', 'cassava  starch', 'cassava\nstarch', 'Cassava \t Starch']) {
+    assert.equal(recognizeProduct(text), 'tapioca-starch', JSON.stringify(text));
+  }
+  // Whole words only, plurals where buyers use them; Vietnamese names keep working.
+  const words = [
+    ['passion', 'passion-fruit'], ['passion fruit', 'passion-fruit'], ['passion fruits', 'passion-fruit'],
+    ['banana', 'bananas'], ['bananas', 'bananas'], ['spice', 'spices'], ['spices', 'spices'], ['peppercorns', 'spices'],
+    ['cashew', 'nuts'], ['cashews', 'nuts'], ['dragon fruits', 'dragon-fruit'],
+    ['chuối', 'bananas'], ['thanh long', 'dragon-fruit'], ['sắn', 'dried-cassava-chips'], ['hạt điều', 'nuts'], ['gia vị', 'spices'],
+  ];
+  for (const [text, product] of words) assert.equal(recognizeProduct(text), product, text);
+  for (const text of ['I am passionate about sourcing rice', 'passionate', 'spicy', 'cashewnut butter', 'bananarama']) {
+    assert.equal(recognizeProduct(text), null, text);
+  }
   // None, or more than one: the buyer chooses.
   for (const text of ['rice', 'chuỗi cung ứng nông sản', 'bananas and dragon fruit', 'compassion', '', null]) {
     assert.equal(recognizeProduct(text), null, String(text));

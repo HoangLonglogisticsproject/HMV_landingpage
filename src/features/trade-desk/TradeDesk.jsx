@@ -116,7 +116,8 @@ export function TradeDesk({ lang: siteLang, request }) {
 
   // Focus follows the conversation: the control that answers HMV's question, the route's action, the contact card's
   // first field, or the result. Focusing it also scrolls it, under the newest message, into view. On open, in place of
-  // the dialog's own first-control focus (the desk's content mounts after this component's effects).
+  // the dialog's own first-control focus (the desk's content mounts after this component's effects); and for a new
+  // conversation while the desk is open, whose controls replace the previous ones even at the same question.
   const control = contactOpen ? 'contact.company' : stage;
   const focusTarget = useCallback(
     () => (reference ? sentHeading.current : document.getElementById(fieldId(uid, control))),
@@ -124,7 +125,7 @@ export function TradeDesk({ lang: siteLang, request }) {
   );
   useEffect(() => {
     if (open) focusTarget()?.focus();
-  }, [open, focusTarget]);
+  }, [open, focusTarget, generation]);
   const focusOnOpen = event => {
     const target = focusTarget();
     if (!target) return;
@@ -311,13 +312,14 @@ export function TradeDesk({ lang: siteLang, request }) {
               <Dialog.Title className="desk-title">{t.deskName}</Dialog.Title>
               <Dialog.Description id={`${uid}-description`} className="desk-description">{t.description}</Dialog.Description>
             </div>
-            <div className="desk-lang" role="group" aria-label={t.language}>
+            <fieldset className="desk-lang">
+              <legend className="sr-only">{t.language}</legend>
               {LANGUAGES.map(([code, short, name]) => (
                 <button key={code} type="button" lang={code} aria-label={name} aria-pressed={lang === code} onClick={() => setChosenLang(code)}>
                   {short}
                 </button>
               ))}
-            </div>
+            </fieldset>
             <Dialog.Close className="desk-close" aria-label={t.close}>
               <X size={20} />
             </Dialog.Close>
@@ -346,7 +348,8 @@ export function TradeDesk({ lang: siteLang, request }) {
                   </div>
                 </SentCard>
               ) : (
-                <fieldset className="desk-lock" disabled={status === 'sending'}>
+                // Keyed by the conversation: a new one never inherits an unsent draft from a composer at the same question.
+                <fieldset key={generation} className="desk-lock" disabled={status === 'sending'}>
                   {stage === 'product' && <ProductComposer uid={uid} t={t} lang={lang} onAnswer={answerProduct} onChoose={chooseProduct} />}
                   {stage === 'destination' && <DestinationComposer uid={uid} t={t} onAnswer={answerDestination} onExplore={explore} />}
                   {stage === 'volume' && <VolumeComposer uid={uid} t={t} lang={lang} unit={brief.volume.unit} onAnswer={answerVolume} onExplore={explore} />}

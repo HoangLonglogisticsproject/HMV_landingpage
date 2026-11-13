@@ -91,11 +91,12 @@ const ExploreButton = ({ t, onExplore }) => (
 export function ProductComposer({ uid, t, lang, onAnswer, onChoose }) {
   return (
     <Composer uid={uid} name="product" label={t.productInput} t={t} onAnswer={onAnswer} input={{ placeholder: t.productPlaceholder, maxLength: 200 }}>
-      <div className="desk-choices" role="group" aria-label={t.productChoices}>
+      <fieldset className="desk-choices">
+        <legend className="sr-only">{t.productChoices}</legend>
         {products.map(p => (
           <button key={p.id} type="button" className="desk-choice" onClick={() => onChoose(p.id)}>{p[lang]}</button>
         ))}
-      </div>
+      </fieldset>
     </Composer>
   );
 }

@@ -9479,8 +9479,11 @@ article[id] {
   color: var(--ink-muted)
 }
 
+/* A fieldset (EN | VI): its browser margin and minimum width reset. */
 .desk-lang {
   display: inline-flex;
+  min-width: 0;
+  margin: 0;
   padding: 3px;
   border: 1px solid var(--border);
   border-radius: 999px
@@ -9653,10 +9656,15 @@ article[id] {
   background: var(--deep-blue)
 }
 
+/* A fieldset (the HMV products): its browser border, margin, padding and minimum width reset. */
 .desk-choices {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0
 }
 
 .desk-choice,
