@@ -1,79 +1,92 @@
 'use client';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from 'radix-ui';
-import { ArrowLeft, ArrowRight, ArrowUpRight, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import logo from '@/assets/logohmv.webp';
+import Image from '@/lib/image';
 import { Button } from '@/components/ui/button';
-import { productById } from './rules';
+import { productById, recognizeProduct } from './rules';
 import { track } from '@/lib/analytics';
 import { contactChannels, sendInquiry } from '@/lib/inquiry';
 import { createInquiryMailto } from '@/features/inquiries/inquiry';
-import { emptyBrief, fieldId, progress, summarize, toInquiry, withProduct } from './brief';
+import { emptyBrief, fieldId, routeOf, stageOf, summarize, toInquiry } from './brief';
 import { contactErrors, validateInquiry } from './validation';
 import { inquiryFingerprint } from './fingerprint';
+import { detectLanguage } from './language';
 import { deskCopy } from './copy';
 import { visitContext } from './visit';
 import { followUpChannels } from './channels';
-import { BriefStep, CompleteStep, ContactForm, RequirementsStep, ReviewStep, SummaryList } from './DeskSteps';
+import {
+  ContactForm, DestinationComposer, ProductComposer, RequirementPanel, RouteAction, SentCard, Thread, VolumeComposer,
+} from './DeskChat';
 
-// HMV Trade Desk: helps a buyer structure a trade requirement and sends it to the HMV commercial team. Loaded and
-// mounted by TradeDeskHost on the first openTradeDesk(); each call arrives as a new `request`. The structured brief
-// is the source of truth; the buyer sees the preliminary brief before any contact detail is asked; submission goes to
-// POST /api/inquiry, never to analytics.
+// HMV Trade Desk: an inbound B2B sales conversation. HMV asks three things, product, destination and volume, then
+// routes the buyer: a ready requirement to HMV Sales for quotation, one still being explored to HMV Customer Service.
+// Contact details are asked last, inline, and the inquiry goes to POST /api/inquiry, never to analytics. Deterministic:
+// no generated text. Loaded and mounted by TradeDeskHost on the first openTradeDesk(); each call arrives as a new
+// `request`.
 
-const STEP_IDS = ['requirements', 'review', 'complete', 'brief'];
-// The step that shows each field the validation can name; requirements.* are on step 3. Anything else (a malformed
-// idempotency key, a broken body) is not the buyer's to fix: it is a failed send.
-const FIELD_STEP = {
-  product: 0, destination: 0, 'volume.amount': 0, notes: 2,
-  'contact.company': 3, 'contact.email': 3, 'contact.name': 3, 'contact.phone': 3, 'consent.contact': 3,
-};
-const stepOf = field => (field.startsWith('requirements.') ? 2 : FIELD_STEP[field]);
-/** The control a field error points at (its fieldId key). */
-const controlOf = field => (field === 'volume.amount' ? 'volume' : field.replace(/^requirements\./, ''));
+// The contact card's fields in screen order: the first one with an error is focused.
+const CONTACT_ORDER = ['contact.company', 'contact.name', 'contact.email', 'contact.phone', 'consent.contact'];
+const LANGUAGES = [['en', 'EN', 'English'], ['vi', 'VI', 'Tiếng Việt']];
 /** POST /api/inquiry accepted the inquiry: 201 with the reference the CMS issued. */
 const isAccepted = ({ status, body }) => status === 201 && typeof body.reference === 'string';
 // randomUUID needs a secure context; getRandomValues does not (plain-http previews).
 const newKey = () => crypto.randomUUID?.() ?? Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
+const emptyContact = () => ({ company: '', email: '', name: '', phone: '' });
 
-/** @param {{ lang: 'en' | 'vi', request: { product?: string, source?: string } }} props */
-export function TradeDesk({ lang, request }) {
-  const t = deskCopy[lang];
+/** @param {{ lang: 'en' | 'vi', request: { product?: string, source?: string } }} props `lang`: the site's language */
+export function TradeDesk({ lang: siteLang, request }) {
   const uid = useId().replaceAll(':', '');
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState(0);
+  // The desk's language: the buyer's own choice (EN | VI) stands until they change it; otherwise the language their
+  // messages are written in; otherwise the site's.
+  const [chosenLang, setChosenLang] = useState(/** @type {'en' | 'vi' | null} */ (null));
+  const [writtenLang, setWrittenLang] = useState(/** @type {'en' | 'vi' | null} */ (null));
+  const lang = chosenLang ?? writtenLang ?? siteLang;
+  const t = deskCopy[lang];
   const [brief, setBrief] = useState(() => emptyBrief());
-  const [contact, setContact] = useState({ company: '', email: '', name: '', phone: '' });
+  // Opened with the product known (a product page): the conversation starts at the destination.
+  const [preselected, setPreselected] = useState(false);
+  // What the buyer typed for a product that named none (or several) of HMV's.
+  const [unclear, setUnclear] = useState(/** @type {string[]} */ ([]));
+  const [exploring, setExploring] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [contact, setContact] = useState(emptyContact);
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState('');
   const [status, setStatus] = useState('idle');
-  const [fieldErrors, setFieldErrors] = useState([]);
+  const [fieldErrors, setFieldErrors] = useState(/** @type {string[]} */ ([]));
   const [reference, setReference] = useState('');
   // Whether the buyer has seen the accepted result: it is kept, and shown on the next open, until they have.
   const [acknowledged, setAcknowledged] = useState(false);
-  // Counts the briefs of this desk: a response to an earlier brief never changes the current one.
+  // Counts the conversations of this desk: a response to an earlier one never changes the current one.
   const [generation, setGeneration] = useState(0);
-  // The last submission of this brief: its content fingerprint and idempotency key. An exact retry reuses the key; a
-  // changed brief or contact gets a new one, so a key always stands for one exact inquiry.
+  // The last submission of this conversation: its content fingerprint and idempotency key. An exact retry reuses the
+  // key; a changed inquiry gets a new one, so a key always stands for one exact inquiry.
   const [submission, setSubmission] = useState(/** @type {{ fingerprint: string, key: string } | null} */ (null));
   // The last open request acted on (null before the first).
   const [handled, setHandled] = useState(/** @type {object | null} */ (null));
-  // The generation whose submission is in flight: one request at a time per brief.
+  // The generation whose submission is in flight: one request at a time per conversation.
   const inFlight = useRef(-1);
-  // The brief generation trade_contact_start was last counted for.
-  const contactStarted = useRef(-1);
-  const focusKey = useRef(null);
-  const heading = useRef(null);
-  const main = useRef(null);
+  const sentHeading = useRef(null);
 
-  // A new brief. Consent is given per inquiry, so it is asked again; after a sent inquiry the contact is cleared too.
-  const startBrief = ({ product = null } = {}) => {
+  // A new conversation. Consent is given per inquiry, so it is asked again; after a sent inquiry the contact is
+  // cleared too. The buyer's own language choice stays.
+  const startConversation = ({ product = null } = {}) => {
     if (reference) {
-      setContact({ company: '', email: '', name: '', phone: '' });
+      setContact(emptyContact());
       setWebsite('');
     }
     setConsent(false);
-    setBrief(emptyBrief({ product }));
-    setStep(0);
+    const known = productById(product) ? product : null;
+    setBrief(emptyBrief({ product: known }));
+    setPreselected(Boolean(known));
+    setUnclear([]);
+    setExploring(false);
+    setContactOpen(false);
+    setWrittenLang(null);
     setReference('');
     setAcknowledged(false);
     setStatus('idle');
@@ -82,14 +95,14 @@ export function TradeDesk({ lang, request }) {
     setGeneration(g => g + 1);
   };
 
-  // Each open request (a new object from TradeDeskHost, which also counts it in analytics) opens the desk: a new brief
-  // after a sent one the buyer has seen, or when opened for another product; otherwise the buyer's answers are kept.
-  // An acceptance the buyer has not seen yet (it arrived while the desk was closed) is shown, never replaced.
+  // Each open request (a new object from TradeDeskHost, which also counts it in analytics) opens the desk: a new
+  // conversation after a sent inquiry the buyer has seen, or when opened for another product; otherwise the
+  // conversation is kept. An acceptance the buyer has not seen yet (it arrived while the desk was closed) is shown.
   if (request !== handled) {
     setHandled(request);
     const { product = null } = request;
-    const fresh = reference ? acknowledged : Boolean(product) && product !== brief.product;
-    if (fresh) startBrief({ product });
+    const fresh = reference ? acknowledged : Boolean(productById(product)) && product !== brief.product;
+    if (fresh) startConversation({ product });
     setOpen(true);
   }
   const openChange = next => {
@@ -97,60 +110,86 @@ export function TradeDesk({ lang, request }) {
     if (!next && reference) setAcknowledged(true);
   };
 
-  // A step change scrolls the step to the top and moves focus to its heading, or to the field a chip pointed at.
-  useEffect(() => {
-    if (!open) return;
-    main.current?.scrollTo?.({ top: 0 });
-    const target = focusKey.current && document.getElementById(fieldId(uid, focusKey.current));
-    (target || heading.current)?.focus();
-    focusKey.current = null;
-  }, [open, step, reference, uid]);
+  const stage = stageOf(brief, { exploring });
+  const route = routeOf(brief);
+  const facts = { product: brief.product ?? undefined };
 
-  const summary = summarize(brief, lang, { pending: t.pending });
-  const update = patch => setBrief(b => ({ ...b, ...patch }));
-  const setProduct = product => {
-    setBrief(b => withProduct(b, product));
+  // Focus follows the conversation: the control that answers HMV's question, the route's action, the contact card's
+  // first field, or the result. Focusing it also scrolls it, under the newest message, into view. On open, in place of
+  // the dialog's own first-control focus (the desk's content mounts after this component's effects).
+  const focusTarget = useCallback(
+    () => (reference ? sentHeading.current : document.getElementById(fieldId(uid, contactOpen ? 'contact.company' : stage))),
+    [reference, uid, contactOpen, stage],
+  );
+  useEffect(() => {
+    if (open) focusTarget()?.focus();
+  }, [open, focusTarget]);
+  const focusOnOpen = event => {
+    const target = focusTarget();
+    if (!target) return;
+    event.preventDefault();
+    target.focus();
+  };
+
+  /** Learns the buyer's language from what they wrote, when it is clear evidence (never a place name or a number). */
+  const listen = text => {
+    const written = detectLanguage(text);
+    if (written) setWrittenLang(written);
+  };
+  const chooseProduct = (product, words = '') => {
+    setBrief(emptyBrief({ product, notes: words }));
     track('trade_product_selected', { product, source: 'chosen' });
   };
-  const go = next => {
-    setStep(next);
-    track('trade_requirement_progress', { product: brief.product ?? undefined, step: STEP_IDS[next], progress: progress(brief) });
-    if (next === 3) track('trade_brief_generated', { product: brief.product ?? undefined, missing: summary.missing.length });
+  const answerProduct = words => {
+    listen(words);
+    const product = recognizeProduct(words);
+    if (product) chooseProduct(product, words);
+    else setUnclear(u => [...u, words]);
   };
-  // A missing-information chip: core fields are on step 1, requirements on step 3.
-  const pick = item => {
-    focusKey.current = item.key;
-    const target = ['product', 'destination', 'volume'].includes(item.key) ? 0 : 2;
-    if (target === step) document.getElementById(fieldId(uid, item.key))?.focus();
-    else go(target);
+  const answerDestination = destination => {
+    listen(destination);
+    setBrief(b => ({ ...b, destination }));
+    track('trade_destination_completed', facts);
   };
-  const canContinue = Boolean(brief.product);
+  // The third answer: product, destination and volume are known, so the requirement is ready for quotation.
+  const answerVolume = volume => {
+    setBrief(b => ({ ...b, volume }));
+    track('trade_volume_completed', facts);
+    track('trade_route_rfq', facts);
+  };
+  const explore = () => {
+    setExploring(true);
+    track('trade_route_discovery', facts);
+  };
+  const openContact = () => {
+    setContactOpen(true);
+    track('trade_contact_start', { ...facts, route });
+  };
+
   const product = productById(brief.product);
-  const facts = { product: brief.product ?? undefined };
   // The product name, never the buyer's free text: it goes into the follow-up links.
-  const subject = product?.[lang];
-  const channels = reference ? followUpChannels(contactChannels, { lang, reference, subject }) : [];
+  const channels = reference ? followUpChannels(contactChannels, { lang, reference, subject: product?.[lang] }) : [];
 
-  const startContact = () => {
-    if (contactStarted.current === generation) return;
-    contactStarted.current = generation;
-    track('trade_contact_start', facts);
-  };
-
-  // The brief on screen, for responses that arrive later: one for an earlier brief changes nothing.
+  // The conversation on screen, for responses that arrive later: one for an earlier conversation changes nothing.
   const live = useRef(generation);
   useEffect(() => {
     live.current = generation;
   });
 
-  /** Field errors from the validation (here or the server's): shown on their step, the first one focused. */
+  // The field to focus once the screen is updated: a server's answer arrives while the card is still locked.
+  const errorFocus = useRef(null);
+  useEffect(() => {
+    if (!errorFocus.current) return;
+    document.getElementById(fieldId(uid, errorFocus.current))?.focus();
+    errorFocus.current = null;
+  });
+
+  /** Contact errors (from the validation, here or the server's): shown on their fields, the first one focused. */
   const showErrors = fields => {
-    const own = fields.filter(f => stepOf(f) !== undefined).sort((a, b) => stepOf(a) - stepOf(b));
+    const own = CONTACT_ORDER.filter(f => fields.includes(f));
     setFieldErrors(own);
     if (!own.length) return false;
-    focusKey.current = controlOf(own[0]);
-    if (stepOf(own[0]) === step) document.getElementById(fieldId(uid, focusKey.current))?.focus();
-    else go(stepOf(own[0]));
+    errorFocus.current = own[0];
     return true;
   };
 
@@ -162,7 +201,7 @@ export function TradeDesk({ lang, request }) {
     return { inquiry: { ...draft, idempotencyKey: key }, fingerprint };
   };
 
-  /** A response for the brief still on screen: its reference, the field errors to correct, or the failure state. */
+  /** A response for the conversation still on screen: its reference, the field errors to correct, or the failure. */
   const settle = (response, accepted) => {
     if (accepted) {
       setReference(response.body.reference);
@@ -175,14 +214,14 @@ export function TradeDesk({ lang, request }) {
     setStatus(response.status === 400 && showErrors(response.body.fields ?? []) ? 'idle' : 'failed');
   };
 
-  /** Sends a validated inquiry of brief `sent.generation`: an accepted lead is counted, but only that brief is updated. */
+  /** Sends a validated inquiry of conversation `sent.generation`: an accepted lead is counted, only that one updated. */
   async function deliver(inquiry, sent) {
     inFlight.current = sent.generation;
     setStatus('sending');
     try {
       const response = await sendInquiry(inquiry);
       const accepted = isAccepted(response);
-      if (accepted) track('generate_lead', { ...sent.facts, locale: lang });
+      if (accepted) track('generate_lead', { ...sent.facts, locale: inquiry.locale, route: sent.route });
       if (live.current === sent.generation) settle(response, accepted);
     } catch {
       if (live.current === sent.generation) setStatus('failed');
@@ -202,21 +241,14 @@ export function TradeDesk({ lang, request }) {
     }
     setFieldErrors([]);
     setSubmission({ fingerprint, key: inquiry.idempotencyKey });
-    // While it is sent the brief cannot change (the step controls are locked); a new brief can be started.
-    await deliver(inquiry, { generation, facts });
+    // While it is sent the conversation cannot change (its controls are locked); a new one can be started.
+    await deliver(inquiry, { generation, facts, route });
   }
 
-  // The fallback when the API cannot take the brief: the same brief as an email draft, route (origin) included.
+  // The fallback when the API cannot take the inquiry: the same requirement as an email draft.
   const mailto = () => {
-    const en = summarize(brief, 'en', { pending: 'to be confirmed' });
-    window.location.assign(createInquiryMailto({
-      ...contact,
-      product: product?.en,
-      destination: brief.destination,
-      volume: en.rows.find(r => r.key === 'volume')?.value,
-      requirements: [...en.rows.filter(r => ['route', 'application', 'transport'].includes(r.key)), ...en.requirements].map(r => [r.label, r.value]),
-      message: brief.notes,
-    }));
+    const en = summarize(brief, 'en');
+    window.location.assign(createInquiryMailto({ ...contact, product: en.product, destination: en.destination, volume: en.volume, message: brief.notes }));
   };
 
   // A field with an error that the buyer corrects loses it at once, checked by the send's rules; an untouched or still
@@ -233,138 +265,72 @@ export function TradeDesk({ lang, request }) {
     setConsent(checked);
     clearIfCorrected('consent.contact', () => contactErrors(contact, checked));
   };
-
-  /** The message for a field with an error, or null. */
-  const errorFor = name => {
-    if (!fieldErrors.includes(name)) return null;
-    return t.errors[name] ?? (name.startsWith('requirements.') ? t.errors.requirement : t.errors.field);
-  };
+  /** The message for a contact field with an error, or null. */
+  const errorFor = name => (fieldErrors.includes(name) ? t.errors[name] : null);
 
   return (
     <Dialog.Root open={open} onOpenChange={openChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="desk-overlay" />
-        <Dialog.Content className="desk" aria-describedby={`${uid}-description`} lang={lang}>
+        <Dialog.Content className="desk" aria-describedby={`${uid}-description`} lang={lang} onOpenAutoFocus={focusOnOpen}>
           <header className="desk-head">
+            <Image className="desk-logo" src={logo} alt="HMV Global" width={1536} height={1024} sizes="72px" />
             <div className="desk-brand">
               <Dialog.Title className="desk-title">{t.deskName}</Dialog.Title>
               <Dialog.Description id={`${uid}-description`} className="desk-description">{t.description}</Dialog.Description>
             </div>
-            <ol className="desk-steps">
-              {t.steps.map((label, i) => (
-                <li key={label} aria-current={!reference && i === step ? 'step' : undefined} className={reference || i < step ? 'done' : undefined}>
-                  <span>{i + 1}</span>
-                  {label}
-                </li>
+            <div className="desk-lang" role="group" aria-label={t.language}>
+              {LANGUAGES.map(([code, short, name]) => (
+                <button key={code} type="button" lang={code} aria-label={name} aria-pressed={lang === code} onClick={() => setChosenLang(code)}>
+                  {short}
+                </button>
               ))}
-            </ol>
+            </div>
             <Dialog.Close className="desk-close" aria-label={t.close}>
               <X size={20} />
             </Dialog.Close>
           </header>
 
           <div className="desk-body">
-            <div className="desk-main" ref={main}>
+            <RequirementPanel t={t} lang={lang} brief={brief} route={route} open={panelOpen} onToggle={() => setPanelOpen(o => !o)} />
+            <div className="desk-main">
+              <Thread t={t} lang={lang} brief={brief} preselected={preselected} unclear={unclear} exploring={exploring} />
               {reference ? (
-                <section className="desk-sent">
-                  <h3 ref={heading} tabIndex={-1}>{t.sentTitle}</h3>
-                  <p className="desk-label">{t.reference}</p>
-                  <p className="desk-reference-id">{reference}</p>
-                  <p>{t.sentText}</p>
-                  {channels.length > 0 && (
-                    <div className="desk-follow-up">
-                      <p className="desk-note">{t.followUp}</p>
-                      {channels.map(({ id, href }, i) => (
-                        <a key={id} href={href} className={i === 0 ? 'desk-channel primary' : 'desk-channel'} target={id === 'email' ? undefined : '_blank'} rel="noopener noreferrer">
-                          {t.channels[id]}
-                          <ArrowUpRight size={16} />
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                  <Dialog.Close asChild>
-                    <Button type="button" size="lg" className="day-cta">{t.done}</Button>
-                  </Dialog.Close>
-                  <button type="button" className="text-link" onClick={() => startBrief(handled ?? {})}>{t.newInquiry}</button>
-                </section>
+                <SentCard t={t} route={route} reference={reference} channels={channels} heading={sentHeading}>
+                  <div className="desk-sent-actions">
+                    <Dialog.Close asChild>
+                      <Button type="button" size="lg" className="day-cta">{t.done}</Button>
+                    </Dialog.Close>
+                    <button type="button" className="text-link" onClick={() => startConversation(handled ?? {})}>{t.newInquiry}</button>
+                  </div>
+                </SentCard>
               ) : (
-                <>
-                  <h3 ref={heading} tabIndex={-1} className="desk-step-title">
-                    <span>{step + 1} / 4</span>
-                    {t.steps[step]}
-                  </h3>
-                  <fieldset className="desk-lock" disabled={status === 'sending'}>
-                  {step === 0 && <RequirementsStep uid={uid} lang={lang} t={t} brief={brief} setProduct={setProduct} update={update} errorFor={errorFor} />}
-                  {step === 1 && <ReviewStep lang={lang} t={t} brief={brief} summary={summary} onPick={pick} />}
-                  {step === 2 && <CompleteStep uid={uid} lang={lang} t={t} brief={brief} update={update} errorFor={errorFor} />}
-                  {step === 3 && (
-                    <>
-                      <BriefStep lang={lang} t={t} brief={brief} summary={summary} onPick={pick} />
-                      <ContactForm
-                        uid={uid}
-                        lang={lang}
-                        t={t}
-                        contact={contact}
-                        onContactChange={changeContact}
-                        consent={consent}
-                        onConsentChange={changeConsent}
-                        website={website}
-                        setWebsite={setWebsite}
-                        status={status}
-                        errorFor={errorFor}
-                        onSubmit={send}
-                        onFocus={startContact}
-                        onMailto={mailto}
-                      />
-                    </>
+                <fieldset className="desk-lock" disabled={status === 'sending'}>
+                  {stage === 'product' && <ProductComposer uid={uid} t={t} lang={lang} onAnswer={answerProduct} onChoose={chooseProduct} />}
+                  {stage === 'destination' && <DestinationComposer uid={uid} t={t} onAnswer={answerDestination} onExplore={explore} />}
+                  {stage === 'volume' && <VolumeComposer uid={uid} t={t} lang={lang} unit={brief.volume.unit} onAnswer={answerVolume} onExplore={explore} />}
+                  {stage === 'decision' && !contactOpen && <RouteAction uid={uid} t={t} route={route} onClick={openContact} />}
+                  {contactOpen && (
+                    <ContactForm
+                      uid={uid}
+                      lang={lang}
+                      t={t}
+                      route={route}
+                      contact={contact}
+                      onContactChange={changeContact}
+                      consent={consent}
+                      onConsentChange={changeConsent}
+                      website={website}
+                      setWebsite={setWebsite}
+                      status={status}
+                      errorFor={errorFor}
+                      onSubmit={send}
+                      onMailto={mailto}
+                    />
                   )}
-                  <nav className="desk-nav" aria-label={t.steps[step]}>
-                    {step > 0 && (
-                      <button type="button" className="desk-back" onClick={() => go(step - 1)}>
-                        <ArrowLeft size={16} />
-                        {t.back}
-                      </button>
-                    )}
-                    {step === 0 && (
-                      <>
-                        {!canContinue && <p className="desk-note">{t.chooseProduct}</p>}
-                        <Button type="button" size="lg" className="day-cta" disabled={!canContinue} onClick={() => go(1)}>
-                          {t.review}
-                          <ArrowRight size={18} />
-                        </Button>
-                      </>
-                    )}
-                    {step === 1 && (
-                      <>
-                        <button type="button" className="text-link" onClick={() => go(3)}>{t.toBrief}</button>
-                        <Button type="button" size="lg" className="day-cta" onClick={() => go(2)}>
-                          {t.complete}
-                          <ArrowRight size={18} />
-                        </Button>
-                      </>
-                    )}
-                    {step === 2 && (
-                      <Button type="button" size="lg" className="day-cta" onClick={() => go(3)}>
-                        {t.toBrief}
-                        <ArrowRight size={18} />
-                      </Button>
-                    )}
-                  </nav>
-                  </fieldset>
-                </>
+                </fieldset>
               )}
             </div>
-
-            <aside className="desk-panel" aria-label={t.yourBrief}>
-              {!reference && <p className="desk-guidance">{t.guidance[step]}</p>}
-              <p className="desk-label">{t.yourBrief}</p>
-              {summary.rows.length ? <SummaryList rows={[...summary.rows, ...summary.requirements]} className="desk-summary desk-summary-compact" /> : <p className="desk-note">{t.emptyBrief}</p>}
-              {!reference && summary.missing.length > 0 && (
-                <p className="desk-note">
-                  {t.needs}: {summary.missing.length}
-                </p>
-              )}
-            </aside>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

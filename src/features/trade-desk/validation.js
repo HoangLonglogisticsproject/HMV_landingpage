@@ -23,6 +23,12 @@ const AMOUNT = /^\d[\d.,\s]*$/;
 const UTM = /^[\w.+\- ]*$/;
 const KEY = /^[A-Za-z0-9-]{8,64}$/;
 
+/** A volume amount the inquiry accepts (2, 5000, 2,000), within its limit: the Trade Desk checks an answer with it. */
+export const isAmount = value => {
+  const v = text(value);
+  return v.length <= LIMITS['volume.amount'] && AMOUNT.test(v);
+};
+
 /** A same-site path (no query or fragment, which can carry personal data); '' otherwise. */
 const path = value => {
   const p = str(value, 300).split(/[?#]/)[0];

@@ -50,7 +50,8 @@ test('a failed load keeps the page, shows a retry, and the retry loads the desk 
   await until(() => dialog());
   assert.equal(load.imports, 2);
   assert.equal(alert(), null);
-  // The request that failed is the one that opens: product preselected.
-  assert.equal(dialog().querySelector('input[type="radio"][value="dried-cassava-chips"]').checked, true);
+  // The request that failed is the one that opens: product preselected, the conversation at the destination.
+  assert.ok(dialog().querySelector('.desk-summary').textContent.includes('Dried cassava chips'));
+  assert.ok(dialog().textContent.includes('Where would you like the goods delivered?'));
   page.remove();
 });

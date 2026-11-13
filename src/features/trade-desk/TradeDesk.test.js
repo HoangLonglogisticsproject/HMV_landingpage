@@ -21,11 +21,25 @@ const dialog = () => document.querySelector('[role="dialog"]');
 const field = key => dialog().querySelector(`[id$="-${key}"]`);
 const button = text => [...dialog().querySelectorAll('button')].find(b => b.textContent.includes(text));
 const click = el => act(async () => el.click());
-const type = (el, value) => act(async () => {
+const setValue = (el, value, event) => act(async () => {
   Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value').set.call(el, value);
-  el.dispatchEvent(new Event('input', { bubbles: true }));
+  el.dispatchEvent(new Event(event, { bubbles: true }));
 });
+const type = (el, value) => setValue(el, value, 'input');
+/** The buyer answers HMV's question: types into the conversation's field and sends it. */
+const say = async (key, value) => {
+  await type(field(key), value);
+  await click(field(key).form.querySelector('.desk-send'));
+};
+/** The conversation as "HMV: …" and "You: …" lines (a buyer line says "Bạn" in Vietnamese). */
+const thread = () => [...dialog().querySelectorAll('.desk-msg')].map(m => `${m.querySelector('.desk-msg-from').textContent}: ${[...m.querySelectorAll('p')].map(p => p.textContent).join(' ')}`);
+const panel = () => dialog().querySelector('.desk-panel').textContent;
+/** Focus is on `el` (a failure names the focused element: printing DOM nodes would exhaust memory). */
+const assertFocus = el => assert.ok(el && document.activeElement === el, `focus is on ${document.activeElement?.outerHTML.slice(0, 120)}`);
 const events = () => (window.dataLayer ?? []).map(e => e.event);
+const errors = () => [...dialog().querySelectorAll('.desk-error')].map(e => e.textContent);
+// Technical questions the desk must never ask or list as missing.
+const TECHNICAL = /moisture|starch %|brix|incoterm|packaging|certification|\bFOB\b|\bCIF\b|destination port|delivery window|transport|application|độ ẩm|đóng gói|chứng nhận/i;
 
 // Through the host, as on the site: the desk's code loads on the first open.
 async function render(lang = 'en') {
@@ -39,18 +53,17 @@ const open = async detail => {
   assert.ok(dialog());
 };
 
-// From a product page to the preliminary brief with the contact form filled in.
+/** From a product page to a ready requirement and its quotation card, the contact filled in. */
 async function toContact(contact = { company: 'Example Foods B.V.', email: 'buyer@example.com' }, { consent = true } = {}) {
   await open({ product: 'passion-fruit', source: 'product_hero' });
-  await type(field('destination'), 'Rotterdam, Netherlands');
-  await type(field('volume'), '2');
-  await click(button('Review requirement'));
-  await click(button('See preliminary brief'));
+  await say('destination', 'Rotterdam, Netherlands');
+  await say('volume', '2');
+  await click(button('Request Quotation'));
   if (contact.company) await type(field('contact.company'), contact.company);
   if (contact.email) await type(field('contact.email'), contact.email);
   if (consent) await click(field('consent.contact'));
 }
-const send = () => click(button('Send to HMV Commercial Team'));
+const send = () => click(button('Send Request'));
 
 beforeEach(async () => {
   container = document.body.appendChild(document.createElement('div'));
@@ -66,67 +79,244 @@ afterEach(async () => {
   container.remove();
 });
 
-test('opens from a call to action with the product preselected, in English', async () => {
+test('global entry: HMV asks for the product first; no steps, no questionnaire, no contact fields', async () => {
   await render('en');
   assert.equal(dialog(), null);
-  await open({ product: 'passion-fruit', source: 'product_hero' });
+  await open({ source: 'home_hero' });
   assert.equal(dialog().querySelector('h2').textContent, 'HMV Trade Desk');
-  assert.ok(dialog().textContent.includes('Integrated agricultural supply and trade execution'));
-  // Product-led: the desk opens on the product requirement; there is no goal to choose.
-  assert.equal(dialog().querySelector('input[type="radio"][value="passion-fruit"]').checked, true);
-  assert.equal(dialog().querySelector('[name$="-goal"]'), null);
-  assert.doesNotMatch(dialog().textContent, /What do you need\?|Product sourcing|Customs & compliance|Cargo or goods/);
-  assert.deepEqual(window.dataLayer, [
-    { event: 'trade_desk_open', source: 'product_hero', product: 'passion-fruit', locale: 'en' },
-    { event: 'trade_product_selected', product: 'passion-fruit', source: 'preselected' },
-  ]);
-  assert.doesNotMatch(dialog().textContent, /\bAI\b|assistant|chatbot|typing/i);
+  assert.ok(dialog().textContent.includes('B2B Agricultural Supply Desk'));
+  // The real HMV Global logo, from the site's assets.
+  assert.match(dialog().querySelector('img.desk-logo').getAttribute('src'), /logohmv/);
+  assert.equal(dialog().querySelector('img.desk-logo').alt, 'HMV Global');
+  assert.deepEqual(thread(), ['HMV: What product are you looking for?']);
+  assertFocus(field('product'));
+  assert.deepEqual(
+    [...dialog().querySelectorAll('.desk-choice')].map(b => b.textContent),
+    ['Passion fruit', 'Dried cassava chips', 'Cavendish bananas', 'Dragon fruit', 'Spices', 'Cashew nuts', 'Tapioca starch'],
+  );
+  // No step indicator, no requirement form, no contact field before a route is chosen.
+  assert.doesNotMatch(dialog().textContent, /Step|\d \/ 4|Complete requirements|still needs|Supply plan/i);
+  assert.doesNotMatch(dialog().textContent, TECHNICAL);
+  assert.equal(field('contact.company'), null);
+  assert.equal(field('contact.email'), null);
+  // The requirement panel: three rows, nothing known yet; not ready.
+  assert.deepEqual([...dialog().querySelectorAll('.desk-summary dt')].map(d => d.textContent), ['Product', 'Destination', 'Volume']);
+  assert.equal(dialog().querySelectorAll('.desk-summary .desk-pending').length, 3);
+  assert.ok(panel().includes('Exploring requirement'));
+  assert.ok(panel().includes('Next: HMV Customer Service'));
+  assert.deepEqual(window.dataLayer, [{ event: 'trade_desk_open', source: 'home_hero', locale: 'en' }]);
 });
 
-test('Vietnamese: the desk, its steps and its controls in Vietnamese', async () => {
+test('product page entry: the product is known, so HMV starts with the destination', async () => {
+  await render('en');
+  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
+  assert.deepEqual(thread(), ['HMV: Where would you like the goods delivered?']);
+  assert.doesNotMatch(dialog().textContent, /What product are you looking for/);
+  assert.ok(dialog().querySelector('.desk-summary').textContent.includes('Dried cassava chips'));
+  assertFocus(field('destination'));
+  assert.ok(button("I'm still exploring"));
+  assert.deepEqual(window.dataLayer, [
+    { event: 'trade_desk_open', source: 'product_hero', product: 'dried-cassava-chips', locale: 'en' },
+    { event: 'trade_product_selected', product: 'dried-cassava-chips', source: 'preselected' },
+  ]);
+});
+
+test('RFQ path: each answer is a buyer message, the conversation stays, and three answers are ready for quotation', async () => {
+  await render('en');
+  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
+  await say('destination', 'Chennai, India');
+  assert.deepEqual(thread(), ['HMV: Where would you like the goods delivered?', 'You: Chennai, India', 'HMV: What volume are you planning to purchase?']);
+  assertFocus(field('volume'));
+  // Cassava chips: MT / month is offered first.
+  assert.equal(field('volume').form.querySelector('select').value, 'mt_month');
+  await say('volume', '2,000');
+  assert.deepEqual(thread(), [
+    'HMV: Where would you like the goods delivered?',
+    'You: Chennai, India',
+    'HMV: What volume are you planning to purchase?',
+    'You: 2,000 MT / month',
+    'HMV: Thank you. I have enough information to open a commercial inquiry for this requirement. HMV can now review the supply requirement and continue directly with our Sales team for quotation.',
+  ]);
+  // Ready: no further question, the quotation request is next and focused.
+  assertFocus(button('Request Quotation'));
+  assert.equal(button("I'm still exploring"), undefined);
+  assert.equal(field('contact.company'), null);
+  assert.doesNotMatch(dialog().textContent, TECHNICAL);
+  assert.ok(panel().includes('Chennai, India'));
+  assert.ok(panel().includes('2,000 MT / month'));
+  assert.ok(panel().includes('Ready for quotation'));
+  assert.ok(panel().includes('Next: HMV Sales'));
+
+  await click(button('Request Quotation'));
+  assert.equal(dialog().querySelector('.desk-contact h3').textContent, 'Request a quotation');
+  assertFocus(field('contact.company'));
+  // The conversation is still there above the card.
+  assert.equal(thread().length, 5);
+  assert.deepEqual(window.dataLayer.slice(2), [
+    { event: 'trade_destination_completed', product: 'dried-cassava-chips' },
+    { event: 'trade_volume_completed', product: 'dried-cassava-chips' },
+    { event: 'trade_route_rfq', product: 'dried-cassava-chips' },
+    { event: 'trade_contact_start', product: 'dried-cassava-chips', route: 'rfq' },
+  ]);
+  // Analytics never carry what the buyer typed.
+  assert.doesNotMatch(JSON.stringify(window.dataLayer), /Chennai|2,000|2000/);
+});
+
+test('global entry: a typed product is recognized; an unclear one is answered with the HMV products to choose from', async () => {
+  await render('en');
+  await open({ source: 'home_hero' });
+  await say('product', 'rice');
+  assert.deepEqual(thread(), ['HMV: What product are you looking for?', 'You: rice', 'HMV: Which HMV product is closest to your requirement?']);
+  assert.equal(field('destination'), null);
+  await click(button('Passion fruit'));
+  assert.deepEqual(thread().slice(3), ['You: Passion fruit', 'HMV: Where would you like the goods delivered?']);
+  assertFocus(field('destination'));
+  assert.ok(dialog().querySelector('.desk-summary').textContent.includes('Passion fruit'));
+  assert.deepEqual(window.dataLayer.at(-1), { event: 'trade_product_selected', product: 'passion-fruit', source: 'chosen' });
+});
+
+test('a typed sentence naming a product: shown as the buyer wrote it, and sent as the inquiry notes', async () => {
+  sendInquiry.mockResolvedValueOnce({ status: 201, body: { reference: 'HMV-2026-TYPED2' } });
+  await render('en');
+  await open({ source: 'home_hero' });
+  await say('product', 'We need dried cassava chips for our plant in India');
+  assert.deepEqual(thread().slice(1), ['You: We need dried cassava chips for our plant in India', 'HMV: Where would you like the goods delivered?']);
+  await say('destination', 'Chennai');
+  await say('volume', '500');
+  await click(button('Request Quotation'));
+  await type(field('contact.company'), 'Feed Co');
+  await type(field('contact.email'), 'buyer@example.com');
+  await click(field('consent.contact'));
+  await send();
+  const [inquiry] = sendInquiry.mock.calls[0];
+  assert.equal(inquiry.product, 'dried-cassava-chips');
+  assert.equal(inquiry.notes, 'We need dried cassava chips for our plant in India');
+  assert.doesNotMatch(JSON.stringify(window.dataLayer), /plant in India/);
+});
+
+test('discovery: a buyer still exploring is not asked to invent a destination or volume', async () => {
+  await render('en');
+  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
+  await click(button("I'm still exploring"));
+  assert.deepEqual(thread(), [
+    'HMV: Where would you like the goods delivered?',
+    "You: I'm still exploring",
+    'HMV: No problem. HMV Customer Service can help clarify your requirement and connect you with the appropriate commercial team.',
+  ]);
+  // No volume question, no destination field: the route is the next step.
+  assert.equal(field('destination'), null);
+  assert.equal(field('volume'), null);
+  assertFocus(button('Discuss with HMV'));
+  assert.ok(panel().includes('Exploring requirement'));
+  await click(button('Discuss with HMV'));
+  assert.equal(dialog().querySelector('.desk-contact h3').textContent, 'Talk to HMV Customer Service');
+  assert.deepEqual(window.dataLayer.slice(-2), [
+    { event: 'trade_route_discovery', product: 'dried-cassava-chips' },
+    { event: 'trade_contact_start', product: 'dried-cassava-chips', route: 'discovery' },
+  ]);
+});
+
+test('an amount the inquiry would refuse is pointed out in the conversation, and the error goes once corrected', async () => {
+  await render('en');
+  await open({ product: 'passion-fruit', source: 'product_hero' });
+  await say('destination', 'Rotterdam');
+  await say('volume', 'lots');
+  assert.deepEqual(errors(), ['Enter a number, for example 2 or 5000.']);
+  assert.equal(field('volume').getAttribute('aria-invalid'), 'true');
+  assert.equal(document.getElementById(field('volume').getAttribute('aria-describedby')).textContent, 'Enter a number, for example 2 or 5000.');
+  assert.equal(thread().length, 3);
+  await type(field('volume'), '20');
+  assert.deepEqual(errors(), []);
+  assert.equal(field('volume').hasAttribute('aria-invalid'), false);
+  // A unit other than the product's usual one.
+  await setValue(field('volume').form.querySelector('select'), 'containers_month', 'change');
+  await click(field('volume').form.querySelector('.desk-send'));
+  assert.equal(thread()[3], 'You: 20 containers / month');
+});
+
+test('Vietnamese: the site language is the starting language', async () => {
   await render('vi');
   await open({ source: 'home_hero' });
+  assert.deepEqual(thread(), ['HMV: Anh/chị đang tìm sản phẩm nào?']);
   const text = dialog().textContent;
-  for (const s of ['Phương án cung ứng và thực thi giao thương nông sản xuyên suốt', 'Nhu cầu', 'Phân tích yêu cầu', 'Bổ sung thông tin', 'Phương án & báo giá', 'Sản phẩm', 'Chanh dây']) {
-    assert.ok(text.includes(s), s);
+  for (const s of ['Trợ lý giao thương & cung ứng nông sản', 'THÔNG TIN YÊU CẦU'.toLowerCase(), 'Chanh dây', 'Đang làm rõ nhu cầu', 'Tiếp theo: Customer Service HMV']) {
+    assert.ok(text.toLowerCase().includes(s.toLowerCase()), s);
   }
-  assert.doesNotMatch(text, /Bạn cần hỗ trợ gì\?|Tìm nguồn hàng|Hải quan & tuân thủ/);
+  assert.equal(dialog().getAttribute('lang'), 'vi');
 });
 
-test('from the dried cassava chips page: the product, its origins and applications on step 1, ready to continue', async () => {
-  await render();
-  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
-  assert.equal(dialog().querySelector('input[value="dried-cassava-chips"]').checked, true);
-  assert.equal(dialog().querySelector('input[value="vietnam"]').checked, true);
-  assert.ok(dialog().querySelector('input[value="cambodia"]'));
-  assert.ok(dialog().querySelector('input[value="bioethanol"]'));
-  assert.equal(button('Review requirement').disabled, false);
+test('language: a Vietnamese sentence continues the conversation in Vietnamese', async () => {
+  await render('en');
+  await open({ source: 'home_hero' });
+  await say('product', 'Bên tôi đang tìm sắn lát giao về Đồng Nai');
+  assert.deepEqual(thread(), [
+    'HMV: Anh/chị đang tìm sản phẩm nào?',
+    'Bạn: Bên tôi đang tìm sắn lát giao về Đồng Nai',
+    'HMV: Anh/chị cần giao hàng đến đâu?',
+  ]);
+  assert.equal(dialog().getAttribute('lang'), 'vi');
+  assert.equal(dialog().querySelector('[aria-pressed="true"]').textContent, 'VI');
+  await say('destination', 'Đồng Nai');
+  await say('volume', '500');
+  assert.ok(thread().at(-1).startsWith('HMV: Cảm ơn anh/chị. HMV đã có đủ thông tin cơ bản'));
+  assert.ok(button('Yêu cầu báo giá'));
+  assert.ok(panel().includes('Sẵn sàng chuyển báo giá'));
+  assert.ok(panel().includes('Tiếp theo: HMV Sales'));
 });
 
-test('changing the product clears what belonged to the previous one; the destination stays', async () => {
-  await render();
+test('language: an English sentence continues in English on a Vietnamese site', async () => {
+  await render('vi');
   await open({ product: 'dried-cassava-chips', source: 'product_hero' });
-  await click(dialog().querySelector('input[value="cambodia"]'));
-  await click(dialog().querySelector('input[value="bioethanol"]'));
-  await type(field('destination'), 'Qinzhou');
-  await type(field('volume'), '5000');
-  await click(dialog().querySelector('input[value="passion-fruit"]'));
-  // Passion fruit: Vietnam only (no origin choice), no application list, containers instead of MT / month.
-  assert.equal(dialog().querySelector('input[value="cambodia"]'), null);
-  assert.equal(dialog().querySelector('input[value="bioethanol"]'), null);
-  assert.equal(field('volume').value, '');
-  assert.equal(field('destination').value, 'Qinzhou');
-  await click(button('Review requirement'));
-  await click(button('See preliminary brief'));
-  const brief = dialog().querySelector('.desk-brief').textContent;
-  assert.ok(brief.includes('Vietnam → Qinzhou'));
-  assert.doesNotMatch(brief, /Cambodia|Bioethanol|5000/);
+  assert.deepEqual(thread(), ['HMV: Anh/chị cần giao hàng đến đâu?']);
+  await say('destination', 'Delivery to our plant in Chennai, India');
+  assert.deepEqual(thread().slice(1), ['You: Delivery to our plant in Chennai, India', 'HMV: What volume are you planning to purchase?']);
+});
+
+test('language: a place name or a number alone never changes it', async () => {
+  await render('vi');
+  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
+  await say('destination', 'India');
+  assert.equal(thread().at(-1), 'HMV: Anh/chị dự kiến mua với sản lượng bao nhiêu?');
+  await say('volume', '500');
+  assert.ok(thread().at(-1).startsWith('HMV: Cảm ơn anh/chị'));
+  await act(async () => root.unmount());
+  root = createRoot(container);
+  await render('en');
+  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
+  await say('destination', 'Hanoi');
+  assert.equal(thread().at(-1), 'HMV: What volume are you planning to purchase?');
+  await say('volume', '2000');
+  assert.ok(thread().at(-1).startsWith('HMV: Thank you.'));
+});
+
+test('language: the buyer’s own choice wins over what they write until they change it', async () => {
+  await render('en');
+  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
+  button('VI').focus();
+  await click(button('VI'));
+  assert.deepEqual(thread(), ['HMV: Anh/chị cần giao hàng đến đâu?']);
+  // Choosing a language never moves the buyer's focus.
+  assertFocus(button('VI'));
+  await say('destination', 'We need delivery to our plant in Chennai');
+  assert.equal(thread().at(-1), 'HMV: Anh/chị dự kiến mua với sản lượng bao nhiêu?');
+  await click(button('EN'));
+  assert.deepEqual(thread(), [
+    'HMV: Where would you like the goods delivered?',
+    'You: We need delivery to our plant in Chennai',
+    'HMV: What volume are you planning to purchase?',
+  ]);
+  assert.equal(button('EN').getAttribute('aria-pressed'), 'true');
+  assert.equal(button('VI').getAttribute('aria-pressed'), 'false');
 });
 
 test('keyboard: focus moves into the desk on open; Escape and the close button close it', async () => {
   await render();
   await open({ source: 'home_hero' });
   assert.ok(dialog().contains(document.activeElement));
+  assert.equal(dialog().querySelector('[role="log"]').getAttribute('aria-label'), 'Conversation with HMV');
+  // Every conversation control has a label and sends as a form (Enter submits).
+  assert.equal(dialog().querySelector(`label[for="${field('product').id}"]`).textContent, 'Product');
+  assert.equal(field('product').form.querySelector('.desk-send').type, 'submit');
   await act(async () => document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
   assert.equal(dialog(), null);
   await open({ source: 'home_hero' });
@@ -134,53 +324,23 @@ test('keyboard: focus moves into the desk on open; Escape and the close button c
   assert.equal(dialog(), null);
 });
 
-test('progressive requirements: product first, then the controlled list of what HMV still needs', async () => {
-  await render();
-  await open({ source: 'home_hero' });
-  assert.equal(button('Review requirement').disabled, true);
-  await click(dialog().querySelector('input[value="dried-cassava-chips"]'));
-  assert.equal(button('Review requirement').disabled, false);
-  await click(button('Review requirement'));
-  const missing = () => [...dialog().querySelectorAll('.desk-missing button')].map(b => b.textContent);
-  assert.deepEqual(missing(), ['Destination', 'Estimated volume', 'Application', 'Required starch %', 'Maximum moisture %', 'Loading / packaging requirement', 'Incoterm', 'Exact destination port', 'Delivery window']);
-  // The Intertek sample appears only as a reference, with its caveat.
-  assert.ok(dialog().textContent.includes('Intertek AGRIVIETNAM2026-1700'));
-  assert.ok(dialog().textContent.includes('not a fixed shipment specification'));
-  // A missing-information chip leads to its field; answering it removes it.
-  await click(button('Required starch %'));
-  assert.equal(document.activeElement, field('starch'));
-  await type(field('starch'), '70');
-  await click(button('Back'));
-  assert.equal(missing().includes('Required starch %'), false);
-  assert.ok(events().includes('trade_requirement_progress'));
-});
-
-test('preliminary brief before any contact detail: summary, next action, disclaimer and no commercial promises', async () => {
-  await render();
-  await open({ product: 'passion-fruit', source: 'product_hero' });
-  assert.equal(dialog().querySelector('[id$="-contact.email"]'), null);
-  await type(field('destination'), 'Rotterdam');
-  await click(button('Review requirement'));
-  await click(button('See preliminary brief'));
-  const brief = dialog().querySelector('.desk-brief').textContent;
-  assert.ok(brief.includes('Preliminary Supply Brief'));
-  assert.ok(brief.includes('Vietnam → Rotterdam'));
-  assert.ok(brief.includes('The HMV commercial team reviews this brief'));
-  assert.ok(brief.includes('prepares an integrated supply proposal for this requirement'));
-  assert.ok(brief.includes('Availability, specifications, pricing and delivery terms are confirmed by HMV in the commercial proposal.'));
-  assert.doesNotMatch(brief.replace(/Availability, specifications, pricing[^.]*\./, ''), /\$|USD|price|in stock|available|guarantee|certified|transit|\d+\s*days/i);
-  assert.ok(field('contact.email'));
-  // Missing: the volume and the seven passion-fruit requirements.
-  assert.deepEqual(window.dataLayer.find(e => e.event === 'trade_brief_generated'), { event: 'trade_brief_generated', product: 'passion-fruit', missing: 8 });
-});
-
-test('contact validation: company, work email and consent are checked before anything is sent', async () => {
+test('contact last: company, business email and consent are required; name and phone optional', async () => {
   await render();
   await toContact({ company: '', email: 'not-an-email' });
-  await click(button('Send to HMV Commercial Team'));
+  await send();
   assert.equal(sendInquiry.mock.calls.length, 0);
-  assert.deepEqual([...dialog().querySelectorAll('.desk-error')].map(e => e.textContent), ['Enter your company name.', 'Enter a valid work email.']);
-  assert.equal(document.activeElement, field('contact.company'));
+  assert.deepEqual(errors(), ['Enter your company name.', 'Enter a valid business email.']);
+  assertFocus(field('contact.company'));
+  const input = name => field(`contact.${name}`);
+  // In card order, with their types, autocomplete, limits and required flags.
+  assert.deepEqual(
+    [...dialog().querySelectorAll('.desk-contact-grid input')].map(i => i.id.split('-contact.')[1]),
+    ['company', 'name', 'email', 'phone'],
+  );
+  assert.deepEqual(
+    ['company', 'email', 'name', 'phone'].map(n => [input(n).type, input(n).getAttribute('autocomplete'), input(n).maxLength, input(n).required]),
+    [['text', 'organization', 150, true], ['email', 'email', 254, true], ['text', 'name', 100, false], ['tel', 'tel', 40, false]],
+  );
 });
 
 test('a corrected contact field loses its error at once; other errors stay; nothing appears on untouched fields', async () => {
@@ -188,8 +348,7 @@ test('a corrected contact field loses its error at once; other errors stay; noth
   await toContact({ company: '', email: 'not-an-email' }, { consent: false });
   await send();
   assert.equal(sendInquiry.mock.calls.length, 0);
-  const errors = () => [...dialog().querySelectorAll('.desk-error')].map(e => e.textContent);
-  assert.deepEqual(errors(), ['Enter your company name.', 'Enter a valid work email.', 'Confirm that HMV may contact you.']);
+  assert.deepEqual(errors(), ['Enter your company name.', 'Enter a valid business email.', 'Confirm that HMV may contact you.']);
 
   // Still invalid: the error stays.
   await type(field('contact.email'), 'buyer..name@example.com');
@@ -214,7 +373,7 @@ test('a corrected contact field loses its error at once; other errors stay; noth
   await send();
   assert.equal(sendInquiry.mock.calls.length, 0);
   assert.deepEqual(errors(), ['Use digits, spaces and + ( ) - only.']);
-  assert.equal(document.activeElement, field('contact.phone'));
+  assertFocus(field('contact.phone'));
 });
 
 test('consent is required: without it nothing is sent and the checkbox is pointed out', async () => {
@@ -222,18 +381,18 @@ test('consent is required: without it nothing is sent and the checkbox is pointe
   await toContact(undefined, { consent: false });
   await send();
   assert.equal(sendInquiry.mock.calls.length, 0);
-  assert.deepEqual([...dialog().querySelectorAll('.desk-error')].map(e => e.textContent), ['Confirm that HMV may contact you.']);
-  assert.equal(document.activeElement, field('consent.contact'));
+  assert.deepEqual(errors(), ['Confirm that HMV may contact you.']);
+  assertFocus(field('consent.contact'));
 });
 
-test('successful inquiry: one request even on a double click, the reference shown, generate_lead only after acceptance', async () => {
+test('RFQ accepted: one request even on a double click, the reference and the commercial process, generate_lead after acceptance', async () => {
   let accept;
   sendInquiry.mockReturnValue(new Promise(resolve => { accept = resolve; }));
   await render();
   await toContact();
-  const send = button('Send to HMV Commercial Team');
-  await click(send);
-  await click(send);
+  const submit = button('Send Request');
+  await click(submit);
+  await click(submit);
   assert.equal(sendInquiry.mock.calls.length, 1);
   assert.equal(button('Sending').disabled, true);
   assert.equal(events().includes('generate_lead'), false);
@@ -241,30 +400,78 @@ test('successful inquiry: one request even on a double click, the reference show
   const [inquiry] = sendInquiry.mock.calls[0];
   assert.equal(inquiry.product, 'passion-fruit');
   assert.equal(inquiry.destination, 'Rotterdam, Netherlands');
+  assert.deepEqual(inquiry.volume, { amount: '2', unit: 'containers' });
+  // Nothing fabricated for the fields the desk does not ask.
+  assert.deepEqual([inquiry.application, inquiry.transport, inquiry.requirements, inquiry.notes], ['', '', {}, '']);
   assert.deepEqual(inquiry.contact, { company: 'Example Foods B.V.', email: 'buyer@example.com', name: '', phone: '' });
   assert.deepEqual(inquiry.consent, { contact: true });
+  assert.equal(inquiry.website, '');
   assert.match(inquiry.idempotencyKey, /^[A-Za-z0-9-]{8,64}$/);
 
   await act(async () => accept({ status: 201, body: { reference: 'HMV-2026-7KQ4XM' } }));
-  assert.ok(dialog().textContent.includes('HMV-2026-7KQ4XM'));
-  assert.deepEqual(window.dataLayer.at(-1), { event: 'generate_lead', product: 'passion-fruit', locale: 'en' });
-  // No goal event or property anywhere.
-  assert.doesNotMatch(JSON.stringify(window.dataLayer), /goal/);
+  const sent = dialog().querySelector('.desk-sent');
+  assert.equal(sent.querySelector('h3').textContent, 'Commercial inquiry received');
+  assertFocus(sent.querySelector('h3'));
+  assert.equal(sent.querySelector('.desk-reference-id').textContent, 'HMV-2026-7KQ4XM');
+  assert.ok(sent.textContent.includes('HMV Sales will review your requirement and continue the quotation process with you.'));
+  // The expected process, with only the request reached: no later stage is claimed.
+  const stages = [...sent.querySelectorAll('.desk-timeline li')];
+  assert.deepEqual(stages.map(li => li.textContent), ['Request received', 'Quotation', 'Commercial discussion', 'Sales contract', 'Supply execution']);
+  assert.deepEqual(stages.map(li => li.getAttribute('aria-current')), ['step', null, null, null, null]);
+  assert.doesNotMatch(sent.textContent, /quotation (is )?(ready|prepared)|in progress/i);
+  assert.deepEqual(window.dataLayer.at(-1), { event: 'generate_lead', product: 'passion-fruit', locale: 'en', route: 'rfq' });
   // Nothing personal or free-text in analytics.
   assert.doesNotMatch(JSON.stringify(window.dataLayer), /buyer@example\.com|Example Foods|Rotterdam/);
 
   // Optional follow-up: English order is WhatsApp, then email; links carry the reference and product only.
   const links = [...dialog().querySelectorAll('.desk-follow-up a')];
-  assert.deepEqual(links.map(a => a.textContent), ['Message HMV on WhatsApp', 'Email the HMV commercial team']);
+  assert.deepEqual(links.map(a => a.textContent), ['Message HMV on WhatsApp', 'Email HMV']);
   assert.equal(decodeURIComponent(links[0].href), 'https://wa.me/84909000000?text=Hello HMV, I submitted inquiry HMV-2026-7KQ4XM regarding Passion fruit.');
   for (const a of links) assert.doesNotMatch(decodeURIComponent(a.href), /buyer@example\.com|Example Foods|Rotterdam/);
+});
+
+test('discovery accepted: the destination given and the volume left open; Customer Service continues, no quotation claimed', async () => {
+  sendInquiry.mockResolvedValueOnce({ status: 201, body: { reference: 'HMV-2026-EXPLOR' } });
+  await render();
+  await open({ product: 'bananas', source: 'product_hero' });
+  await say('destination', 'Dubai');
+  await click(button("I'm still exploring"));
+  assert.deepEqual(thread().slice(-2), ["You: I'm still exploring", 'HMV: No problem. HMV Customer Service can help clarify your requirement and connect you with the appropriate commercial team.']);
+  await click(button('Discuss with HMV'));
+  await type(field('contact.company'), 'Gulf Fresh LLC');
+  await type(field('contact.email'), 'Buyer@Gulf.example');
+  await click(field('consent.contact'));
+  await send();
+  const [inquiry] = sendInquiry.mock.calls[0];
+  assert.equal(inquiry.destination, 'Dubai');
+  assert.equal(inquiry.volume.amount, '');
+  const sent = dialog().querySelector('.desk-sent');
+  assert.equal(sent.querySelector('h3').textContent, 'Inquiry received');
+  assert.ok(sent.textContent.includes('HMV-2026-EXPLOR'));
+  assert.ok(sent.textContent.includes('HMV Customer Service will continue the conversation and help clarify the requirement.'));
+  assert.equal(sent.querySelector('.desk-timeline'), null);
+  assert.doesNotMatch(sent.textContent, /Quotation/);
+  assert.deepEqual(window.dataLayer.at(-1), { event: 'generate_lead', product: 'bananas', locale: 'en', route: 'discovery' });
+});
+
+test('the honeypot is kept: hidden from people and sent as is, for the server to discard', async () => {
+  sendInquiry.mockResolvedValueOnce({ status: 201, body: { reference: 'HMV-2026-HONEY2' } });
+  await render();
+  await toContact();
+  const trap = dialog().querySelector('.desk-hp');
+  assert.equal(trap.getAttribute('aria-hidden'), 'true');
+  assert.equal(trap.tabIndex, -1);
+  await type(trap, 'http://spam.example');
+  await send();
+  assert.equal(sendInquiry.mock.calls[0][0].website, 'http://spam.example');
 });
 
 test('the consent checkbox has a privacy notice link in the buyer language', async () => {
   await render('vi');
   await open({ product: 'dried-cassava-chips', source: 'product_hero' });
-  await click(button('Xem phân tích'));
-  await click(button('Xem phương án sơ bộ'));
+  await click(button('Tôi đang tìm hiểu'));
+  await click(button('Trao đổi với HMV'));
+  assert.equal(dialog().querySelector('.desk-contact h3').textContent, 'Trao đổi với Customer Service HMV');
   const link = dialog().querySelector('.desk-privacy');
   assert.equal(link.textContent, 'Thông báo quyền riêng tư');
   assert.equal(link.getAttribute('href'), '/vi/privacy');
@@ -276,55 +483,44 @@ test('without configured channels the sent state shows no follow-up links', asyn
   sendInquiry.mockResolvedValueOnce({ status: 201, body: { reference: 'HMV-2026-7KQ4XM' } });
   await render();
   await toContact();
-  await click(button('Send to HMV Commercial Team'));
+  await send();
   assert.ok(dialog().textContent.includes('HMV-2026-7KQ4XM'));
   assert.equal(dialog().querySelector('.desk-follow-up'), null);
 });
 
-test('failed delivery: the answers stay, an email draft is offered, no lead is counted, and a retry works', async () => {
+test('failed delivery: the answers stay, an email draft is offered, no lead is counted, and a retry keeps the key', async () => {
   sendInquiry.mockResolvedValueOnce({ status: 502, body: { error: 'failed' } });
   await render();
   await toContact();
-  await click(button('Send to HMV Commercial Team'));
+  await send();
   assert.ok(dialog().querySelector('[role="alert"]').textContent.includes('could not be sent'));
   // Never a sent state or follow-up links before the server accepted the inquiry.
-  assert.doesNotMatch(dialog().textContent, /Sent to the HMV commercial team|HMV-\d{4}-/);
+  assert.doesNotMatch(dialog().textContent, /inquiry received|HMV-\d{4}-/i);
   assert.equal(dialog().querySelector('.desk-follow-up'), null);
   assert.ok(button('Prepare an email instead'));
   assert.equal(field('contact.company').value, 'Example Foods B.V.');
+  assert.equal(thread().length, 5);
   assert.equal(events().includes('generate_lead'), false);
   sendInquiry.mockResolvedValueOnce({ status: 201, body: { reference: 'HMV-2026-RETRY2' } });
   await click(button('Try again'));
   assert.ok(dialog().textContent.includes('HMV-2026-RETRY2'));
-  // The retry reuses the brief's idempotency key, so the server can de-duplicate.
+  // The retry reuses the inquiry's idempotency key, so the server can de-duplicate.
   assert.equal(sendInquiry.mock.calls[0][0].idempotencyKey, sendInquiry.mock.calls[1][0].idempotencyKey);
 });
 
-test('every validation error is shown on its step and field, before sending and when the server names one', async () => {
-  await render();
-  await open({ product: 'passion-fruit', source: 'product_hero' });
-  await type(field('volume'), 'lots');
-  await click(button('Review requirement'));
-  await click(button('See preliminary brief'));
-  await type(field('contact.company'), 'Example Foods B.V.');
-  await type(field('contact.email'), 'buyer@example.com');
-  await click(field('consent.contact'));
+test('the email draft fallback carries the requirement: product, destination and volume', async () => {
+  sendInquiry.mockResolvedValueOnce({ status: 502, body: { error: 'failed' } });
+  await render('en');
+  await toContact();
   await send();
-  // Not sent: back on step 1, the volume field focused, marked and explained.
-  assert.equal(sendInquiry.mock.calls.length, 0);
-  assert.equal(document.activeElement, field('volume'));
-  assert.equal(field('volume').getAttribute('aria-invalid'), 'true');
-  assert.ok(dialog().textContent.includes('Enter a number, for example 2 or 5000.'));
-
-  await type(field('volume'), '2');
-  await click(button('Review requirement'));
-  await click(button('See preliminary brief'));
-  // The server refuses a requirement: shown on step 3 at that field, not as a generic failure.
-  sendInquiry.mockResolvedValueOnce({ status: 400, body: { error: 'invalid', fields: ['requirements.brix'] } });
-  await send();
-  assert.equal(document.activeElement, field('brix'));
-  assert.ok(dialog().textContent.includes('Check this answer'));
-  assert.equal(dialog().querySelector('.desk-failed'), null);
+  await click(button('VI'));
+  await click(button('Soạn email thay thế'));
+  const [draft] = createInquiryMailto.mock.calls[0];
+  // In English for the commercial team, whatever the desk language.
+  assert.deepEqual(
+    { product: draft.product, destination: draft.destination, volume: draft.volume, company: draft.company, email: draft.email },
+    { product: 'Passion fruit', destination: 'Rotterdam, Netherlands', volume: '2 containers', company: 'Example Foods B.V.', email: 'buyer@example.com' },
+  );
 });
 
 test('a request that times out restores the controls and offers the retry and the email draft, answers kept', async () => {
@@ -338,7 +534,7 @@ test('a request that times out restores the controls and offers the retry and th
   assert.ok(button('Prepare an email instead'));
 });
 
-test('an exact retry keeps the idempotency key; an edited brief or contact gets a new one', async () => {
+test('an exact retry keeps the idempotency key; an edited contact gets a new one', async () => {
   sendInquiry.mockResolvedValue({ status: 502, body: { error: 'failed' } });
   await render();
   await toContact();
@@ -365,14 +561,17 @@ test('a 409 (the key was used for other content) drops the submission identity: 
   assert.ok(dialog().textContent.includes('HMV-2026-NEWKEY'));
 });
 
-test('the contact inputs keep their types, autocomplete, limits and required flags', async () => {
+test('a contact field the server refuses is shown at that field; anything else is a failed send', async () => {
   await render();
   await toContact();
-  const input = name => field(`contact.${name}`);
-  assert.deepEqual(
-    ['company', 'email', 'name', 'phone'].map(n => [input(n).type, input(n).getAttribute('autocomplete'), input(n).maxLength, input(n).required]),
-    [['text', 'organization', 150, true], ['email', 'email', 254, true], ['text', 'name', 100, false], ['tel', 'tel', 40, false]],
-  );
+  sendInquiry.mockResolvedValueOnce({ status: 400, body: { error: 'invalid', fields: ['contact.email'] } });
+  await send();
+  assertFocus(field('contact.email'));
+  assert.deepEqual(errors(), ['Enter a valid business email.']);
+  assert.equal(dialog().querySelector('.desk-failed'), null);
+  sendInquiry.mockResolvedValueOnce({ status: 400, body: { error: 'invalid', fields: ['destination'] } });
+  await send();
+  assert.ok(dialog().querySelector('.desk-failed'));
 });
 
 test('an acceptance that arrives while the desk is closed is shown on the next open; a new inquiry only on request', async () => {
@@ -384,60 +583,57 @@ test('an acceptance that arrives while the desk is closed is shown on the next o
   await click(dialog().querySelector('button[aria-label="Close"]'));
   assert.equal(dialog(), null);
   await act(async () => accept({ status: 201, body: { reference: 'HMV-2026-CLOSED' } }));
-  // Reopened, even from another product's call to action: the acceptance, not a new brief.
+  // Reopened, even from another product's call to action: the acceptance, not a new conversation.
   await open({ product: 'bananas', source: 'product_hero' });
   assert.ok(dialog().textContent.includes('HMV-2026-CLOSED'));
   await click(button('Start a new inquiry'));
   assert.doesNotMatch(dialog().textContent, /HMV-2026-CLOSED/);
-  assert.equal(dialog().querySelector('input[value="bananas"]').checked, true);
+  assert.ok(dialog().querySelector('.desk-summary').textContent.includes('Cavendish bananas'));
+  assert.deepEqual(thread(), ['HMV: Where would you like the goods delivered?']);
 });
 
-test('once the buyer has seen the acceptance, the next open starts a new brief', async () => {
+test('once the buyer has seen the acceptance, the next open starts a new conversation', async () => {
   sendInquiry.mockResolvedValueOnce({ status: 201, body: { reference: 'HMV-2026-SEEN22' } });
   await render();
   await toContact();
   await send();
   assert.ok(dialog().textContent.includes('HMV-2026-SEEN22'));
   await click(button('Close'));
-  await open({ product: 'bananas', source: 'product_hero' });
+  await open({ source: 'home_hero' });
   assert.doesNotMatch(dialog().textContent, /HMV-2026-SEEN22/);
-  assert.equal(dialog().querySelector('input[value="bananas"]').checked, true);
+  assert.deepEqual(thread(), ['HMV: What product are you looking for?']);
 });
 
-test('a response for an earlier brief never changes the current one', async () => {
+test('reopening for the same conversation keeps it; another product starts a new one', async () => {
+  await render();
+  await open({ product: 'passion-fruit', source: 'product_hero' });
+  await say('destination', 'Rotterdam');
+  const close = () => click(dialog().querySelector('button[aria-label="Close"]'));
+  await close();
+  await open({ source: 'home_hero' });
+  assert.equal(thread()[1], 'You: Rotterdam');
+  await close();
+  await open({ product: 'dragon-fruit', source: 'product_hero' });
+  assert.deepEqual(thread(), ['HMV: Where would you like the goods delivered?']);
+  assert.ok(dialog().querySelector('.desk-summary').textContent.includes('Dragon fruit'));
+});
+
+test('a response for an earlier conversation never changes the current one', async () => {
   let accept;
   sendInquiry.mockReturnValueOnce(new Promise(resolve => { accept = resolve; }));
   await render();
   await toContact();
   await send();
-  // Before the answer arrives, the buyer opens the desk for another product: a new brief.
+  // Before the answer arrives, the buyer opens the desk for another product: a new conversation.
   await open({ product: 'dried-cassava-chips', source: 'product_hero' });
-  assert.equal(dialog().querySelector('input[value="dried-cassava-chips"]').checked, true);
   await act(async () => accept({ status: 201, body: { reference: 'HMV-2026-OLDONE' } }));
-  assert.doesNotMatch(dialog().textContent, /HMV-2026-OLDONE|Sent to the HMV commercial team/);
-  assert.equal(dialog().querySelector('input[value="dried-cassava-chips"]').checked, true);
-  // The earlier inquiry was accepted: its lead is counted, for its own product.
-  assert.deepEqual(window.dataLayer.filter(e => e.event === 'generate_lead'), [{ event: 'generate_lead', product: 'passion-fruit', locale: 'en' }]);
+  assert.doesNotMatch(dialog().textContent, /HMV-2026-OLDONE|inquiry received/i);
+  assert.ok(dialog().querySelector('.desk-summary').textContent.includes('Dried cassava chips'));
+  // The earlier inquiry was accepted: its lead is counted, for its own product and route.
+  assert.deepEqual(window.dataLayer.filter(e => e.event === 'generate_lead'), [{ event: 'generate_lead', product: 'passion-fruit', locale: 'en', route: 'rfq' }]);
 });
 
-test('the email draft fallback keeps the route, origin included', async () => {
-  sendInquiry.mockResolvedValueOnce({ status: 502, body: { error: 'failed' } });
-  await render();
-  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
-  await click(dialog().querySelector('input[value="cambodia"]'));
-  await type(field('destination'), 'Qinzhou, China');
-  await click(button('Review requirement'));
-  await click(button('See preliminary brief'));
-  await type(field('contact.company'), 'Feed Co');
-  await type(field('contact.email'), 'buyer@example.com');
-  await click(field('consent.contact'));
-  await send();
-  await click(button('Prepare an email instead'));
-  const [draft] = createInquiryMailto.mock.calls[0];
-  assert.deepEqual(draft.requirements.find(([label]) => label === 'Route'), ['Route', 'Cambodia → Qinzhou, China']);
-});
-
-test('while a brief is being sent its controls are locked; the acceptance is shown when it arrives', async () => {
+test('while an inquiry is being sent its controls are locked; the acceptance is shown when it arrives', async () => {
   let accept;
   sendInquiry.mockReturnValueOnce(new Promise(resolve => { accept = resolve; }));
   await render();
@@ -445,7 +641,7 @@ test('while a brief is being sent its controls are locked; the acceptance is sho
   await send();
   // Disabled through the locked fieldset (`:disabled` is the effective state; the property is only the attribute).
   assert.equal(field('contact.company').matches(':disabled'), true);
-  assert.equal(button('Back').matches(':disabled'), true);
+  assert.equal(field('consent.contact').matches(':disabled'), true);
   await act(async () => accept({ status: 201, body: { reference: 'HMV-2026-LOCKED' } }));
   assert.ok(dialog().textContent.includes('HMV-2026-LOCKED'));
 });
@@ -456,25 +652,9 @@ test('a new inquiry after a sent one asks for consent again and does not reuse t
   await toContact();
   await send();
   await click(button('Start a new inquiry'));
-  await click(button('Review requirement'));
-  await click(button('See preliminary brief'));
+  await click(button("I'm still exploring"));
+  await click(button('Discuss with HMV'));
   assert.equal(field('contact.company').value, '');
   assert.equal(field('contact.email').value, '');
   assert.equal(field('consent.contact').checked, false);
-});
-
-test('a choice error is on the focused radio itself', async () => {
-  await render();
-  await open({ product: 'dried-cassava-chips', source: 'product_hero' });
-  await click(button('Review requirement'));
-  await click(button('See preliminary brief'));
-  await type(field('contact.company'), 'Feed Co');
-  await type(field('contact.email'), 'buyer@example.com');
-  await click(field('consent.contact'));
-  sendInquiry.mockResolvedValueOnce({ status: 400, body: { error: 'invalid', fields: ['requirements.incoterm'] } });
-  await send();
-  const radio = document.activeElement;
-  assert.equal(radio.type, 'radio');
-  assert.equal(radio.getAttribute('aria-invalid'), 'true');
-  assert.ok(document.getElementById(radio.getAttribute('aria-describedby')).textContent.includes('Check this answer'));
 });

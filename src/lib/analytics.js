@@ -4,10 +4,12 @@
 const EVENTS = {
   trade_desk_open: ['source', 'product', 'locale'],
   trade_product_selected: ['product', 'source'],
-  trade_requirement_progress: ['product', 'step', 'progress'],
-  trade_brief_generated: ['product', 'missing'],
-  trade_contact_start: ['product'],
-  generate_lead: ['product', 'locale'],
+  trade_destination_completed: ['product'],
+  trade_volume_completed: ['product'],
+  trade_route_rfq: ['product'],
+  trade_route_discovery: ['product'],
+  trade_contact_start: ['product', 'route'],
+  generate_lead: ['product', 'locale', 'route'],
 };
 const CATEGORY = /^[a-z0-9_-]{1,40}$/;
 

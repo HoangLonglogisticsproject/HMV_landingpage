@@ -9,11 +9,15 @@ afterEach(() => {
 
 test('events reach the dataLayer with their allowed, categorical parameters only', () => {
   track('trade_desk_open', { source: 'product_hero', product: 'passion-fruit', locale: 'vi' });
-  track('trade_brief_generated', { goal: 'sourcing', product: 'dried-cassava-chips', missing: 3 });
+  track('trade_route_rfq', { goal: 'sourcing', product: 'dried-cassava-chips', destination: 'Chennai, India', volume: '2,000' });
+  track('generate_lead', { product: 'dried-cassava-chips', locale: 'vi', route: 'discovery' });
+  // The old questionnaire's events are gone: ignored like any unknown one.
+  track('trade_brief_generated', { product: 'dried-cassava-chips', missing: 3 });
   assert.deepEqual(window.dataLayer, [
     { event: 'trade_desk_open', source: 'product_hero', product: 'passion-fruit', locale: 'vi' },
-    // A goal is not a parameter of any event: it is dropped.
-    { event: 'trade_brief_generated', product: 'dried-cassava-chips', missing: 3 },
+    // A goal, the destination and the volume are not parameters of any event: they are dropped.
+    { event: 'trade_route_rfq', product: 'dried-cassava-chips' },
+    { event: 'generate_lead', product: 'dried-cassava-chips', locale: 'vi', route: 'discovery' },
   ]);
 });
 

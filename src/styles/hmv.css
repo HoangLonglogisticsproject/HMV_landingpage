@@ -9398,8 +9398,8 @@ article[id] {
   margin-top: 10px
 }
 
-/* HMV Trade Desk (features/trade-desk): a desk dialog on desktop, a full-screen sheet on phones. Above the chat
-   launcher (z-index 9999). */
+/* HMV Trade Desk (features/trade-desk): a conversation beside the buyer's requirement; a dialog on desktop, a
+   full-screen sheet on phones with one scroll and the requirement folded into a line above the conversation. */
 .desk-overlay {
   position: fixed;
   inset: 0;
@@ -9407,7 +9407,7 @@ article[id] {
   background: rgb(0 20 55 / .55)
 }
 
-/* TradeDesk: locks the step controls while a brief is being sent; generates no box of its own. */
+/* TradeDesk: locks the conversation's controls while an inquiry is being sent; generates no box of its own. */
 .desk-lock {
   display: contents
 }
@@ -9451,73 +9451,54 @@ article[id] {
 
 .desk-head {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 12px 32px;
-  padding: 16px 20px 16px 28px;
-  background: var(--navy);
-  color: var(--primary-foreground)
+  gap: 16px;
+  padding: 10px 16px 10px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--background)
+}
+
+.desk-logo {
+  width: 72px;
+  height: 48px;
+  object-fit: contain
 }
 
 .desk-title {
   font-family: 'Plus Jakarta Sans', var(--font-sans);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: -.01em;
-  color: inherit
+  color: var(--navy)
 }
 
 .desk-description {
   margin-top: 2px;
   font-size: 12px;
-  color: var(--cyan-light)
+  color: var(--ink-muted)
 }
 
-.desk-steps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px
-}
-
-.desk-steps li {
+.desk-lang {
   display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px 6px 6px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 999px
+}
+
+.desk-lang button {
+  min-width: 40px;
+  min-height: 32px;
+  padding: 0 10px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 600;
-  color: rgb(255 255 255 / .72)
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-muted)
 }
 
-.desk-steps li span {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgb(255 255 255 / .35);
-  font-size: 11px
-}
-
-.desk-steps li[aria-current="step"] {
-  background: rgb(255 255 255 / .12);
-  color: var(--primary-foreground)
-}
-
-.desk-steps li[aria-current="step"] span {
-  background: var(--cyan);
-  border-color: var(--cyan);
-  color: var(--navy)
-}
-
-.desk-steps li.done span {
-  background: var(--farm-green);
-  border-color: var(--farm-green);
+.desk-lang button[aria-pressed="true"] {
+  background: var(--navy);
   color: var(--primary-foreground)
 }
 
@@ -9527,147 +9508,159 @@ article[id] {
   display: grid;
   place-items: center;
   border-radius: 10px;
-  color: var(--primary-foreground);
-  background: rgb(255 255 255 / .08)
+  color: var(--ink);
+  background: var(--surface)
 }
 
 .desk-close:hover {
-  background: rgb(255 255 255 / .16)
+  background: var(--brand-soft)
 }
 
-.desk-close:focus-visible {
-  outline: 2px solid var(--cyan);
+.desk-lang button:focus-visible,
+.desk-close:focus-visible,
+.desk-send:focus-visible,
+.desk-choice:focus-visible,
+.desk-explore:focus-visible,
+.desk-panel-toggle:focus-visible {
+  outline: 2px solid var(--brand);
   outline-offset: 2px
 }
 
+/* Conversation about 65%, requirement about 35%; the requirement comes first in the markup for the phone layout. */
 .desk-body {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+  grid-template-columns: minmax(0, 65fr) minmax(280px, 35fr);
+  grid-template-areas: "main panel";
   min-height: 0
 }
 
 .desk-main {
+  grid-area: main;
   overflow-y: auto;
-  padding: 28px 32px 0;
-  display: grid;
-  align-content: start;
-  gap: 22px
+  padding: 28px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px
 }
 
-.desk-panel {
-  overflow-y: auto;
-  padding: 28px;
-  background: var(--surface);
-  border-left: 1px solid var(--border);
+.desk-thread {
   display: grid;
-  align-content: start;
   gap: 14px
 }
 
-.desk-step-title,
-.desk-sent h3 {
-  display: flex;
-  flex-direction: column;
+.desk-msg {
+  display: grid;
   gap: 4px;
-  font-family: 'Plus Jakarta Sans', var(--font-sans);
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -.02em;
-  color: var(--ink);
-  outline: none
+  max-width: 80%
 }
 
-.desk-step-title span {
-  font-size: 12px;
+.desk-msg-you {
+  justify-self: end;
+  justify-items: end
+}
+
+.desk-msg-from {
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: .08em;
-  color: var(--farm-green-ink)
-}
-
-.desk-field {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0
-}
-
-.desk-field>label,
-.desk-field legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px;
-  padding: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink)
-}
-
-.desk-field legend {
-  margin-bottom: 8px
-}
-
-.desk-field small {
-  font-size: 11px;
-  font-weight: 500;
+  text-transform: uppercase;
   color: var(--ink-muted)
 }
 
-.desk-field input:not([type="radio"], [type="checkbox"]),
-.desk-field select,
-.desk-field textarea {
-  width: 100%;
-  min-height: 46px;
-  padding: 11px 14px;
+.desk-msg-hmv .desk-msg-from {
+  color: var(--brand)
+}
+
+.desk-bubble {
+  display: grid;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 4px 14px 14px;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--background);
+  background: var(--surface);
+  font-size: 15px;
+  line-height: 1.55;
+  overflow-wrap: anywhere
+}
+
+.desk-msg-you .desk-bubble {
+  border-color: var(--navy);
+  border-radius: 14px 4px 14px 14px;
+  background: var(--navy);
+  color: var(--primary-foreground)
+}
+
+.desk-composer {
+  display: grid;
+  gap: 12px
+}
+
+.desk-composer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--background)
+}
+
+.desk-composer-row:focus-within {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft)
+}
+
+.desk-composer-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  border: 0;
+  outline: none;
+  background: transparent;
   font: inherit;
   font-size: 15px;
   color: var(--ink)
 }
 
-.desk-field input:focus,
-.desk-field select:focus,
-.desk-field textarea:focus {
-  outline: none;
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-soft)
+.desk-composer-row select {
+  max-width: 45%;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink)
 }
 
-.desk-field input[aria-invalid="true"] {
-  border-color: var(--destructive)
+.desk-composer-row input[aria-invalid="true"] {
+  color: var(--destructive)
 }
 
-.desk-volume>div {
+.desk-send {
+  flex: none;
+  width: 40px;
+  height: 40px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  gap: 10px
+  place-items: center;
+  border-radius: 10px;
+  background: var(--navy);
+  color: var(--primary-foreground)
 }
 
-.desk-chips {
+.desk-send:hover {
+  background: var(--deep-blue)
+}
+
+.desk-choices {
   display: flex;
   flex-wrap: wrap;
   gap: 8px
 }
 
-.desk-chip {
-  position: relative
-}
-
-.desk-chip input {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer
-}
-
-.desk-chip span {
-  display: inline-flex;
-  align-items: center;
+.desk-choice,
+.desk-explore {
   min-height: 40px;
   padding: 8px 16px;
   border: 1px solid var(--border);
@@ -9675,28 +9668,50 @@ article[id] {
   background: var(--background);
   font-size: 14px;
   color: var(--ink);
-  transition: background .15s, border-color .15s, color .15s
+  transition: border-color .15s, color .15s
 }
 
-.desk-chip:hover span {
-  border-color: var(--brand)
+.desk-choice:hover {
+  border-color: var(--brand);
+  color: var(--brand)
 }
 
-.desk-chip input:checked+span {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: var(--primary-foreground)
+.desk-explore {
+  justify-self: start;
+  font-weight: 600;
+  color: var(--ink-muted)
 }
 
-.desk-chip input:focus-visible+span {
-  outline: 2px solid var(--brand);
-  outline-offset: 2px
-}
-
-.desk-subhead {
-  font-size: 16px;
-  font-weight: 700;
+.desk-explore:hover {
+  border-color: var(--ink-muted);
   color: var(--ink)
+}
+
+.desk-route-action,
+.desk-submit {
+  align-self: flex-start;
+  justify-self: start
+}
+
+.desk-panel {
+  grid-area: panel;
+  overflow-y: auto;
+  padding: 28px 24px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: grid;
+  align-content: start;
+  gap: 14px
+}
+
+/* The phone's one-line requirement; on desktop the panel is always open. */
+.desk-panel-toggle {
+  display: none
+}
+
+.desk-panel-body {
+  display: grid;
+  gap: 20px
 }
 
 .desk-label {
@@ -9713,16 +9728,6 @@ article[id] {
   color: var(--ink-muted)
 }
 
-.desk-guidance {
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--background);
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--ink)
-}
-
 .desk-summary {
   display: grid;
   margin: 0;
@@ -9731,11 +9736,9 @@ article[id] {
 
 .desk-summary>div {
   display: grid;
-  grid-template-columns: minmax(110px, 170px) minmax(0, 1fr);
-  gap: 16px;
+  gap: 2px;
   padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px
+  border-bottom: 1px solid var(--border)
 }
 
 .desk-summary dt {
@@ -9746,98 +9749,104 @@ article[id] {
 
 .desk-summary dd {
   margin: 0;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--ink);
   overflow-wrap: anywhere
 }
 
-.desk-summary-compact>div {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 2px;
-  padding: 9px 0
+.desk-pending {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-muted)
 }
 
-.desk-missing {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px
-}
-
-.desk-missing button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 6px 14px;
-  border: 1px dashed var(--farm-green-ink);
-  border-radius: 999px;
-  background: rgb(16 185 129 / .06);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--farm-green-ink)
-}
-
-.desk-missing button:hover {
-  background: rgb(16 185 129 / .14)
-}
-
-.desk-missing button:focus-visible {
-  outline: 2px solid var(--farm-green-ink);
-  outline-offset: 2px
-}
-
-.desk-reference {
+.desk-route {
   display: grid;
   gap: 4px;
   padding: 14px 16px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--surface);
-  font-size: 14px
+  background: var(--background);
+  font-size: 13px;
+  color: var(--ink-muted)
 }
 
-.desk-brief {
-  display: grid;
-  gap: 14px
+.desk-route strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--brand)
 }
 
-.desk-checks {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 8px
+.desk-route.desk-status-rfq {
+  border-color: rgb(4 120 87 / .35);
+  background: rgb(16 185 129 / .08)
 }
 
-.desk-checks li {
-  display: flex;
-  gap: 10px;
-  font-size: 14px
-}
-
-.desk-checks svg {
-  flex: none;
-  margin-top: 3px;
+.desk-status-rfq strong,
+.desk-panel-status.desk-status-rfq {
   color: var(--farm-green-ink)
 }
 
-.desk-disclaimer {
-  padding: 12px 14px;
-  border-radius: 10px;
-  background: var(--surface);
+.desk-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0
+}
+
+.desk-field>label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
   font-size: 13px;
-  line-height: 1.6;
+  font-weight: 600;
   color: var(--ink)
 }
 
-.desk-contact {
+.desk-field small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-muted)
+}
+
+.desk-field input {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background);
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink)
+}
+
+.desk-field input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft)
+}
+
+.desk-field input[aria-invalid="true"] {
+  border-color: var(--destructive)
+}
+
+/* The contact card, inline in the conversation once a route is chosen. */
+.desk-contact,
+.desk-sent {
   display: grid;
   gap: 16px;
-  padding-top: 22px;
-  border-top: 1px solid var(--border)
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--background);
+  box-shadow: 0 12px 28px -22px rgb(0 20 55 / .45)
 }
 
 .desk-contact-grid {
@@ -9868,6 +9877,108 @@ article[id] {
   font-size: 13px
 }
 
+.desk-hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0
+}
+
+.desk-error {
+  font-size: 12px;
+  color: var(--destructive)
+}
+
+.desk-failed {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid rgb(216 51 60 / .25);
+  border-radius: 10px;
+  background: rgb(216 51 60 / .06);
+  font-size: 14px
+}
+
+.desk-sent {
+  justify-items: start;
+  gap: 12px
+}
+
+.desk-sent h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Plus Jakarta Sans', var(--font-sans);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--navy);
+  outline: none
+}
+
+.desk-sent h3 svg {
+  flex: none;
+  color: var(--farm-green-ink)
+}
+
+.desk-reference-id {
+  font-family: 'Plus Jakarta Sans', var(--font-sans);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--navy)
+}
+
+/* The commercial process a quotation request enters: only its first stage is reached. */
+.desk-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid
+}
+
+.desk-timeline li {
+  position: relative;
+  padding: 0 0 14px 26px;
+  font-size: 14px;
+  color: var(--ink-muted)
+}
+
+.desk-timeline li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  background: var(--background)
+}
+
+.desk-timeline li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 18px;
+  bottom: 2px;
+  width: 2px;
+  background: var(--border)
+}
+
+.desk-timeline li[aria-current="step"] {
+  font-weight: 700;
+  color: var(--ink)
+}
+
+.desk-timeline li[aria-current="step"]::before {
+  border-color: var(--farm-green);
+  background: var(--farm-green)
+}
+
 .desk-follow-up {
   display: grid;
   gap: 8px;
@@ -9894,81 +10005,11 @@ article[id] {
   color: var(--brand)
 }
 
-.desk-hp {
-  position: absolute;
-  left: -10000px;
-  width: 1px;
-  height: 1px;
-  opacity: 0
-}
-
-.desk-error {
-  font-size: 12px;
-  color: var(--destructive)
-}
-
-.desk-failed {
-  display: grid;
-  justify-items: start;
-  gap: 8px;
-  padding: 12px 14px;
-  border: 1px solid rgb(216 51 60 / .25);
-  border-radius: 10px;
-  background: rgb(216 51 60 / .06);
-  font-size: 14px
-}
-
-.desk-submit {
-  justify-self: start
-}
-
-/* Sticky at the bottom of the step, so the next action stays in reach while the step scrolls. */
-.desk-nav {
-  position: sticky;
-  bottom: 0;
+.desk-sent-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
-  gap: 12px 20px;
-  margin: 0 -32px;
-  padding: 16px 32px 20px;
-  border-top: 1px solid var(--border);
-  background: var(--background)
-}
-
-.desk-nav .desk-note,
-.desk-back {
-  margin-right: auto
-}
-
-.desk-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink-muted)
-}
-
-.desk-back:hover {
-  color: var(--ink)
-}
-
-.desk-sent {
-  display: grid;
-  justify-items: start;
-  gap: 14px;
-  padding: 24px 0
-}
-
-.desk-reference-id {
-  font-family: 'Plus Jakarta Sans', var(--font-sans);
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: .04em;
-  font-variant-numeric: tabular-nums;
-  color: var(--navy)
+  gap: 12px 20px
 }
 
 @media(max-width:900px) {
@@ -9982,29 +10023,26 @@ article[id] {
   }
 
   .desk-head {
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding: 14px 16px
+    gap: 10px;
+    padding: 8px 12px
   }
 
-  .desk-steps {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    flex-wrap: nowrap;
-    justify-content: flex-start
+  .desk-logo {
+    width: 48px;
+    height: 32px
   }
 
-  /* Phones: the current step keeps its label, the others show their number. */
-  .desk-steps li:not([aria-current="step"]) {
-    padding: 0;
-    font-size: 0
+  .desk-title {
+    font-size: 16px
   }
 
-  .desk-steps li span {
+  .desk-description {
     font-size: 11px
   }
 
+  /* One scroll: the conversation, with the requirement folded into a sticky line above it. */
   .desk-body {
-    grid-template-columns: minmax(0, 1fr);
+    display: block;
     overflow-y: auto
   }
 
@@ -10014,27 +10052,67 @@ article[id] {
   }
 
   .desk-main {
-    padding: 20px 16px 0
+    padding: 18px 16px 28px
   }
 
   .desk-panel {
-    padding: 20px 16px 28px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 0;
     border-left: 0;
-    border-top: 1px solid var(--border)
+    border-bottom: 1px solid var(--border);
+    gap: 0
   }
 
-  .desk-nav {
-    margin: 0 -16px;
-    padding: 12px 16px;
-    box-shadow: 0 -10px 18px -14px rgb(0 20 55 / .3)
+  .desk-panel-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 48px;
+    padding: 8px 16px;
+    text-align: left
   }
 
-  .desk-contact-grid,
-  .desk-summary>div {
+  .desk-panel-status {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--brand)
+  }
+
+  .desk-panel-toggle svg {
+    flex: none;
+    transition: transform .15s
+  }
+
+  .desk-panel-toggle[aria-expanded="true"] svg {
+    transform: rotate(180deg)
+  }
+
+  .desk-panel-title,
+  .desk-panel-body {
+    display: none
+  }
+
+  .desk-panel[data-open] .desk-panel-body {
+    display: grid;
+    gap: 14px;
+    padding: 0 16px 16px
+  }
+
+  .desk-msg {
+    max-width: 88%
+  }
+
+  .desk-contact,
+  .desk-sent {
+    padding: 16px
+  }
+
+  .desk-contact-grid {
     grid-template-columns: minmax(0, 1fr)
   }
-
-  .desk-summary>div {
-    gap: 2px
-  }
 }
+

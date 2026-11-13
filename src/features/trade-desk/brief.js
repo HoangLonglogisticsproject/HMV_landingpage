@@ -1,91 +1,61 @@
-// The buyer brief: the structured state the Trade Desk edits and the source of truth for the summary and the inquiry.
-// Pure functions only; the summary states what the buyer entered and what HMV still needs, never prices, availability,
-// transit times or certifications.
-import {
-  APPLICATIONS, ORIGINS, TRANSPORT, VOLUME_UNITS, checklist, defaultUnit, missingInformation, originsFor, productById,
-  requirementsFor,
-} from './rules';
+// The buyer's requirement: the state the Trade Desk conversation fills, and the source of truth for the summary, the
+// route and the inquiry. The desk asks three things, product, destination and volume; nothing else is asked, inferred
+// or filled in. Pure functions only.
+import { VOLUME_UNITS, defaultUnit, productById } from './rules';
 
-/** DOM id of a brief field: shared by the steps and the desk's focus handling. */
+/** DOM id of a desk control: shared by the conversation and the desk's focus handling. */
 export const fieldId = (uid, key) => `${uid}-${key}`;
 
-/** @param {{ product?: string | null }} [start] */
-export function emptyBrief({ product = null } = {}) {
+/**
+ * @param {{ product?: string | null, notes?: string }} [start] `notes`: the buyer's own words naming the product, when
+ * they typed them; they reach HMV as the inquiry's notes.
+ */
+export function emptyBrief({ product = null, notes = '' } = {}) {
+  const known = productById(product) ? product : null;
+  return { product: known, destination: '', volume: { amount: '', unit: defaultUnit(known) }, notes };
+}
+
+const filled = value => String(value ?? '').trim() !== '';
+
+/** Product, destination and volume are known: enough to open a commercial inquiry for quotation. */
+export const isRfqReady = brief => Boolean(brief.product) && filled(brief.destination) && filled(brief.volume.amount);
+
+/**
+ * Who continues with the buyer: HMV Sales ('rfq') for a ready requirement, HMV Customer Service ('discovery')
+ * otherwise. The CMS derives the same route from what it stores.
+ */
+export const routeOf = brief => (isRfqReady(brief) ? 'rfq' : 'discovery');
+
+/** Where the conversation is: the next question, or the route decision once ready or while the buyer is exploring. */
+export function stageOf(brief, { exploring }) {
+  if (!brief.product) return 'product';
+  if (exploring || isRfqReady(brief)) return 'decision';
+  return filled(brief.destination) ? 'volume' : 'destination';
+}
+
+/** The requirement in the buyer's language; '' for what is not known yet. */
+export function summarize(brief, lang) {
   return {
-    product: productById(product) ? product : null,
-    origin: originsFor(product)[0],
-    destination: '',
-    volume: { amount: '', unit: defaultUnit(product) },
-    application: '',
-    transport: '',
-    requirements: {},
-    notes: '',
+    product: productById(brief.product)?.[lang] ?? '',
+    destination: brief.destination.trim(),
+    volume: filled(brief.volume.amount) ? `${brief.volume.amount.trim()} ${VOLUME_UNITS[brief.volume.unit][lang]}` : '',
   };
 }
 
 /**
- * The brief after choosing a product: origin and volume unit follow the product; answers to other products' fields go.
- * An amount is kept only while its unit stays: 5000 MT / month never becomes 5000 containers.
+ * The inquiry sent to POST /api/inquiry, validated again there. The contract's application, transport and
+ * requirements stay empty: the desk does not ask them, and nothing is filled in for them.
  */
-export const withProduct = (brief, product) => {
-  const unit = defaultUnit(product);
-  return {
-    ...brief,
-    product,
-    origin: originsFor(product)[0],
-    volume: unit === brief.volume.unit ? brief.volume : { amount: '', unit },
-    application: '',
-    requirements: {},
-  };
-};
-
-const filled = value => String(value ?? '').trim() !== '';
-
-/** The brief as rows of known values, in the buyer's language. `pending`: the placeholder for an unknown destination. */
-export function summarize(brief, lang, { pending }) {
-  const product = productById(brief.product);
-  const origin = ORIGINS[brief.origin]?.[lang] ?? '';
-  const destination = brief.destination.trim();
-  const rows = [];
-  const row = (key, label, value) => filled(value) && rows.push({ key, label, value });
-  row('product', { en: 'Product', vi: 'Sản phẩm' }[lang], product?.[lang]);
-  if (filled(origin) || filled(destination)) {
-    row('route', { en: 'Route', vi: 'Tuyến' }[lang], `${origin || pending} → ${destination || pending}`);
-  }
-  if (filled(brief.volume.amount)) {
-    row('volume', { en: 'Estimated volume', vi: 'Sản lượng dự kiến' }[lang], `${brief.volume.amount.trim()} ${VOLUME_UNITS[brief.volume.unit][lang]}`);
-  }
-  row('application', { en: 'Application', vi: 'Mục đích sử dụng' }[lang], APPLICATIONS[brief.product]?.[brief.application]?.[lang]);
-  row('transport', { en: 'Transport', vi: 'Vận chuyển' }[lang], TRANSPORT[brief.transport]?.[lang]);
-  const requirements = requirementsFor(brief)
-    .filter(r => filled(brief.requirements[r.key]))
-    .map(r => ({
-      key: r.key,
-      label: r.label[lang],
-      value: r.kind === 'choice' ? r.options.find(o => o.id === brief.requirements[r.key])?.label[lang] : brief.requirements[r.key].trim(),
-    }));
-  const missing = missingInformation(brief).map(m => ({ key: m.key, label: m.label[lang], core: m.core }));
-  return { rows, requirements, missing };
-}
-
-/** Share of the checklist answered, rounded to a quarter (0, 25, 50, 75, 100): a categorical value for analytics. */
-export function progress(brief) {
-  const items = checklist(brief);
-  return Math.round((items.filter(i => i.done).length / items.length) * 4) * 25;
-}
-
-/** The inquiry sent to POST /api/inquiry: the brief, the contact and the page context. Validated again on the server. */
 export function toInquiry(brief, { contact, consent, locale, context, idempotencyKey, website = '' }) {
   return {
     idempotencyKey,
     locale,
     product: brief.product,
-    origin: brief.origin,
     destination: brief.destination,
     volume: brief.volume,
-    application: brief.application,
-    transport: brief.transport,
-    requirements: Object.fromEntries(Object.entries(brief.requirements).filter(([, v]) => filled(v))),
+    application: '',
+    transport: '',
+    requirements: {},
     notes: brief.notes,
     contact,
     consent: { contact: consent === true },
