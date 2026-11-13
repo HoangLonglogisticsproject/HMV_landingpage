@@ -206,6 +206,30 @@ test('dried cassava chips: EN/VI pair in hreflang and the sitemap, separate from
   expect(xml).toContain(`<loc>${abs('/products/tapioca-starch')}</loc>`);
 });
 
+// The money pages (dried cassava chips and passion fruit, EN and VI). Their hreflang pairs and sitemap entries are
+// checked with every URL above; here, what a search result or a link preview reads, and the crawl path to them.
+const MONEY = ['/products/dried-cassava-chips', '/products/passion-fruit'];
+
+test('money pages: unique title and description, self canonical, OG and Twitter tags in the server HTML', async ({ request }) => {
+  const paths = LOCALES.flatMap(lang => MONEY.map(key => localizePath(key, lang)));
+  const heads = await Promise.all(paths.map(async path => head(await (await request.get(path)).text())));
+  heads.forEach((h, i) => {
+    expect(h.canonical, paths[i]).toBe(abs(paths[i]));
+    expect(h.og, paths[i]).toMatchObject({ url: abs(paths[i]), title: h.title, description: h.description, type: 'website' });
+    expect(h.twitter, paths[i]).toMatchObject({ card: 'summary_large_image', title: h.title, description: h.description });
+  });
+  for (const key of ['title', 'description']) expect(new Set(heads.map(h => h[key])).size, key).toBe(paths.length);
+});
+
+test('money pages: plain links from Home, Supply Chain and Trade Solutions in the server HTML', async ({ request }) => {
+  for (const lang of LOCALES) {
+    for (const from of ['/', '/supply-chain', '/trade-solutions'].map(key => localizePath(key, lang))) {
+      const hrefs = tags(await (await request.get(from)).text(), 'a').map(a => a.href);
+      for (const key of MONEY) expect(hrefs, `${from} → ${key}`).toContain(localizePath(key, lang));
+    }
+  }
+});
+
 test('robots.txt allows crawling and points to the sitemap', async ({ request }) => {
   const robots = await (await request.get('/robots.txt')).text();
   expect(robots).toMatch(/User-Agent: \*\s+Allow: \//i);
