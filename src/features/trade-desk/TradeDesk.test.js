@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, test, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { act, createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -66,6 +66,9 @@ async function toContact(contact = { company: 'Example Foods B.V.', email: 'buye
 }
 const send = () => click(button('Send Request'));
 
+// The desk's module, transformed once up front: a cold first open on a busy machine could outlast a test's timeout,
+// and every later test would fail with it.
+beforeAll(() => import('./TradeDesk.jsx'));
 beforeEach(async () => {
   container = document.body.appendChild(document.createElement('div'));
   root = createRoot(container);
@@ -658,4 +661,163 @@ test('a new inquiry after a sent one asks for consent again and does not reuse t
   assert.equal(field('contact.company').value, '');
   assert.equal(field('contact.email').value, '');
   assert.equal(field('consent.contact').checked, false);
+});
+
+// Correcting an answer from the requirement panel.
+const editButtons = () => [...dialog().querySelectorAll('.desk-edit')].map(b => b.textContent);
+const summaryValue = label => [...dialog().querySelectorAll('.desk-summary > div')].find(d => d.querySelector('dt').textContent === label).querySelector('dd').firstChild.textContent;
+/** From a product page to a ready requirement. */
+async function ready(product = 'dried-cassava-chips', destination = 'Channai, India', amount = '2,000') {
+  await open({ product, source: 'product_hero' });
+  await say('destination', destination);
+  await say('volume', amount);
+}
+
+test('edit destination: only the destination is asked again; product and volume stay; ready again without a second volume question', async () => {
+  await render();
+  await ready();
+  assert.deepEqual(editButtons(), ['Edit Product', 'Edit Destination', 'Edit Volume']);
+  const edit = button('Edit Destination');
+  assert.equal(edit.type, 'button');
+  edit.focus();
+  await click(edit);
+  // The conversation rewinds to the question being corrected; the panel keeps the other answers, no stale value.
+  assert.deepEqual(thread(), ['HMV: Where would you like the goods delivered?']);
+  assertFocus(field('destination'));
+  assert.equal(summaryValue('Product'), 'Dried cassava chips');
+  assert.equal(summaryValue('Destination'), 'Not specified yet');
+  assert.equal(summaryValue('Volume'), '2,000 MT / month');
+  assert.ok(panel().includes('Exploring requirement'));
+  assert.doesNotMatch(panel(), /Channai/);
+  await say('destination', 'Chennai, India');
+  // Volume was kept: no second volume question, straight back to ready.
+  assertAbsent(field('volume'));
+  assert.deepEqual(thread(), [
+    'HMV: Where would you like the goods delivered?',
+    'You: Chennai, India',
+    'HMV: What volume are you planning to purchase?',
+    'You: 2,000 MT / month',
+    'HMV: Thank you. I have enough information to open a commercial inquiry for this requirement. HMV can now review the supply requirement and continue directly with our Sales team for quotation.',
+  ]);
+  assert.ok(panel().includes('Ready for quotation'));
+  assertFocus(button('Request Quotation'));
+});
+
+test('edit volume: product and destination stay, the volume question comes back with its unit, and the route is recomputed', async () => {
+  await render();
+  await ready();
+  await click(button('Edit Volume'));
+  assertFocus(field('volume'));
+  assert.equal(summaryValue('Volume'), 'Not specified yet');
+  assert.equal(summaryValue('Destination'), 'Channai, India');
+  assert.equal(thread().at(-1), 'HMV: What volume are you planning to purchase?');
+  assert.equal(field('volume').form.querySelector('select').value, 'mt_month');
+  assert.ok(panel().includes('Exploring requirement'));
+  await say('volume', '3,000');
+  assert.equal(summaryValue('Volume'), '3,000 MT / month');
+  assert.ok(panel().includes('Ready for quotation'));
+  assertFocus(button('Request Quotation'));
+});
+
+test('edit product (even from a product page): the destination stays, the volume is cleared and its unit follows the new product', async () => {
+  await render();
+  await ready();
+  await click(button('Edit Product'));
+  assertFocus(field('product'));
+  assert.deepEqual(thread(), ['HMV: What product are you looking for?']);
+  assert.equal(summaryValue('Product'), 'Not specified yet');
+  assert.equal(summaryValue('Destination'), 'Channai, India');
+  assert.equal(summaryValue('Volume'), 'Not specified yet');
+  await click(button('Passion fruit'));
+  assert.deepEqual(thread(), [
+    'HMV: What product are you looking for?',
+    'You: Passion fruit',
+    'HMV: Where would you like the goods delivered?',
+    'You: Channai, India',
+    'HMV: What volume are you planning to purchase?',
+  ]);
+  assertFocus(field('volume'));
+  // Containers for passion fruit: the cassava MT / month amount is not carried over.
+  assert.equal(field('volume').form.querySelector('select').value, 'containers');
+  assert.equal(field('volume').value, '');
+  await say('volume', '2');
+  assert.equal(summaryValue('Volume'), '2 containers');
+  assert.ok(panel().includes('Ready for quotation'));
+});
+
+test('editing after the contact card opened closes it; the typed contact details are kept for when it reopens', async () => {
+  await render();
+  await toContact({ company: 'Example Foods B.V.', email: 'buyer@example.com' });
+  await type(field('contact.phone'), '+31 10 000 0000');
+  await click(button('Edit Destination'));
+  assertAbsent(field('contact.company'));
+  assertAbsent(button('Request Quotation'));
+  await say('destination', 'Antwerp, Belgium');
+  await click(button('Request Quotation'));
+  assert.equal(field('contact.company').value, 'Example Foods B.V.');
+  assert.equal(field('contact.email').value, 'buyer@example.com');
+  assert.equal(field('contact.phone').value, '+31 10 000 0000');
+  assert.equal(field('consent.contact').checked, true);
+  // The card's start is counted once per conversation.
+  assert.equal(events().filter(e => e === 'trade_contact_start').length, 1);
+});
+
+test('a buyer who was exploring corrects the destination: the remaining question is asked and the route returns to RFQ', async () => {
+  await render();
+  await open({ product: 'bananas', source: 'product_hero' });
+  await say('destination', 'Dubia');
+  await click(button('still exploring'));
+  assert.ok(panel().includes('Exploring requirement'));
+  assert.ok(button('Discuss with HMV'));
+  await click(button('Edit Destination'));
+  await say('destination', 'Dubai, UAE');
+  // Exploring is set aside by the correction: the volume is asked, and the buyer may still say they are exploring.
+  assertFocus(field('volume'));
+  assert.ok(button('still exploring'));
+  await say('volume', '4');
+  assert.ok(panel().includes('Ready for quotation'));
+  assert.ok(panel().includes('Next: HMV Sales'));
+  assert.ok(button('Request Quotation'));
+});
+
+test('a corrected inquiry gets a new idempotency key; the same answer again is the same inquiry and keeps it', async () => {
+  sendInquiry.mockResolvedValue({ status: 502, body: { error: 'failed' } });
+  await render();
+  await toContact();
+  await send();
+  assert.ok(dialog().querySelector('.desk-failed'));
+  // Corrected to the same value: the very same inquiry, so the same key.
+  await click(button('Edit Destination'));
+  await say('destination', 'Rotterdam, Netherlands');
+  await click(button('Request Quotation'));
+  // The failure belonged to the earlier attempt: the card starts clean.
+  assertAbsent(dialog().querySelector('.desk-failed'));
+  await send();
+  await click(button('Edit Destination'));
+  await say('destination', 'Antwerp, Belgium');
+  await click(button('Request Quotation'));
+  await send();
+  const sent = sendInquiry.mock.calls.map(([inquiry]) => [inquiry.destination, inquiry.idempotencyKey]);
+  assert.deepEqual(sent.map(([d]) => d), ['Rotterdam, Netherlands', 'Rotterdam, Netherlands', 'Antwerp, Belgium']);
+  assert.equal(sent[1][1], sent[0][1]);
+  assert.notEqual(sent[2][1], sent[1][1]);
+});
+
+test('no edit while an inquiry is being sent, and none once it was accepted', async () => {
+  let accept;
+  sendInquiry.mockReturnValueOnce(new Promise(resolve => { accept = resolve; }));
+  await render();
+  await toContact();
+  await send();
+  assert.ok([...dialog().querySelectorAll('.desk-edit')].every(b => b.disabled));
+  await act(async () => accept({ status: 201, body: { reference: 'HMV-2026-FIXED1' } }));
+  assert.ok(dialog().textContent.includes('HMV-2026-FIXED1'));
+  assert.deepEqual(editButtons(), []);
+  assert.equal(summaryValue('Destination'), 'Rotterdam, Netherlands');
+});
+
+test('Vietnamese: the edit action is "Sửa"', async () => {
+  await render('vi');
+  await ready();
+  assert.deepEqual(editButtons(), ['Sửa Sản phẩm', 'Sửa Điểm đến', 'Sửa Sản lượng']);
 });

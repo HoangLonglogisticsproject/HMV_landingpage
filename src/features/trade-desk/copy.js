@@ -49,6 +49,7 @@ const COPY = {
   destination: t('Destination', 'Điểm đến'),
   volume: t('Volume', 'Sản lượng'),
   notYet: t('Not specified yet', 'Chưa xác định'),
+  edit: t('Edit', 'Sửa'),
   route: {
     rfq: { status: t('Ready for quotation', 'Sẵn sàng chuyển báo giá'), next: t('Next: HMV Sales', 'Tiếp theo: HMV Sales') },
     discovery: {

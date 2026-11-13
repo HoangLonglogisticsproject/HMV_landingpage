@@ -154,9 +154,10 @@ export function RouteAction({ uid, t, route, onClick }) {
 
 /**
  * The requirement beside the conversation: product, destination and volume, and who continues with the buyer. On a
- * phone it folds into one line above the conversation.
+ * phone it folds into one line above the conversation. Each known answer can be corrected (`onEdit`, null once the
+ * inquiry is sent; `locked` while it is being sent).
  */
-export function RequirementPanel({ t, lang, brief, route, open, onToggle }) {
+export function RequirementPanel({ t, lang, brief, route, open, onToggle, onEdit, locked }) {
   const known = summarize(brief, lang);
   const { status, next } = t.route[route];
   return (
@@ -172,7 +173,15 @@ export function RequirementPanel({ t, lang, brief, route, open, onToggle }) {
           {['product', 'destination', 'volume'].map(key => (
             <div key={key}>
               <dt>{t[key]}</dt>
-              <dd>{known[key] || <span className="desk-pending">{t.notYet}</span>}</dd>
+              <dd>
+                {known[key] || <span className="desk-pending">{t.notYet}</span>}
+                {known[key] && onEdit && (
+                  <button type="button" className="desk-edit" disabled={locked} onClick={() => onEdit(key)}>
+                    {t.edit}
+                    <span className="sr-only"> {t[key]}</span>
+                  </button>
+                )}
+              </dd>
             </div>
           ))}
         </dl>

@@ -34,6 +34,15 @@ test('mobile: a full-screen sheet, chat first, one scroll, the requirement folde
   await toggle.click();
   await expect(desk(page).locator('.desk-summary')).toContainText('Rotterdam, Netherlands');
 
+  // A correction from the opened requirement: it folds away and the question is asked again, in view.
+  await desk(page).getByRole('button', { name: 'Edit Volume' }).click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(desk(page).getByLabel('Expected volume', { exact: true })).toBeFocused();
+  await expect(desk(page).getByLabel('Expected volume', { exact: true })).toBeInViewport();
+  await desk(page).getByLabel('Expected volume', { exact: true }).fill('3');
+  await desk(page).getByLabel('Expected volume', { exact: true }).press('Enter');
+  await expect(toggle).toContainText('Ready for quotation');
+
   // The contact card is inline in the conversation, not another page.
   await desk(page).getByRole('button', { name: 'Request Quotation' }).click();
   await expect(desk(page).getByLabel('Company')).toBeInViewport();

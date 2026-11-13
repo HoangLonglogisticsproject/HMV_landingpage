@@ -132,13 +132,24 @@ export function TradeDesk({ lang: siteLang, request }) {
     target.focus();
   };
 
+  // The control to focus once the screen is updated: an edited answer's question (its button is gone by then), or a
+  // contact field the server refused (its answer arrives while the card is still locked).
+  const pendingFocus = useRef(null);
+  useEffect(() => {
+    if (!pendingFocus.current) return;
+    document.getElementById(fieldId(uid, pendingFocus.current))?.focus();
+    pendingFocus.current = null;
+  });
+
   /** Learns the buyer's language from what they wrote, when it is clear evidence (never a place name or a number). */
   const listen = text => {
     const written = detectLanguage(text);
     if (written) setWrittenLang(written);
   };
+  // A product (also after an edit): the destination stays; the volume starts over in the product's usual unit, so an
+  // amount is never read in another product's unit.
   const chooseProduct = (product, words = '') => {
-    setBrief(emptyBrief({ product, notes: words }));
+    setBrief(b => ({ ...emptyBrief({ product, notes: words }), destination: b.destination }));
     track('trade_product_selected', { product, source: 'chosen' });
   };
   const answerProduct = words => {
@@ -162,9 +173,37 @@ export function TradeDesk({ lang: siteLang, request }) {
     setExploring(true);
     track('trade_route_discovery', facts);
   };
+  // Counted once per conversation, however often the card reopens after an edit.
+  const contactStarted = useRef(-1);
   const openContact = () => {
     setContactOpen(true);
+    if (contactStarted.current === generation) return;
+    contactStarted.current = generation;
     track('trade_contact_start', { ...facts, route });
+  };
+
+  /**
+   * Corrects one answer from the requirement panel: that question is asked again and the other answers stay, except
+   * that a new product also clears the volume (its unit follows the product). The contact card closes until the
+   * requirement is settled again, its values kept; the next send of a changed inquiry gets a new idempotency key. A
+   * sent inquiry is never edited (the panel offers no edit then).
+   */
+  const edit = key => {
+    const next = {
+      product: { ...emptyBrief(), destination: brief.destination },
+      destination: { ...brief, destination: '' },
+      volume: { ...brief, volume: { ...brief.volume, amount: '' } },
+    }[key];
+    setBrief(next);
+    if (key === 'product') {
+      setPreselected(false);
+      setUnclear([]);
+    }
+    setExploring(false);
+    setContactOpen(false);
+    setPanelOpen(false);
+    setStatus('idle');
+    pendingFocus.current = stageOf(next, { exploring: false });
   };
 
   const product = productById(brief.product);
@@ -177,20 +216,12 @@ export function TradeDesk({ lang: siteLang, request }) {
     live.current = generation;
   });
 
-  // The field to focus once the screen is updated: a server's answer arrives while the card is still locked.
-  const errorFocus = useRef(null);
-  useEffect(() => {
-    if (!errorFocus.current) return;
-    document.getElementById(fieldId(uid, errorFocus.current))?.focus();
-    errorFocus.current = null;
-  });
-
   /** Contact errors (from the validation, here or the server's): shown on their fields, the first one focused. */
   const showErrors = fields => {
     const own = CONTACT_ORDER.filter(f => fields.includes(f));
     setFieldErrors(own);
     if (!own.length) return false;
-    errorFocus.current = own[0];
+    pendingFocus.current = own[0];
     return true;
   };
 
@@ -293,7 +324,16 @@ export function TradeDesk({ lang: siteLang, request }) {
           </header>
 
           <div className="desk-body">
-            <RequirementPanel t={t} lang={lang} brief={brief} route={route} open={panelOpen} onToggle={() => setPanelOpen(o => !o)} />
+            <RequirementPanel
+              t={t}
+              lang={lang}
+              brief={brief}
+              route={route}
+              open={panelOpen}
+              onToggle={() => setPanelOpen(o => !o)}
+              onEdit={reference ? null : edit}
+              locked={status === 'sending'}
+            />
             <div className="desk-main">
               <Thread t={t} lang={lang} brief={brief} preselected={preselected} unclear={unclear} exploring={exploring} />
               {reference ? (

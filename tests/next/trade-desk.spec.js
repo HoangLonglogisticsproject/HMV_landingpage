@@ -80,6 +80,28 @@ test('product page: the product is known; destination and volume make a requirem
   await expect(desk(page).getByLabel('Company')).toHaveCount(0);
 });
 
+test('edit: a mistyped destination is corrected from the requirement panel, by keyboard; the volume is not asked again', async ({ page }) => {
+  await page.goto('/products/dried-cassava-chips');
+  await page.getByRole('button', { name: 'Request a Cassava Supply Proposal' }).click();
+  await say(page, 'Delivery destination', 'Channai, India');
+  await say(page, 'Expected volume', '2,000');
+  const panel = desk(page).getByRole('complementary', { name: 'Your requirement' });
+  await expect(panel).toContainText('Ready for quotation');
+  // On a phone the requirement is folded into one line: opened first.
+  if (test.info().project.name === 'chromium-mobile') await panel.getByRole('button', { name: /Your requirement/ }).click();
+  await panel.getByRole('button', { name: 'Edit Destination' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(desk(page).getByLabel('Delivery destination', { exact: true })).toBeFocused();
+  await expect(panel).toContainText('2,000 MT / month');
+  await expect(panel).not.toContainText('Channai');
+  await page.keyboard.type('Chennai, India');
+  await page.keyboard.press('Enter');
+  await expect(desk(page).getByRole('button', { name: 'Request Quotation' })).toBeFocused();
+  await expect(panel).toContainText('Chennai, India');
+  await expect(panel).toContainText('Ready for quotation');
+  await expect(desk(page).getByLabel('Expected volume', { exact: true })).toHaveCount(0);
+});
+
 test('RFQ accepted: contact last, reference and the commercial process, generate_lead only after acceptance, no PII', async ({ page }) => {
   let posted;
   await page.route('**/api/inquiry', async route => {
