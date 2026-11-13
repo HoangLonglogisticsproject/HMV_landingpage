@@ -70,6 +70,11 @@ export function ProductView({ lang, product }) {
               </p>
               <h2>{t.specTitle}</h2>
               <p className="body-copy">{t.productsText}</p>
+              {product.seeAlso && (
+                <p className="money-see-also">
+                  <Link to={`/products/${product.seeAlso.id}`}>{product.seeAlso[lang]}</Link>
+                </p>
+              )}
               <ul>
                 {product.specs.map(s => (
                   <li key={s}>

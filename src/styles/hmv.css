@@ -4182,6 +4182,11 @@ article[id] {
   font-size: 17px
 }
 
+.article-cta p a {
+  text-decoration: underline;
+  text-underline-offset: 3px
+}
+
 @media(max-width:600px) {
   .article-body {
     font-size: 16.5px

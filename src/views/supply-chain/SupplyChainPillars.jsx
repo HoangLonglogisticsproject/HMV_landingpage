@@ -161,6 +161,8 @@ export function SupplyChainPillars({ lang }) {
                     >
                       <Link to={`/products/${p.id}`}>
                         {vi ? 'Chi tiết quy cách' : 'Specifications'}
+                        {/* The product in the link text: seven cards, one visible label. */}
+                        <span className="sr-only">: {p[lang]}</span>
                         <ArrowUpRight size={14} />
                       </Link>
                     </Button>

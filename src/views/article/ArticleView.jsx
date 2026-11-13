@@ -41,7 +41,8 @@ export function ArticleView({ lang, state, readIn }) {
           <article className="article-col article-body">
             <RichText doc={a.content} />
             <aside className="article-cta glass">
-              {a.cta && <p>{a.cta}</p>}
+              {/* Bundled articles about a product link their question to its page; CMS articles have no product. */}
+              {a.cta && <p>{a.product ? <Link to={`/products/${a.product}`}>{a.cta}</Link> : a.cta}</p>}
               <Button asChild size="lg" className="day-cta"><Link to="/#initiate-trade">{t.quote}<ArrowUpRight size={18} /></Link></Button>
             </aside>
           </article>
