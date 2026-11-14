@@ -8994,11 +8994,6 @@ article[id] {
   margin: 20px 0 30px
 }
 
-/* A two-paragraph lead: the paragraphs are spaced by the second one's top margin. */
-.money-lead:has(+ .money-lead) {
-  margin-bottom: 0
-}
-
 .money-actions {
   display: flex;
   flex-wrap: wrap;

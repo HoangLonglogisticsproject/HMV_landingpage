@@ -26,9 +26,7 @@ test('money pages: intent-led title and description within SERP length, unique; 
     assert.match(title, intent);
     // ponytail: characters, not pixels; Google cuts at roughly 600 px, about 60-70 characters.
     assert.ok(`${title} | HMV Global`.length <= 70, `${url} title: ${title}`);
-    // ponytail: a guard against runaway copy, not a SERP rule; Google cuts snippets near 920 px (about 155-160
-    // characters) and often rewrites them. The EN cassava description (172) is the approved copy.
-    assert.ok(description.length <= 175, `${url} description: ${description.length}`);
+    assert.ok(description.length <= 160, `${url} description: ${description.length}`);
     const m = pageMetadata({ lang, path: `/products/${id}`, title, description });
     const pair = MONEY.filter(row => row[0] === id).map(([, l, u]) => [l, SITE + u]);
     assert.equal(m.alternates.canonical, SITE + url);

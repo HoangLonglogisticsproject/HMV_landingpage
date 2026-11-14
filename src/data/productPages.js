@@ -191,26 +191,20 @@ export const productPages = {
     seo: {
       title: t('Dried Cassava Chips Supplier in Vietnam', 'Nhà cung cấp sắn lát khô B2B tại Việt Nam'),
       description: t(
-        'HMV Global manages recurring bulk dried cassava chip supply for feed, starch and bioethanol buyers, coordinating sourcing, quality requirements, consolidation and delivery.',
+        'HMV Global manages recurring bulk dried cassava chip supply for feed, starch and bioethanol buyers, coordinating sourcing, quality, consolidation and delivery.',
         'HMV Global điều phối nguồn cung sắn lát khô số lượng lớn cho nhà máy thức ăn chăn nuôi, tinh bột và bioethanol, từ nguồn hàng, chất lượng đến giao hàng.',
       ),
     },
     // The product photograph of the overview cards (data/productPhotos.js): one verified image for the product.
     gallery: [{ ...CASSAVA_PHOTO, caption: { en: CASSAVA_PHOTO.altEn, vi: CASSAVA_PHOTO.altVi } }],
     content: {
-      h1: t('Bulk Dried Cassava Chips Supply by HMV Global', 'Nguồn cung sắn lát khô số lượng lớn từ HMV Global'),
-      lead: [
-        t(
-          'HMV Global coordinates recurring dried cassava chip supply for feed, starch and bioethanol manufacturers, importers and distributors through a managed regional sourcing network.',
-          'HMV Global điều phối nguồn cung sắn lát khô định kỳ cho nhà máy thức ăn chăn nuôi, tinh bột, bioethanol, nhà nhập khẩu và nhà phân phối thông qua mạng lưới cung ứng khu vực do HMV quản lý.',
-        ),
-        t(
-          'Depending on buyer requirements, season and availability, supply may be sourced across Vietnam and Cambodia. HMV coordinates the commercial brief, quality requirements, sampling, consolidation, documentation and delivery plan for each supply proposal.',
-          'Tùy theo yêu cầu người mua, mùa vụ và khả năng cung ứng, nguồn hàng có thể được huy động từ Việt Nam và Campuchia. HMV điều phối xuyên suốt yêu cầu thương mại, tiêu chí chất lượng, lấy mẫu, gom hàng, chứng từ và kế hoạch giao hàng cho từng phương án cung ứng.',
-        ),
-      ],
+      h1: t('Bulk Dried Cassava Chips Supply Managed by HMV Global', 'Nguồn cung sắn lát khô số lượng lớn do HMV Global điều phối'),
+      lead: t(
+        'HMV Global coordinates recurring dried cassava chip supply for feed, starch and bioethanol manufacturers, importers and distributors through a managed regional sourcing network.',
+        'HMV Global điều phối nguồn cung sắn lát khô định kỳ cho nhà máy thức ăn chăn nuôi, tinh bột, bioethanol, nhà nhập khẩu và nhà phân phối thông qua mạng lưới cung ứng khu vực do HMV quản lý.',
+      ),
       hero: {
-        eyebrow: t('HMV GLOBAL · MANAGED BULK SUPPLY', 'HMV GLOBAL · QUẢN LÝ NGUỒN CUNG SỐ LƯỢNG LỚN'),
+        eyebrow: t('HMV GLOBAL · MANAGED BULK SUPPLY', 'HMV GLOBAL · ĐIỀU PHỐI NGUỒN CUNG SỐ LƯỢNG LỚN'),
         secondary: { target: 'quality', label: t('View Quality Reference', 'Xem tham chiếu chất lượng') },
         intertek: {
           title: t('Intertek reference', 'Tham chiếu Intertek'),
