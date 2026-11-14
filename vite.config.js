@@ -56,7 +56,7 @@ export default defineConfig({
     include: ['src/**/*.test.{js,jsx}', 'scripts/**/*.test.js'],
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.{js,jsx}'],
+      include: ['src/**/*.{js,jsx,ts,tsx}'],
       reporter: ['text-summary', 'lcovonly'],
     },
   },
