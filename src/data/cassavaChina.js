@@ -2,12 +2,11 @@
 // (i18n/routes.js PAGE_LOCALES): written for mainland-China factory procurement first (feed, starch, bioethanol), then
 // importers and large-volume wholesalers. Rendered by views/products/CassavaChinaView.jsx.
 // Claims are those of the EN/VI cassava page (data/productPages.js): its network figures, its Intertek sample results
-// and its qualifications, translated. No new figures, specifications, certifications, customers or prices.
-import { productPhotos } from './productPhotos.js';
+// and its qualifications, translated. No new figures, specifications, certifications, customers or prices. Its
+// supply-evidence photographs and their Chinese captions: data/cassavaEvidence.js.
 import { cassavaEvidenceZh as evidence } from './productPages.js';
 
 const card = (title, text) => ({ title, text });
-const PHOTO = productPhotos['dried-cassava-chips'];
 
 export const cassavaChina = {
   seo: {
@@ -63,8 +62,6 @@ export const cassavaChina = {
     head: ['指标', '结果'],
     rows: evidence.results,
     source: evidence.source,
-    photo: { ...PHOTO, caption: { zh: '木薯干片特写，白色切面与褐色外皮' } },
-    photoNote: '照片由 HMV 提供。',
   },
   applications: {
     eyebrow: '饲料 · 淀粉 · 生物乙醇',

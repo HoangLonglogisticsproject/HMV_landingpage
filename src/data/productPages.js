@@ -2,7 +2,8 @@
 // Claims are limited to verified evidence. Passion fruit: fresh whole fruit, HMV-supplied photographs of a growing area,
 // cut-fruit samples and field sample inspection; Brix, capacity, certification, farm or factory ownership and lab results
 // are not asserted. Dried cassava chips: the HMV cassava dossier (network capacity, one Intertek-analysed sample) and
-// one HMV-supplied product photograph, whose location and lot are not asserted.
+// HMV-supplied photographs of the product, stock and container loading (data/cassavaEvidence.js), whose location,
+// facilities and lots are not asserted.
 // Rendered by views/products/ProductLanding.jsx; titles and descriptions by productMeta() in views/meta.js.
 //
 // One content tree per product. Only text leaves are localized, `t(en, vi)`; figures, sample results and the report are
@@ -10,7 +11,7 @@
 // The cassava figures and sample results also carry Simplified Chinese, `t(en, vi, zh)`, for the page-scoped Chinese
 // page (data/cassavaChina.js), which shows the same evidence.
 import { photos, photoCopy } from './hmv.js';
-import { productPhotos } from './productPhotos.js';
+import { cassavaEvidence } from './cassavaEvidence.js';
 
 const LOCALES = { en: 'en-US', vi: 'vi-VN', zh: 'zh-CN' };
 
@@ -90,7 +91,6 @@ const CASSAVA_SOURCE = lang => t(
   `Nguồn: Báo cáo phân tích Intertek Việt Nam ${INTERTEK.report} ngày ${reportDate(lang)}. Các giá trị áp dụng cho mẫu được phân tích.`,
   `来源：Intertek 越南分析报告 ${INTERTEK.report}，报告日期 ${reportDate(lang)}。所列数值仅适用于该送检样品。`,
 )(lang);
-const CASSAVA_PHOTO = productPhotos['dried-cassava-chips'];
 
 export const productPages = {
   'passion-fruit': definePage({
@@ -220,8 +220,8 @@ export const productPages = {
         'HMV Global điều phối nguồn cung sắn lát khô số lượng lớn cho nhà máy thức ăn chăn nuôi, tinh bột và bioethanol, từ nguồn hàng, chất lượng đến giao hàng.',
       ),
     },
-    // The product photograph of the overview cards (data/productPhotos.js): one verified image for the product.
-    gallery: [{ ...CASSAVA_PHOTO, caption: { en: CASSAVA_PHOTO.altEn, vi: CASSAVA_PHOTO.altVi } }],
+    // Product, stock and container-loading photographs, shared with the Chinese page; they include the product photograph.
+    supplyEvidence: cassavaEvidence,
     content: {
       h1: t('Bulk Dried Cassava Chips Supply Managed by HMV Global', 'Nguồn cung sắn lát khô số lượng lớn do HMV Global điều phối'),
       lead: t(
@@ -314,11 +314,6 @@ export const productPages = {
         ),
         volume: t('Monthly volume (MT)', 'Sản lượng hằng tháng (tấn)'),
         volumePlaceholder: t('Metric tons per month', 'Số tấn mỗi tháng'),
-      },
-      gallery: {
-        eyebrow: t('THE PRODUCT', 'SẢN PHẨM'),
-        title: t('Dried cassava chips', 'Sắn lát khô'),
-        note: t('Photo supplied by HMV.', 'Ảnh do HMV cung cấp.'),
       },
     },
     rfqFields: [

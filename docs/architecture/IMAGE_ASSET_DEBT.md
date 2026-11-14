@@ -5,7 +5,7 @@
 | Status | 2026-11-09, branch `feat/nextjs-foundation` (architecture §11). For the content owner: photographs to replace with larger originals. |
 | Related | [Architecture §11](NEXTJS_TARGET_ARCHITECTURE.md#11-images-fonts-and-css) · `tests/next/images.spec.js` (`ORIGINAL_LIMITED`) · `scripts/image-fidelity.mjs` |
 
-These 24 sources are the photographs HMV supplied, at their full resolution: the export kept every pixel. They are smaller than the size the site paints them at on a sharp screen, so they look softer there than the layout allows. The fix is a larger original of the same photograph; the code never enlarges an image.
+These 26 sources are the photographs HMV supplied, at their full resolution: the export kept every pixel. They are smaller than the size the site paints them at on a sharp screen, so they look softer there than the layout allows. The fix is a larger original of the same photograph; the code never enlarges an image.
 
 How the numbers were measured (Chromium, `next start`, every page and every lightbox, `object-fit` included: a cover crop paints the whole image wider than its box):
 
@@ -17,6 +17,7 @@ How the numbers were measured (Chromium, `next start`, every page and every ligh
 | Asset | Source (px) | Max rendered, desktop (CSS px) | Ideal at DPR 2 | Max rendered, phone (CSS px) | Ideal at DPR 3 | Status |
 |---|---|---|---|---|---|---|
 | `car` | 960×1280 | 371×494 (/activities, 1280 px wide) | 742×989 | 350×467 (/activities) | 1050×1400 | Original source insufficient: phone DPR 3 |
+| `cassava-bulk-stock` (products/) | 960×1280 | 623×831 (the cassava pages' supply evidence, 1280 px wide and up) | 1246×1662 | 350×467 (the cassava pages) | 1050×1400 | Original source insufficient: desktop DPR 2 and phone DPR 3 |
 | `container1` | 960×1280 | 554×739 (/packaging-logistics, 1280 px wide) | 1109×1478 | 312×416 (/packaging-logistics) | 936×1248 | Original source insufficient: desktop DPR 2 |
 | `crossborder1` | 960×1280 | 608×810 (/logistics lightbox, 1920 px wide) | 1215×1620 | 351×468 (/logistics) | 1053×1404 | Original source insufficient: desktop DPR 2 and phone DPR 3 |
 | `crossborder2` | 1280×1280 | 810×810 (/logistics lightbox, 1920 px wide) | 1620×1620 | 351×351 (/logistics) | 1053×1053 | Original source insufficient: desktop DPR 2 |
@@ -24,7 +25,8 @@ How the numbers were measured (Chromium, `next start`, every page and every ligh
 | `crossborder4` | 960×1280 | 608×810 (/logistics lightbox, 1920 px wide) | 1215×1620 | 351×468 (/logistics) | 1053×1404 | Original source insufficient: desktop DPR 2 and phone DPR 3 |
 | `crossborder5` | 960×1280 | 608×810 (/logistics lightbox, 1920 px wide) | 1215×1620 | 351×468 (/logistics) | 1053×1404 | Original source insufficient: desktop DPR 2 and phone DPR 3 |
 | `crossborder6` | 960×1280 | 608×810 (/logistics lightbox, 1920 px wide) | 1215×1620 | 351×468 (/logistics) | 1053×1404 | Original source insufficient: desktop DPR 2 and phone DPR 3 |
-| `dried-cassava-chips` (products/) | 960×1280 | 568×757 (/products/dried-cassava-chips, 1280 px wide) | 1136×1515 | 350×467 (/products/dried-cassava-chips) | 1050×1400 | Original source insufficient: desktop DPR 2 and phone DPR 3 |
+| `dried-cassava-chips` (products/) | 960×1280 | 373×497 (/, 1920 px wide) | 746×994 | 350×467 (/) | 1050×1400 | Original source insufficient: phone DPR 3 |
+| `dried-cassava-chips-detail` (products/) | 960×720 | 517×387 (the cassava pages' supply evidence, 1280 px wide and up) | 1034×774 | 351×263 (the cassava pages) | 1053×789 | Original source insufficient: desktop DPR 2 and phone DPR 3 |
 | `factory-visit` | 960×1280 | 1080×1440 (/blog/optimizing-tropical-logistics, 1280 px wide) | 2160×2880 | 350×467 (/) | 1050×1400 | Original source insufficient: desktop DPR 2 and phone DPR 3 |
 | `farm-team` | 1308×1600 | 1080×1321 (/blog/circular-agriculture, 1280 px wide) | 2160×2643 | 350×428 (/) | 1050×1285 | Original source insufficient: desktop DPR 2 |
 | `forest-team` | 1218×912 | 910×682 (/activities lightbox, 1920 px wide) | 1821×1364 | 494×370 (/activities) | 1483×1110 | Original source insufficient: desktop DPR 2 and phone DPR 3 |

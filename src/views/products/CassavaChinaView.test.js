@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { act, createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
 import { cassavaChina as c } from '../../data/cassavaChina.js';
+import { cassavaEvidence } from '../../data/cassavaEvidence.js';
 import { OPEN_TRADE_DESK } from '../../features/trade-desk/open.js';
 import { CassavaChinaView } from './CassavaChinaView.jsx';
 
@@ -30,6 +31,17 @@ test('the Chinese copy: one heading, the hero, the Intertek rows and the RFQ che
   assert.deepEqual(texts('.zh-rfq-card li'), c.rfq.items);
   assert.equal(container.querySelector('#zh-rfq-title').textContent, c.rfq.title.join(''));
   assert.ok(container.querySelector('#capability .zh-network').textContent.includes(c.network.text));
+});
+
+// The photographs the EN/VI page shows, with Chinese copy: after the buyer section, before the quality results.
+test('the supply evidence in Chinese, between the buyer section and the quality results', () => {
+  const section = container.querySelector('section#supply-evidence');
+  assert.equal(section.previousElementSibling.id, 'capability');
+  assert.equal(section.nextElementSibling.id, 'quality');
+  assert.equal(section.querySelector('h2').textContent, cassavaEvidence.copy.zh.title);
+  const images = [...section.querySelectorAll('img')].map(i => [i.getAttribute('src'), i.alt, i.getAttribute('loading')]);
+  assert.deepEqual(images, cassavaEvidence.photos.map(p => [p.src, p.alt.zh, 'lazy']));
+  assert.deepEqual(texts('#supply-evidence figcaption'), cassavaEvidence.photos.map(p => p.caption.zh));
 });
 
 test('header: section links to sections of this page; this page in English, Vietnamese and Chinese, Chinese current', () => {
