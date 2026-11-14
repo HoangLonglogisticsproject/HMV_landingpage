@@ -9494,16 +9494,30 @@ article[id] {
   opacity: 1
 }
 
-/* The preview: the whole photograph on a dark backdrop, fitted to the viewport, its caption below. */
+/* The preview, a native modal <dialog>: the whole photograph on a dark layer over the full viewport, fitted to it,
+   its caption below. The dialog's defaults (centered box, margin, border, maximum size, light background) give way to
+   that layer, which paints the dark itself: the ::backdrop under it stays clear. */
 .supply-evidence-preview {
   position: fixed;
   inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
   padding: 64px 20px 24px;
   background: rgba(0, 18, 51, 0.92)
+}
+
+.supply-evidence-preview[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center
+}
+
+.supply-evidence-preview::backdrop {
+  background: transparent
 }
 
 .supply-evidence-preview figure {
@@ -9542,15 +9556,22 @@ article[id] {
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid #8aa3cf;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
+  background: #001d59;
   color: #ffffff;
   cursor: pointer
 }
 
+/* Opaque, so the contrast is fixed: white on #001d59 15.9:1, on #0a3a8a 10.6:1; the light border marks the button
+   on the dark layer. */
 .supply-evidence-preview-close:is(:hover, :focus-visible) {
-  background: rgba(255, 255, 255, 0.28)
+  background: #0a3a8a
+}
+
+.supply-evidence-preview-close:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px
 }
 
 @media(max-width:700px) {

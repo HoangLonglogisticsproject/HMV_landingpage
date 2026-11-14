@@ -131,3 +131,33 @@ test('each photograph opens larger, the same optimized file with its caption, an
   }
   expect(requests.filter(url => /\.jpe?g/i.test(decodeURIComponent(url)))).toEqual([]);
 });
+
+// A modal dialog (showModal): the page behind is inert, so Tab and Shift+Tab never reach the photographs behind it.
+test('the open preview is modal: Tab and Shift+Tab stay out of the page behind; Escape gives focus back', async ({ page }) => {
+  await page.goto(PAGES.en);
+  const frames = page.locator('#supply-evidence .supply-evidence-frame');
+  await frames.nth(1).focus();
+  await page.keyboard.press('Enter');
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  expect(await dialog.evaluate(d => [d.tagName, d.matches(':modal'), d.getAttribute('role')])).toEqual(['DIALOG', true, null]);
+  const close = dialog.getByRole('button', { name: COPY.en.close });
+  await expect(close).toBeFocused();
+  // Where focus is: in the dialog, or in no element of the page (the browser's own controls).
+  const focus = () => page.evaluate(() => {
+    const active = document.activeElement;
+    return { inDialog: document.querySelector('dialog').contains(active), inPage: active !== null && active !== document.body, trigger: !!active?.closest('.supply-evidence-frame') };
+  });
+  for (const keys of ['Tab', 'Shift+Tab', 'Tab', 'Shift+Tab']) {
+    await page.keyboard.press(keys);
+    const at = await focus();
+    expect(at.trigger, keys).toBe(false);
+    expect(!at.inPage || at.inDialog, `${keys}: ${JSON.stringify(at)}`).toBe(true);
+  }
+  // The photographs behind cannot take focus while it is open.
+  await frames.first().focus();
+  expect((await focus()).trigger).toBe(false);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(frames.nth(1)).toBeFocused();
+});

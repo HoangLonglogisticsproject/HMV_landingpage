@@ -8,11 +8,24 @@ import { SupplyEvidence } from './SupplyEvidence.jsx';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
+// jsdom has HTMLDialogElement but not showModal() or close(): the test supplies them, recording the modal opens. The
+// browser tests (tests/next/supply-evidence.spec.js) use the real ones, with the page behind made inert.
+const modal = [];
+HTMLDialogElement.prototype.showModal = function showModal() {
+  modal.push(this);
+  this.open = true;
+};
+HTMLDialogElement.prototype.close = function close() {
+  this.open = false;
+  this.dispatchEvent(new Event('close'));
+};
+
 let root, container;
 const render = lang => act(() => root.render(h(SupplyEvidence, { evidence: cassavaEvidence, lang })));
 beforeEach(() => {
   container = document.body.appendChild(document.createElement('div'));
   root = createRoot(container);
+  modal.length = 0;
 });
 afterEach(async () => {
   await act(() => root.unmount());
@@ -20,10 +33,11 @@ afterEach(async () => {
 });
 
 const triggers = () => [...container.querySelectorAll('.supply-evidence-frame')];
-const preview = () => container.querySelector('.supply-evidence-preview');
+const preview = () => container.querySelector('dialog.supply-evidence-preview');
 const key = (el, k) => act(() => el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true })));
+const photo = i => cassavaEvidence.photos[i];
 
-test('every photograph is a button that opens it larger: the same file, its alt text and caption, in each language', async () => {
+test('every photograph is a button that opens it in a modal dialog: the same file, its alt text and caption', async () => {
   for (const lang of ['en', 'vi', 'zh', 'ko']) {
     await render(lang);
     const buttons = triggers();
@@ -34,15 +48,16 @@ test('every photograph is a button that opens it larger: the same file, its alt 
       assert.equal(button.title, cassavaEvidence.copy[lang].zoom);
       assert.equal(preview(), null, 'closed until clicked');
       await act(() => button.click());
-      const photo = cassavaEvidence.photos[i];
-      const img = preview().querySelector('img');
-      assert.deepEqual([img.getAttribute('src'), img.alt], [photo.src, photo.alt[lang]], `${lang} ${photo.id}`);
-      assert.equal(preview().querySelector('figcaption').textContent, photo.caption[lang]);
-      const dialog = preview().querySelector('[role="dialog"][aria-modal="true"]');
-      assert.equal(dialog.getAttribute('aria-label'), photo.caption[lang]);
-      assert.equal(document.activeElement.getAttribute('aria-label'), cassavaEvidence.copy[lang].close, 'the close button has focus');
-      // Focus, the photograph and its caption are inside the dialog.
-      assert.ok([document.activeElement, img, preview().querySelector('figcaption')].every(el => dialog.contains(el)));
+      const dialog = preview();
+      // A native dialog opened as a modal, named by the caption; no ARIA role standing in for it.
+      assert.ok(dialog.open && modal.at(-1) === dialog, 'showModal');
+      assert.deepEqual([dialog.getAttribute('aria-label'), dialog.getAttribute('role'), dialog.getAttribute('aria-modal')], [photo(i).caption[lang], null, null]);
+      const img = dialog.querySelector('img');
+      assert.deepEqual([img.getAttribute('src'), img.alt], [photo(i).src, photo(i).alt[lang]], `${lang} ${photo(i).id}`);
+      assert.equal(dialog.querySelector('figcaption').textContent, photo(i).caption[lang]);
+      // Focus opens on the close button, inside the dialog.
+      assert.equal(document.activeElement.getAttribute('aria-label'), cassavaEvidence.copy[lang].close);
+      assert.ok(dialog.contains(document.activeElement));
       await act(() => document.activeElement.click());
       assert.equal(preview(), null);
       assert.equal(document.activeElement, button, 'focus returns to the photograph');
@@ -50,7 +65,7 @@ test('every photograph is a button that opens it larger: the same file, its alt 
   }
 });
 
-test('the keyboard: Enter and Space open, Escape closes and gives focus back', async () => {
+test('the keyboard: Enter and Space open; Escape closes once and gives focus back', async () => {
   await render('en');
   const [lead, loading] = triggers();
   await key(lead, 'Enter');
@@ -62,13 +77,33 @@ test('the keyboard: Enter and Space open, Escape closes and gives focus back', a
   assert.match(preview().querySelector('img').getAttribute('src'), /cassava-container-loading\.webp$/);
   await key(document, 'Escape');
   assert.equal(document.activeElement, loading);
+  assert.equal(modal.length, 2, 'one modal open per photograph');
 });
 
-test('a click on the backdrop closes; a click on the photograph does not', async () => {
+// The browser's own ways out of a modal dialog go through the Lightbox state, which unmounts it.
+test('the native cancel (Escape) is the state\'s to act on; a native close updates the state too', async () => {
+  await render('en');
+  const [lead, loading] = triggers();
+  await act(() => lead.click());
+  const cancel = new Event('cancel', { cancelable: true });
+  await act(() => preview().dispatchEvent(cancel));
+  assert.ok(cancel.defaultPrevented, 'the browser does not close it behind the state');
+  assert.equal(preview(), null);
+  assert.equal(document.activeElement, lead);
+  await act(() => loading.click());
+  await act(() => preview().close());
+  assert.equal(preview(), null);
+  assert.equal(document.activeElement, loading);
+});
+
+test('a click beside the photograph closes; on the photograph, its caption or nothing else it does not', async () => {
   await render('en');
   await act(() => triggers()[2].click());
-  await act(() => preview().querySelector('img').click());
-  assert.ok(preview());
+  for (const inside of ['img', 'figcaption', 'figure']) {
+    await act(() => preview().querySelector(inside).click());
+    assert.ok(preview(), inside);
+  }
+  // The dialog fills the viewport: a click on it, not on its content, is a click beside the photograph.
   await act(() => preview().click());
   assert.equal(preview(), null);
 });
