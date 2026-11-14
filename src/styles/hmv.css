@@ -10251,6 +10251,11 @@ article[id] {
   font-size: clamp(28px, 3vw, 40px)
 }
 
+/* The supply-evidence heading breaks only at its space and 、, never inside a word (实景). */
+:lang(zh-CN) .supply-evidence-section h2 {
+  word-break: keep-all
+}
+
 .zh-phrase {
   display: inline-block
 }
