@@ -9408,9 +9408,10 @@ article[id] {
   margin-top: 10px
 }
 
-/* Supply evidence (ProductLanding.jsx SupplyEvidence): the lead photograph beside two 4:3 photographs, filling their
-   height; one column on phones. Sizes are fixed by the width and height attributes and the 4:3 frames, so nothing
-   shifts while the lazy images load. The quality results that follow share the background, so no bottom padding. */
+/* Supply evidence (features/cassava-supply-evidence/SupplyEvidence.jsx): the lead photograph beside two 4:3
+   photographs, filling their height; one column on phones. Sizes are fixed by the width and height attributes and the
+   4:3 frames, so nothing shifts while the lazy images load. The quality results that follow share the background, so
+   no bottom padding. */
 .supply-evidence-section {
   padding-bottom: 0
 }
@@ -9460,6 +9461,96 @@ article[id] {
 .supply-evidence figcaption {
   font-size: 13px;
   color: var(--ink-muted)
+}
+
+/* Each photograph opens larger (SupplyEvidencePreview): a pointer, a focus ring, and a zoom icon on hover and focus. */
+.supply-evidence-frame[role="button"] {
+  cursor: pointer
+}
+
+.supply-evidence-frame:focus-visible {
+  outline: 3px solid var(--ocean-blue);
+  outline-offset: 3px
+}
+
+.supply-evidence-zoom {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 29, 89, 0.72);
+  color: #ffffff;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none
+}
+
+.supply-evidence-frame:is(:hover, :focus-visible) .supply-evidence-zoom {
+  opacity: 1
+}
+
+/* The preview: the whole photograph on a dark backdrop, fitted to the viewport, its caption below. */
+.supply-evidence-preview {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px 24px;
+  background: rgba(0, 18, 51, 0.92)
+}
+
+.supply-evidence-preview figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin: 0
+}
+
+.supply-evidence-preview img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(1100px, calc(100vw - 40px));
+  max-height: calc(100dvh - 150px);
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5)
+}
+
+.supply-evidence-preview figcaption {
+  max-width: 640px;
+  color: #e2e8f0;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center
+}
+
+.supply-evidence-preview-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  cursor: pointer
+}
+
+.supply-evidence-preview-close:is(:hover, :focus-visible) {
+  background: rgba(255, 255, 255, 0.28)
 }
 
 @media(max-width:700px) {

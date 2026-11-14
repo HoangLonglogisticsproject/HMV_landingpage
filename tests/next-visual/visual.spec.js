@@ -64,3 +64,13 @@ for (const [lang, path] of Object.values(PAGE_LOCALES).flatMap(Object.entries)) 
     await expect(page, 'full page').toHaveScreenshot(`${name}.png`, { fullPage: true, mask: [page.locator('img')] });
   });
 }
+
+// The supply-evidence preview, open on the container photograph: backdrop, the whole photograph, caption, close button.
+test('en /products/dried-cassava-chips supply-evidence preview', async ({ page }) => {
+  await page.goto('/products/dried-cassava-chips');
+  await settle(page);
+  await page.locator('#supply-evidence .supply-evidence-frame').nth(1).click();
+  await expect(page.getByRole('dialog').locator('img')).toBeVisible();
+  await settle(page);
+  await expect(page, 'preview').toHaveScreenshot('en-products-dried-cassava-chips-supply-evidence-preview.png');
+});
