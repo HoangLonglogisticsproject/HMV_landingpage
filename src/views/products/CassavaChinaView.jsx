@@ -6,7 +6,8 @@ import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
 import { TradeDeskHost } from '@/features/trade-desk/TradeDeskHost';
 import { localizePath } from '@/i18n/routes';
 import { cassavaEvidence } from '@/data/cassavaEvidence';
-import { Cards, Heading, SupplyEvidence } from './ProductLanding';
+import { SupplyEvidence } from '@/features/cassava-supply-evidence/SupplyEvidence';
+import { Cards, Heading } from './ProductLanding';
 import { EvidencePanel } from './ProductMoneyHero';
 
 // The Simplified Chinese dried cassava chips page (data/cassavaChina.js), Next.js only. Its own chrome instead of

@@ -7,7 +7,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LanguageProvider } from '../../i18n/LanguageContext.jsx';
 import { copy, products } from '../../data/hmv.js';
-import { cassavaEvidence } from '../../data/cassavaEvidence.js';
+import { cassavaEvidence } from '@/data/cassavaEvidence.js';
 import { productPages } from '../../data/productPages.js';
 import { createInquiryMailto } from '../../features/inquiries/inquiry.js';
 import { productMeta } from '../meta.js';

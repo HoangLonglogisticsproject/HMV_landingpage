@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { act, createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
 import { cassavaChina as c } from '../../data/cassavaChina.js';
-import { cassavaEvidence } from '../../data/cassavaEvidence.js';
+import { cassavaEvidence } from '@/data/cassavaEvidence.js';
 import { OPEN_TRADE_DESK } from '../../features/trade-desk/open.js';
 import { CassavaChinaView } from './CassavaChinaView.jsx';
 

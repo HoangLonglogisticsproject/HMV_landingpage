@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react';
+import { SupplyEvidence } from '@/features/cassava-supply-evidence/SupplyEvidence';
 import { ProductRfq } from '@/features/inquiries/ProductRfq';
 import Image from '@/lib/image';
 import { ProductMoneyHero } from './ProductMoneyHero';
@@ -31,37 +32,6 @@ export const Photo = ({ photo, lang, sizes }) => (
     <figcaption>{photo.caption[lang]}</figcaption>
   </figure>
 );
-
-// `sizes` of the supply-evidence photographs (.supply-evidence): the lead in the 1.2fr column of .content-width, the
-// others in the 1fr column; one column at 700 px and below.
-const EVIDENCE_SIZES = [
-  '(max-width: 600px) calc(100vw - 40px), (max-width: 700px) calc(100vw - 64px), (max-width: 1100px) calc((100vw - 88px) * 0.55), (max-width: 1255px) calc((100vw - 120px) * 0.55), 620px',
-  '(max-width: 600px) calc(100vw - 40px), (max-width: 700px) calc(100vw - 64px), (max-width: 1100px) calc((100vw - 88px) * 0.46), (max-width: 1255px) calc((100vw - 120px) * 0.46), 517px',
-];
-
-// HMV photographs of the product, stock and container loading (data/cassavaEvidence.js): the lead beside the others.
-// Lazy like every image below the hero. Also used by CassavaChinaView.
-export const SupplyEvidence = ({ evidence, lang }) => {
-  const c = evidence.copy[lang];
-  return (
-    <section className="section-pad landing-alt supply-evidence-section" id="supply-evidence">
-      <div className="content-width">
-        <Heading eyebrow={c.eyebrow} title={c.title} text={c.text} />
-        <div className="supply-evidence">
-          {evidence.photos.map((p, i) => (
-            <figure key={p.id}>
-              <div className="supply-evidence-frame">
-                <Image src={p.src} width={p.width} height={p.height} sizes={EVIDENCE_SIZES[Math.min(i, 1)]} loading="lazy" decoding="async" alt={p.alt[lang]} />
-              </div>
-              <figcaption>{p.caption[lang]}</figcaption>
-            </figure>
-          ))}
-        </div>
-        <p className="commercial-note">{c.note}</p>
-      </div>
-    </section>
-  );
-};
 
 // A product page built for buyers (data/productPages.js): its own hero (ProductMoneyHero), then buyer requirements,
 // supply evidence, quality results, evidence, the requirements to agree, applications, workflow, images and the

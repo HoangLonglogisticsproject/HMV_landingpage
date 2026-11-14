@@ -1,5 +1,5 @@
 // The cassava supply evidence: photographs HMV supplied of the product, bulk stock and container loading, shown by
-// SupplyEvidence (views/products/ProductLanding.jsx) on the EN/VI dried cassava chips page and on the page-scoped
+// SupplyEvidence (features/cassava-supply-evidence) on the EN/VI dried cassava chips page and on the page-scoped
 // Chinese page. A page in another language adds its copy, captions and alt text here; the photographs stay the same.
 // They show physical product and activity in HMV's supply network, nothing more: no location, facility ownership,
 // lot or link to the network capacity figures is asserted. The originals are not committed; the container photograph
