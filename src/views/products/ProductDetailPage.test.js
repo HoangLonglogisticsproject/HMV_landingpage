@@ -7,6 +7,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LanguageProvider } from '../../i18n/LanguageContext.jsx';
 import { copy, products } from '../../data/hmv.js';
+import { cassavaEvidence } from '@/data/cassavaEvidence.js';
 import { productPages } from '../../data/productPages.js';
 import { createInquiryMailto } from '../../features/inquiries/inquiry.js';
 import { productMeta } from '../meta.js';
@@ -95,6 +96,26 @@ const CASSAVA_FACTS = {
     source: 'Nguồn: Báo cáo phân tích Intertek Việt Nam AGRIVIETNAM2026-1700 ngày 05/10/2026. Các giá trị áp dụng cho mẫu được phân tích.',
   },
 };
+
+// The supply evidence (data/cassavaEvidence.js): what HMV can organize, then the photographs, then the quality results.
+test('cassava page: the supply evidence between the buyer section and the quality results; lazy, sized, localized', async () => {
+  const { copy, photos } = cassavaEvidence;
+  for (const lang of ['en', 'vi']) {
+    await renderProduct(lang, 'dried-cassava-chips');
+    const section = container.querySelector('section#supply-evidence');
+    assert.equal(section.querySelector('h2').textContent, copy[lang].title, lang);
+    assert.ok(section.previousElementSibling.textContent.includes(productPages['dried-cassava-chips'][lang].audience.text), lang);
+    assert.equal(section.nextElementSibling.id, 'quality', lang);
+    const images = [...section.querySelectorAll('img')]
+      .map(i => [i.getAttribute('src'), i.alt, i.width, i.height, i.getAttribute('loading')]);
+    assert.deepEqual(images, photos.map(p => [p.src, p.alt[lang], p.width, p.height, 'lazy']), lang);
+    assert.deepEqual([...section.querySelectorAll('figcaption')].map(f => f.textContent), photos.map(p => p.caption[lang]), lang);
+    await act(() => root.unmount());
+    root = createRoot(container);
+  }
+  await renderProduct('en', 'passion-fruit');
+  assert.equal(container.querySelector('#supply-evidence'), null);
+});
 
 test('cassava page: the Intertek results, report and capacity figures exactly, with their notes', async () => {
   for (const lang of ['en', 'vi']) {

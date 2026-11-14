@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react';
+import { SupplyEvidence } from '@/features/cassava-supply-evidence/SupplyEvidence';
 import { ProductRfq } from '@/features/inquiries/ProductRfq';
 import Image from '@/lib/image';
 import { ProductMoneyHero } from './ProductMoneyHero';
@@ -33,8 +34,9 @@ export const Photo = ({ photo, lang, sizes }) => (
 );
 
 // A product page built for buyers (data/productPages.js): its own hero (ProductMoneyHero), then buyer requirements,
-// quality results, evidence, the requirements to agree, applications, workflow, images and the product RFQ. Sections
-// without content are left out; backgrounds alternate in the order the sections appear on either page.
+// supply evidence, quality results, evidence, the requirements to agree, applications, workflow, images and the
+// product RFQ. Sections without content are left out; backgrounds alternate in the order the sections appear on
+// either page, the supply evidence sharing the quality results' background.
 export function ProductLanding({ lang, product, page }) {
   const c = page[lang];
   return (
@@ -47,6 +49,8 @@ export function ProductLanding({ lang, product, page }) {
           <Cards items={c.audience.items} />
         </div>
       </section>
+
+      {page.supplyEvidence && <SupplyEvidence evidence={page.supplyEvidence} lang={lang} />}
 
       {c.quality && (
         <section className="section-pad landing-alt" id="quality">
@@ -129,7 +133,7 @@ export function ProductLanding({ lang, product, page }) {
         </div>
       </section>
 
-      {page.gallery.length > 0 && (
+      {page.gallery?.length > 0 && (
         <section className="section-pad">
           <div className="content-width">
             <Heading {...c.gallery} />

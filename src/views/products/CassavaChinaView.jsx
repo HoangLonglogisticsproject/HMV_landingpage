@@ -5,7 +5,9 @@ import { cassavaChina as c } from '@/data/cassavaChina';
 import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
 import { TradeDeskHost } from '@/features/trade-desk/TradeDeskHost';
 import { localizePath } from '@/i18n/routes';
-import { Cards, Heading, Photo } from './ProductLanding';
+import { cassavaEvidence } from '@/data/cassavaEvidence';
+import { SupplyEvidence } from '@/features/cassava-supply-evidence/SupplyEvidence';
+import { Cards, Heading } from './ProductLanding';
 import { EvidencePanel } from './ProductMoneyHero';
 
 // The Simplified Chinese dried cassava chips page (data/cassavaChina.js), Next.js only. Its own chrome instead of
@@ -100,35 +102,29 @@ export function CassavaChinaView() {
           </div>
         </section>
 
+        <SupplyEvidence evidence={cassavaEvidence} lang="zh" />
+
         <section className="section-pad landing-alt" id="quality">
           <div className="content-width">
             <Heading eyebrow={c.quality.eyebrow} title={c.quality.title} text={c.quality.note} />
-            <div className="zh-quality">
-              <div>
-                <div className="landing-table-wrap">
-                  <table className="landing-table">
-                    <thead>
-                      <tr>
-                        {c.quality.head.map(h => <th key={h} scope="col">{h}</th>)}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {c.quality.rows.map(([name, value]) => (
-                        <tr key={name}>
-                          <th scope="row">{name}</th>
-                          <td>{value}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <p className="commercial-note">{c.quality.source}</p>
-              </div>
-              <div>
-                <Photo photo={c.quality.photo} lang="zh" sizes="(max-width: 900px) calc(100vw - 40px), 400px" />
-                <p className="commercial-note">{c.quality.photoNote}</p>
-              </div>
+            <div className="landing-table-wrap">
+              <table className="landing-table">
+                <thead>
+                  <tr>
+                    {c.quality.head.map(h => <th key={h} scope="col">{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {c.quality.rows.map(([name, value]) => (
+                    <tr key={name}>
+                      <th scope="row">{name}</th>
+                      <td>{value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+            <p className="commercial-note">{c.quality.source}</p>
           </div>
         </section>
 

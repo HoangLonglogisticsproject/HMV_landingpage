@@ -99,6 +99,7 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 | `features/articles/ArticleGrid` | EcoNews cards plus loading/empty/error states; used by LatestInsights and InsightsPage |
 | `features/articles/RichText` | Whitelist renderer for CMS Tiptap JSON (no raw HTML); also renders the bundled articles |
 | `features/regulations/Regulations` | Regulation card list; used by InsightsPage and RegulationsPage |
+| `features/cassava-supply-evidence/SupplyEvidence` | The cassava supply-evidence photographs (`data/cassavaEvidence.js`); used by the EN/VI cassava page (ProductLanding) and the Chinese one (CassavaChinaView) |
 | `features/trade-desk/TradeDeskHost` | Mounted once in SiteShell: listens for `openTradeDesk()`, records the first-touch visit, loads `TradeDesk` on the first open (with an error boundary and retry) |
 | `features/trade-desk/TradeDesk` | The HMV Trade Desk dialog: the conversation (product, destination, volume), the route (quotation or Customer Service), the inline contact card, submission to `POST /api/inquiry` (`@/lib/inquiry`), sent state and optional follow-up links |
 

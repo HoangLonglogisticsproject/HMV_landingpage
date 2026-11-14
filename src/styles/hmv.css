@@ -9408,6 +9408,75 @@ article[id] {
   margin-top: 10px
 }
 
+/* Supply evidence (ProductLanding.jsx SupplyEvidence): the lead photograph beside two 4:3 photographs, filling their
+   height; one column on phones. Sizes are fixed by the width and height attributes and the 4:3 frames, so nothing
+   shifts while the lazy images load. The quality results that follow share the background, so no bottom padding. */
+.supply-evidence-section {
+  padding-bottom: 0
+}
+
+.supply-evidence {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 24px
+}
+
+.supply-evidence figure {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0
+}
+
+.supply-evidence figure:first-child {
+  grid-row: span 2
+}
+
+.supply-evidence-frame {
+  position: relative;
+  overflow: hidden;
+  background: var(--border)
+}
+
+.supply-evidence img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/3;
+  object-fit: cover
+}
+
+.supply-evidence figure:first-child .supply-evidence-frame {
+  flex: 1
+}
+
+.supply-evidence figure:first-child img {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  aspect-ratio: auto
+}
+
+.supply-evidence figcaption {
+  font-size: 13px;
+  color: var(--ink-muted)
+}
+
+@media(max-width:700px) {
+  .supply-evidence {
+    grid-template-columns: minmax(0, 1fr)
+  }
+
+  .supply-evidence figure:first-child {
+    grid-row: auto
+  }
+
+  .supply-evidence figure:first-child img {
+    position: static;
+    aspect-ratio: 3/4
+  }
+}
+
 /* HMV Trade Desk (features/trade-desk): a conversation beside the buyer's requirement; a dialog on desktop, a
    full-screen sheet on phones with one scroll and the requirement folded into a line above the conversation. */
 .desk-overlay {
@@ -10182,6 +10251,11 @@ article[id] {
   font-size: clamp(28px, 3vw, 40px)
 }
 
+/* The supply-evidence heading breaks only at its space and 、, never inside a word (实景). */
+:lang(zh-CN) .supply-evidence-section h2 {
+  word-break: keep-all
+}
+
 .zh-phrase {
   display: inline-block
 }
@@ -10228,17 +10302,6 @@ article[id] {
   font-size: 14px;
   line-height: 1.8;
   color: var(--ink-muted)
-}
-
-.zh-quality {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
-  gap: 64px;
-  align-items: start
-}
-
-.zh-quality .landing-table-wrap {
-  max-width: none
 }
 
 .zh-rfq-prepare {
@@ -10303,9 +10366,3 @@ article[id] {
   }
 }
 
-@media(max-width:900px) {
-  .zh-quality {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 40px
-  }
-}
