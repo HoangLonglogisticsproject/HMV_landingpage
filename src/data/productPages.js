@@ -8,15 +8,15 @@
 //
 // One content tree per product. Only text leaves are localized, `t(en, vi)`; figures, sample results and the report are
 // written once and formatted per language. definePage() resolves the tree into `seo.en`, `seo.vi`, `en` and `vi`.
-// The cassava figures and sample results also carry Simplified Chinese, `t(en, vi, zh)`, for the page-scoped Chinese
-// page (data/cassavaChina.js), which shows the same evidence.
+// The cassava figures and sample results also carry Simplified Chinese and Korean, `t(en, vi, zh, ko)`, for the
+// page-scoped pages (data/cassavaChina.js, data/cassavaKorea.js), which show the same evidence.
 import { photos, photoCopy } from './hmv.js';
 import { cassavaEvidence } from './cassavaEvidence.js';
 
-const LOCALES = { en: 'en-US', vi: 'vi-VN', zh: 'zh-CN' };
+const LOCALES = { en: 'en-US', vi: 'vi-VN', zh: 'zh-CN', ko: 'ko-KR' };
 
 /** A localized leaf: resolved to its text in the page language. */
-const t = (en, vi, zh) => lang => ({ en, vi, zh })[lang];
+const t = (en, vi, zh, ko) => lang => ({ en, vi, zh, ko })[lang];
 
 /** A card or step: [title, text] in each language. */
 const card = (en, vi) => ({ title: t(en[0], vi[0]), text: t(en[1], vi[1]) });
@@ -58,38 +58,46 @@ const photo = (src, width, height, caption) => ({
 });
 
 // Dried cassava chips facts from the HMV cassava dossier.
-const PER_MONTH = { tons: t(' MT/month', ' tấn/tháng', ' 吨/月'), containers: t(' containers/month', ' container/tháng', ' 集装箱/月') };
+const PER_MONTH = {
+  tons: t(' MT/month', ' tấn/tháng', ' 吨/月', ' 톤/월'),
+  containers: t(' containers/month', ' container/tháng', ' 集装箱/月', ' 컨테이너/월'),
+};
 const INTERTEK = { report: 'AGRIVIETNAM2026-1700', date: new Date(Date.UTC(2026, 9, 5)) };
 const reportDate = lang =>
-  INTERTEK.date.toLocaleDateString({ en: 'en-GB', vi: 'vi-VN', zh: 'zh-CN' }[lang],
-    { day: lang === 'zh' ? 'numeric' : '2-digit', month: { en: 'short', vi: '2-digit', zh: 'long' }[lang], year: 'numeric', timeZone: 'UTC' });
+  INTERTEK.date.toLocaleDateString({ en: 'en-GB', vi: 'vi-VN', zh: 'zh-CN', ko: 'ko-KR' }[lang], {
+    day: ['zh', 'ko'].includes(lang) ? 'numeric' : '2-digit',
+    month: { en: 'short', vi: '2-digit', zh: 'long', ko: 'long' }[lang],
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
 const percent = n => quantity(n, '%');
 const mgPerKg = (n, prefix) => quantity(n, ' mg/kg', prefix);
 // The two results the hero quotes, shared with the full results table.
-const STARCH = [t('Starch', 'Tinh bột', '淀粉'), percent(71.1)];
-const MOISTURE = [t('Moisture', 'Độ ẩm', '水分'), percent(11.55)];
-// HMV network figures and the full Intertek results: shared by the EN/VI page and the Chinese page.
+const STARCH = [t('Starch', 'Tinh bột', '淀粉', '전분'), percent(71.1)];
+const MOISTURE = [t('Moisture', 'Độ ẩm', '水分', '수분'), percent(11.55)];
+// HMV network figures and the full Intertek results: shared by the EN/VI page and the page-scoped pages.
 const CASSAVA_FIGURES = [
-  { value: quantity(50000, PER_MONTH.tons), label: t('Consolidation capacity at the Cambodia warehouse', 'Năng lực gom hàng tại kho Campuchia', '柬埔寨仓库集货能力') },
-  { value: quantity(10000, PER_MONTH.tons), label: t('Supply to a factory in Long An', 'Cung ứng cho nhà máy tại Long An', '供应越南隆安省一家工厂') },
-  { value: quantity(150, PER_MONTH.containers), label: t('Delivery to an importer in Guangxi', 'Giao cho nhà nhập khẩu tại Quảng Tây', '交付广西一家进口商') },
-  { value: quantity(250, PER_MONTH.containers), label: t('Transit-export capacity', 'Năng lực xuất khẩu quá cảnh', '过境出口组织能力') },
+  { value: quantity(50000, PER_MONTH.tons), label: t('Consolidation capacity at the Cambodia warehouse', 'Năng lực gom hàng tại kho Campuchia', '柬埔寨仓库集货能力', '캄보디아 창고 집하 역량') },
+  { value: quantity(10000, PER_MONTH.tons), label: t('Supply to a factory in Long An', 'Cung ứng cho nhà máy tại Long An', '供应越南隆安省一家工厂', '베트남 롱안성 소재 공장 공급') },
+  { value: quantity(150, PER_MONTH.containers), label: t('Delivery to an importer in Guangxi', 'Giao cho nhà nhập khẩu tại Quảng Tây', '交付广西一家进口商', '중국 광시 소재 수입업체 납품') },
+  { value: quantity(250, PER_MONTH.containers), label: t('Transit-export capacity', 'Năng lực xuất khẩu quá cảnh', '过境出口组织能力', '경유 수출 조율 역량') },
 ];
 const CASSAVA_RESULTS = [
   STARCH,
   MOISTURE,
-  [t('Raw fiber', 'Xơ thô', '粗纤维'), percent(2.99)],
-  [t('Ash', 'Tro', '灰分'), percent(1.86)],
-  [t('Sand & silica', 'Cát sạn (sand & silica)', '砂和二氧化硅（Sand & silica）'), percent(0.45)],
-  [t('Foreign matter', 'Tạp chất', '杂质'), t('Not detected', 'Không phát hiện', '未检出')],
-  [t('Lead (Pb)', 'Chì (Pb)', '铅 (Pb)'), mgPerKg(0.17)],
-  [t('Cadmium (Cd)', 'Cadimi (Cd)', '镉 (Cd)'), mgPerKg(0.28)],
-  [t('Mercury (Hg)', 'Thủy ngân (Hg)', '汞 (Hg)'), mgPerKg(0.02, '<')],
+  [t('Raw fiber', 'Xơ thô', '粗纤维', '조섬유'), percent(2.99)],
+  [t('Ash', 'Tro', '灰分', '회분'), percent(1.86)],
+  [t('Sand & silica', 'Cát sạn (sand & silica)', '砂和二氧化硅（Sand & silica）', '모래 및 실리카 (Sand & silica)'), percent(0.45)],
+  [t('Foreign matter', 'Tạp chất', '杂质', '이물질'), t('Not detected', 'Không phát hiện', '未检出', '불검출')],
+  [t('Lead (Pb)', 'Chì (Pb)', '铅 (Pb)', '납 (Pb)'), mgPerKg(0.17)],
+  [t('Cadmium (Cd)', 'Cadimi (Cd)', '镉 (Cd)', '카드뮴 (Cd)'), mgPerKg(0.28)],
+  [t('Mercury (Hg)', 'Thủy ngân (Hg)', '汞 (Hg)', '수은 (Hg)'), mgPerKg(0.02, '<')],
 ];
 const CASSAVA_SOURCE = lang => t(
   `Source: Intertek Vietnam analysis report ${INTERTEK.report}, dated ${reportDate(lang)}. The reported values apply to the analyzed sample.`,
   `Nguồn: Báo cáo phân tích Intertek Việt Nam ${INTERTEK.report} ngày ${reportDate(lang)}. Các giá trị áp dụng cho mẫu được phân tích.`,
   `来源：Intertek 越南分析报告 ${INTERTEK.report}，报告日期 ${reportDate(lang)}。所列数值仅适用于该送检样品。`,
+  `출처: Intertek 베트남 분석 보고서 ${INTERTEK.report}, 보고일 ${reportDate(lang)}. 기재된 수치는 분석된 샘플에만 해당합니다.`,
 )(lang);
 
 export const productPages = {
@@ -329,10 +337,11 @@ export const productPages = {
   }),
 };
 
-// The cassava evidence in Simplified Chinese for data/cassavaChina.js: the same figures, sample results and report.
-export const cassavaEvidenceZh = resolve({
+// The cassava dossier in a page-scoped language ('zh', 'ko') for data/cassavaChina.js and data/cassavaKorea.js: the
+// same figures, sample results and report as the EN/VI page.
+export const cassavaDossier = lang => resolve({
   figures: CASSAVA_FIGURES,
   results: CASSAVA_RESULTS,
   report: `Intertek ${INTERTEK.report}`,
   source: CASSAVA_SOURCE,
-}, 'zh');
+}, lang);

@@ -177,10 +177,13 @@ const CHAINS = [
   // The CMS admin's link format (M-56), resolved by app/tin-tuc/[slug]/route.ts.
   ['/tin-tuc/xuat-khau-chanh-day-eu', ['/vi/tin-tuc/xuat-khau-chanh-day-eu']],
   ['/tin-tuc/exporting-passion-fruit-eu', ['/blog/exporting-passion-fruit-eu']],
-  // The page-scoped Chinese page: `lang` picks the page's site-locale version; a trailing slash costs one hop.
+  // The page-scoped Chinese and Korean pages: `lang` picks the page's site-locale version; a trailing slash costs one hop.
   ['/zh-cn/cassava-chips?lang=vi', ['/vi/san-pham/san-lat-kho']],
   ['/zh-cn/cassava-chips?lang=en', ['/products/dried-cassava-chips']],
   ['/zh-cn/cassava-chips/', ['/zh-cn/cassava-chips']],
+  ['/ko/tapioca-chips?lang=vi', ['/vi/san-pham/san-lat-kho']],
+  ['/ko/tapioca-chips?lang=en', ['/products/dried-cassava-chips']],
+  ['/ko/tapioca-chips/', ['/ko/tapioca-chips']],
 ];
 
 test('/tin-tuc/<unknown> is a 404', async ({ request }) => {
@@ -206,16 +209,17 @@ test('sitemap: every indexable URL, with exactly the page canonical, og:url and 
   }
 });
 
-// Dried cassava chips: its own EN/VI/ZH-CN set, never the tapioca-starch URLs. Written out, not derived from the route
-// contract, so a change to the contract cannot move these URLs unnoticed.
+// Dried cassava chips: its own EN/VI/ZH-CN/KO set, never the tapioca-starch URLs. Written out, not derived from the
+// route contract, so a change to the contract cannot move these URLs unnoticed.
 const CASSAVA = {
   en: abs('/products/dried-cassava-chips'),
   vi: abs('/vi/san-pham/san-lat-kho'),
   'zh-CN': abs('/zh-cn/cassava-chips'),
+  ko: abs('/ko/tapioca-chips'),
 };
 const CASSAVA_SET = { ...CASSAVA, 'x-default': CASSAVA.en };
 
-test('dried cassava chips: one reciprocal EN/VI/zh-CN/x-default set in hreflang and the sitemap, separate from tapioca starch', async ({ request }) => {
+test('dried cassava chips: one reciprocal EN/VI/zh-CN/ko/x-default set in hreflang and the sitemap, apart from tapioca starch', async ({ request }) => {
   for (const url of Object.values(CASSAVA)) {
     const h = head(await (await request.get(url.replace(abs('/'), '') || '/')).text());
     expect(h.canonical, url).toBe(url);
@@ -226,12 +230,14 @@ test('dried cassava chips: one reciprocal EN/VI/zh-CN/x-default set in hreflang 
   expect(entries.map(e => e.loc)).toContain(abs('/products/tapioca-starch'));
 });
 
-test('zh-CN appears only on the three cassava pages: no other page and no other sitemap entry gains it', async ({ request }) => {
-  const withZh = [];
-  for (const { path } of URLS) if (head(await (await request.get(path)).text()).hreflang['zh-CN']) withZh.push(abs(path));
-  expect(withZh.sort()).toEqual(Object.values(CASSAVA).sort());
+test('zh-CN and ko appear only on the four cassava pages: no other page and no other sitemap entry gains them', async ({ request }) => {
   const xml = await (await request.get('/sitemap.xml')).text();
-  expect(sitemapEntries(xml).filter(e => e.alternates['zh-CN']).map(e => e.loc).sort()).toEqual(Object.values(CASSAVA).sort());
+  for (const lang of ['zh-CN', 'ko']) {
+    const pages = [];
+    for (const { path } of URLS) if (head(await (await request.get(path)).text()).hreflang[lang]) pages.push(abs(path));
+    expect(pages.sort(), lang).toEqual(Object.values(CASSAVA).sort());
+    expect(sitemapEntries(xml).filter(e => e.alternates[lang]).map(e => e.loc).sort(), lang).toEqual(Object.values(CASSAVA).sort());
+  }
 });
 
 // The money pages (dried cassava chips and passion fruit, EN and VI). Their hreflang pairs and sitemap entries are
@@ -415,18 +421,22 @@ test.describe('language switch', () => {
     await expect(page.locator('h1').first()).toHaveText('Bulk Dried Cassava Chips Supply Managed by HMV Global');
   });
 
-  // Simplified Chinese is page-scoped (PAGE_LOCALES): offered on the EN and VI cassava pages only.
-  test('the cassava pages, and only they, offer Simplified Chinese, a link to /zh-cn/cassava-chips', async ({ page }) => {
+  // Simplified Chinese and Korean are page-scoped (PAGE_LOCALES): offered on the EN and VI cassava pages only.
+  test('the cassava pages, and only they, offer Simplified Chinese and Korean, links to their pages', async ({ page }) => {
     const chinese = page.getByRole('menuitem', { name: '简体中文' });
+    const korean = page.getByRole('menuitem', { name: '한국어' });
     for (const path of ['/products/dried-cassava-chips', '/vi/san-pham/san-lat-kho']) {
       await page.goto(path);
       await page.locator('button.hmv-lang-trigger').first().click();
+      await expect(page.getByRole('menuitem')).toHaveText(['English', 'Tiếng Việt', '简体中文', '한국어']);
       await expect(chinese).toHaveAttribute('href', '/zh-cn/cassava-chips');
       await expect(chinese).toHaveAttribute('hreflang', 'zh-CN');
+      await expect(korean).toHaveAttribute('href', '/ko/tapioca-chips');
+      await expect(korean).toHaveAttribute('hreflang', 'ko');
     }
-    await chinese.click();
-    await expect(page).toHaveURL(/\/zh-cn\/cassava-chips$/);
-    await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+    await korean.click();
+    await expect(page).toHaveURL(/\/ko\/tapioca-chips$/);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'ko');
     for (const path of ['/products/passion-fruit', '/vi/san-pham/chanh-day', '/about']) {
       await page.goto(path);
       await page.locator('button.hmv-lang-trigger').first().click();

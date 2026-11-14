@@ -26,7 +26,9 @@ const PRODUCT_ID = Object.fromEntries(Object.entries(PRODUCT_SLUG_VI).map(([id, 
 // URL. Only these pages carry the language in hreflang and the sitemap; the navigation, the language switcher and every
 // other page keep to LOCALES, so no link points to a translation that does not exist.
 /** @type {Record<string, Record<string, string>>} */
-export const PAGE_LOCALES = { '/products/dried-cassava-chips': { 'zh-CN': '/zh-cn/cassava-chips' } };
+export const PAGE_LOCALES = {
+  '/products/dried-cassava-chips': { 'zh-CN': '/zh-cn/cassava-chips', ko: '/ko/tapioca-chips' },
+};
 const PAGE_LOCALE_URLS = Object.fromEntries(Object.entries(PAGE_LOCALES).flatMap(([path, urls]) =>
   Object.entries(urls).map(([locale, url]) => [url, { path, locale }])));
 

@@ -55,7 +55,7 @@ test('server HTML: a zh-CN document with the Chinese title, description, heading
   expect(body).not.toMatch(/[≤≥]/);
 });
 
-test('header: the real HMV logo, the section links, and this page in English, Vietnamese and Chinese', async ({ request }) => {
+test('header: the real HMV logo, the section links, and this page in English, Vietnamese, Chinese and Korean', async ({ request }) => {
   const html = await get(request);
   const logo = tags(html, 'img').find(img => img.alt === 'HMV Global');
   expect(decodeURIComponent(logo?.src ?? '')).toMatch(/\/_next\/static\/media\/logohmv\.[\w-]+\.webp/);
@@ -65,6 +65,7 @@ test('header: the real HMV logo, the section links, and this page in English, Vi
     en: '/products/dried-cassava-chips',
     vi: '/vi/san-pham/san-lat-kho',
     'zh-CN': PATH,
+    ko: '/ko/tapioca-chips',
   });
   expect(language['zh-CN']['aria-current']).toBe('page');
   for (const [href, label] of [['#overview', '产品概览'], ['#capability', '供应能力'], ['#quality', '质量参考'], ['#workflow', '供应流程']]) {
@@ -84,6 +85,7 @@ test('every link works: section anchors exist on the page, every other link answ
     else {
       expect(href, href).toMatch(/^\/(?!\/)/);
       if (href.startsWith('/zh-cn')) expect(href).toBe(PATH);
+      if (href.startsWith('/ko')) expect(href).toBe('/ko/tapioca-chips');
       expect((await request.get(href, { maxRedirects: 0 })).status(), href).toBe(200);
     }
   }

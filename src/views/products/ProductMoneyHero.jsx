@@ -38,12 +38,35 @@ function HeroPhotos({ lang, main, detail }) {
   );
 }
 
-// Evidence instead of imagery: HMV network capacity and the Intertek sample reference (photographs: SupplyEvidence).
-export function EvidencePanel({ figures, intertek }) {
+// The Intertek sample reference: two results, the report and its qualification. Also in the Korean page's facts panel.
+export function IntertekReference({ intertek }) {
   return (
-    <aside className="money-panel" aria-labelledby="money-panel-title">
+    <div className="money-intertek">
+      <h3>{intertek.title}</h3>
+      <dl>
+        {intertek.results.map(([name, value]) => (
+          <div key={name}>
+            <dt>{name}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <div className="money-intertek-source">
+        <p className="money-intertek-report">{intertek.report}</p>
+        <p className="money-panel-note">{intertek.caption}</p>
+      </div>
+    </div>
+  );
+}
+
+// Evidence instead of imagery: HMV network capacity and the Intertek sample reference (photographs: SupplyEvidence).
+// Without `intertek`, the network capacity alone (the Korean page shows it below its buyer value). `id`: the
+// heading's, when a page shows two panels.
+export function EvidencePanel({ figures, intertek, id = 'money-panel-title' }) {
+  return (
+    <aside className="money-panel" aria-labelledby={id}>
       <p className="money-panel-label">{figures.eyebrow}</p>
-      <h2 id="money-panel-title">{figures.title}</h2>
+      <h2 id={id}>{figures.title}</h2>
       <dl className="money-figures">
         {figures.items.map(f => {
           // "50,000 MT/month": the amount leads, the unit follows in the label size.
@@ -59,21 +82,7 @@ export function EvidencePanel({ figures, intertek }) {
         })}
       </dl>
       <p className="money-panel-note">{figures.note}</p>
-      <div className="money-intertek">
-        <h3>{intertek.title}</h3>
-        <dl>
-          {intertek.results.map(([name, value]) => (
-            <div key={name}>
-              <dt>{name}</dt>
-              <dd>{value}</dd>
-            </div>
-          ))}
-        </dl>
-        <div className="money-intertek-source">
-          <p className="money-intertek-report">{intertek.report}</p>
-          <p className="money-panel-note">{intertek.caption}</p>
-        </div>
-      </div>
+      {intertek && <IntertekReference intertek={intertek} />}
     </aside>
   );
 }

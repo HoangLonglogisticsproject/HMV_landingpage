@@ -10,7 +10,9 @@ import { LOCALES, PAGES, PAGE_LOCALES, localizePath } from '../../src/i18n/route
  * - the full page in both languages (Vietnamese text exercises the fonts' coverage), images masked: layout, image boxes
  *   and text, at a fraction of the size of photographs;
  * - the first viewport in English with its images, the hero (LCP) image included;
- * - the page-scoped Simplified Chinese page, first viewport and full page (its CJK text in the image's system fonts).
+ * - the page-scoped Simplified Chinese and Korean pages, first viewport and full page (their CJK and Hangul text in the
+ *   image's system fonts);
+ * - the cassava supply-evidence preview, open.
  * Stabilized, not masked: reduced motion (the site's CSS then stops every animation and transition, and the activities
  * carousel does not autoplay), every image loaded and decoded, every declared web font face loaded.
  * Google Fonts serves different builds of the same font by user agent, region and day (CI got a different Poppins build
@@ -64,3 +66,13 @@ for (const [lang, path] of Object.values(PAGE_LOCALES).flatMap(Object.entries)) 
     await expect(page, 'full page').toHaveScreenshot(`${name}.png`, { fullPage: true, mask: [page.locator('img')] });
   });
 }
+
+// The supply-evidence preview, open on the container photograph: backdrop, the whole photograph, caption, close button.
+test('en /products/dried-cassava-chips supply-evidence preview', async ({ page }) => {
+  await page.goto('/products/dried-cassava-chips');
+  await settle(page);
+  await page.locator('#supply-evidence .supply-evidence-frame').nth(1).click();
+  await expect(page.getByRole('dialog').locator('img')).toBeVisible();
+  await settle(page);
+  await expect(page, 'preview').toHaveScreenshot('en-products-dried-cassava-chips-supply-evidence-preview.png');
+});

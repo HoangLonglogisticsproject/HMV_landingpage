@@ -9408,9 +9408,10 @@ article[id] {
   margin-top: 10px
 }
 
-/* Supply evidence (ProductLanding.jsx SupplyEvidence): the lead photograph beside two 4:3 photographs, filling their
-   height; one column on phones. Sizes are fixed by the width and height attributes and the 4:3 frames, so nothing
-   shifts while the lazy images load. The quality results that follow share the background, so no bottom padding. */
+/* Supply evidence (features/cassava-supply-evidence/SupplyEvidence.jsx): the lead photograph beside two 4:3
+   photographs, filling their height; one column on phones. Sizes are fixed by the width and height attributes and the
+   4:3 frames, so nothing shifts while the lazy images load. The quality results that follow share the background, so
+   no bottom padding. */
 .supply-evidence-section {
   padding-bottom: 0
 }
@@ -9460,6 +9461,117 @@ article[id] {
 .supply-evidence figcaption {
   font-size: 13px;
   color: var(--ink-muted)
+}
+
+/* Each photograph opens larger (SupplyEvidencePreview): a pointer, a focus ring, and a zoom icon on hover and focus. */
+.supply-evidence-frame[role="button"] {
+  cursor: pointer
+}
+
+.supply-evidence-frame:focus-visible {
+  outline: 3px solid var(--ocean-blue);
+  outline-offset: 3px
+}
+
+.supply-evidence-zoom {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 29, 89, 0.72);
+  color: #ffffff;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none
+}
+
+.supply-evidence-frame:is(:hover, :focus-visible) .supply-evidence-zoom {
+  opacity: 1
+}
+
+/* The preview, a native modal <dialog>: the whole photograph on a dark layer over the full viewport, fitted to it,
+   its caption below. The dialog's defaults (centered box, margin, border, maximum size, light background) give way to
+   that layer, which paints the dark itself: the ::backdrop under it stays clear. */
+.supply-evidence-preview {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  padding: 64px 20px 24px;
+  background: rgba(0, 18, 51, 0.92)
+}
+
+.supply-evidence-preview[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center
+}
+
+.supply-evidence-preview::backdrop {
+  background: transparent
+}
+
+.supply-evidence-preview figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin: 0
+}
+
+.supply-evidence-preview img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(1100px, calc(100vw - 40px));
+  max-height: calc(100dvh - 150px);
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5)
+}
+
+.supply-evidence-preview figcaption {
+  max-width: 640px;
+  color: #e2e8f0;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center
+}
+
+.supply-evidence-preview-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #8aa3cf;
+  border-radius: 50%;
+  background: #001d59;
+  color: #ffffff;
+  cursor: pointer
+}
+
+/* Opaque, so the contrast is fixed: white on #001d59 15.9:1, on #0a3a8a 10.6:1; the light border marks the button
+   on the dark layer. */
+.supply-evidence-preview-close:is(:hover, :focus-visible) {
+  background: #0a3a8a
+}
+
+.supply-evidence-preview-close:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px
 }
 
 @media(max-width:700px) {
@@ -10231,23 +10343,33 @@ article[id] {
   }
 }
 
-/* Simplified Chinese page (views/products/CassavaChinaView.jsx), the page-scoped zh-CN locale. Poppins and Plus
-   Jakarta Sans have no CJK glyphs: Chinese text takes the system Chinese fonts, not a CJK web font (megabytes, LCP),
-   and Latin text keeps the brand fonts. */
+/* Page-scoped cassava pages (views/products/CassavaScoped.jsx): Simplified Chinese (CassavaChinaView) and Korean
+   (CassavaKoreaView). Poppins and Plus Jakarta Sans have no CJK or Hangul glyphs: that text takes the system fonts,
+   not a CJK web font (megabytes, LCP), and Latin text keeps the brand fonts. */
 :root:lang(zh-CN) {
   --font-sans: 'Poppins', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', 'Noto Sans CJK SC', ui-sans-serif, system-ui, sans-serif
 }
 
-/* CJK headings: no negative tracking, and line height for the taller glyphs. */
-:lang(zh-CN) :is(.money-hero h1, .rfq-info h2) {
+:root:lang(ko) {
+  --font-sans: 'Poppins', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', ui-sans-serif, system-ui, sans-serif
+}
+
+/* Korean breaks lines between words, not between syllables. */
+:lang(ko) body {
+  word-break: keep-all;
+  overflow-wrap: break-word
+}
+
+/* CJK and Hangul headings: no negative tracking, and line height for the taller glyphs. */
+:is(:lang(zh-CN), :lang(ko)) :is(.money-hero h1, .rfq-info h2) {
   font-family: 'Plus Jakarta Sans', var(--font-sans);
   letter-spacing: 0;
   line-height: 1.25;
   text-wrap: balance
 }
 
-/* A Chinese sentence, not a two-word English title: smaller, so lines break between phrases. */
-:lang(zh-CN) .rfq-info h2 {
+/* A sentence, not a two-word English title: smaller, so lines break between phrases. */
+:is(:lang(zh-CN), :lang(ko)) .rfq-info h2 {
   font-size: clamp(28px, 3vw, 40px)
 }
 
@@ -10256,11 +10378,32 @@ article[id] {
   word-break: keep-all
 }
 
-.zh-phrase {
+.scoped-phrase {
   display: inline-block
 }
 
-.zh-langs {
+/* The Korean hero's second sentence: importers and wholesalers, after the manufacturers. */
+.scoped-support {
+  max-width: 620px;
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink-muted)
+}
+
+/* Facts instead of figures in the hero panel (CassavaKoreaView): words, not amounts. */
+.scoped-facts dd {
+  font-size: 16px;
+  line-height: 1.4
+}
+
+/* The network figures below the network statement (CassavaKoreaView). */
+.scoped-network+.money-panel {
+  max-width: 760px;
+  margin-top: 32px
+}
+
+.scoped-langs {
   display: flex;
   gap: 16px;
   list-style: none;
@@ -10268,22 +10411,22 @@ article[id] {
   padding: 0
 }
 
-.zh-langs a {
+.scoped-langs a {
   font-size: 13px;
   color: var(--ink-muted);
   white-space: nowrap
 }
 
-.zh-langs a:hover {
+.scoped-langs a:hover {
   color: var(--ocean-blue)
 }
 
-.zh-langs a[aria-current] {
+.scoped-langs a[aria-current] {
   color: var(--brand);
   font-weight: 600
 }
 
-.zh-network {
+.scoped-network {
   max-width: 760px;
   margin-top: 56px;
   padding: 22px 28px;
@@ -10291,34 +10434,34 @@ article[id] {
   background: var(--surface)
 }
 
-.zh-network h3 {
+.scoped-network h3 {
   font-size: 17px;
   font-weight: 600;
   color: var(--ink)
 }
 
-.zh-network p {
+.scoped-network p {
   margin-top: 8px;
   font-size: 14px;
   line-height: 1.8;
   color: var(--ink-muted)
 }
 
-.zh-rfq-prepare {
+.scoped-rfq-prepare {
   font-weight: 600;
   color: var(--ink)
 }
 
-.zh-rfq-card .day-cta {
+.scoped-rfq-card .day-cta {
   justify-self: start
 }
 
-.zh-market h2 {
+.scoped-market h2 {
   font-size: 28px;
   color: var(--ink)
 }
 
-.zh-market p:not(.eyebrow) {
+.scoped-market p:not(.eyebrow) {
   max-width: 640px;
   margin-top: 12px;
   font-size: 15px;
@@ -10326,27 +10469,27 @@ article[id] {
   color: var(--ink-muted)
 }
 
-.zh-footer {
+.scoped-footer {
   padding: 40px 0 30px
 }
 
-.zh-footer .footer-bottom {
+.scoped-footer .footer-bottom {
   margin-top: 24px
 }
 
-.zh-nav-desk {
+.scoped-nav-desk {
   display: flex
 }
 
 /* Tablet and phone: the language links stay; the section links give way (the page is one scroll). */
 @media(max-width:1024px) {
-  .zh-nav .nav-center {
+  .scoped-nav .nav-center {
     display: none
   }
 }
 
 @media(max-width:820px) {
-  .zh-nav .nav-right {
+  .scoped-nav .nav-right {
     flex-direction: row;
     align-items: center;
     gap: 16px;
@@ -10355,13 +10498,13 @@ article[id] {
   }
 }
 
-/* Phone: logo and the three language links; the Trade Desk call to action leads the hero right below. */
+/* Phone: logo and the language links; the Trade Desk call to action leads the hero right below. */
 @media(max-width:600px) {
-  .zh-nav-desk {
+  .scoped-nav-desk {
     display: none
   }
 
-  .zh-langs {
+  .scoped-langs {
     gap: 12px
   }
 }

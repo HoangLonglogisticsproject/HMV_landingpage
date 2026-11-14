@@ -4,7 +4,9 @@
 // Claims are those of the EN/VI cassava page (data/productPages.js): its network figures, its Intertek sample results
 // and its qualifications, translated. No new figures, specifications, certifications, customers or prices. Its
 // supply-evidence photographs and their Chinese captions: data/cassavaEvidence.js.
-import { cassavaEvidenceZh as evidence } from './productPages.js';
+import { cassavaDossier } from './productPages.js';
+
+const evidence = cassavaDossier('zh');
 
 const card = (title, text) => ({ title, text });
 
