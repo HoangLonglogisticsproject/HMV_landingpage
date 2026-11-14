@@ -5,7 +5,7 @@ import type { PageLang } from '@/next/seo';
 import '@/styles/index.css';
 import '@/styles/hmv.css';
 
-export function Document({ lang, children }: { lang: PageLang; children: ReactNode }) {
+export function Document({ lang, children }: Readonly<{ lang: PageLang; children: ReactNode }>) {
   return (
     <html lang={lang}>
       <head>

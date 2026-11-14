@@ -39,10 +39,13 @@ function Header() {
               </li>
             ))}
           </ul>
-          <TradeDeskButton variant="brand" className="nav-support-btn" product={PRODUCT} source="zh_nav" title={c.tradeDesk}>
-            <ClipboardList size={15} />
-            <span>HMV Trade Desk</span>
-          </TradeDeskButton>
+          {/* The wrapper sizes and hides the button: the shared .nav-support-btn rules are !important. */}
+          <div className="zh-nav-desk">
+            <TradeDeskButton variant="brand" className="nav-support-btn" product={PRODUCT} source="zh_nav" title={c.tradeDesk}>
+              <ClipboardList size={15} />
+              <span>HMV Trade Desk</span>
+            </TradeDeskButton>
+          </div>
         </div>
       </div>
     </header>

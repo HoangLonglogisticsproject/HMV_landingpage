@@ -56,7 +56,10 @@ export default defineConfig({
     include: ['src/**/*.test.{js,jsx}', 'scripts/**/*.test.js'],
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.{js,jsx,ts,tsx}'],
+      include: ['src/**/*.{js,jsx,ts,tsx}', 'app/**/*.{ts,tsx}'],
+      // Type declarations have no runtime code, and SonarQube does not index them: an LCOV entry for one is a path
+      // it cannot resolve.
+      exclude: ['**/*.d.ts'],
       reporter: ['text-summary', 'lcovonly'],
     },
   },

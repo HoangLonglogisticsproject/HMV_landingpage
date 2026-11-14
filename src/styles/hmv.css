@@ -10271,10 +10271,8 @@ article[id] {
   margin-top: 24px
 }
 
-.zh-footer-address {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start
+.zh-nav-desk {
+  display: flex
 }
 
 /* Tablet and phone: the language links stay; the section links give way (the page is one scroll). */
@@ -10292,16 +10290,12 @@ article[id] {
     padding-top: 0;
     border-top: 0
   }
-
-  .zh-nav .nav-support-btn {
-    width: auto !important
-  }
 }
 
 /* Phone: logo and the three language links; the Trade Desk call to action leads the hero right below. */
 @media(max-width:600px) {
-  .zh-nav .nav-support-btn {
-    display: none !important
+  .zh-nav-desk {
+    display: none
   }
 
   .zh-langs {

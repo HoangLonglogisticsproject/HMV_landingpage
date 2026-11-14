@@ -17,5 +17,6 @@ export function useGoBack() {
 
 export function useLanguageSwitch() {
   const { lang, setLang } = useLanguage();
-  return { lang, hrefFor: () => undefined, select: setLang };
+  // No page-scoped locales: their pages are Next.js only.
+  return { lang, scoped: [], hrefFor: () => undefined, select: setLang };
 }

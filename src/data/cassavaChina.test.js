@@ -8,7 +8,7 @@ const amount = value => value.split(' ')[0];
 
 test('the Chinese page shows the EN/VI evidence: the same network figures and Intertek results, no others', () => {
   assert.deepEqual(zh.figures.items.map(f => amount(f.value)), en.figures.items.map(f => amount(f.value)));
-  assert.deepEqual(zh.figures.items.map(f => f.value.slice(amount(f.value).length)), [' 吨/月', ' 吨/月', ' 柜/月', ' 柜/月']);
+  assert.deepEqual(zh.figures.items.map(f => f.value.slice(amount(f.value).length)), [' 吨/月', ' 吨/月', ' 集装箱/月', ' 集装箱/月']);
   assert.equal(zh.quality.rows.length, en.quality.rows.length);
   zh.quality.rows.forEach(([, value], i) => assert.equal(value, en.quality.rows[i][1] === 'Not detected' ? '未检出' : en.quality.rows[i][1]));
   assert.deepEqual(zh.intertek.results, zh.quality.rows.slice(0, 2));

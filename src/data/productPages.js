@@ -57,7 +57,7 @@ const photo = (src, width, height, caption) => ({
 });
 
 // Dried cassava chips facts from the HMV cassava dossier.
-const PER_MONTH = { tons: t(' MT/month', ' tấn/tháng', ' 吨/月'), containers: t(' containers/month', ' container/tháng', ' 柜/月') };
+const PER_MONTH = { tons: t(' MT/month', ' tấn/tháng', ' 吨/月'), containers: t(' containers/month', ' container/tháng', ' 集装箱/月') };
 const INTERTEK = { report: 'AGRIVIETNAM2026-1700', date: new Date(Date.UTC(2026, 9, 5)) };
 const reportDate = lang =>
   INTERTEK.date.toLocaleDateString({ en: 'en-GB', vi: 'vi-VN', zh: 'zh-CN' }[lang],
@@ -72,14 +72,14 @@ const CASSAVA_FIGURES = [
   { value: quantity(50000, PER_MONTH.tons), label: t('Consolidation capacity at the Cambodia warehouse', 'Năng lực gom hàng tại kho Campuchia', '柬埔寨仓库集货能力') },
   { value: quantity(10000, PER_MONTH.tons), label: t('Supply to a factory in Long An', 'Cung ứng cho nhà máy tại Long An', '供应越南隆安省一家工厂') },
   { value: quantity(150, PER_MONTH.containers), label: t('Delivery to an importer in Guangxi', 'Giao cho nhà nhập khẩu tại Quảng Tây', '交付广西一家进口商') },
-  { value: quantity(250, PER_MONTH.containers), label: t('Transit-export capacity', 'Năng lực xuất khẩu quá cảnh', '过境出口能力') },
+  { value: quantity(250, PER_MONTH.containers), label: t('Transit-export capacity', 'Năng lực xuất khẩu quá cảnh', '过境出口组织能力') },
 ];
 const CASSAVA_RESULTS = [
   STARCH,
   MOISTURE,
   [t('Raw fiber', 'Xơ thô', '粗纤维'), percent(2.99)],
   [t('Ash', 'Tro', '灰分'), percent(1.86)],
-  [t('Sand & silica', 'Cát sạn (sand & silica)', '砂及二氧化硅'), percent(0.45)],
+  [t('Sand & silica', 'Cát sạn (sand & silica)', '砂和二氧化硅（Sand & silica）'), percent(0.45)],
   [t('Foreign matter', 'Tạp chất', '杂质'), t('Not detected', 'Không phát hiện', '未检出')],
   [t('Lead (Pb)', 'Chì (Pb)', '铅 (Pb)'), mgPerKg(0.17)],
   [t('Cadmium (Cd)', 'Cadimi (Cd)', '镉 (Cd)'), mgPerKg(0.28)],

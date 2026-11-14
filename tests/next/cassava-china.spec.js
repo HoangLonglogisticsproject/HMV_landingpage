@@ -4,8 +4,9 @@ import { abs, head, tags } from './html.js';
 
 /**
  * The page-scoped Simplified Chinese cassava page (/zh-cn/cassava-chips): server HTML, its own header and links, the
- * HMV Trade Desk call to action and the layout. Its hreflang set, sitemap entry, robots and redirects are checked with
- * every URL in next.spec.js. The copy is written out here: these are the exact strings the page must serve.
+ * HMV Trade Desk call to action. Its layout is checked in cassava-china.desktop.spec.js; its hreflang set, sitemap
+ * entry, robots and redirects with every URL in next.spec.js. The copy is written out here: these are the exact
+ * strings the page must serve.
  */
 const PATH = '/zh-cn/cassava-chips';
 const get = async request => {
@@ -30,7 +31,8 @@ test('server HTML: a zh-CN document with the Chinese title, description, heading
     'HMV GLOBAL · 工业原料批量供应管理',
     'HMV Global 面向饲料厂、淀粉加工厂和生物乙醇生产企业，提供持续、可执行的木薯干片批量供应方案；同时服务进口商及大宗批发采购。',
     '工厂原料采购', '月度批量供应', '按买方要求协调质量', '区域供应网络',
-    'HMV GLOBAL 供应网络能力', '50,000 吨/月', '10,000 吨/月', '150 柜/月', '250 柜/月',
+    'HMV GLOBAL 供应网络能力', 'HMV 供应网络能力参考', '50,000 吨/月', '10,000 吨/月', '150 集装箱/月', '250 集装箱/月',
+    '过境出口组织能力', '砂和二氧化硅（Sand & silica）',
     '并非对每一位买方的供货承诺',
     '为什么工厂采购团队选择 HMV', '不只是找到货源，而是由 HMV 管理整套供应执行',
     '供应网络', '质量要求协调', '集货与装运协调', '贸易执行',
@@ -99,17 +101,4 @@ test('the call to action opens the English HMV Trade Desk with dried cassava chi
   await expect(desk.getByRole('log')).toHaveText('HMVWhere would you like the goods delivered?');
   const events = await page.evaluate(() => /** @type {any} */ (window).dataLayer ?? []);
   expect(events).toContainEqual({ event: 'trade_desk_open', source: 'zh_hero', product: 'dried-cassava-chips', locale: 'en' });
-});
-
-// Run once, in the desktop project: the viewport sizes are set here.
-test('layout: no horizontal overflow from 1440 to 375 px; the primary call to action is in the first viewport', async ({ page }) => {
-  test.skip(test.info().project.name !== 'chromium-desktop', 'sizes set by the test');
-  for (const [width, height] of [[1440, 900], [1280, 720], [1024, 768], [768, 1024], [390, 844], [375, 667]]) {
-    await page.setViewportSize({ width, height });
-    await page.goto(PATH);
-    const size = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
-    expect(size[0], `${width}px`).toBeLessThanOrEqual(size[1]);
-    const cta = await page.getByRole('button', { name: '向 HMV 提交采购需求' }).first().boundingBox();
-    expect(cta && cta.y >= 0 && cta.y + cta.height <= height && cta.x + cta.width <= width, `${width}×${height}`).toBe(true);
-  }
 });

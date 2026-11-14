@@ -415,6 +415,25 @@ test.describe('language switch', () => {
     await expect(page.locator('h1').first()).toHaveText('Bulk Dried Cassava Chips Supply Managed by HMV Global');
   });
 
+  // Simplified Chinese is page-scoped (PAGE_LOCALES): offered on the EN and VI cassava pages only.
+  test('the cassava pages, and only they, offer Simplified Chinese, a link to /zh-cn/cassava-chips', async ({ page }) => {
+    const chinese = page.getByRole('menuitem', { name: '简体中文' });
+    for (const path of ['/products/dried-cassava-chips', '/vi/san-pham/san-lat-kho']) {
+      await page.goto(path);
+      await page.locator('button.hmv-lang-trigger').first().click();
+      await expect(chinese).toHaveAttribute('href', '/zh-cn/cassava-chips');
+      await expect(chinese).toHaveAttribute('hreflang', 'zh-CN');
+    }
+    await chinese.click();
+    await expect(page).toHaveURL(/\/zh-cn\/cassava-chips$/);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+    for (const path of ['/products/passion-fruit', '/vi/san-pham/chanh-day', '/about']) {
+      await page.goto(path);
+      await page.locator('button.hmv-lang-trigger').first().click();
+      await expect(page.getByRole('menuitem')).toHaveText(['English', 'Tiếng Việt']);
+    }
+  });
+
   test('the #hash survives the switch', async ({ page }) => {
     await page.goto('/vi#initiate-trade');
     await switchTo(page, 'English');

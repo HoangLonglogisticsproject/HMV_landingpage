@@ -32,7 +32,7 @@ export const cassavaChina = {
   },
   figures: {
     eyebrow: 'HMV GLOBAL 供应网络能力',
-    title: '整个供应网络的能力参考',
+    title: 'HMV 供应网络能力参考',
     items: evidence.figures,
     note: '以上为 HMV Global 供应网络的整体能力数据，仅作能力参考，并非对每一位买方的供货承诺。您订单的供货量以双方确认的供应方案及合同为准。',
   },
