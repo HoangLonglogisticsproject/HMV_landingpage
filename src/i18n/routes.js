@@ -22,6 +22,17 @@ export const PRODUCT_SLUG_VI = {
 };
 const PRODUCT_ID = Object.fromEntries(Object.entries(PRODUCT_SLUG_VI).map(([id, slug]) => [slug, id]));
 
+// Page-scoped locales: single pages that also exist in a language outside LOCALES, by English key path → that page's
+// URL. Only these pages carry the language in hreflang and the sitemap; the navigation, the language switcher and every
+// other page keep to LOCALES, so no link points to a translation that does not exist.
+/** @type {Record<string, Record<string, string>>} */
+export const PAGE_LOCALES = { '/products/dried-cassava-chips': { 'zh-CN': '/zh-cn/cassava-chips' } };
+const PAGE_LOCALE_URLS = Object.fromEntries(Object.entries(PAGE_LOCALES).flatMap(([path, urls]) =>
+  Object.entries(urls).map(([locale, url]) => [url, { path, locale }])));
+
+/** The page-scoped locales of the page at English key path `path`. */
+export const pageLocales = path => Object.keys(PAGE_LOCALES[path] ?? {});
+
 // Collection URLs without a page of their own, keyed by English path.
 export const INDEX_ALIASES = { '/products': '/trade-solutions', '/blog': '/insights' };
 
@@ -31,8 +42,13 @@ export const localeOf = pathname => (pathname === '/vi' || pathname.startsWith('
 // CMS slugs are not known here: they keep their slug and the article route resolves them.
 const articleSlug = (slug, locale) => findArticle(slug)?.slug[locale] ?? slug;
 
-/** URL of an English key path ('/about', '/products/<id>', '/blog/<slug>') in `locale`. */
+/**
+ * URL of an English key path ('/about', '/products/<id>', '/blog/<slug>') in `locale`. A page-scoped locale has its
+ * own URL for its pages only; any other page stays English.
+ */
 export function localizePath(path, locale) {
+  const scoped = PAGE_LOCALES[path]?.[locale];
+  if (scoped) return scoped;
   const product = path.match(/^\/products\/([^/]+)$/)?.[1];
   const slug = path.match(/^\/blog\/([^/]+)$/)?.[1];
   if (locale !== 'vi') return slug ? `/blog/${articleSlug(slug, 'en')}` : path;
@@ -48,6 +64,7 @@ export function localizePath(path, locale) {
 export function delocalizePath(pathname) {
   let p = pathname === '/index.html' ? '/' : pathname;
   if (p === '/en' || p.startsWith('/en/')) p = p.slice(3) || '/';
+  if (PAGE_LOCALE_URLS[p]) return PAGE_LOCALE_URLS[p];
   if (localeOf(p) !== 'vi') return { path: p, locale: 'en' };
   const rest = p.slice(3) || '/';
   const [, collection, slug] = rest.match(/^\/(san-pham|products|tin-tuc|blog)(?:\/([^/]+))?$/) ?? [];

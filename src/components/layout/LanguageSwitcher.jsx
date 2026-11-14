@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useLanguageSwitch } from '@/lib/navigation';
 import { assetSrc } from '@/lib/utils';
+import cnFlag from 'flag-icons/flags/4x3/cn.svg';
 import gbFlag from 'flag-icons/flags/4x3/gb.svg';
 import vnFlag from 'flag-icons/flags/4x3/vn.svg';
 
@@ -28,8 +29,14 @@ export const LANGUAGES = [
   },
 ];
 
+// Page-scoped languages (i18n/routes.js PAGE_LOCALES): listed only on the pages that have them.
+const PAGE_LANGUAGES = {
+  'zh-CN': { code: 'zh-CN', label: '简体中文', flag: assetSrc(cnFlag) },
+};
+
 export function LanguageSwitcher({ currentLang, onSelect, className = '' }) {
-  const { lang, hrefFor, select } = useLanguageSwitch();
+  const { lang, scoped, hrefFor, select } = useLanguageSwitch();
+  const languages = [...LANGUAGES, ...scoped.map((code) => PAGE_LANGUAGES[code])];
 
   const activeCode = currentLang || lang;
   const activeLang = LANGUAGES.find((l) => l.code === activeCode) || LANGUAGES[0];
@@ -78,7 +85,7 @@ export function LanguageSwitcher({ currentLang, onSelect, className = '' }) {
           role="menu"
           aria-label={activeCode === 'vi' ? 'Danh sách ngôn ngữ' : 'Language options'}
         >
-          {LANGUAGES.map((lang) => {
+          {languages.map((lang) => {
             const isActive = lang.code === activeCode;
             const href = hrefFor(lang.code);
             const content = (

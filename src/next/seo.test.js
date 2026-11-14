@@ -20,7 +20,7 @@ const MONEY = [
   ['passion-fruit', 'vi', '/vi/san-pham/chanh-day', /^Nguồn chanh dây Việt Nam\b/],
 ];
 
-test('money pages: intent-led title and description within SERP length, unique; self canonical; EN/VI/x-default; OG and Twitter', () => {
+test('money pages: intent-led title and description within SERP length, unique; self canonical; hreflang set; OG and Twitter', () => {
   const metas = MONEY.map(([id, lang, url, intent]) => {
     const { title, description } = productMeta(lang, products.find(p => p.id === id));
     assert.match(title, intent);
@@ -30,7 +30,9 @@ test('money pages: intent-led title and description within SERP length, unique; 
     const m = pageMetadata({ lang, path: `/products/${id}`, title, description });
     const pair = MONEY.filter(row => row[0] === id).map(([, l, u]) => [l, SITE + u]);
     assert.equal(m.alternates.canonical, SITE + url);
-    assert.deepEqual(m.alternates.languages, { ...Object.fromEntries(pair), 'x-default': pair.find(([l]) => l === 'en')[1] });
+    // Dried cassava chips also has its page-scoped Chinese version (tested below).
+    const zh = id === 'dried-cassava-chips' ? { 'zh-CN': `${SITE}/zh-cn/cassava-chips` } : {};
+    assert.deepEqual(m.alternates.languages, { ...Object.fromEntries(pair), ...zh, 'x-default': pair.find(([l]) => l === 'en')[1] });
     assert.equal(m.openGraph.url, SITE + url);
     assert.deepEqual([m.openGraph.title, m.openGraph.description], [`${title} | HMV Global`, description]);
     assert.deepEqual([m.twitter.card, m.twitter.title, m.twitter.description], ['summary_large_image', `${title} | HMV Global`, description]);
@@ -38,4 +40,30 @@ test('money pages: intent-led title and description within SERP length, unique; 
   });
   assert.equal(new Set(metas.map(m => m.title)).size, MONEY.length);
   assert.equal(new Set(metas.map(m => m.description)).size, MONEY.length);
+});
+
+// The page-scoped Chinese cassava page: one reciprocal hreflang set of three, on its page only.
+test('Chinese cassava page: self canonical, EN/VI/zh-CN/x-default on the three cassava pages and no other', async () => {
+  const { cassavaChina } = await import('../data/cassavaChina.js');
+  const set = {
+    en: `${SITE}/products/dried-cassava-chips`,
+    vi: `${SITE}/vi/san-pham/san-lat-kho`,
+    'zh-CN': `${SITE}/zh-cn/cassava-chips`,
+    'x-default': `${SITE}/products/dried-cassava-chips`,
+  };
+  const zh = pageMetadata({ lang: 'zh-CN', path: '/products/dried-cassava-chips', ...cassavaChina.seo });
+  assert.equal(zh.title, '越南木薯干片供应商与工厂批量采购方案');
+  assert.equal(zh.alternates.canonical, set['zh-CN']);
+  assert.deepEqual(zh.alternates.languages, set);
+  assert.deepEqual([zh.openGraph.url, zh.openGraph.locale, zh.openGraph.alternateLocale], [set['zh-CN'], 'zh_CN', ['en_US', 'vi_VN']]);
+  for (const lang of ['en', 'vi']) {
+    const m = pageMetadata({ lang, path: '/products/dried-cassava-chips', title: 't', description: 'd' });
+    assert.equal(m.alternates.canonical, set[lang]);
+    assert.deepEqual(m.alternates.languages, set);
+  }
+  for (const path of ['/', '/about', '/products/passion-fruit', '/products/tapioca-starch']) {
+    const m = pageMetadata({ lang: 'en', path, title: 't', description: 'd' });
+    assert.deepEqual(Object.keys(m.alternates.languages), ['en', 'vi', 'x-default'], path);
+    assert.deepEqual(m.openGraph.alternateLocale, ['vi_VN'], path);
+  }
 });

@@ -1,17 +1,26 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 import { articles } from '../../src/data/articles.js';
-import { LOCALES, PAGES, PRODUCT_SLUG_VI, localizePath } from '../../src/i18n/routes.js';
+import { LOCALES, PAGES, PAGE_LOCALES, PRODUCT_SLUG_VI, localizePath, pageLocales } from '../../src/i18n/routes.js';
 import { abs, head, tags } from './html.js';
 
 /**
- * Next.js site in EN and VI: server HTML, status codes, redirects, noindex, client islands and the language switch.
+ * Next.js site in EN and VI, plus the page-scoped Simplified Chinese cassava page: server HTML, status codes, redirects,
+ * noindex, client islands and the language switch.
  * Run with playwright.next.config.js (never against the production domain).
  */
 
-// Every indexable URL, from the route contract: each page, product and article in each language.
+// Every indexable URL, from the route contract: each page, product and article in each language, and each page in its
+// page-scoped locales.
 const KEYS = [...PAGES, ...Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`), ...articles.map(a => `/blog/${a.slug.en}`)];
-const URLS = LOCALES.flatMap(lang => KEYS.map(key => ({ key, lang, path: localizePath(key, lang) })));
+const SCOPED = Object.entries(PAGE_LOCALES).flatMap(([key, urls]) => Object.entries(urls).map(([lang, path]) => ({ key, lang, path })));
+const URLS = [...LOCALES.flatMap(lang => KEYS.map(key => ({ key, lang, path: localizePath(key, lang) }))), ...SCOPED];
+// A page's hreflang set: EN, VI, its page-scoped locales and x-default.
+const hreflangOf = key => {
+  const en = abs(localizePath(key, 'en'));
+  const scoped = pageLocales(key).map(lang => [lang, abs(localizePath(key, lang))]);
+  return { en, vi: abs(localizePath(key, 'vi')), ...Object.fromEntries(scoped), 'x-default': en };
+};
 
 // Server-rendered pages: everything a crawler or link preview needs is in the HTML, before any JavaScript.
 for (const { key, lang, path } of URLS) {
@@ -27,8 +36,7 @@ for (const { key, lang, path } of URLS) {
     expect(h.title.split(' | '), 'one brand suffix (D-06)').toHaveLength(2);
     expect(h.description).toBeTruthy();
     expect(h.canonical).toBe(abs(path));
-    const en = abs(localizePath(key, 'en'));
-    expect(h.hreflang).toEqual({ en, vi: abs(localizePath(key, 'vi')), 'x-default': en });
+    expect(h.hreflang).toEqual(hreflangOf(key));
     // This is the Next.js build, not the Vite SPA shell.
     expect(html).toContain('/_next/static/');
     expect(html).not.toContain('<div id="root"></div>');
@@ -169,20 +177,25 @@ const CHAINS = [
   // The CMS admin's link format (M-56), resolved by app/tin-tuc/[slug]/route.ts.
   ['/tin-tuc/xuat-khau-chanh-day-eu', ['/vi/tin-tuc/xuat-khau-chanh-day-eu']],
   ['/tin-tuc/exporting-passion-fruit-eu', ['/blog/exporting-passion-fruit-eu']],
+  // The page-scoped Chinese page: `lang` picks the page's site-locale version; a trailing slash costs one hop.
+  ['/zh-cn/cassava-chips?lang=vi', ['/vi/san-pham/san-lat-kho']],
+  ['/zh-cn/cassava-chips?lang=en', ['/products/dried-cassava-chips']],
+  ['/zh-cn/cassava-chips/', ['/zh-cn/cassava-chips']],
 ];
 
 test('/tin-tuc/<unknown> is a 404', async ({ request }) => {
   expect((await request.get('/tin-tuc/unknown', { maxRedirects: 0 })).status()).toBe(404);
 });
 
+const sitemapEntries = xml => [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(([, body]) => ({
+  loc: body.match(/<loc>([^<]+)<\/loc>/)?.[1],
+  alternates: Object.fromEntries([...body.matchAll(/hreflang="([^"]+)" href="([^"]+)"/g)].map(([, l, h]) => [l, h])),
+}));
+
 // One canonical formatter for every surface: the sitemap's <loc> is the page's canonical and og:url, string for string,
 // and its alternates are the page's hreflang set, string for string.
 test('sitemap: every indexable URL, with exactly the page canonical, og:url and hreflang strings', async ({ request }) => {
-  const xml = await (await request.get('/sitemap.xml')).text();
-  const entries = [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(([, body]) => ({
-    loc: body.match(/<loc>([^<]+)<\/loc>/)?.[1],
-    alternates: Object.fromEntries([...body.matchAll(/hreflang="([^"]+)" href="([^"]+)"/g)].map(([, l, h]) => [l, h])),
-  }));
+  const entries = sitemapEntries(await (await request.get('/sitemap.xml')).text());
   expect(entries.map(e => e.loc).sort()).toEqual(URLS.map(u => abs(u.path)).sort());
   for (const { path } of URLS) {
     const h = head(await (await request.get(path)).text());
@@ -193,17 +206,32 @@ test('sitemap: every indexable URL, with exactly the page canonical, og:url and 
   }
 });
 
-// Dried cassava chips: its own EN/VI pair, never the tapioca-starch URLs.
-test('dried cassava chips: EN/VI pair in hreflang and the sitemap, separate from tapioca starch', async ({ request }) => {
-  const pair = { en: abs('/products/dried-cassava-chips'), vi: abs('/vi/san-pham/san-lat-kho') };
-  for (const path of ['/products/dried-cassava-chips', '/vi/san-pham/san-lat-kho']) {
-    const h = head(await (await request.get(path)).text());
-    expect(h.hreflang, path).toEqual({ ...pair, 'x-default': pair.en });
+// Dried cassava chips: its own EN/VI/ZH-CN set, never the tapioca-starch URLs. Written out, not derived from the route
+// contract, so a change to the contract cannot move these URLs unnoticed.
+const CASSAVA = {
+  en: abs('/products/dried-cassava-chips'),
+  vi: abs('/vi/san-pham/san-lat-kho'),
+  'zh-CN': abs('/zh-cn/cassava-chips'),
+};
+const CASSAVA_SET = { ...CASSAVA, 'x-default': CASSAVA.en };
+
+test('dried cassava chips: one reciprocal EN/VI/zh-CN/x-default set in hreflang and the sitemap, separate from tapioca starch', async ({ request }) => {
+  for (const url of Object.values(CASSAVA)) {
+    const h = head(await (await request.get(url.replace(abs('/'), '') || '/')).text());
+    expect(h.canonical, url).toBe(url);
+    expect(h.hreflang, url).toEqual(CASSAVA_SET);
   }
+  const entries = sitemapEntries(await (await request.get('/sitemap.xml')).text());
+  for (const url of Object.values(CASSAVA)) expect(entries.find(e => e.loc === url)?.alternates, url).toEqual(CASSAVA_SET);
+  expect(entries.map(e => e.loc)).toContain(abs('/products/tapioca-starch'));
+});
+
+test('zh-CN appears only on the three cassava pages: no other page and no other sitemap entry gains it', async ({ request }) => {
+  const withZh = [];
+  for (const { path } of URLS) if (head(await (await request.get(path)).text()).hreflang['zh-CN']) withZh.push(abs(path));
+  expect(withZh.sort()).toEqual(Object.values(CASSAVA).sort());
   const xml = await (await request.get('/sitemap.xml')).text();
-  expect(xml).toContain(`<loc>${pair.en}</loc>`);
-  expect(xml).toContain(`<loc>${pair.vi}</loc>`);
-  expect(xml).toContain(`<loc>${abs('/products/tapioca-starch')}</loc>`);
+  expect(sitemapEntries(xml).filter(e => e.alternates['zh-CN']).map(e => e.loc).sort()).toEqual(Object.values(CASSAVA).sort());
 });
 
 // The money pages (dried cassava chips and passion fruit, EN and VI). Their hreflang pairs and sitemap entries are
@@ -385,6 +413,25 @@ test.describe('language switch', () => {
     await switchTo(page, 'English');
     await expect(page).toHaveURL(/\/products\/dried-cassava-chips$/);
     await expect(page.locator('h1').first()).toHaveText('Bulk Dried Cassava Chips Supply Managed by HMV Global');
+  });
+
+  // Simplified Chinese is page-scoped (PAGE_LOCALES): offered on the EN and VI cassava pages only.
+  test('the cassava pages, and only they, offer Simplified Chinese, a link to /zh-cn/cassava-chips', async ({ page }) => {
+    const chinese = page.getByRole('menuitem', { name: '简体中文' });
+    for (const path of ['/products/dried-cassava-chips', '/vi/san-pham/san-lat-kho']) {
+      await page.goto(path);
+      await page.locator('button.hmv-lang-trigger').first().click();
+      await expect(chinese).toHaveAttribute('href', '/zh-cn/cassava-chips');
+      await expect(chinese).toHaveAttribute('hreflang', 'zh-CN');
+    }
+    await chinese.click();
+    await expect(page).toHaveURL(/\/zh-cn\/cassava-chips$/);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+    for (const path of ['/products/passion-fruit', '/vi/san-pham/chanh-day', '/about']) {
+      await page.goto(path);
+      await page.locator('button.hmv-lang-trigger').first().click();
+      await expect(page.getByRole('menuitem')).toHaveText(['English', 'Tiếng Việt']);
+    }
   });
 
   test('the #hash survives the switch', async ({ page }) => {

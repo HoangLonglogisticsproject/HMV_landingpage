@@ -3,8 +3,8 @@ import { ProductRfq } from '@/features/inquiries/ProductRfq';
 import Image from '@/lib/image';
 import { ProductMoneyHero } from './ProductMoneyHero';
 
-// Section heading: eyebrow, h2 and an optional intro line.
-const Heading = ({ eyebrow, title, text }) => (
+// Section heading: eyebrow, h2 and an optional intro line. Also used by CassavaChinaView.
+export const Heading = ({ eyebrow, title, text }) => (
   <div className="section-heading">
     <div>
       <p className="eyebrow">{eyebrow}</p>
@@ -14,7 +14,7 @@ const Heading = ({ eyebrow, title, text }) => (
   </div>
 );
 
-const Cards = ({ items }) => (
+export const Cards = ({ items }) => (
   <div className="business-grid landing-grid">
     {items.map(item => (
       <article key={item.title}>
@@ -25,7 +25,7 @@ const Cards = ({ items }) => (
   </div>
 );
 
-const Photo = ({ photo, lang, sizes }) => (
+export const Photo = ({ photo, lang, sizes }) => (
   <figure className="landing-photo">
     <Image src={photo.src} width={photo.width} height={photo.height} sizes={sizes} loading="lazy" decoding="async" alt={photo.caption[lang]} />
     <figcaption>{photo.caption[lang]}</figcaption>

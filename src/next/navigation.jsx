@@ -5,7 +5,7 @@
 // MIGRATION-ONLY: the `useSearchParams` re-export; after cleanup, import it from next/navigation directly.
 import NextLink from 'next/link';
 import { usePathname, useRouter, useSearchParams as useNextSearchParams } from 'next/navigation';
-import { delocalizePath, localeOf, localizePath, switchHref } from '@/i18n/routes';
+import { delocalizePath, localeOf, localizePath, pageLocales, switchHref } from '@/i18n/routes';
 
 export function Link({ to, ...props }) {
   const locale = localeOf(usePathname());
@@ -27,11 +27,15 @@ export function useGoBack() {
   return () => (window.history.length > 1 ? router.back() : router.push(home));
 }
 
-/** Language links: real URLs (`hrefFor`); `select` keeps the query and #hash the server cannot see. */
+/**
+ * Language links: real URLs (`hrefFor`); `select` keeps the query and #hash the server cannot see. `scoped`: the
+ * page-scoped locales of this page (i18n/routes.js PAGE_LOCALES), offered on this page only.
+ */
 export function useLanguageSwitch() {
   const pathname = usePathname();
   return {
     lang: localeOf(pathname),
+    scoped: pageLocales(delocalizePath(pathname).path),
     hrefFor: locale => switchHref(pathname, '', locale),
     select: locale =>
       window.location.assign(switchHref(window.location.pathname, window.location.search, locale) + window.location.hash),
