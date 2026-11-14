@@ -59,7 +59,7 @@ test('Chinese and Korean cassava pages: self canonical, EN/VI/zh-CN/ko/x-default
   assert.deepEqual(zh.alternates.languages, set);
   assert.deepEqual([zh.openGraph.url, zh.openGraph.locale, zh.openGraph.alternateLocale], [set['zh-CN'], 'zh_CN', ['en_US', 'vi_VN', 'ko_KR']]);
   const ko = pageMetadata({ lang: 'ko', path: '/products/dried-cassava-chips', ...cassavaKorea.seo });
-  assert.equal(ko.title, '베트남 타피오카 칩 공급 - 주정·에탄올·사료 제조사용 원료');
+  assert.equal(ko.title, '베트남 타피오카 칩 공급 - 주정·에탄올·사료 제조업체용 원료');
   assert.equal(ko.alternates.canonical, set.ko);
   assert.deepEqual(ko.alternates.languages, set);
   assert.deepEqual([ko.openGraph.url, ko.openGraph.locale, ko.openGraph.alternateLocale], [set.ko, 'ko_KR', ['en_US', 'vi_VN', 'zh_CN']]);

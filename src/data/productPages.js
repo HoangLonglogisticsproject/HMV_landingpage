@@ -80,7 +80,7 @@ const CASSAVA_FIGURES = [
   { value: quantity(50000, PER_MONTH.tons), label: t('Consolidation capacity at the Cambodia warehouse', 'Năng lực gom hàng tại kho Campuchia', '柬埔寨仓库集货能力', '캄보디아 창고 집하 역량') },
   { value: quantity(10000, PER_MONTH.tons), label: t('Supply to a factory in Long An', 'Cung ứng cho nhà máy tại Long An', '供应越南隆安省一家工厂', '베트남 롱안성 소재 공장 공급') },
   { value: quantity(150, PER_MONTH.containers), label: t('Delivery to an importer in Guangxi', 'Giao cho nhà nhập khẩu tại Quảng Tây', '交付广西一家进口商', '중국 광시 소재 수입업체 납품') },
-  { value: quantity(250, PER_MONTH.containers), label: t('Transit-export capacity', 'Năng lực xuất khẩu quá cảnh', '过境出口组织能力', '경유 수출 역량') },
+  { value: quantity(250, PER_MONTH.containers), label: t('Transit-export capacity', 'Năng lực xuất khẩu quá cảnh', '过境出口组织能力', '경유 수출 조율 역량') },
 ];
 const CASSAVA_RESULTS = [
   STARCH,

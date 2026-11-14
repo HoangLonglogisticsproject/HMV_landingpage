@@ -32,7 +32,7 @@ test('manufacturers first: ethanol, feed and starch lead; importers and wholesal
   const at = term => hero.indexOf(term);
   assert.ok([at('주정·에탄올'), at('사료'), at('전분'), at('수입업체'), at('대량 도매')].every((i, n, all) => i >= 0 && (n === 0 || i > all[n - 1])), hero);
   assert.doesNotMatch(ko.hero.lead, /수입업체|도매/);
-  for (const s of [ko.seo.title, ko.seo.description, ko.hero.h1]) assert.match(s, /제조사/, s);
+  for (const s of [ko.seo.title, ko.seo.description, ko.hero.h1]) assert.match(s, /제조(사|업체)/, s);
   assert.deepEqual(ko.useCases.items.map(i => i.title), ['주정·에탄올 생산', '사료 생산', '전분 가공']);
   assert.doesNotMatch(JSON.stringify(ko), /무역상|트레이더|중개상/);
   // Cambodia is in the supply-network statement and the figures below the buyer value, never in the hero.

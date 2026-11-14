@@ -119,8 +119,9 @@ test('each photograph opens larger, the same optimized file with its caption, an
     // The keyboard opens it too; the close button and the backdrop close it.
     await page.keyboard.press('Enter');
     await expect(dialog).toBeVisible();
-    await expect(page.getByRole('button', { name: COPY[lang].close })).toBeFocused();
-    await page.getByRole('button', { name: COPY[lang].close }).click();
+    // The focused close button is inside the dialog, with the photograph and its caption.
+    await expect(dialog.getByRole('button', { name: COPY[lang].close })).toBeFocused();
+    await dialog.getByRole('button', { name: COPY[lang].close }).click();
     await expect(dialog).toBeHidden();
     await expect(frames.last()).toBeFocused();
     await page.keyboard.press(' ');

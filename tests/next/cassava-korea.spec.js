@@ -20,7 +20,7 @@ test('server HTML: a ko document with the Korean title, description and heading;
   const html = await get(request);
   const h = head(html);
   expect(h.lang).toBe('ko');
-  expect(h.title).toBe('베트남 타피오카 칩 공급 - 주정·에탄올·사료 제조사용 원료 | HMV Global');
+  expect(h.title).toBe('베트남 타피오카 칩 공급 - 주정·에탄올·사료 제조업체용 원료 | HMV Global');
   expect(h.description).toBe('HMV Global은 주정·에탄올, 사료 및 전분 가공 제조사를 위한 베트남 타피오카 칩 대량 공급을 관리합니다. 월간 구매량, 품질 요구사항, 집하 및 납품 계획에 맞춰 공급안을 조율합니다.');
   expect(html.match(/<h1\b/g)).toHaveLength(1);
   expect(h.h1).toBe('HMV Global이 관리하는 제조사용 타피오카 칩 대량 공급');
@@ -30,7 +30,7 @@ test('server HTML: a ko document with the Korean title, description and heading;
   for (const copy of [
     'HMV GLOBAL · 산업용 원료 공급 관리',
     '제조사 원료 조달', '월간 대량 공급', '구매 기준에 따른 품질 조율', '지역 공급 네트워크',
-    '주요 수요처', '주정·에탄올 · 사료 · 전분 가공', '반복 월간 대량 공급', '구매사 기준에 맞춰 협의', 'Intertek 분석 샘플',
+    '주요 수요처', '주정·에탄올 · 사료 · 전분 가공', '월 단위 정기 대량 공급', '구매사 기준에 맞춰 협의', 'Intertek 분석 샘플',
     '제조업별 원료 사용', '타피오카 칩을 사용하는 주요 제조 분야', '주정·에탄올 생산', '사료 생산', '전분 가공',
     '제조사가 HMV와 협력하는 이유', '단순한 공급처 연결이 아니라 공장 조달을 위한 공급 실행',
     '공급 네트워크', '품질 기준 조율', '집하 및 선적 관리', '상업 및 납품 실행',
@@ -39,7 +39,7 @@ test('server HTML: a ko document with the Korean title, description and heading;
     '실제 공급 현장', 'HMV 공급 네트워크의 제품·대량 공급·출하 현장', '대량 타피오카 칩 — 실제 공급 현장',
     '아래 수치는 특정 제출 샘플의 시험 결과이며 모든 공급 물량의 고정 규격을 의미하지 않습니다.',
     'Intertek 베트남 분석 보고서 AGRIVIETNAM2026-1700', '71.1%', '11.55%', '불검출', '<0.02 mg/kg',
-    '구매 요구사항에서 납품까지', '귀사의 공장에 맞는 타피오카 칩', '공급 계획을 HMV와 협의하세요',
+    '구매 요구사항에서 납품까지', '공장 맞춤형 타피오카 칩', '공급을 HMV와 협의하세요',
     '회사 / 공장명', '도착지', '예상 월간 구매량 (톤/월)', 'HMV Trade Desk는 현재 영어로 제공됩니다.',
     '공장 조달에 영향을 주는 타피오카 시장 변수',
   ]) expect(body, copy).toContain(copy);

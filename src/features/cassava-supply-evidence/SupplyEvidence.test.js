@@ -38,8 +38,11 @@ test('every photograph is a button that opens it larger: the same file, its alt 
       const img = preview().querySelector('img');
       assert.deepEqual([img.getAttribute('src'), img.alt], [photo.src, photo.alt[lang]], `${lang} ${photo.id}`);
       assert.equal(preview().querySelector('figcaption').textContent, photo.caption[lang]);
-      assert.equal(preview().querySelector('[role="dialog"]').getAttribute('aria-label'), photo.caption[lang]);
+      const dialog = preview().querySelector('[role="dialog"][aria-modal="true"]');
+      assert.equal(dialog.getAttribute('aria-label'), photo.caption[lang]);
       assert.equal(document.activeElement.getAttribute('aria-label'), cassavaEvidence.copy[lang].close, 'the close button has focus');
+      // Focus, the photograph and its caption are inside the dialog.
+      assert.ok([document.activeElement, img, preview().querySelector('figcaption')].every(el => dialog.contains(el)));
       await act(() => document.activeElement.click());
       assert.equal(preview(), null);
       assert.equal(document.activeElement, button, 'focus returns to the photograph');
