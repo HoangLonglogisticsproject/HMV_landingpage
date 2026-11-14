@@ -28,6 +28,7 @@ function staticView(a, lang) {
     image: photos[a.image] ? { src: photos[a.image], width, height, alt: a.alt[lang], position: a.imagePosition } : null,
     content: toDoc(a.body[lang]),
     cta: a.cta[lang],
+    product: a.product,
   };
 }
 

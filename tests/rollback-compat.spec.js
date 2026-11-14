@@ -13,7 +13,7 @@ const CASES = [
   ['/vi/about', '/about', 'Về HMV'],
   ['/vi/contact', '/contact', 'Kết nối hợp tác'],
   ['/vi/san-pham/chanh-day', '/products/passion-fruit', 'Chanh dây tươi từ Việt Nam'],
-  ['/vi/san-pham/san-lat-kho', '/products/dried-cassava-chips', 'Sắn lát khô cho khách hàng công nghiệp'],
+  ['/vi/san-pham/san-lat-kho', '/products/dried-cassava-chips', 'Nguồn cung sắn lát khô số lượng lớn do HMV Global điều phối'],
   ['/vi/san-pham/hat-dieu', '/products/nuts', 'Hạt điều'],
   ['/vi/tin-tuc/xuat-khau-chanh-day-eu', '/blog/exporting-passion-fruit-eu', /^Xuất khẩu Chanh dây/],
   ['/vi/trade-solutions', '/trade-solutions', 'Giải pháp thương mại'],

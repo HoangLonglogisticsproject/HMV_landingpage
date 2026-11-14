@@ -46,10 +46,10 @@ const COPY = [
   { path: '/vi/supply-chain', h1: 'Chuỗi cung ứng', title: 'Thực thi chuỗi cung ứng nông sản từ Việt Nam | HMV Global' },
   { path: '/vi/san-pham/hat-dieu', h1: 'Hạt điều', title: 'Hạt điều Việt Nam cho nhu cầu thu mua B2B | HMV Global' },
   { path: '/products/nuts', h1: 'Cashew nuts', title: 'Vietnam Cashew Nuts Sourcing for Wholesale Buyers | HMV Global' },
-  { path: '/products/passion-fruit', h1: 'Fresh Passion Fruit from Vietnam', title: 'Vietnam Passion Fruit Sourcing for Wholesale Buyers | HMV Global' },
-  { path: '/vi/san-pham/chanh-day', h1: 'Chanh dây tươi từ Việt Nam', title: 'Chanh dây Việt Nam cho nhu cầu thu mua B2B | HMV Global' },
-  { path: '/products/dried-cassava-chips', h1: 'Dried Cassava Chips for Industrial Buyers', title: 'Vietnam Dried Cassava Chips for Industrial Buyers | HMV Global' },
-  { path: '/vi/san-pham/san-lat-kho', h1: 'Sắn lát khô cho khách hàng công nghiệp', title: 'Sắn lát khô Việt Nam cho khách hàng công nghiệp & B2B | HMV Global' },
+  { path: '/products/passion-fruit', h1: 'Fresh Passion Fruit from Vietnam', title: 'Vietnam Passion Fruit Supplier for Wholesale Buyers | HMV Global' },
+  { path: '/vi/san-pham/chanh-day', h1: 'Chanh dây tươi từ Việt Nam', title: 'Nguồn chanh dây Việt Nam cho nhà nhập khẩu & B2B | HMV Global' },
+  { path: '/products/dried-cassava-chips', h1: 'Bulk Dried Cassava Chips Supply Managed by HMV Global', title: 'Dried Cassava Chips Supplier in Vietnam | HMV Global' },
+  { path: '/vi/san-pham/san-lat-kho', h1: 'Nguồn cung sắn lát khô số lượng lớn do HMV Global điều phối', title: 'Nhà cung cấp sắn lát khô B2B tại Việt Nam | HMV Global' },
   { path: '/vi/tin-tuc/xuat-khau-chanh-day-eu', title: 'Xuất khẩu Chanh dây sang Châu Âu: Tiêu chuẩn GlobalGAP và câu chuyện của HMV Global. | HMV Global' },
   // Decision D-06: one brand suffix, added by the title template.
   { path: '/logistics', title: 'Supply Chain Operations & Dangerous Goods Handling | HMV Global' },
@@ -206,6 +206,30 @@ test('dried cassava chips: EN/VI pair in hreflang and the sitemap, separate from
   expect(xml).toContain(`<loc>${abs('/products/tapioca-starch')}</loc>`);
 });
 
+// The money pages (dried cassava chips and passion fruit, EN and VI). Their hreflang pairs and sitemap entries are
+// checked with every URL above; here, what a search result or a link preview reads, and the crawl path to them.
+const MONEY = ['/products/dried-cassava-chips', '/products/passion-fruit'];
+
+test('money pages: unique title and description, self canonical, OG and Twitter tags in the server HTML', async ({ request }) => {
+  const paths = LOCALES.flatMap(lang => MONEY.map(key => localizePath(key, lang)));
+  const heads = await Promise.all(paths.map(async path => head(await (await request.get(path)).text())));
+  heads.forEach((h, i) => {
+    expect(h.canonical, paths[i]).toBe(abs(paths[i]));
+    expect(h.og, paths[i]).toMatchObject({ url: abs(paths[i]), title: h.title, description: h.description, type: 'website' });
+    expect(h.twitter, paths[i]).toMatchObject({ card: 'summary_large_image', title: h.title, description: h.description });
+  });
+  for (const key of ['title', 'description']) expect(new Set(heads.map(h => h[key])).size, key).toBe(paths.length);
+});
+
+test('money pages: plain links from Home, Supply Chain and Trade Solutions in the server HTML', async ({ request }) => {
+  for (const lang of LOCALES) {
+    for (const from of ['/', '/supply-chain', '/trade-solutions'].map(key => localizePath(key, lang))) {
+      const hrefs = tags(await (await request.get(from)).text(), 'a').map(a => a.href);
+      for (const key of MONEY) expect(hrefs, `${from} → ${key}`).toContain(localizePath(key, lang));
+    }
+  }
+});
+
 test('robots.txt allows crawling and points to the sitemap', async ({ request }) => {
   const robots = await (await request.get('/robots.txt')).text();
   expect(robots).toMatch(/User-Agent: \*\s+Allow: \//i);
@@ -357,10 +381,10 @@ test.describe('language switch', () => {
     await page.goto('/products/dried-cassava-chips');
     await switchTo(page, 'Tiếng Việt');
     await expect(page).toHaveURL(/\/vi\/san-pham\/san-lat-kho$/);
-    await expect(page.locator('h1').first()).toHaveText('Sắn lát khô cho khách hàng công nghiệp');
+    await expect(page.locator('h1').first()).toHaveText('Nguồn cung sắn lát khô số lượng lớn do HMV Global điều phối');
     await switchTo(page, 'English');
     await expect(page).toHaveURL(/\/products\/dried-cassava-chips$/);
-    await expect(page.locator('h1').first()).toHaveText('Dried Cassava Chips for Industrial Buyers');
+    await expect(page.locator('h1').first()).toHaveText('Bulk Dried Cassava Chips Supply Managed by HMV Global');
   });
 
   test('the #hash survives the switch', async ({ page }) => {

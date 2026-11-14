@@ -1,4 +1,5 @@
 import passionFruit from '@/assets/passion-fruit-cut.webp';
+import cassavaChips from '@/assets/products/dried-cassava-chips.webp';
 import bananas from '@/assets/vietnam-bananas.webp';
 import dragonFruit from '@/assets/dragonFruit.webp';
 import pepper from '@/assets/phu-quoc-pepper.webp';
@@ -15,6 +16,15 @@ export const productPhotos = {
     height: 1280,
     altEn: 'Cut passion fruit showing the pulp and seeds',
     altVi: 'Chanh dây bổ đôi, thấy rõ phần ruột và hạt',
+    sourceEn: 'Photo supplied by HMV',
+    sourceVi: 'Ảnh do HMV cung cấp',
+  },
+  'dried-cassava-chips': {
+    src: assetSrc(cassavaChips),
+    width: 960,
+    height: 1280,
+    altEn: 'Close-up of dried cassava chips, white flesh and brown peel',
+    altVi: 'Cận cảnh sắn lát khô, phần thịt trắng và vỏ nâu',
     sourceEn: 'Photo supplied by HMV',
     sourceVi: 'Ảnh do HMV cung cấp',
   },

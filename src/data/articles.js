@@ -32,7 +32,7 @@ export const articles = [
     title: { vi: 'Xuất khẩu Chanh dây sang Châu Âu: Tiêu chuẩn GlobalGAP và câu chuyện của HMV Global.', en: 'Exporting Passion Fruit to Europe: GlobalGAP Standards and the HMV Global Approach.' },
     description: { vi: 'Tiêu chuẩn MRLs, GlobalGAP và cách HMV Global xây dựng chuỗi cung ứng tích hợp đưa chanh dây Việt Nam đến Châu Âu.', en: 'MRLs, GlobalGAP and how HMV Global builds an integrated supply chain for Vietnamese passion fruit bound for Europe.' },
     alt: { vi: 'Vườn chanh dây tại Việt Nam', en: 'Passion fruit farm in Vietnam' },
-    cta: { vi: 'Bạn đang tìm nguồn chanh dây cho thị trường EU?', en: 'Sourcing passion fruit for the EU market?' },
+    cta: { vi: 'Bạn đang tìm nguồn chanh dây cho thị trường EU?', en: 'Sourcing passion fruit for the EU market?' }, product: 'passion-fruit',
     body: { vi: passionVi, en: passionEn },
   },
   {

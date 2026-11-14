@@ -7,7 +7,7 @@ const commodities = [
   { id: 'passion-fruit', en: 'Passion Fruit', vi: 'Chanh dây', size: 'c-tall' },
   { id: 'bananas', en: 'Cavendish Bananas', vi: 'Chuối Cavendish', size: 'c-wide' },
   { id: 'spices', en: 'Spices', vi: 'Gia vị', size: '' },
-  { id: 'tapioca-starch', en: 'Tapioca Starch', vi: 'Tinh bột sắn', size: '' },
+  { id: 'dried-cassava-chips', en: 'Dried Cassava Chips', vi: 'Sắn lát khô', size: '' },
 ];
 
 export function CoreCommodities({ lang }) {

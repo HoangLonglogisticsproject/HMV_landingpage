@@ -61,7 +61,7 @@ test('Vietnamese home: the desk opens in Vietnamese; a typed product is recogniz
 
 test('product page: the product is known; destination and volume make a requirement ready for quotation', async ({ page }) => {
   await page.goto('/products/dried-cassava-chips');
-  await page.getByRole('button', { name: 'Request a Cassava Supply Proposal' }).click();
+  await page.getByRole('button', { name: 'Build Your Cassava Supply Plan with HMV' }).click();
   await expect(desk(page).locator('.desk-summary')).toContainText('Dried cassava chips');
   await expect(thread(page)).toHaveText('HMVWhere would you like the goods delivered?');
   await say(page, 'Delivery destination', 'Chennai, India');
@@ -82,7 +82,7 @@ test('product page: the product is known; destination and volume make a requirem
 
 test('edit: a mistyped destination is corrected from the requirement panel, by keyboard; the volume is not asked again', async ({ page }) => {
   await page.goto('/products/dried-cassava-chips');
-  await page.getByRole('button', { name: 'Request a Cassava Supply Proposal' }).click();
+  await page.getByRole('button', { name: 'Build Your Cassava Supply Plan with HMV' }).click();
   await say(page, 'Delivery destination', 'Channai, India');
   await say(page, 'Expected volume', '2,000');
   const panel = desk(page).getByRole('complementary', { name: 'Your requirement' });
@@ -163,7 +163,7 @@ test('discovery accepted: a buyer still exploring reaches Customer Service witho
     await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ reference: 'HMV-2026-EXPLOR' }) });
   });
   await page.goto('/products/dried-cassava-chips');
-  await page.getByRole('button', { name: 'Request a Cassava Supply Proposal' }).click();
+  await page.getByRole('button', { name: 'Build Your Cassava Supply Plan with HMV' }).click();
   await desk(page).getByRole('button', { name: "I'm still exploring" }).click();
   await expect(thread(page)).toContainText('No problem. HMV Customer Service can help clarify your requirement');
   await expect(desk(page).getByLabel('Expected volume')).toHaveCount(0);
@@ -181,7 +181,7 @@ test('discovery accepted: a buyer still exploring reaches Customer Service witho
 
 test('language: an English sentence on the Vietnamese site continues in English; the EN | VI choice wins', async ({ page }) => {
   await page.goto('/vi/san-pham/san-lat-kho');
-  await page.getByRole('button', { name: 'Yêu cầu phương án cung ứng sắn lát' }).click();
+  await page.getByRole('button', { name: 'Xây dựng phương án cung ứng sắn lát cùng HMV' }).click();
   await expect(thread(page)).toHaveText('HMVAnh/chị cần giao hàng đến đâu?');
   await say(page, 'Nơi giao hàng', 'Delivery to our plant in Chennai, India');
   await expect(thread(page)).toContainText('What volume are you planning to purchase?');
@@ -268,7 +268,7 @@ test('lazy: on a slow connection the first open is kept, product included', asyn
     await new Promise(resolve => setTimeout(resolve, 1500));
     await route.continue();
   });
-  await page.getByRole('button', { name: 'Request a Cassava Supply Proposal' }).click();
+  await page.getByRole('button', { name: 'Build Your Cassava Supply Plan with HMV' }).click();
   await expect(page.getByRole('status')).toHaveText('Opening HMV Trade Desk…');
   await expect(desk(page).locator('.desk-summary')).toContainText('Dried cassava chips', { timeout: 15_000 });
   await expect(thread(page)).toHaveText('HMVWhere would you like the goods delivered?');
@@ -290,7 +290,7 @@ test('navigation: "HMV Trade Desk" opens the desk (desktop bar or mobile drawer)
 
 test('the consent checkbox links the privacy notice, in the buyer language', async ({ page }) => {
   await page.goto('/vi/san-pham/san-lat-kho');
-  await page.getByRole('button', { name: 'Yêu cầu phương án cung ứng sắn lát' }).click();
+  await page.getByRole('button', { name: 'Xây dựng phương án cung ứng sắn lát cùng HMV' }).click();
   await desk(page).getByRole('button', { name: 'Tôi đang tìm hiểu' }).click();
   await desk(page).getByRole('button', { name: 'Trao đổi với HMV' }).click();
   await expect(desk(page).getByRole('link', { name: 'Thông báo quyền riêng tư' })).toHaveAttribute('href', '/vi/privacy');

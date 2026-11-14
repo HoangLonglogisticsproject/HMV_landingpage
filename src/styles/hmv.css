@@ -4182,6 +4182,11 @@ article[id] {
   font-size: 17px
 }
 
+.article-cta p a {
+  text-decoration: underline;
+  text-underline-offset: 3px
+}
+
 @media(max-width:600px) {
   .article-body {
     font-size: 16.5px
@@ -9390,6 +9395,11 @@ article[id] {
   width: 100%;
   aspect-ratio: 4/5;
   object-fit: cover
+}
+
+/* A single gallery photo stays the width of one column of the two-photo gallery. */
+.landing-photo:only-child {
+  max-width: 568px
 }
 
 .landing-photo figcaption {

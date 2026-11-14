@@ -127,6 +127,20 @@ test('the RFQ hands the product, the page requirements and the Incoterm to the e
   assert.ok(container.querySelector('#rfq output.rfq-success-message'));
 });
 
+// A generic product page links the product it is told apart from; without a see-also there is no such link.
+test('a product with a see-also links the related product page', async () => {
+  await renderProduct('en', 'tapioca-starch');
+  const link = container.querySelector('.money-see-also a');
+  assert.equal(link.textContent, products.find(p => p.id === 'tapioca-starch').seeAlso.en);
+  assert.equal(link.getAttribute('href'), '/products/dried-cassava-chips');
+});
+
+test('a product without a see-also has no related-product link', async () => {
+  assert.equal(products.find(p => p.id === 'bananas').seeAlso, undefined);
+  await renderProduct('en', 'bananas');
+  assert.equal(container.querySelector('.money-see-also'), null);
+});
+
 test('an unknown product id renders the not-found heading', async () => {
   await renderProduct('en', 'unknown');
   assert.equal(container.querySelector('h1').textContent, copy.en.notfound);
