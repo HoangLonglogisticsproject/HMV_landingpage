@@ -1,6 +1,6 @@
 // The cassava supply evidence: photographs HMV supplied of the product, bulk stock and container loading, shown by
 // SupplyEvidence (features/cassava-supply-evidence) on the EN/VI dried cassava chips page and on the page-scoped
-// Chinese page. A page in another language adds its copy, captions and alt text here; the photographs stay the same.
+// Chinese and Korean pages. Another language adds its copy, captions and alt text here; the photographs stay the same.
 // They show physical product and activity in HMV's supply network, nothing more: no location, facility ownership,
 // lot or link to the network capacity figures is asserted. The originals are not committed; the container photograph
 // is cropped to the container opening, leaving out the camera's date and location stamp, the container number and
@@ -40,6 +40,14 @@ export const cassavaEvidence = {
       zoom: '查看大图',
       close: '关闭大图',
     },
+    ko: {
+      eyebrow: '실제 공급 현장',
+      title: 'HMV 공급 네트워크의 제품·대량 공급·출하 현장',
+      text: '아래 사진은 HMV 공급 네트워크의 타피오카 칩, 대량 공급 현장 및 출하 준비 과정을 보여줍니다. 실제 원산지, 공급 가능 물량 및 납품 조건은 각 상업 제안별로 확인됩니다.',
+      note: 'HMV 제공 사진.',
+      zoom: '이미지 크게 보기',
+      close: '확대 이미지 닫기',
+    },
   },
   // The lead photograph first. Captions say only what each photograph shows.
   photos: [
@@ -52,11 +60,13 @@ export const cassavaEvidence = {
         en: 'A large pile of dried cassava chips under a steel roof, a handful of chips held in the foreground',
         vi: 'Đống sắn lát khô lớn dưới mái kèo thép, phía trước là một nắm sắn lát cầm trên tay',
         zh: '钢结构屋顶下的大堆木薯干片，前景是手中的一把木薯干片',
+        ko: '철골 지붕 아래 쌓인 대량의 타피오카 칩과 앞쪽에서 손에 든 타피오카 칩',
       },
       caption: {
         en: 'Bulk dried cassava chips — real supply evidence',
         vi: 'Sắn lát khô số lượng lớn — hình ảnh nguồn hàng thực tế',
         zh: '大宗木薯干片供应实景',
+        ko: '대량 타피오카 칩 — 실제 공급 현장',
       },
     },
     {
@@ -68,16 +78,32 @@ export const cassavaEvidence = {
         en: 'An open shipping container loaded with dried cassava chips, sacks stacked at the door',
         vi: 'Container mở cửa đã đóng sắn lát khô, các bao xếp ở cửa container',
         zh: '已装入木薯干片的敞开集装箱，箱门处码放编织袋',
+        ko: '타피오카 칩이 적재된 열린 컨테이너와 문 쪽에 쌓인 포대',
       },
-      caption: { en: 'Container loading and shipment preparation', vi: 'Đóng hàng và chuẩn bị container', zh: '装柜及出运准备' },
+      caption: {
+        en: 'Container loading and shipment preparation',
+        vi: 'Đóng hàng và chuẩn bị container',
+        zh: '装柜及出运准备',
+        ko: '컨테이너 적재 및 출하 준비',
+      },
     },
     {
       id: 'product',
       src: assetSrc(detail),
       width: 960,
       height: 720,
-      alt: { en: PRODUCT.altEn, vi: PRODUCT.altVi, zh: '木薯干片特写，白色切面与褐色外皮' },
-      caption: { en: 'Dried cassava chips — product detail', vi: 'Cận cảnh sắn lát khô', zh: '木薯干片产品实拍' },
+      alt: {
+        en: PRODUCT.altEn,
+        vi: PRODUCT.altVi,
+        zh: '木薯干片特写，白色切面与褐色外皮',
+        ko: '흰 단면과 갈색 껍질이 보이는 타피오카 칩 근접 사진',
+      },
+      caption: {
+        en: 'Dried cassava chips — product detail',
+        vi: 'Cận cảnh sắn lát khô',
+        zh: '木薯干片产品实拍',
+        ko: '타피오카 칩 제품 실사',
+      },
     },
   ],
 };

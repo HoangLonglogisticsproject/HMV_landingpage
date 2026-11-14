@@ -55,7 +55,8 @@ src/
 | `/insights` | `views/insights/InsightsPage` | DetailLayout. EcoNews list (`features/articles`) plus the first 3 regulations, in data order. |
 | `/regulations` | `views/regulations/RegulationsPage` | DetailLayout |
 | `/products/:id` | `views/products/ProductDetailPage` | DetailLayout. An unknown id shows the "not found" title and the CTA only. |
-| `/zh-cn/cassava-chips` | `views/products/CassavaChinaView` | Next.js only (`app/(zh)`, `<html lang="zh-CN">`). Dried cassava chips in Simplified Chinese, copy in `data/cassavaChina.js`; its own header and footer (no site navigation); the Trade Desk opens in English. |
+| `/zh-cn/cassava-chips` | `views/products/CassavaChinaView` | Next.js only (`app/(zh)`, `<html lang="zh-CN">`). Dried cassava chips in Simplified Chinese, copy in `data/cassavaChina.js`; its own header and footer (no site navigation; `views/products/CassavaScoped`); the Trade Desk opens in English. |
+| `/ko/tapioca-chips` | `views/products/CassavaKoreaView` | Next.js only (`app/(ko)`, `<html lang="ko">`). Dried cassava chips as 타피오카 칩 for Korean manufacturers (distilled alcohol and ethanol, feed, starch), copy in `data/cassavaKorea.js`; the same chrome and sections as the Chinese page (`views/products/CassavaScoped`); the Trade Desk opens in English. |
 | `/logistics` | `views/logistics/LogisticsHubPage` | Its own hero. Adds its own delayed smooth `#hash` scroll on top of SiteLayout's. |
 | `/packaging-logistics` | `views/packaging-logistics/PackagingLogisticsPage` | Its own hero |
 | `/privacy` | `views/privacy/PrivacyView` (`StaticPage`) | DetailLayout, no trailing CTA. Privacy notice for inquiries (`data/privacy.js`); Next.js: `/privacy` and `/vi/privacy`. Linked next to the Trade Desk consent checkbox. |
@@ -84,7 +85,7 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 - `?lang=en` / `?lang=vi` sets the language and is immediately removed from the address bar by `LangQueryBootstrap`.
 - Legacy `/en/…` and `/vi/…` prefixed URLs are handled client-side by `LegacyLocaleRedirect` (sets language, then `<Navigate replace>`). On Vercel these are already 301'd by `vercel.json`; this component is the fallback.
 - All bilingual copy lives in `src/data/` files as `{ en: …, vi: … }` objects. Components read the active locale via `useLanguage()`.
-- **Page-scoped locales.** `LOCALES` stays `['en', 'vi']`. A single page can also exist in another language through `PAGE_LOCALES` in `i18n/routes.js` (today: `/products/dried-cassava-chips` → `zh-CN` at `/zh-cn/cassava-chips`). Only that page's hreflang set and sitemap entries gain the language; the navigation, the language switcher and every other page never link to it. `localizePath(path, 'zh-CN')` returns the Chinese URL for that page and the English URL for any other. No redirect by IP, browser language or geography.
+- **Page-scoped locales.** `LOCALES` stays `['en', 'vi']`. A single page can also exist in another language through `PAGE_LOCALES` in `i18n/routes.js` (today: `/products/dried-cassava-chips` → `zh-CN` at `/zh-cn/cassava-chips` and `ko` at `/ko/tapioca-chips`). Only that page's hreflang set, sitemap entries and language switcher gain the language; the navigation and every other page never link to it. `localizePath(path, 'ko')` returns the Korean URL for that page and the English URL for any other. No redirect by IP, browser language or geography.
 
 ## Shared UI responsibilities
 
@@ -99,7 +100,7 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 | `features/articles/ArticleGrid` | EcoNews cards plus loading/empty/error states; used by LatestInsights and InsightsPage |
 | `features/articles/RichText` | Whitelist renderer for CMS Tiptap JSON (no raw HTML); also renders the bundled articles |
 | `features/regulations/Regulations` | Regulation card list; used by InsightsPage and RegulationsPage |
-| `features/cassava-supply-evidence/SupplyEvidence` | The cassava supply-evidence photographs (`data/cassavaEvidence.js`); used by the EN/VI cassava page (ProductLanding) and the Chinese one (CassavaChinaView) |
+| `features/cassava-supply-evidence/SupplyEvidence` | The cassava supply-evidence photographs (`data/cassavaEvidence.js`), each opening larger in `SupplyEvidencePreview` (`components/common/Lightbox`); used by the EN/VI cassava page (ProductLanding) and the Chinese and Korean ones (CassavaChinaView, CassavaKoreaView) |
 | `features/trade-desk/TradeDeskHost` | Mounted once in SiteShell: listens for `openTradeDesk()`, records the first-touch visit, loads `TradeDesk` on the first open (with an error boundary and retry) |
 | `features/trade-desk/TradeDesk` | The HMV Trade Desk dialog: the conversation (product, destination, volume), the route (quotation or Customer Service), the inline contact card, submission to `POST /api/inquiry` (`@/lib/inquiry`), sent state and optional follow-up links |
 

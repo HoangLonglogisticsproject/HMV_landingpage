@@ -24,7 +24,7 @@ const preview = () => container.querySelector('.supply-evidence-preview');
 const key = (el, k) => act(() => el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true })));
 
 test('every photograph is a button that opens it larger: the same file, its alt text and caption, in each language', async () => {
-  for (const lang of ['en', 'vi', 'zh']) {
+  for (const lang of ['en', 'vi', 'zh', 'ko']) {
     await render(lang);
     const buttons = triggers();
     assert.equal(buttons.length, cassavaEvidence.photos.length, lang);

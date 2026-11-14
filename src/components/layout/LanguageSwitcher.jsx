@@ -10,6 +10,7 @@ import { useLanguageSwitch } from '@/lib/navigation';
 import { assetSrc } from '@/lib/utils';
 import cnFlag from 'flag-icons/flags/4x3/cn.svg';
 import gbFlag from 'flag-icons/flags/4x3/gb.svg';
+import krFlag from 'flag-icons/flags/4x3/kr.svg';
 import vnFlag from 'flag-icons/flags/4x3/vn.svg';
 
 export const LANGUAGES = [
@@ -32,6 +33,7 @@ export const LANGUAGES = [
 // Page-scoped languages (i18n/routes.js PAGE_LOCALES): listed only on the pages that have them.
 const PAGE_LANGUAGES = {
   'zh-CN': { code: 'zh-CN', label: '简体中文', flag: assetSrc(cnFlag) },
+  ko: { code: 'ko', label: '한국어', flag: assetSrc(krFlag) },
 };
 
 export function LanguageSwitcher({ currentLang, onSelect, className = '' }) {

@@ -94,21 +94,24 @@ test('every product has exactly one Vietnamese slug, and the slugs are unique', 
 
 // Page-scoped locales: the Chinese cassava page joins its EN/VI pair; every other page and locale is unaffected.
 test('a page-scoped locale has its own URL for its page only, and maps back to it', () => {
-  // Chinese is not a site locale: the navigation, the language switcher and the other pages never offer it.
+  // Chinese and Korean are not site locales: the navigation, the language switcher and the other pages never offer them.
   assert.deepEqual(LOCALES, ['en', 'vi']);
   const key = '/products/dried-cassava-chips';
-  assert.deepEqual(pageLocales(key), ['zh-CN']);
-  assert.equal(localizePath(key, 'zh-CN'), '/zh-cn/cassava-chips');
-  assert.deepEqual(delocalizePath('/zh-cn/cassava-chips'), { path: key, locale: 'zh-CN' });
-  // Pages without a Chinese version stay English, never a /zh-cn URL that does not exist.
-  for (const other of [...PAGES, '/products/passion-fruit', '/products/tapioca-starch']) {
-    assert.deepEqual(pageLocales(other), [], other);
-    assert.equal(localizePath(other, 'zh-CN'), localizePath(other, 'en'), other);
+  assert.deepEqual(pageLocales(key), ['zh-CN', 'ko']);
+  for (const [locale, url] of [['zh-CN', '/zh-cn/cassava-chips'], ['ko', '/ko/tapioca-chips']]) {
+    assert.equal(localizePath(key, locale), url);
+    assert.deepEqual(delocalizePath(url), { path: key, locale });
+    // Pages without that version stay English, never a /zh-cn or /ko URL that does not exist.
+    for (const other of [...PAGES, '/products/passion-fruit', '/products/tapioca-starch']) {
+      assert.deepEqual(pageLocales(other), [], other);
+      assert.equal(localizePath(other, locale), localizePath(other, 'en'), other);
+    }
+    assert.equal(legacyRedirect(url), null);
+    assert.equal(legacyRedirect(url, '?lang=vi'), '/vi/san-pham/san-lat-kho');
+    assert.equal(legacyRedirect(url, '?lang=en'), key);
+    assert.equal(switchHref(url, '', 'vi'), '/vi/san-pham/san-lat-kho');
   }
-  assert.equal(legacyRedirect('/zh-cn/cassava-chips'), null);
-  assert.equal(legacyRedirect('/zh-cn/cassava-chips', '?lang=vi'), '/vi/san-pham/san-lat-kho');
-  assert.equal(legacyRedirect('/zh-cn/cassava-chips', '?lang=en'), key);
-  assert.equal(switchHref('/zh-cn/cassava-chips', '', 'vi'), '/vi/san-pham/san-lat-kho');
+  assert.equal(switchHref('/zh-cn/cassava-chips', '', 'ko'), '/ko/tapioca-chips');
   // Site locales are unchanged: the VI cassava URL still maps to its English key.
   assert.deepEqual(delocalizePath('/vi/san-pham/san-lat-kho'), { path: key, locale: 'vi' });
 });

@@ -7,7 +7,7 @@ import { isSiteIndexable } from './indexability';
 
 export type Lang = 'en' | 'vi';
 /** A site locale, or a page-scoped one (i18n/routes.js PAGE_LOCALES). */
-export type PageLang = Lang | 'zh-CN';
+export type PageLang = Lang | 'zh-CN' | 'ko';
 
 // The same decision as the X-Robots-Tag header in next.config.ts: noindex except on the public production site.
 const indexable = isSiteIndexable(process.env);
@@ -23,7 +23,7 @@ export function absoluteUrl(path: string, lang: PageLang) {
   const localized = localizePath(path, lang);
   return localized === '/' ? baseUrl : `${baseUrl}${localized}`;
 }
-const OG_LOCALE: Record<string, string> = { en: 'en_US', vi: 'vi_VN', 'zh-CN': 'zh_CN' };
+const OG_LOCALE: Record<string, string> = { en: 'en_US', vi: 'vi_VN', 'zh-CN': 'zh_CN', ko: 'ko_KR' };
 const OG_IMAGE = { url: '/og-image.jpg', width: 1200, height: 630, alt: 'HMV Global — Rooted in the land. Connecting the world.' };
 
 export const rootMetadata: Metadata = {

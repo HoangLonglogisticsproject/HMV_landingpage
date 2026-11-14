@@ -10,7 +10,9 @@ import { LOCALES, PAGES, PAGE_LOCALES, localizePath } from '../../src/i18n/route
  * - the full page in both languages (Vietnamese text exercises the fonts' coverage), images masked: layout, image boxes
  *   and text, at a fraction of the size of photographs;
  * - the first viewport in English with its images, the hero (LCP) image included;
- * - the page-scoped Simplified Chinese page, first viewport and full page (its CJK text in the image's system fonts).
+ * - the page-scoped Simplified Chinese and Korean pages, first viewport and full page (their CJK and Hangul text in the
+ *   image's system fonts);
+ * - the cassava supply-evidence preview, open.
  * Stabilized, not masked: reduced motion (the site's CSS then stops every animation and transition, and the activities
  * carousel does not autoplay), every image loaded and decoded, every declared web font face loaded.
  * Google Fonts serves different builds of the same font by user agent, region and day (CI got a different Poppins build

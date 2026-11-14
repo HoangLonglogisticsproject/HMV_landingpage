@@ -5,7 +5,7 @@ import { cassavaEvidence as evidence } from './cassavaEvidence.js';
 import { productPages } from './productPages.js';
 import { productPhotos } from './productPhotos.js';
 
-const LANGS = ['en', 'vi', 'zh'];
+const LANGS = ['en', 'vi', 'zh', 'ko'];
 const strings = v => (typeof v === 'string' ? [v] : Object.values(v).flatMap(strings));
 
 test('three photographs, three kinds of evidence: bulk stock, container loading, the product', () => {
@@ -26,13 +26,13 @@ test('each photograph declares the size of its file', async () => {
   }
 });
 
-test('copy, alt text and captions in English, Vietnamese and Simplified Chinese', () => {
+test('copy, alt text and captions in English, Vietnamese, Simplified Chinese and Korean', () => {
   assert.deepEqual(Object.keys(evidence.copy), LANGS);
   for (const lang of LANGS) assert.ok(['eyebrow', 'title', 'text', 'note'].every(k => evidence.copy[lang][k]), lang);
   for (const p of evidence.photos) {
     for (const lang of LANGS) assert.ok(p.alt[lang] && p.caption[lang] && p.alt[lang] !== p.caption[lang], `${p.id} ${lang}`);
-    assert.equal(new Set(LANGS.map(l => p.alt[l])).size, 3, p.id);
-    assert.equal(new Set(LANGS.map(l => p.caption[l])).size, 3, p.id);
+    assert.equal(new Set(LANGS.map(l => p.alt[l])).size, LANGS.length, p.id);
+    assert.equal(new Set(LANGS.map(l => p.caption[l])).size, LANGS.length, p.id);
   }
 });
 
