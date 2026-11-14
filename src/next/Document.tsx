@@ -1,10 +1,11 @@
-// Next.js-only: the <html> document shared by the two root layouts (app/(en), app/(vi)), which differ in `lang`.
+// Next.js-only: the <html> document shared by the root layouts (app/(en), app/(vi), app/(zh)), which differ in `lang`.
 // Mirrors index.html: global CSS in the same order as src/main.jsx, the same web fonts, the skip link from App.jsx.
 import type { ReactNode } from 'react';
+import type { PageLang } from '@/next/seo';
 import '@/styles/index.css';
 import '@/styles/hmv.css';
 
-export function Document({ lang, children }: { lang: 'en' | 'vi'; children: ReactNode }) {
+export function Document({ lang, children }: { lang: PageLang; children: ReactNode }) {
   return (
     <html lang={lang}>
       <head>

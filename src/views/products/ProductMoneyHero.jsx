@@ -39,7 +39,7 @@ function HeroPhotos({ lang, main, detail }) {
 }
 
 // Evidence instead of imagery: HMV network capacity and the Intertek sample reference (the product photo is in the gallery).
-function EvidencePanel({ figures, intertek }) {
+export function EvidencePanel({ figures, intertek }) {
   return (
     <aside className="money-panel" aria-labelledby="money-panel-title">
       <p className="money-panel-label">{figures.eyebrow}</p>
