@@ -18,7 +18,7 @@ export const cassavaEvidence = {
   copy: {
     en: {
       eyebrow: 'REAL SUPPLY EVIDENCE',
-      title: "Product, stock and shipment evidence from HMV's supply operations",
+      title: "Product, bulk supply and shipment evidence from HMV's supply operations",
       text: "These photographs document dried cassava chips, consolidation activity and shipment preparation within HMV's supply network. Origin, available volume and delivery conditions are confirmed for each commercial proposal.",
       note: 'Photos supplied by HMV.',
     },
@@ -47,7 +47,11 @@ export const cassavaEvidence = {
         vi: 'Đống sắn lát khô lớn dưới mái kèo thép, phía trước là một nắm sắn lát cầm trên tay',
         zh: '钢结构屋顶下的大堆木薯干片，前景是手中的一把木薯干片',
       },
-      caption: { en: 'Bulk dried cassava chips in stock', vi: 'Sắn lát khô số lượng lớn trong kho', zh: '大宗木薯干片库存' },
+      caption: {
+        en: 'Bulk dried cassava chips — real supply evidence',
+        vi: 'Sắn lát khô số lượng lớn — hình ảnh nguồn hàng thực tế',
+        zh: '大宗木薯干片供应实景',
+      },
     },
     {
       id: 'loading',

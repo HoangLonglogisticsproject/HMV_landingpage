@@ -10,13 +10,13 @@ import { tags } from './html.js';
 const PAGES = { en: '/products/dried-cassava-chips', vi: '/vi/san-pham/san-lat-kho', zh: '/zh-cn/cassava-chips' };
 const COPY = {
   en: {
-    title: "Product, stock and shipment evidence from HMV's supply operations",
+    title: "Product, bulk supply and shipment evidence from HMV's supply operations",
     alt: [
       'A large pile of dried cassava chips under a steel roof, a handful of chips held in the foreground',
       'An open shipping container loaded with dried cassava chips, sacks stacked at the door',
       'Close-up of dried cassava chips, white flesh and brown peel',
     ],
-    captions: ['Bulk dried cassava chips in stock', 'Container loading and shipment preparation', 'Dried cassava chips — product detail'],
+    captions: ['Bulk dried cassava chips — real supply evidence', 'Container loading and shipment preparation', 'Dried cassava chips — product detail'],
   },
   vi: {
     title: 'Sản phẩm, nguồn hàng và hoạt động chuẩn bị giao hàng trong mạng lưới HMV',
@@ -25,12 +25,12 @@ const COPY = {
       'Container mở cửa đã đóng sắn lát khô, các bao xếp ở cửa container',
       'Cận cảnh sắn lát khô, phần thịt trắng và vỏ nâu',
     ],
-    captions: ['Sắn lát khô số lượng lớn trong kho', 'Đóng hàng và chuẩn bị container', 'Cận cảnh sắn lát khô'],
+    captions: ['Sắn lát khô số lượng lớn — hình ảnh nguồn hàng thực tế', 'Đóng hàng và chuẩn bị container', 'Cận cảnh sắn lát khô'],
   },
   zh: {
     title: 'HMV 供应网络中的产品、集货与出运实景',
     alt: ['钢结构屋顶下的大堆木薯干片，前景是手中的一把木薯干片', '已装入木薯干片的敞开集装箱，箱门处码放编织袋', '木薯干片特写，白色切面与褐色外皮'],
-    captions: ['大宗木薯干片库存', '装柜及出运准备', '木薯干片产品实拍'],
+    captions: ['大宗木薯干片供应实景', '装柜及出运准备', '木薯干片产品实拍'],
   },
 };
 const get = async (request, path) => {
