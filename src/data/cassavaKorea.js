@@ -114,6 +114,8 @@ export const cassavaKorea = {
     eyebrow: '원료 시장 정보',
     title: '공장 조달에 영향을 주는 타피오카 시장 변수',
     text: 'HMV는 작황, 수확 시기, 날씨, 국제 곡물가격 및 환율 등 제조사의 원료 조달에 영향을 줄 수 있는 시장 요인을 지속적으로 검토합니다.',
+    // The Korean market intelligence page (views/tapioca-market).
+    link: { label: '타피오카 조달 인사이트 보기', href: '/ko/tapioca-market' },
   },
   footer: { address: '본사' },
 };

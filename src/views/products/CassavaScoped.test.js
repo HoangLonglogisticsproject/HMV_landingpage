@@ -99,3 +99,14 @@ test('Korean: the hero panel shows what a factory buys; the use cases come next;
   assert.deepEqual([...capability.querySelectorAll('.money-figures dd')].map(e => e.textContent), c.figures.items.map(f => f.value));
   assert.equal(container.querySelector('.scoped-support').textContent, c.hero.support);
 });
+
+// The Korean page's market teaser links to the Korean market page; the Chinese page has no market page to link to.
+test('the market teaser links to /ko/tapioca-market on the Korean page only', async () => {
+  await render(CassavaKoreaView);
+  const link = container.querySelector('.scoped-market a');
+  assert.deepEqual([link.getAttribute('href'), link.textContent], ['/ko/tapioca-market', '타피오카 조달 인사이트 보기']);
+  await act(() => root.unmount());
+  root = createRoot(container);
+  await render(CassavaChinaView);
+  assert.equal(container.querySelector('.scoped-market a'), null);
+});

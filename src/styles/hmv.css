@@ -10509,3 +10509,329 @@ article[id] {
   }
 }
 
+
+/* The market teaser on the Korean cassava page links to the Korean market page. */
+.scoped-market .text-link {
+  margin-top: 20px
+}
+
+/* Korean tapioca market page (views/tapioca-market/TapiocaMarketView.jsx): procurement intelligence, text first, no
+   images. A signal's type, freshness and status are words; color only supports them, in muted procurement tones (no
+   trading red and green). Every text color is opaque on an opaque background (at least 7:1). */
+.market-hero {
+  background: var(--surface);
+  padding: 56px 0 52px;
+  border-bottom: 1px solid var(--border)
+}
+
+.market-hero h1 {
+  max-width: 860px;
+  font-family: 'Plus Jakarta Sans', var(--font-sans);
+  font-size: clamp(32px, 4.2vw, 50px);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: 0;
+  color: var(--ink);
+  text-wrap: balance
+}
+
+.market-hero .money-lead {
+  max-width: 46em;
+  margin-bottom: 18px
+}
+
+.market-updated,
+.market-disclaimer {
+  max-width: 760px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-muted)
+}
+
+.market-updated time {
+  font-weight: 700;
+  color: var(--ink)
+}
+
+.market-disclaimer {
+  margin: 4px 0 28px
+}
+
+.market-signals {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px
+}
+
+.market-signal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #ffffff
+}
+
+.market-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px
+}
+
+.market-tag {
+  padding: 3px 9px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600
+}
+
+.market-tag--structural {
+  border-color: #9fb3d9;
+  background: #eef3fb;
+  color: #00297b
+}
+
+.market-tag--seasonal {
+  border-color: #93c3cc;
+  background: #ecf6f8;
+  color: #0b4f5c
+}
+
+.market-tag--current {
+  border-color: #1b2a4e;
+  background: #ffffff;
+  color: #1b2a4e
+}
+
+.market-tag--freshness {
+  border-style: dashed;
+  border-color: #a8b0bd;
+  background: #f5f6f8;
+  color: #4a5363
+}
+
+.market-signal h3 {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink)
+}
+
+.market-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700
+}
+
+.market-status::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor
+}
+
+.market-status--ongoing {
+  background: #e8eef9;
+  color: #00297b
+}
+
+.market-status--upcoming {
+  background: #e6f0f6;
+  color: #154a6e
+}
+
+.market-status--rising {
+  background: #fdf0d9;
+  color: #7a4100
+}
+
+.market-status--mixed {
+  background: #eceef2;
+  color: #3f4756
+}
+
+.market-label {
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: var(--ink-muted)
+}
+
+.market-evidence p:not(.market-label),
+.market-implication p:not(.market-label) {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink)
+}
+
+.market-implication {
+  padding-left: 12px;
+  border-left: 3px solid var(--brand)
+}
+
+.market-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: auto 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px
+}
+
+.market-sources a,
+.market-source-list a {
+  color: var(--ocean-navy);
+  text-decoration: underline;
+  text-underline-offset: 3px
+}
+
+.market-brief {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 40px;
+  margin: 0;
+  padding: 0;
+  list-style: none
+}
+
+.market-brief li {
+  display: flex;
+  gap: 16px;
+  padding: 18px 0;
+  border-top: 1px solid var(--border)
+}
+
+.market-brief span {
+  flex: none;
+  font-family: 'Plus Jakarta Sans', var(--font-sans);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--brand)
+}
+
+.market-brief p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink)
+}
+
+.market-drivers .market-sources {
+  margin-top: 12px
+}
+
+.market-evidence-links .text-link {
+  margin-top: 16px
+}
+
+.market-checklist {
+  max-width: 760px
+}
+
+.market-checklist li {
+  font-size: 16px
+}
+
+.market-method {
+  display: grid;
+  gap: 10px;
+  max-width: 860px;
+  margin: 0 0 36px;
+  padding: 0;
+  list-style: none;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink)
+}
+
+.market-source-title {
+  margin-bottom: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink)
+}
+
+.market-source-list {
+  margin: 0;
+  padding: 0;
+  list-style: none
+}
+
+.market-source-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr) auto;
+  gap: 6px 20px;
+  align-items: baseline;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px
+}
+
+.market-source-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600
+}
+
+.market-source-meta {
+  font-size: 13px;
+  color: var(--ink-muted);
+  white-space: nowrap
+}
+
+.market-cta {
+  background: #001d59;
+  color: #ffffff
+}
+
+.market-cta h2 {
+  font-family: 'Plus Jakarta Sans', var(--font-sans);
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.3;
+  color: #ffffff;
+  text-wrap: balance
+}
+
+.market-cta p {
+  max-width: 720px;
+  margin: 14px 0 28px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #d6deec
+}
+
+.market-cta .text-link {
+  color: #ffffff
+}
+
+/* Two signals a row on tablets, one on phones: no carousel, every signal stays in the page. */
+@media(max-width:1100px) {
+  .market-signals {
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+  }
+}
+
+@media(max-width:700px) {
+  .market-signals,
+  .market-brief {
+    grid-template-columns: minmax(0, 1fr)
+  }
+
+  .market-source-list li {
+    grid-template-columns: minmax(0, 1fr)
+  }
+
+  .market-source-meta {
+    white-space: normal
+  }
+}

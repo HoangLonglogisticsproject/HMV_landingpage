@@ -7,6 +7,7 @@ import ZhLayout, { metadata as zhLayoutMetadata } from '../../app/(zh)/layout.ts
 import ZhCassavaPage, { metadata as zhCassavaMetadata } from '../../app/(zh)/zh-cn/cassava-chips/page.tsx';
 import KoLayout, { metadata as koLayoutMetadata } from '../../app/(ko)/layout.tsx';
 import KoTapiocaPage, { metadata as koTapiocaMetadata } from '../../app/(ko)/ko/tapioca-chips/page.tsx';
+import KoMarketPage, { metadata as koMarketMetadata } from '../../app/(ko)/ko/tapioca-market/page.tsx';
 import { GET as sitemap } from '../../app/sitemap.xml/route.ts';
 
 // The Next.js routes run here outside a server component environment.
@@ -44,4 +45,23 @@ test('sitemap: the four cassava URLs, each with the zh-CN and ko alternates; no 
   assert.deepEqual(scoped.map(e => new URL(e.match(/<loc>(.*?)<\/loc>/)[1]).pathname), CASSAVA);
   for (const e of scoped) assert.ok(e.includes('hreflang="zh-CN"') && e.includes('hreflang="ko"'), e);
   assert.ok(entries.length > scoped.length);
+});
+
+// Korean-only content: its own canonical and og:locale, no hreflang set (there is no translation to point to).
+test('/ko/tapioca-market: the Korean title and description, a self canonical, no alternates; the page renders', () => {
+  const { title, description, alternates, openGraph } = koMarketMetadata;
+  assert.equal(title, '타피오카 원료 조달 인사이트');
+  assert.equal(description, '한국 제조사를 위해 베트남·캄보디아 공급, 날씨, 옥수수 가격, 수요 변화를 정리한 타피오카 칩 조달 인사이트입니다.');
+  assert.equal(alternates.canonical, 'https://www.hmv-global.com/ko/tapioca-market');
+  assert.deepEqual(alternates.languages, {});
+  assert.deepEqual([openGraph.url, openGraph.locale, openGraph.alternateLocale], [alternates.canonical, 'ko_KR', undefined]);
+  const html = renderToStaticMarkup(h(KoMarketPage));
+  assert.equal(html.match(/<h1\b/g).length, 1);
+  assert.match(html, /<h1 id="market-title">한국 제조사를 위한 타피오카 원료 조달 인사이트<\/h1>/);
+});
+
+test('sitemap: /ko/tapioca-market once, without alternates', async () => {
+  const entries = (await (await sitemap()).text()).match(/<url>.*?<\/url>/g);
+  const market = entries.filter(e => e.includes('/ko/tapioca-market'));
+  assert.deepEqual(market, ['<url><loc>https://www.hmv-global.com/ko/tapioca-market</loc></url>']);
 });

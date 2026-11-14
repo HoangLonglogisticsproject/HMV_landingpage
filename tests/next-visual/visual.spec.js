@@ -2,7 +2,7 @@
 import path from 'node:path';
 import { test, expect } from '@playwright/test';
 import { articles } from '../../src/data/articles.js';
-import { LOCALES, PAGES, PAGE_LOCALES, localizePath } from '../../src/i18n/routes.js';
+import { LOCALES, PAGES, PAGE_LOCALES, SCOPED_CONTENT_PAGES, localizePath } from '../../src/i18n/routes.js';
 
 /**
  * D-14 visual baselines: screenshots of the Next.js build, taken before the image and font work of PR-08 and compared
@@ -10,8 +10,8 @@ import { LOCALES, PAGES, PAGE_LOCALES, localizePath } from '../../src/i18n/route
  * - the full page in both languages (Vietnamese text exercises the fonts' coverage), images masked: layout, image boxes
  *   and text, at a fraction of the size of photographs;
  * - the first viewport in English with its images, the hero (LCP) image included;
- * - the page-scoped Simplified Chinese and Korean pages, first viewport and full page (their CJK and Hangul text in the
- *   image's system fonts);
+ * - the page-scoped Simplified Chinese and Korean pages and the standalone Korean market page, first viewport and full
+ *   page (their CJK and Hangul text in the image's system fonts);
  * - the cassava supply-evidence preview, open.
  * Stabilized, not masked: reduced motion (the site's CSS then stops every animation and transition, and the activities
  * carousel does not autoplay), every image loaded and decoded, every declared web font face loaded.
@@ -57,7 +57,11 @@ for (const lang of LOCALES) {
   }
 }
 
-for (const [lang, path] of Object.values(PAGE_LOCALES).flatMap(Object.entries)) {
+const SCOPED_PAGES = [
+  ...Object.values(PAGE_LOCALES).flatMap(Object.entries),
+  ...SCOPED_CONTENT_PAGES.map(page => [page.locale, page.path]),
+];
+for (const [lang, path] of SCOPED_PAGES) {
   test(`${lang} ${path}`, async ({ page }) => {
     await page.goto(path);
     await settle(page);

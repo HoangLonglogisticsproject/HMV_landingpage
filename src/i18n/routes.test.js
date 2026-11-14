@@ -1,6 +1,9 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { LOCALES, PAGES, PRODUCT_SLUG_VI, canonicalUrl, delocalizePath, legacyRedirect, localizePath, pageLocales, switchHref } from './routes.js';
+import {
+  LOCALES, PAGES, PAGE_LOCALES, PRODUCT_SLUG_VI, SCOPED_CONTENT_PAGES, canonicalUrl, delocalizePath, legacyRedirect, localizePath, pageLocales,
+  switchHref,
+} from './routes.js';
 
 test('every page and product round-trips between locales', () => {
   const keys = [...PAGES, ...Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`), '/blog/exporting-passion-fruit-eu'];
@@ -114,4 +117,16 @@ test('a page-scoped locale has its own URL for its page only, and maps back to i
   assert.equal(switchHref('/zh-cn/cassava-chips', '', 'ko'), '/ko/tapioca-chips');
   // Site locales are unchanged: the VI cassava URL still maps to its English key.
   assert.deepEqual(delocalizePath('/vi/san-pham/san-lat-kho'), { path: key, locale: 'vi' });
+});
+
+// Korean-only original content: its own URL in its one language, not a translation of any page.
+test('a standalone content page keeps its URL: no translation, `lang` dropped and nothing else', () => {
+  assert.deepEqual(SCOPED_CONTENT_PAGES, [{ locale: 'ko', path: '/ko/tapioca-market' }]);
+  assert.deepEqual(LOCALES, ['en', 'vi']);
+  assert.ok(!Object.values(PAGE_LOCALES).some(urls => Object.values(urls).includes('/ko/tapioca-market')));
+  assert.equal(legacyRedirect('/ko/tapioca-market'), null);
+  for (const lang of ['vi', 'en', 'ko', 'zh-CN']) assert.equal(canonicalUrl('/ko/tapioca-market', `?lang=${lang}`), '/ko/tapioca-market', lang);
+  assert.equal(legacyRedirect('/ko/tapioca-market', '?lang=vi&utm_source=naver'), '/ko/tapioca-market?utm_source=naver');
+  // The Korean supply page keeps its translation group.
+  assert.equal(legacyRedirect('/ko/tapioca-chips', '?lang=vi'), '/vi/san-pham/san-lat-kho');
 });
