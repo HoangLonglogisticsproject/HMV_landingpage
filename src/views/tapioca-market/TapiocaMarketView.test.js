@@ -42,14 +42,14 @@ test('each signal: type, freshness and status in words; evidence and buyer view 
     sources: [...card.querySelectorAll('.market-sources a')].map(a => a.textContent),
   });
   assert.deepEqual(cards.map(read), [
-    { tags: ['구조 신호', '구조적 참고'], status: '상태: 지속 수요', labels: ['확인된 근거', '구매사 관점'], sources: ['KRX 공시 · 2025.05.14'] },
-    { tags: ['계절 신호', '구조적 참고'], status: '상태: 진입 전', labels: ['확인된 근거', '구매사 관점'], sources: ['KRX 공시 · 2025.05.14'] },
-    { tags: ['현재 신호', '과거 참고'], status: '상태: 상승', labels: ['확인된 근거', '구매사 관점'], sources: ['FAO · 2026.10.05'] },
-    { tags: ['현재 신호'], status: '상태: 혼조', labels: ['확인된 근거', '구매사 관점'], sources: ['한국농촌경제연구원 · 2026.10.02', '농림축산식품부 · 2026.11.07'] },
+    { tags: ['구조적 참고'], status: '상태: 지속 수요', labels: ['확인된 근거', '구매사 관점'], sources: ['KRX 공시 · 2026.05.15'] },
+    { tags: ['계절적 참고'], status: '상태: 진입 전', labels: ['확인된 근거', '구매사 관점'], sources: ['KRX 공시 · 2026.05.15'] },
+    { tags: ['최근 동향', '과거 참고'], status: '상태: 높은 위험', labels: ['확인된 근거', '구매사 관점'], sources: ['FAO · 2026.10.05'] },
+    { tags: ['최근 동향'], status: '상태: 최근 하락', labels: ['확인된 근거', '구매사 관점'], sources: ['농림축산식품부 · 2026.11.07'] },
   ]);
   // The tone of a status is a class beside its text, never the only signal.
   assert.deepEqual(cards.map(card => card.querySelector('.market-status').className), [
-    'market-status market-status--ongoing', 'market-status market-status--upcoming', 'market-status market-status--rising', 'market-status market-status--mixed',
+    'market-status market-status--ongoing', 'market-status market-status--upcoming', 'market-status market-status--high', 'market-status market-status--declining',
   ]);
   assert.equal(cards[2].querySelector('.market-implication p:last-child').textContent, c.signals[2].buyerImplication);
 });

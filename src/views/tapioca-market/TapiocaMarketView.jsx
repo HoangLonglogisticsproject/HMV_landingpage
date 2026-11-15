@@ -45,7 +45,7 @@ function Signal({ signal }) {
     <article className="market-signal">
       <p className="market-tags">
         <span className={`market-tag market-tag--${signal.type}`}>{c.monitor.types[signal.type]}</span>
-        {freshness !== 'current' && <span className="market-tag market-tag--freshness">{c.monitor.freshness[freshness]}</span>}
+        {freshness === 'historical' && <span className="market-tag market-tag--freshness">{c.monitor.freshness.historical}</span>}
       </p>
       <h3>{signal.label}</h3>
       <p className={`market-status market-status--${signal.status}`}>

@@ -31,10 +31,12 @@ export const koreaTapiocaMarket = {
     title: '타피오카 조달 신호',
     text: '신호마다 유형, 상태, 확인된 근거와 구매사 관점, 출처와 날짜를 함께 표시합니다. 종합 점수나 가격 전망은 제공하지 않습니다.',
     labels: { evidence: '확인된 근거', implication: '구매사 관점', status: '상태', sources: '출처' },
-    types: { structural: '구조 신호', seasonal: '계절 신호', current: '현재 신호' },
-    statuses: { ongoing: '지속 수요', upcoming: '진입 전', rising: '상승', mixed: '혼조' },
-    // Shown for every signal but a current one whose newest source is at most 30 days older than `updatedAt`.
-    freshness: { structural: '구조적 참고', historical: '과거 참고' },
+    // HMV's editorial labels for organizing this page, not commodity-market categories. A structural or seasonal signal
+    // is a reference whatever its sources' age; a recent one becomes a past reference once its newest source is more
+    // than 30 days older than `updatedAt`.
+    types: { structural: '구조적 참고', seasonal: '계절적 참고', current: '최근 동향' },
+    statuses: { ongoing: '지속 수요', upcoming: '진입 전', high: '높은 위험', declining: '최근 하락' },
+    freshness: { historical: '과거 참고' },
   },
   signals: [
     {
@@ -42,25 +44,27 @@ export const koreaTapiocaMarket = {
       type: 'structural',
       status: 'ongoing',
       label: '한국 주정 원료 수요',
-      evidence: 'KRX 공시에서는 국내 발효주정의 주요 원료 중 하나로 수입 타피오카 칩을 언급하고 있으며, 주정사들이 안정적인 원료 확보를 위해 지속적으로 노력하고 있다고 설명합니다.',
+      evidence: '창해에탄올의 KRX 공시(2026년 1분기 보고서)는 한국 주정산업이 수입 타피오카 칩을 주요 원료 중 하나로 사용하며, 국내 주정사들이 매년 안정적인 원료 확보를 위해 노력하고 있다고 설명합니다.',
       buyerImplication: '공장 조달에서는 단일 선적의 가격뿐 아니라 월간 공급 연속성, 품질 기준 합의 및 납품 계획을 함께 검토할 필요가 있습니다.',
       confidence: 'high',
-      sources: ['krx-changhae-2025q1'],
+      sources: ['krx-changhae-2026q1'],
     },
     {
       id: 'tapioca-procurement-season',
       type: 'seasonal',
       status: 'upcoming',
-      label: '건기 조달 시즌',
-      evidence: 'KRX 공시의 업계 설명에서는 타피오카 칩 수매와 비축이 주로 건기인 12월부터 5월 사이에 이루어지는 사업 구조를 설명하고 있습니다.',
+      // The filing describes one business's purchasing and stockpiling in the dry season, not a Korean buying season.
+      label: '건기 수매·비축 시기',
+      evidence: 'KRX 공시의 사업 설명에서는 타피오카 칩을 수확기인 건기(12월~5월)에 수매하여 창고 보관 후 공급하는 사업 구조를 설명합니다.',
       buyerImplication: '정기 구매를 검토하는 제조사는 예상 월간 사용량과 품질 기준을 먼저 정리해 공급 제안을 비교할 수 있습니다.',
       confidence: 'medium',
-      sources: ['krx-changhae-2025q1'],
+      sources: ['krx-changhae-2026q1'],
     },
     {
       id: 'cambodia-weather-risk',
       type: 'current',
-      status: 'rising',
+      // FAO rates the risk high; it does not compare it with an earlier assessment, so no direction.
+      status: 'high',
       label: '캄보디아 기상 리스크',
       evidence: 'FAO는 2026년 El Niño 영향으로 캄보디아가 심각한 가뭄 위험이 높은 지역이라고 평가했습니다.',
       // The caveat is required: a drought warning for agriculture is not evidence of a cassava production loss.
@@ -71,12 +75,12 @@ export const koreaTapiocaMarket = {
     {
       id: 'corn-relative-economics',
       type: 'current',
-      status: 'mixed',
-      label: '옥수수 가격 신호',
-      evidence: '한국농촌경제연구원 국제곡물 관측(2026년 10월호)에 따르면 2026년 9월 한국의 사료용 옥수수 수입단가는 전월 대비 3.9% 상승했고 가공용 옥수수는 4.0% 하락했습니다. 농림축산식품부는 국제 옥수수 가격이 9월에 3년 만의 최고치를 기록한 이후 하락했다고 설명합니다.',
-      buyerImplication: '사료용 타피오카의 상대 경제성은 옥수수 가격과 함께 확인해야 하며, 한 달의 가격 움직임만으로 타피오카 수요 방향을 단정해서는 안 됩니다.',
+      status: 'declining',
+      label: '국제 옥수수 가격 동향',
+      evidence: '농림축산식품부가 정리한 FAO 자료에 따르면 국제 옥수수 가격은 2026년 9월 3년 만의 최고치를 기록한 뒤 10월 하락했습니다.',
+      buyerImplication: '사료용 타피오카의 상대 경제성은 옥수수 가격과 함께 확인할 수 있지만, 옥수수 가격의 단기 움직임만으로 타피오카 수요 방향이나 실제 원료 대체를 단정할 수 없습니다.',
       confidence: 'medium',
-      sources: ['krei-grain-2026-10', 'mafra-food-price-2026-10'],
+      sources: ['mafra-food-price-2026-10'],
     },
   ],
   brief: {
@@ -84,10 +88,10 @@ export const koreaTapiocaMarket = {
     title: '2026년 11월 타피오카 조달 브리프',
     intro: '이번 브리프는 한국 제조사의 원료 조달 관점에서 현재 확인할 가치가 있는 공급·수요·기상·대체원료 신호를 요약합니다.',
     points: [
-      '한국 주정산업의 수입 타피오카 원료 수요는 구조적으로 존재합니다.',
-      '12월~5월 건기 조달 시즌 진입을 앞두고 월간 구매 계획과 품질 기준을 정리할 시점입니다.',
-      '캄보디아의 가뭄 위험은 지역 공급 여건을 모니터링해야 할 이유를 높이고 있습니다.',
-      '옥수수 가격 신호는 최근 기간별 방향이 엇갈려 상대 경제성을 지속 확인할 필요가 있습니다.',
+      'KRX 공시에서 한국 주정산업의 주요 원료 중 하나로 수입 타피오카 칩 사용이 확인됩니다.',
+      'KRX 공시가 설명하는 건기 수매·비축 시기(12월~5월)를 앞두고, 정기 구매를 검토하는 제조사는 월간 사용량과 품질 기준을 미리 정리할 수 있습니다.',
+      'FAO가 캄보디아를 2026년 El Niño 시기 심각한 가뭄 위험이 높은 지역으로 평가한 만큼, 지역 공급 여건을 계속 확인할 필요가 있습니다.',
+      '국제 옥수수 가격은 9월 3년 만의 최고치 이후 10월 하락했지만, 단기 움직임만으로 타피오카 수요나 원료 대체를 판단할 수는 없습니다.',
     ],
   },
   drivers: {
@@ -96,13 +100,13 @@ export const koreaTapiocaMarket = {
     items: [
       {
         title: '베트남·캄보디아 공급',
-        text: '타피오카 칩의 공급 가능 물량은 지역별 수확, 건조 및 집하 여건에 따라 달라집니다. 실제 원산지와 공급 가능 물량은 공급 제안별로 확인해야 합니다.',
-        sources: ['krx-changhae-2025q1'],
+        text: '타피오카 칩의 공급 가능 물량은 지역별 수확과 수매·집하, 물류 여건에 따라 달라집니다. 실제 원산지와 공급 가능 물량은 공급 제안별로 확인해야 합니다.',
+        sources: ['krx-changhae-2026q1'],
       },
       {
-        title: '기상 및 건조 조건',
-        text: '강수와 가뭄 같은 기상 여건은 수확 시기, 건조 작업 및 공급 여건에 영향을 줄 수 있습니다. 기상 정보만으로 가격 방향을 판단할 수는 없습니다.',
-        sources: ['krx-changhae-2025q1'],
+        title: '기상 및 작황',
+        text: 'KRX 공시는 현지 기후 변화에 따른 작황 상태를 타피오카 가격 변동 요인 중 하나로 설명합니다. 기상 정보만으로 가격 방향을 판단할 수는 없습니다.',
+        sources: ['krx-changhae-2026q1'],
       },
       {
         title: '중국 수요',
@@ -112,12 +116,12 @@ export const koreaTapiocaMarket = {
       {
         title: '옥수수 상대가격',
         text: '옥수수는 특히 사료 원료의 경제성을 비교할 때 함께 검토되는 원료입니다. 가격 차이가 곧바로 원료 대체로 이어지는 것은 아니며, 실제 사용은 각 제조사의 배합 설계에 따라 달라집니다.',
-        sources: ['krx-changhae-2025q1'],
+        sources: ['krx-changhae-2026q1'],
       },
       {
         title: '환율 및 운임',
-        text: '수입 원료의 원화 기준 비용은 환율과 해상 운임 등 물류 조건의 영향을 받습니다. 실제 비용은 거래 조건과 선적 시점에 따라 확인해야 합니다.',
-        sources: ['krx-changhae-2025q1'],
+        text: 'KRX 공시는 수입 원료 가격이 환율과 국제곡물가격 변화의 영향을 받는다고 설명합니다. 해상 운임 등 물류 비용과 실제 원가는 거래 조건과 선적 시점에 따라 확인해야 합니다.',
+        sources: ['krx-changhae-2026q1'],
       },
     ],
   },
@@ -158,7 +162,8 @@ export const koreaTapiocaMarket = {
       '각 신호는 출처가 말하는 내용(확인된 근거)과 HMV의 해석(구매사 관점)을 나누어 표시합니다.',
       '정부·관세 자료, FAO 등 국제기구, 공공 연구기관, 공식 공시를 우선 사용합니다(A등급). 공신력 있는 상품·무역 전문 매체(B등급)와 공급사·트레이더의 시장 정보(C등급)는 보조 자료로만 사용합니다.',
       'KRX 공시는 공시 기업이 제출한 1차 자료이며 정부 발표가 아닙니다.',
-      '현재 신호의 출처가 업데이트일보다 30일 넘게 오래되면 「과거 참고」로, 구조·계절 신호는 「구조적 참고」로 표시합니다. 업데이트 날짜는 콘텐츠에 기록된 날짜이며 자동으로 바뀌지 않습니다.',
+      '신호 분류(구조적 참고·계절적 참고·최근 동향)는 HMV가 이 페이지를 정리하기 위해 사용하는 편집 기준이며 업계 표준 분류가 아닙니다.',
+      '최근 동향의 출처가 업데이트일보다 30일 넘게 오래되면 「과거 참고」로 표시합니다. 업데이트 날짜는 콘텐츠에 기록된 날짜이며 자동으로 바뀌지 않습니다.',
       '이 페이지는 가격 정보, 가격 전망 및 공급 확약을 제공하지 않습니다.',
     ],
     sourcesTitle: '참고 출처',
@@ -182,13 +187,13 @@ export const koreaTapiocaMarket = {
   footer: { address: '본사' },
   // `label`: how the page names the source (KRX 공시 is the filing company's own disclosure, not a government source).
   sources: {
-    'krx-changhae-2025q1': {
-      id: 'krx-changhae-2025q1',
+    'krx-changhae-2026q1': {
+      id: 'krx-changhae-2026q1',
       label: 'KRX 공시',
       publisher: '창해에탄올',
-      title: '창해에탄올 분기보고서 (2025.03)',
-      publishedAt: '2025-05-14',
-      url: 'https://kind.krx.co.kr/external/2025/05/14/001118/20250514002427/11013.htm',
+      title: '창해에탄올 분기보고서 (2026.03)',
+      publishedAt: '2026-05-15',
+      url: 'https://kind.krx.co.kr/external/2026/05/15/002835/20260515006469/11013.htm',
       sourceType: 'regulatory_filing',
       tier: 'A',
     },
@@ -200,16 +205,6 @@ export const koreaTapiocaMarket = {
       publishedAt: '2026-10-05',
       url: 'https://www.fao.org/newsroom/story/when-el-nino-brings-drought-every-minute-counts/en',
       sourceType: 'international_organization',
-      tier: 'A',
-    },
-    'krei-grain-2026-10': {
-      id: 'krei-grain-2026-10',
-      label: '한국농촌경제연구원',
-      publisher: '한국농촌경제연구원',
-      title: '농업관측 국제곡물 2026년 10월호',
-      publishedAt: '2026-10-02',
-      url: 'https://aglook.krei.re.kr/main/uObserveMonth/OVR0000000073/download/8765/ORGTEXT_FILE',
-      sourceType: 'research_institute',
       tier: 'A',
     },
     'mafra-food-price-2026-10': {

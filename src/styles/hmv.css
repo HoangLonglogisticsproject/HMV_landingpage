@@ -10648,12 +10648,12 @@ article[id] {
   color: #154a6e
 }
 
-.market-status--rising {
+.market-status--high {
   background: #fdf0d9;
   color: #7a4100
 }
 
-.market-status--mixed {
+.market-status--declining {
   background: #eceef2;
   color: #3f4756
 }
