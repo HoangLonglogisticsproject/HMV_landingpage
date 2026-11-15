@@ -127,7 +127,7 @@ export const koreaTapiocaMarket = {
     ],
   },
   checklist: {
-    title: '이번 달 제조사 체크리스트',
+    title: '제조사 조달 체크리스트',
     items: [
       '예상 월간 사용량을 톤/월 기준으로 정리했는가?',
       '전분·수분 등 핵심 구매 기준을 정의했는가?',

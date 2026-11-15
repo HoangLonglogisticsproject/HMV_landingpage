@@ -43,7 +43,7 @@ test('server HTML: the market intelligence, its dates and sources, evidence apar
     '이는 타피오카 생산량 감소를 직접 의미하지는 않지만',
     '옥수수 가격의 단기 움직임만으로 타피오카 수요 방향이나 실제 원료 대체를 단정할 수 없습니다.',
     'KRX 공시 · 2026.05.15', 'FAO · 2026.10.05', '농림축산식품부 · 2026.11.07',
-    '2026년 11월 타피오카 조달 브리프', '이번 달 제조사 체크리스트', '타피오카 조달에 영향을 주는 주요 변수',
+    '2026년 11월 타피오카 조달 브리프', '제조사 조달 체크리스트', '타피오카 조달에 영향을 주는 주요 변수',
     '시장 정보에서 실제 공급 검토로', '출처 및 작성 기준', '귀사의 조달 조건에 맞는 공급안을 확인하세요',
   ]) expect(body, copy).toContain(copy);
   // Every signal shows what its sources say and, apart, what it may mean for a buyer.

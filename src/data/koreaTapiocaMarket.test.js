@@ -63,6 +63,8 @@ test('no price, forecast, guarantee or blanket claim anywhere in the market cont
     /USD|달러\/톤|\$\s*\d/, /모든 (주정|에탄올|사료|전분|제조사|공장)/, /항상 (옥수수|대체)/, /생산(량)?이 (감소했|줄었)/,
     // The filing describes one business's dry-season purchasing, not a Korean buying season.
     /조달 시즌/, /구조 신호|계절 신호|현재 신호/,
+    // Evergreen guidance: the page is read after its update date.
+    /이번 달/,
   ]) assert.doesNotMatch(copy, forbidden, String(forbidden));
   // The disclaimer says what the page is not.
   assert.match(market.hero.disclaimer, /확정 견적, 공급 확약 또는 가격 예측이 아닙니다/);
