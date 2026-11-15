@@ -5,6 +5,11 @@
 // source says (`evidence`) apart from HMV's reading of it (`buyerImplication`) and cites dated sources from `sources`.
 // No price, no forecast, no supply commitment: the page explains what to watch; the supply page shows what HMV offers.
 
+// A market signal: its id, type, status, confidence and source ids, then its copy, named: `label`, what the sources say
+// (`evidence`) and HMV's reading of it (`buyerImplication`). Returns { id, type, status, label, evidence,
+// buyerImplication, confidence, sources }.
+const signal = (id, type, status, confidence, sources, copy) => ({ id, type, status, ...copy, confidence, sources });
+
 export const koreaTapiocaMarket = {
   updatedAt: '2026-11-15',
   seo: {
@@ -40,49 +45,29 @@ export const koreaTapiocaMarket = {
     freshness: { historical: '과거 참고' },
   },
   signals: [
-    {
-      id: 'korea-ethanol-demand',
-      type: 'structural',
-      status: 'ongoing',
+    signal('korea-ethanol-demand', 'structural', 'ongoing', 'high', ['krx-changhae-2026q1'], {
       label: '한국 주정 원료 수요',
       evidence: '창해에탄올의 KRX 공시(2026년 1분기 보고서)는 한국 주정산업이 수입 타피오카 칩을 주요 원료 중 하나로 사용하며, 국내 주정사들이 매년 안정적인 원료 확보를 위해 노력하고 있다고 설명합니다.',
       buyerImplication: '공장 조달에서는 단일 선적의 가격뿐 아니라 월간 공급 연속성, 품질 기준 합의 및 납품 계획을 함께 검토할 필요가 있습니다.',
-      confidence: 'high',
-      sources: ['krx-changhae-2026q1'],
-    },
-    {
-      id: 'tapioca-procurement-season',
-      type: 'seasonal',
-      status: 'period',
+    }),
+    signal('tapioca-procurement-season', 'seasonal', 'period', 'medium', ['krx-changhae-2026q1'], {
       // The filing describes one business's purchasing and stockpiling in the dry season, not a Korean buying season.
       label: '건기 수매·비축 시기',
       evidence: 'KRX 공시의 사업 설명에서는 타피오카 칩을 수확기인 건기(12월~5월)에 수매하여 창고 보관 후 공급하는 사업 구조를 설명합니다.',
       buyerImplication: '정기 구매를 검토하는 제조사는 예상 월간 사용량과 품질 기준을 먼저 정리해 공급 제안을 비교할 수 있습니다.',
-      confidence: 'medium',
-      sources: ['krx-changhae-2026q1'],
-    },
-    {
-      id: 'cambodia-weather-risk',
-      type: 'current',
-      // FAO rates the risk high; it does not compare it with an earlier assessment, so no direction.
-      status: 'high',
+    }),
+    // Status high: FAO rates the risk high; it does not compare it with an earlier assessment, so no direction.
+    signal('cambodia-weather-risk', 'current', 'high', 'medium', ['fao-el-nino-drought-2026'], {
       label: '캄보디아 기상 리스크',
       evidence: 'FAO는 2026년 El Niño 영향으로 캄보디아가 심각한 가뭄 위험이 높은 지역이라고 평가했습니다.',
       // The caveat is required: a drought warning for agriculture is not evidence of a cassava production loss.
       buyerImplication: '이는 타피오카 생산량 감소를 직접 의미하지는 않지만, 캄보디아를 포함한 지역 농산물의 생산·수확 여건을 지속적으로 확인할 필요가 있습니다.',
-      confidence: 'medium',
-      sources: ['fao-el-nino-drought-2026'],
-    },
-    {
-      id: 'corn-relative-economics',
-      type: 'current',
-      status: 'declining',
+    }),
+    signal('corn-relative-economics', 'current', 'declining', 'medium', ['mafra-food-price-2026-10'], {
       label: '국제 옥수수 가격 동향',
       evidence: '농림축산식품부가 정리한 FAO 자료에 따르면 국제 옥수수 가격은 2026년 9월 3년 만의 최고치를 기록한 뒤 10월 하락했습니다.',
       buyerImplication: '사료용 타피오카의 상대 경제성은 옥수수 가격과 함께 확인할 수 있지만, 옥수수 가격의 단기 움직임만으로 타피오카 수요 방향이나 실제 원료 대체를 단정할 수 없습니다.',
-      confidence: 'medium',
-      sources: ['mafra-food-price-2026-10'],
-    },
+    }),
   ],
   brief: {
     eyebrow: 'PROCUREMENT BRIEF',
