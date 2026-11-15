@@ -1,22 +1,24 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 import { articles } from '../../src/data/articles.js';
-import { LOCALES, PAGES, PAGE_LOCALES, PRODUCT_SLUG_VI, localizePath, pageLocales } from '../../src/i18n/routes.js';
+import { LOCALES, PAGES, PAGE_LOCALES, PRODUCT_SLUG_VI, SCOPED_CONTENT_PAGES, localizePath, pageLocales } from '../../src/i18n/routes.js';
 import { abs, head, tags } from './html.js';
 
 /**
- * Next.js site in EN and VI, plus the page-scoped Simplified Chinese cassava page: server HTML, status codes, redirects,
- * noindex, client islands and the language switch.
+ * Next.js site in EN and VI, plus the page-scoped cassava pages (zh-CN, ko) and the Korean market page: server HTML,
+ * status codes, redirects, noindex, client islands and the language switch.
  * Run with playwright.next.config.js (never against the production domain).
  */
 
-// Every indexable URL, from the route contract: each page, product and article in each language, and each page in its
-// page-scoped locales.
+// Every indexable URL, from the route contract: each page, product and article in each language, each page in its
+// page-scoped locales, and each standalone content page (its key is its own URL).
 const KEYS = [...PAGES, ...Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`), ...articles.map(a => `/blog/${a.slug.en}`)];
 const SCOPED = Object.entries(PAGE_LOCALES).flatMap(([key, urls]) => Object.entries(urls).map(([lang, path]) => ({ key, lang, path })));
-const URLS = [...LOCALES.flatMap(lang => KEYS.map(key => ({ key, lang, path: localizePath(key, lang) }))), ...SCOPED];
-// A page's hreflang set: EN, VI, its page-scoped locales and x-default.
+const CONTENT = SCOPED_CONTENT_PAGES.map(({ locale, path }) => ({ key: path, lang: locale, path }));
+const URLS = [...LOCALES.flatMap(lang => KEYS.map(key => ({ key, lang, path: localizePath(key, lang) }))), ...SCOPED, ...CONTENT];
+// A page's hreflang set: EN, VI, its page-scoped locales and x-default; none for a standalone content page.
 const hreflangOf = key => {
+  if (CONTENT.some(page => page.key === key)) return {};
   const en = abs(localizePath(key, 'en'));
   const scoped = pageLocales(key).map(lang => [lang, abs(localizePath(key, lang))]);
   return { en, vi: abs(localizePath(key, 'vi')), ...Object.fromEntries(scoped), 'x-default': en };
@@ -184,6 +186,8 @@ const CHAINS = [
   ['/ko/tapioca-chips?lang=vi', ['/vi/san-pham/san-lat-kho']],
   ['/ko/tapioca-chips?lang=en', ['/products/dried-cassava-chips']],
   ['/ko/tapioca-chips/', ['/ko/tapioca-chips']],
+  // A standalone content page exists in Korean only: `lang` is dropped, the page stays.
+  ['/ko/tapioca-market?lang=vi', ['/ko/tapioca-market']],
 ];
 
 test('/tin-tuc/<unknown> is a 404', async ({ request }) => {

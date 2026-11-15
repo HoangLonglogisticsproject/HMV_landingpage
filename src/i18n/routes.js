@@ -35,6 +35,12 @@ const PAGE_LOCALE_URLS = Object.fromEntries(Object.entries(PAGE_LOCALES).flatMap
 /** The page-scoped locales of the page at English key path `path`. */
 export const pageLocales = path => Object.keys(PAGE_LOCALES[path] ?? {});
 
+// Standalone localized content: original pages in one language only, at their own URL. Unlike PAGE_LOCALES, they are
+// not translations of a page, so they have no hreflang set; each is its own canonical, listed in the sitemap.
+/** @type {{ locale: string, path: string }[]} */
+export const SCOPED_CONTENT_PAGES = [{ locale: 'ko', path: '/ko/tapioca-market' }];
+const CONTENT_PAGE = new Set(SCOPED_CONTENT_PAGES.map(page => page.path));
+
 // Collection URLs without a page of their own, keyed by English path.
 export const INDEX_ALIASES = { '/products': '/trade-solutions', '/blog': '/insights' };
 
@@ -87,6 +93,8 @@ export function canonicalUrl(pathname, search = '') {
   const params = new URLSearchParams(search);
   const requested = params.get('lang');
   params.delete('lang');
+  // A standalone content page exists in its one language: `lang` changes nothing.
+  if (CONTENT_PAGE.has(pathname)) return withQuery(pathname, params);
   const { path, locale } = delocalizePath(pathname);
   return withQuery(localizePath(INDEX_ALIASES[path] ?? path, LOCALES.includes(requested) ? requested : locale), params);
 }

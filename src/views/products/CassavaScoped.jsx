@@ -1,6 +1,5 @@
-import { ArrowDown, ArrowUpRight, Check, ClipboardList, MapPin } from 'lucide-react';
-import { BrandLogo } from '@/components/common/BrandLogo';
-import { address } from '@/data/hmv';
+import { ArrowDown, ArrowUpRight, Check, ClipboardList } from 'lucide-react';
+import { ScopedFooter, ScopedHeader } from '@/features/scoped-chrome/ScopedChrome';
 import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
 import { TradeDeskHost } from '@/features/trade-desk/TradeDeskHost';
 import { localizePath } from '@/i18n/routes';
@@ -9,66 +8,28 @@ import { Cards, Heading } from './ProductLanding';
 // The dried cassava chips page in a page-scoped locale (i18n/routes.js PAGE_LOCALES), Next.js only: the chrome and the
 // sections of CassavaChinaView (zh-CN) and CassavaKoreaView (ko), which order them. `c` is the page copy
 // (data/cassavaChina.js, data/cassavaKorea.js); `source` prefixes the analytics source of its calls to action.
-// Its own chrome instead of SiteShell: the site navigation and footer link to pages that exist in English and
-// Vietnamese only, so the header links to sections of this page and to this page in its other languages. The HMV
-// Trade Desk opens in English (it has no Chinese or Korean copy; each page says so next to its calls to action).
+// Its own chrome instead of SiteShell (features/scoped-chrome): the header links to sections of this page and to this
+// page in its other languages. The HMV Trade Desk opens in English (it has no Chinese or Korean copy; each page says so
+// next to its calls to action).
 const PRODUCT = 'dried-cassava-chips';
 const LANGUAGES = [['en', 'English'], ['vi', 'Tiếng Việt'], ['zh-CN', '简体中文'], ['ko', '한국어']];
 
-function Header({ c, locale, source }) {
-  return (
-    <header className="site-nav scoped-nav">
-      <div className="nav-inner">
-        <div className="nav-left">
-          <a href="/" hrefLang="en" className="wordmark" aria-label="HMV Global">
-            <BrandLogo />
-          </a>
-        </div>
-        <nav className="nav-center" aria-label={c.nav.label}>
-          {c.nav.items.map(([id, label]) => (
-            <a key={id} href={`#${id}`}>{label}</a>
-          ))}
-        </nav>
-        <div className="nav-right">
-          <ul className="scoped-langs" aria-label={c.nav.languages}>
-            {LANGUAGES.map(([lang, label]) => (
-              <li key={lang}>
-                <a href={localizePath(`/products/${PRODUCT}`, lang)} hrefLang={lang} lang={lang} aria-current={lang === locale ? 'page' : undefined}>
-                  {label}
-                </a>
-              </li>
-            ))}
-          </ul>
-          {/* The wrapper sizes and hides the button: the shared .nav-support-btn rules are !important. */}
-          <div className="scoped-nav-desk">
-            <TradeDeskButton variant="brand" className="nav-support-btn" product={PRODUCT} source={`${source}_nav`} title={c.tradeDesk}>
-              <ClipboardList size={15} />
-              <span>HMV Trade Desk</span>
-            </TradeDeskButton>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-}
-
 /** The page in `locale`: its header, the sections (children), its footer and the HMV Trade Desk (English). */
 export function ScopedPage({ c, locale, source, children }) {
+  const languages = {
+    label: c.nav.languages,
+    items: LANGUAGES.map(([lang, label]) => ({ lang, label, href: localizePath(`/products/${PRODUCT}`, lang), current: lang === locale })),
+  };
   return (
     <>
-      <Header c={c} locale={locale} source={source} />
+      <ScopedHeader nav={c.nav} languages={languages}>
+        <TradeDeskButton variant="brand" className="nav-support-btn" product={PRODUCT} source={`${source}_nav`} title={c.tradeDesk}>
+          <ClipboardList size={15} />
+          <span>HMV Trade Desk</span>
+        </TradeDeskButton>
+      </ScopedHeader>
       <main id="main-content">{children}</main>
-      <footer className="site-footer premium-footer scoped-footer">
-        <div className="content-width">
-          <p className="pf-row">
-            <MapPin size={16} />
-            {c.footer.address} · {address}
-          </p>
-          <div className="footer-bottom">
-            <span>© {new Date().getFullYear()} HMV Global</span>
-          </div>
-        </div>
-      </footer>
+      <ScopedFooter addressLabel={c.footer.address} />
       <TradeDeskHost lang="en" />
     </>
   );
@@ -223,7 +184,7 @@ export function ScopedRfq({ c, source }) {
   );
 }
 
-/** A static teaser: the market intelligence page does not exist yet, so nothing links to it. */
+/** The market teaser, linking to the page's market intelligence where it has one (`market.link`). */
 export function ScopedMarket({ market }) {
   return (
     <section className="section-pad scoped-market" aria-labelledby="scoped-market-title">
@@ -231,6 +192,12 @@ export function ScopedMarket({ market }) {
         <p className="eyebrow">{market.eyebrow}</p>
         <h2 id="scoped-market-title">{market.title}</h2>
         <p>{market.text}</p>
+        {market.link && (
+          <a className="text-link" href={market.link.href}>
+            {market.link.label}
+            <ArrowUpRight size={16} />
+          </a>
+        )}
       </div>
     </section>
   );

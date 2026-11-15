@@ -73,7 +73,7 @@ test('header: the real HMV logo, the section links, and this page in English, Vi
   expect(html).not.toContain('pf-grid');
 });
 
-test('every link works: section anchors exist on the page, every other link answers 200; no other /ko URL', async ({ request }) => {
+test('every link works: section anchors exist on the page, every other link answers 200; only the existing /ko URLs', async ({ request }) => {
   const html = await get(request);
   const hrefs = [...new Set(tags(html, 'a').map(a => a.href))];
   expect(hrefs.length).toBeGreaterThan(5);
@@ -81,7 +81,8 @@ test('every link works: section anchors exist on the page, every other link answ
     if (href.startsWith('#')) expect(html, href).toContain(`id="${href.slice(1)}"`);
     else {
       expect(href, href).toMatch(/^\/(?!\/)/);
-      if (href.startsWith('/ko')) expect(href).toBe(PATH);
+      // This page and the Korean market page (its market teaser), the only Korean pages.
+      if (href.startsWith('/ko')) expect([PATH, '/ko/tapioca-market']).toContain(href);
       expect((await request.get(href, { maxRedirects: 0 })).status(), href).toBe(200);
     }
   }
