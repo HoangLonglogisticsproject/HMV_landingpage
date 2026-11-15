@@ -35,7 +35,8 @@ export const koreaTapiocaMarket = {
     // is a reference whatever its sources' age; a recent one becomes a past reference once its newest source is more
     // than 30 days older than `updatedAt`.
     types: { structural: '구조적 참고', seasonal: '계절적 참고', current: '최근 동향' },
-    statuses: { ongoing: '지속 수요', upcoming: '진입 전', high: '높은 위험', declining: '최근 하락' },
+    // A seasonal status names its period, never a time relative to today ("before", "during"): the page is read later.
+    statuses: { ongoing: '지속 수요', period: '12월~5월', high: '높은 위험', declining: '최근 하락' },
     freshness: { historical: '과거 참고' },
   },
   signals: [
@@ -52,7 +53,7 @@ export const koreaTapiocaMarket = {
     {
       id: 'tapioca-procurement-season',
       type: 'seasonal',
-      status: 'upcoming',
+      status: 'period',
       // The filing describes one business's purchasing and stockpiling in the dry season, not a Korean buying season.
       label: '건기 수매·비축 시기',
       evidence: 'KRX 공시의 사업 설명에서는 타피오카 칩을 수확기인 건기(12월~5월)에 수매하여 창고 보관 후 공급하는 사업 구조를 설명합니다.',
@@ -89,7 +90,7 @@ export const koreaTapiocaMarket = {
     intro: '이번 브리프는 한국 제조사의 원료 조달 관점에서 현재 확인할 가치가 있는 공급·수요·기상·대체원료 신호를 요약합니다.',
     points: [
       'KRX 공시에서 한국 주정산업의 주요 원료 중 하나로 수입 타피오카 칩 사용이 확인됩니다.',
-      'KRX 공시가 설명하는 건기 수매·비축 시기(12월~5월)를 앞두고, 정기 구매를 검토하는 제조사는 월간 사용량과 품질 기준을 미리 정리할 수 있습니다.',
+      'KRX 공시는 타피오카 칩의 건기 수매·비축 시기를 12월~5월로 설명합니다. 정기 구매를 검토하는 제조사는 월간 사용량과 품질 기준을 미리 정리할 수 있습니다.',
       'FAO가 캄보디아를 2026년 El Niño 시기 심각한 가뭄 위험이 높은 지역으로 평가한 만큼, 지역 공급 여건을 계속 확인할 필요가 있습니다.',
       '국제 옥수수 가격은 9월 3년 만의 최고치 이후 10월 하락했지만, 단기 움직임만으로 타피오카 수요나 원료 대체를 판단할 수는 없습니다.',
     ],
@@ -160,7 +161,7 @@ export const koreaTapiocaMarket = {
     title: '출처 및 작성 기준',
     points: [
       '각 신호는 출처가 말하는 내용(확인된 근거)과 HMV의 해석(구매사 관점)을 나누어 표시합니다.',
-      '정부·관세 자료, FAO 등 국제기구, 공공 연구기관, 공식 공시를 우선 사용합니다(A등급). 공신력 있는 상품·무역 전문 매체(B등급)와 공급사·트레이더의 시장 정보(C등급)는 보조 자료로만 사용합니다.',
+      '정부·관세 자료, FAO 등 국제기구, 공공 연구기관, 공식 공시를 우선 사용합니다. 공신력 있는 상품·무역 전문 매체와 공급사·트레이더의 시장 정보는 보조 자료로만 사용합니다.',
       'KRX 공시는 공시 기업이 제출한 1차 자료이며 정부 발표가 아닙니다.',
       '신호 분류(구조적 참고·계절적 참고·최근 동향)는 HMV가 이 페이지를 정리하기 위해 사용하는 편집 기준이며 업계 표준 분류가 아닙니다.',
       '최근 동향의 출처가 업데이트일보다 30일 넘게 오래되면 「과거 참고」로 표시합니다. 업데이트 날짜는 콘텐츠에 기록된 날짜이며 자동으로 바뀌지 않습니다.',
@@ -168,7 +169,6 @@ export const koreaTapiocaMarket = {
     ],
     sourcesTitle: '참고 출처',
     newWindow: '새 창에서 원문 열기',
-    tier: '등급',
     sourceTypes: {
       government: '정부',
       international_organization: '국제기구',

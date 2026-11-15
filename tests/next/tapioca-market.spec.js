@@ -39,7 +39,7 @@ test('server HTML: the market intelligence, its dates and sources, evidence apar
     '본 페이지는 시장 참고 정보이며 HMV의 확정 견적, 공급 확약 또는 가격 예측이 아닙니다.',
     '한국 주정 원료 수요', '건기 수매·비축 시기', '캄보디아 기상 리스크', '국제 옥수수 가격 동향',
     '구조적 참고', '계절적 참고', '최근 동향', '과거 참고',
-    '지속 수요', '진입 전', '높은 위험', '최근 하락',
+    '지속 수요', '12월~5월', '높은 위험', '최근 하락',
     '이는 타피오카 생산량 감소를 직접 의미하지는 않지만',
     '옥수수 가격의 단기 움직임만으로 타피오카 수요 방향이나 실제 원료 대체를 단정할 수 없습니다.',
     'KRX 공시 · 2026.05.15', 'FAO · 2026.10.05', '농림축산식품부 · 2026.11.07',
@@ -57,6 +57,8 @@ test('server HTML: the market intelligence, its dates and sources, evidence apar
   // No price, no prediction; neither the old season wording, the market-style labels nor the unproven KREI figures.
   expect(body).not.toMatch(/USD|달러\/톤|\$\d|(상승|하락) 전망|가격을 예측/);
   expect(body).not.toMatch(/조달 시즌|구조 신호|계절 신호|현재 신호|한국농촌경제연구원|3\.9%|4\.0%/);
+  // Date-neutral copy, and no source grade that could read as an external rating.
+  expect(body).not.toMatch(/진입 전|앞두고|등급/);
 });
 
 test('links: internal ones reach the supply page and answer 200; no other /ko/tapioca-* URL; no Trade Desk', async ({ request }) => {

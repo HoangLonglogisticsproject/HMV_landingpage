@@ -191,10 +191,8 @@ export function TapiocaMarketView() {
                     <ArrowUpRight size={14} aria-hidden="true" />
                   </a>
                   <span>{source.title}</span>
-                  <span className="market-source-meta">
-                    {c.methodology.sourceTypes[source.sourceType]} · {source.tier}
-                    {c.methodology.tier}
-                  </span>
+                  {/* The tier stays internal: next to a company filing, "A등급" reads like a credit or official rating. */}
+                  <span className="market-source-meta">{c.methodology.sourceTypes[source.sourceType]}</span>
                 </li>
               ))}
             </ul>

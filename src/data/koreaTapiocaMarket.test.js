@@ -20,7 +20,7 @@ test('every signal has its type, status, evidence, buyer implication, confidence
   }
   // Signal types as declared, and visibly distinct statuses in words.
   assert.deepEqual(market.signals.map(s => [s.type, market.monitor.statuses[s.status]]), [
-    ['structural', '지속 수요'], ['seasonal', '진입 전'], ['current', '높은 위험'], ['current', '최근 하락'],
+    ['structural', '지속 수요'], ['seasonal', '12월~5월'], ['current', '높은 위험'], ['current', '최근 하락'],
   ]);
   // HMV's own editorial labels, never presented as market categories.
   assert.deepEqual(market.monitor.types, { structural: '구조적 참고', seasonal: '계절적 참고', current: '최근 동향' });
@@ -90,6 +90,14 @@ test('the dry season is the filing\'s purchasing and stockpiling period, Decembe
   assert.equal(season.label, '건기 수매·비축 시기');
   assert.equal(season.evidence, 'KRX 공시의 사업 설명에서는 타피오카 칩을 수확기인 건기(12월~5월)에 수매하여 창고 보관 후 공급하는 사업 구조를 설명합니다.');
   assert.deepEqual(season.sources, ['krx-changhae-2026q1']);
+  // Date-neutral: true whenever the page is read, so no status or brief point relative to today.
+  assert.equal(market.monitor.statuses[season.status], '12월~5월');
+  assert.doesNotMatch(JSON.stringify([market.monitor.statuses, market.brief.points]), /진입 전|앞두고|시작 전|진행 중|임박/);
+});
+
+// The tier ranks sources for HMV's editors; shown next to a company filing it would read like a credit or official rating.
+test('the source tier stays internal: no grade in the public copy', () => {
+  assert.doesNotMatch(JSON.stringify({ ...market, sources: undefined }), /등급/);
 });
 
 // PR1 links only to the pages that exist: the supply page and its sections.
