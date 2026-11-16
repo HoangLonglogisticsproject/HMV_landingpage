@@ -10403,27 +10403,14 @@ article[id] {
   margin-top: 32px
 }
 
-.scoped-langs {
-  display: flex;
-  gap: 16px;
-  list-style: none;
-  margin: 0;
-  padding: 0
+/* The site's language menu (components/layout/PremiumLanguageMenu) in the page-scoped header: a compact trigger as high
+   as the HMV Trade Desk button beside it, its list at least as wide as the trigger. */
+.scoped-nav .hmv-lang-trigger {
+  width: 176px
 }
 
-.scoped-langs a {
-  font-size: 13px;
-  color: var(--ink-muted);
-  white-space: nowrap
-}
-
-.scoped-langs a:hover {
-  color: var(--ocean-blue)
-}
-
-.scoped-langs a[aria-current] {
-  color: var(--brand);
-  font-weight: 600
+.hmv-lang-menu-content.scoped-lang-menu {
+  min-width: 176px !important
 }
 
 .scoped-network {
@@ -10481,13 +10468,14 @@ article[id] {
   display: flex
 }
 
-/* Tablet and phone: the language links stay; the section links give way (the page is one scroll). */
+/* Tablet and phone: the language menu stays; the section links give way (the page is one scroll). */
 @media(max-width:1024px) {
   .scoped-nav .nav-center {
     display: none
   }
 }
 
+/* The site header's drawer rules stretch the menu at this width; this header has no drawer. */
 @media(max-width:820px) {
   .scoped-nav .nav-right {
     flex-direction: row;
@@ -10496,16 +10484,27 @@ article[id] {
     padding-top: 0;
     border-top: 0
   }
+
+  .scoped-nav .nav-right .hmv-lang-switcher {
+    width: auto
+  }
+
+  .scoped-nav .nav-right .hmv-lang-trigger {
+    width: 176px;
+    height: 40px;
+    font-size: 13.5px
+  }
 }
 
-/* Phone: logo and the language links; the Trade Desk call to action leads the hero right below. */
+/* Phone: logo and a compact language menu, its list a little wider so that every name stays on one line; the Trade
+   Desk call to action leads the hero right below. */
 @media(max-width:600px) {
   .scoped-nav-desk {
     display: none
   }
 
-  .scoped-langs {
-    gap: 12px
+  .scoped-nav .nav-right .hmv-lang-trigger {
+    width: 160px
   }
 }
 

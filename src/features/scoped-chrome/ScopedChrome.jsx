@@ -4,11 +4,12 @@ import { address } from '@/data/hmv';
 
 // The chrome of the pages outside SiteShell: the page-scoped cassava pages (views/products/CassavaScoped) and the
 // Korean market page (views/tapioca-market). The site navigation and footer link to pages in English and Vietnamese
-// only, so this header links to sections of its page, to the page in its other languages when it has any, and to one
-// action (children).
+// only, so this header links to sections of its page, to the page in its other languages when it has any (the site's
+// language menu), and to one action (children).
 
 /**
- * `nav`: { label, items: [[sectionId, label]] }; `languages`: { label, items: [{ lang, label, href, current }] }.
+ * `nav`: { label, items: [[sectionId, label]] }; `languages`: the language menu (ScopedLanguages), or none for a page
+ * in one language only.
  */
 export function ScopedHeader({ nav, languages, children }) {
   return (
@@ -25,17 +26,7 @@ export function ScopedHeader({ nav, languages, children }) {
           ))}
         </nav>
         <div className="nav-right">
-          {languages && (
-            <ul className="scoped-langs" aria-label={languages.label}>
-              {languages.items.map(({ lang, label, href, current }) => (
-                <li key={lang}>
-                  <a href={href} hrefLang={lang} lang={lang} aria-current={current ? 'page' : undefined}>
-                    {label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
+          {languages}
           {/* The wrapper sizes and hides the action: the shared .nav-support-btn rules are !important. */}
           <div className="scoped-nav-desk">{children}</div>
         </div>

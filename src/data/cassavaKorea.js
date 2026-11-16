@@ -19,7 +19,6 @@ export const cassavaKorea = {
     label: '페이지 탐색',
     // Section ids on this page.
     items: [['overview', '제품 개요'], ['applications', '제조사 적용'], ['capability', '공급 역량'], ['quality', '품질 참고'], ['workflow', '공급 절차']],
-    languages: '언어',
   },
   // The HMV Trade Desk has no Korean version yet: every call to action opens it in English, and says so.
   tradeDesk: 'HMV에 원료 구매 요구사항 전달 (HMV Trade Desk는 현재 영어로 제공됩니다)',

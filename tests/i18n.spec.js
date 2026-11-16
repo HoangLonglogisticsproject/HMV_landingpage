@@ -7,8 +7,8 @@ import { test, expect } from '@playwright/test';
  * Known facts from source:
  *  - CinematicHero H1 (en): "Rooted in the land." + <span>"Connecting the world."</span>
  *  - CinematicHero H1 (vi): "Bám rễ từ đất lành." + <span>"Vươn tầm ra thế giới."</span>
- *  - LanguageSwitcher trigger: aria-label="Select language (current: English)" (en)
- *                           or aria-label="Chọn ngôn ngữ (hiện tại: Tiếng Việt)" (vi)
+ *  - LanguageSwitcher trigger: aria-label="Select language, current: English" (en)
+ *                           or aria-label="Chọn ngôn ngữ, hiện tại: Tiếng Việt" (vi)
  *  - Language stored in localStorage key 'hmv_lang'
  *  - ?lang= is stripped from the URL by LangQueryBootstrap after being applied
  */
@@ -53,7 +53,7 @@ test('language switcher changes the active locale', async ({ page }) => {
   await expect(page).toHaveURL('http://localhost:4173/', { timeout: 5000 });
 
   // LanguageSwitcher trigger: class="hmv-lang-trigger"
-  // aria-label="Select language (current: English)" when lang=en
+  // aria-label="Select language, current: English" when lang=en
   const trigger = page.locator('button.hmv-lang-trigger').first();
   await expect(trigger).toBeVisible({ timeout: 5000 });
 

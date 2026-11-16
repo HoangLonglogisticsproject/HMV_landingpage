@@ -12,7 +12,7 @@ import { LOCALES, PAGES, PAGE_LOCALES, SCOPED_CONTENT_PAGES, localizePath } from
  * - the first viewport in English with its images, the hero (LCP) image included;
  * - the page-scoped Simplified Chinese and Korean pages and the standalone Korean market page, first viewport and full
  *   page (their CJK and Hangul text in the image's system fonts);
- * - the cassava supply-evidence preview, open.
+ * - the cassava supply-evidence preview, open; the page-scoped header's language menu, open on the Korean page.
  * Stabilized, not masked: reduced motion (the site's CSS then stops every animation and transition, and the activities
  * carousel does not autoplay), every image loaded and decoded, every declared web font face loaded.
  * Google Fonts serves different builds of the same font by user agent, region and day (CI got a different Poppins build
@@ -79,4 +79,14 @@ test('en /products/dried-cassava-chips supply-evidence preview', async ({ page }
   await expect(page.getByRole('dialog').locator('img')).toBeVisible();
   await settle(page);
   await expect(page, 'preview').toHaveScreenshot('en-products-dried-cassava-chips-supply-evidence-preview.png');
+});
+
+// The language menu of the page-scoped header, open on the Korean page: the four languages, Korean checked.
+test('ko /ko/tapioca-chips language menu', async ({ page }) => {
+  await page.goto('/ko/tapioca-chips');
+  await settle(page);
+  await page.locator('header button.hmv-lang-trigger').click();
+  await expect(page.getByRole('menu')).toBeVisible();
+  await settle(page);
+  await expect(page, 'menu').toHaveScreenshot('ko-ko-tapioca-chips-language-menu.png');
 });

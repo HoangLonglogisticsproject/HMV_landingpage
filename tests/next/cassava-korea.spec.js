@@ -57,19 +57,22 @@ test('header: the real HMV logo, the section links, and this page in English, Vi
   const html = await get(request);
   const logo = tags(html, 'img').find(img => img.alt === 'HMV Global');
   expect(decodeURIComponent(logo?.src ?? '')).toMatch(/\/_next\/static\/media\/logohmv\.[\w-]+\.webp/);
-  const language = Object.fromEntries(tags(html, 'a').filter(a => a.hreflang).map(a => [a.hreflang, a]));
-  expect(Object.fromEntries(Object.entries(language).map(([l, a]) => [l, a.href]))).toEqual({
-    en: '/products/dried-cassava-chips',
-    vi: '/vi/san-pham/san-lat-kho',
-    'zh-CN': '/zh-cn/cassava-chips',
-    ko: PATH,
-  });
-  expect(language.ko['aria-current']).toBe('page');
+  // The site's language menu shows Korean; its four options are real links in the server HTML, crawlable.
+  const trigger = tags(html, 'button').find(b => b.class === 'hmv-lang-trigger');
+  expect(trigger?.['aria-label']).toBe('언어 선택, 현재: 한국어');
+  const language = tags(html, 'a').filter(a => a.hreflang && a.lang);
+  expect(language.map(a => [a.hreflang, a.lang, a.href, a['aria-current']])).toEqual([
+    ['en', 'en', '/products/dried-cassava-chips', undefined],
+    ['vi', 'vi', '/vi/san-pham/san-lat-kho', undefined],
+    ['zh-CN', 'zh-CN', '/zh-cn/cassava-chips', undefined],
+    ['ko', 'ko', PATH, 'page'],
+  ]);
+  expect(language.some(a => /nofollow/.test(a.rel ?? ''))).toBe(false);
   for (const [href, label] of [['#overview', '제품 개요'], ['#applications', '제조사 적용'], ['#capability', '공급 역량'], ['#quality', '품질 참고'], ['#workflow', '공급 절차']]) {
     expect(html).toContain(`<a href="${href}">${label}</a>`);
   }
   // Not the site navigation and footer, whose links lead to pages without a Korean version.
-  expect(html).not.toContain('hmv-lang-trigger');
+  expect(html).not.toContain('nav-group');
   expect(html).not.toContain('pf-grid');
 });
 

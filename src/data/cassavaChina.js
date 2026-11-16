@@ -19,7 +19,6 @@ export const cassavaChina = {
     label: '页面导航',
     // Section ids on this page.
     items: [['overview', '产品概览'], ['capability', '供应能力'], ['quality', '质量参考'], ['workflow', '供应流程']],
-    languages: '语言',
   },
   // The HMV Trade Desk has no Chinese version yet: every call to action opens it in English, and says so.
   tradeDesk: '向 HMV 发送采购询盘（HMV Trade Desk 为英文界面）',

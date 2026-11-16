@@ -441,7 +441,7 @@ test.describe('language switch', () => {
     await korean.click();
     await expect(page).toHaveURL(/\/ko\/tapioca-chips$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'ko');
-    for (const path of ['/products/passion-fruit', '/vi/san-pham/chanh-day', '/about']) {
+    for (const path of ['/', '/products/passion-fruit', '/vi/san-pham/chanh-day', '/about']) {
       await page.goto(path);
       await page.locator('button.hmv-lang-trigger').first().click();
       await expect(page.getByRole('menuitem')).toHaveText(['English', 'Tiếng Việt']);
