@@ -4781,9 +4781,11 @@ article[id] {
   display: none;
 }
 
+/* min-width needs no !important: the list's Tailwind min-w-[8rem] is in @layer utilities, and this unlayered rule wins
+   over any layered one. The tablet and page-scoped widths below win by source order and specificity. */
 .hmv-lang-menu-content {
   width: var(--radix-dropdown-menu-trigger-width) !important;
-  min-width: 190px !important;
+  min-width: 190px;
   background: #ffffff !important;
   border: 1px solid #d4dcea !important;
   border-radius: 10px !important;
@@ -4850,7 +4852,7 @@ article[id] {
   }
 
   .hmv-lang-menu-content {
-    min-width: 175px !important;
+    min-width: 175px;
   }
 }
 
@@ -10409,8 +10411,9 @@ article[id] {
   width: 176px
 }
 
+/* On the list itself, which Radix portals out of the header: two classes outrank the shared min-width rules. */
 .hmv-lang-menu-content.scoped-lang-menu {
-  min-width: 176px !important
+  min-width: 176px
 }
 
 .scoped-network {
