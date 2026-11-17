@@ -8,8 +8,9 @@ migrated to Tailwind feature by feature and then deleted. The modules are not th
 
 ### A. Tailwind and the design system: the default for new work
 
-`src/styles/index.css` owns `@import 'tailwindcss'`, the HMV design tokens (`:root`), their mapping to utilities
-(`@theme inline`: `bg-brand`, `text-ink`, `bg-surface`…), the base rules and the shared brand primitives.
+`src/styles/index.css` owns only what is truly global: `@import 'tailwindcss'`, the HMV design tokens (`:root`), their
+mapping to utilities (`@theme inline`: `bg-brand`, `text-ink`, `bg-surface`…), the base and global rules, and the brand
+primitives shared site-wide. It is not the place for a feature's rules.
 
 New React UI uses Tailwind utilities in the JSX or TSX:
 
@@ -26,9 +27,14 @@ is genuinely reused.
 `src/styles/hmv/*.css` is the former 10.8k-line `hmv.css`, extracted mechanically. The modules exist so the legacy CSS
 can be understood, tested, migrated in small steps and removed safely, not to grow more global CSS.
 
-The legacy CSS is unlayered, so it wins over every Tailwind utility (`@layer utilities`) whatever the specificity: a
-utility on an element a legacy rule already styles loses for that property. Migrating a part of the UI means moving its
-styling to utilities and deleting its legacy rules, not adding utilities on top.
+The legacy CSS is unlayered, and Tailwind emits its utilities inside a named layer (`@layer utilities`). For normal
+author declarations, unlayered CSS has higher cascade-layer precedence than declarations inside named layers, regardless
+of selector specificity. An ordinary Tailwind utility may therefore not override a conflicting legacy property until that
+legacy declaration is removed. This concerns normal declarations only: `!important` declarations (whose layer order is
+reversed), inline styles, animations, transitions and the other cascade origins follow their own rules.
+
+The migration principle: do not stack ordinary utilities on top of conflicting legacy rules and hope specificity wins;
+migrate the styling to utilities and remove the legacy rule.
 
 ### C. Entry
 
@@ -44,23 +50,29 @@ styling to utilities and deleting its legacy rules, not adding utilities on top.
   reusable React components, not from a `92-tapioca-intent.css` of new global rules.
 - The legacy modules are not extended with new features. A small fix to UI they already style can stay in its module;
   a larger change is the moment to migrate that part (Phase 3).
-- Authored CSS that new UI does need (below) stays short and goes to `index.css` (tokens, `@theme`, `@keyframes`,
-  `@layer base` or `@layer components`), never to `hmv.css`.
+- When a new component genuinely needs authored CSS (below), prefer a small CSS Module colocated with the component or
+  feature (`Component.module.css`) over feature rules in `index.css`. This is an escape hatch, not the default. None
+  exists yet; Vite and Next.js both support CSS Modules without configuration.
+- Nothing new goes into `hmv.css` or the legacy modules.
 
 ## When authored CSS is right
 
-The target is not "zero CSS". It is **Tailwind for ordinary component and layout styling; authored CSS only where it is
-the clearer or the necessary solution**:
+The target is not "zero CSS". It is **Tailwind-first, with scoped authored-CSS exceptions, not one growing global
+stylesheet**: utilities for ordinary component and layout styling, authored CSS only where it is the clearer or the
+necessary solution.
 
-- `:root` design tokens and `@theme`;
-- complex `@keyframes`;
-- pseudo-elements whose utilities would be unreadable;
-- `prefers-reduced-motion` blocks that cover several elements;
-- `:lang(…)` rules for a locale (fonts, line breaking);
-- CMS rich-text descendants, such as `.article-body h2`, where the markup comes from the CMS;
-- overrides of third-party and Radix markup;
-- selectors that component utilities cannot reasonably express;
-- browser and platform fixes that need a selector.
+**Scoped, in a colocated CSS Module:** CSS that belongs to one component or feature:
+
+- complex pseudo-elements whose utilities would be unreadable;
+- complex `@keyframes` tied to one feature, and the `prefers-reduced-motion` rules for them;
+- selectors that utilities cannot reasonably express.
+
+**Global, in `index.css`:** only styling that is itself global:
+
+- design tokens, `@theme` and base styles;
+- global locale rules (`:lang(…)`: fonts, line breaking);
+- CMS rich-text descendants, such as `.article-body h2`, when the markup comes from the CMS and cannot carry utilities;
+- third-party, Radix and browser or platform overrides where scoping is impractical.
 
 ## Rules for the legacy modules
 
@@ -140,7 +152,8 @@ regresses, and no new global CSS replaces the old.
 
 ### Legacy findings (inputs to Phases 2 and 3)
 
-Each item needs a visual check (the D-14 baselines and the widths the change touches); removing a selector also needs a
+An audit snapshot of the legacy CSS before this split (`main` at b29652f), not results of a later analysis. Each item
+needs a visual check (the D-14 baselines and the widths the change touches); removing a selector also needs a
 DOM check that no page, state or CMS content uses it.
 
 | Finding | Where | Why it matters |
@@ -152,4 +165,4 @@ DOM check that no page, state or CMS content uses it.
 | 92 `!important` (47 in the header, 22 in supply chain) | 40, 50, 54 | Specificity fights, including with the scoped header |
 | Hard-coded colors (`#ffffff` ×54, `#00297b` ×28, `#0f172a` ×28, `#e2e8f0` ×19) | 40 onward | Values the design tokens already hold |
 | 11 width breakpoints (1100, 1080, 1043, 1024, 1000, 900, 860, 820, 700, 640, 600) | all | Near-duplicates to settle in Phase 2 |
-| Sonar bugs: generic font family missing (S4649 ×12), `r: 5.5` in `@keyframes` (S9424 ×5) | 20, 21, 22, 30, 62; 31 | Font fallbacks change rendering when a web font is missing; `r` is valid in Chromium but not standard CSS |
+| Sonar bugs on `hmv.css`: generic font family missing (S4649 ×12), the animated SVG `r` declarations (S9424 ×5) | 20, 21, 22, 30, 62; 31 | A generic family decides the fallback when a web font is missing. Sonar flags the `r` values; inspect the exact analyzer finding before changing them: `r` is an SVG 2 geometry property of `<circle>` and is animatable, so it is not non-standard without evidence from the specific rule |

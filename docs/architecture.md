@@ -121,7 +121,7 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 - **Inner page:** wrap the view in `<DetailLayout lang {...<name>Meta(lang)}>`; the adapters set the head tags.
 - **Next.js migration (in progress):** see `docs/architecture/`. Shared code imports links and router hooks from the port `@/lib/navigation` only, never from `react-router-dom` or `next/*`; `npm run lint` enforces the layer rules (`scripts/check-boundaries.js`).
 - **New section:** if only one page uses it, put it in that page's folder. If it is business-specific and used by two or more pages, put it in `features/<name>/`. If it is generic UI, put it in `components/ui/`.
-- **Styles:** new UI uses Tailwind CSS 4 utilities (`docs/architecture/CSS_ARCHITECTURE.md`). `hmv.css` is the legacy global stylesheet with no scoping, split into ordered modules to be migrated feature by feature. Keep its class names stable; renaming a class silently unstyles markup.
+- **Styles:** new UI uses Tailwind CSS 4 utilities; CSS that a component genuinely needs goes into a small colocated CSS Module, and `index.css` keeps only truly global styling (`docs/architecture/CSS_ARCHITECTURE.md`). `hmv.css` is the legacy global stylesheet with no scoping, split into ordered modules to be migrated feature by feature. Keep its class names stable; renaming a class silently unstyles markup.
 
 ## Checks
 
