@@ -87,7 +87,10 @@ necessary solution.
 
 ## Modules
 
-| Module | Contents | Lines of the former `hmv.css` (`main` at b29652f) |
+The ranges were drawn at `main` b29652f. #30 then fixed 17 lines in place (below), so the split, rebased onto `main` at
+73842d8, uses the same ranges and carries those fixes.
+
+| Module | Contents | Lines of the former `hmv.css` (`main` at 73842d8) |
 |---|---|---|
 | `00-legacy-foundation` | Base elements and the first site layout (header, hero, sections, footer, detail pages), its breakpoints and reduced motion | 1–1406 |
 | `10-home-farm-journey` | Product photos, logo size, the scroll-driven farm journey hero | 1408–1829 |
@@ -152,7 +155,9 @@ regresses, and no new global CSS replaces the old.
 
 ### Legacy findings (inputs to Phases 2 and 3)
 
-An audit snapshot of the legacy CSS before this split (`main` at b29652f), not results of a later analysis. Each item
+An audit snapshot of the legacy CSS before this split (`main` at b29652f), not results of a later analysis. Its 17
+Sonar reliability bugs, the missing generic font family (S4649 ×12) and the unitless SVG `r` values (S9424 ×5), were
+fixed on `main` before the split (#30) and are not listed. Each item
 needs a visual check (the D-14 baselines and the widths the change touches); removing a selector also needs a
 DOM check that no page, state or CMS content uses it.
 
@@ -165,4 +170,3 @@ DOM check that no page, state or CMS content uses it.
 | 92 `!important` (47 in the header, 22 in supply chain) | 40, 50, 54 | Specificity fights, including with the scoped header |
 | Hard-coded colors (`#ffffff` ×54, `#00297b` ×28, `#0f172a` ×28, `#e2e8f0` ×19) | 40 onward | Values the design tokens already hold |
 | 11 width breakpoints (1100, 1080, 1043, 1024, 1000, 900, 860, 820, 700, 640, 600) | all | Near-duplicates to settle in Phase 2 |
-| Sonar bugs on `hmv.css`: generic font family missing (S4649 ×12), the animated SVG `r` declarations (S9424 ×5) | 20, 21, 22, 30, 62; 31 | A generic family decides the fallback when a web font is missing. Sonar flags the `r` values; inspect the exact analyzer finding before changing them: `r` is an SVG 2 geometry property of `<circle>` and is animatable, so it is not non-standard without evidence from the specific rule |
