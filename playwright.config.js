@@ -11,11 +11,17 @@ import { defineConfig } from '@playwright/test';
  *     Run `npm run test:e2e` (not `npm run preview` separately) to get a
  *     fresh build guarantee locally too.
  */
+// Specs scoped by file name instead of skipped at run time: *.mobile.spec.js runs in the phone project only,
+// *.desktop.spec.js in the desktop project only. The CMS and Next.js configs apply the same split.
+export const MOBILE_ONLY = /\.mobile\.spec\.js$/;
+export const DESKTOP_ONLY = /\.desktop\.spec\.js$/;
+// CMS-mode specs need the dist-cms bundle (playwright.cms.config.js); tests/next/, tests/next-cms/ and
+// tests/next-visual/ target the Next.js build (playwright.next*.config.js).
+const OTHER_BUILDS = [/cms-.*\.spec\.js/, /[\\/]next(-cms|-visual)?[\\/]/];
+
 export default defineConfig({
   testDir: './tests',
-  // CMS-mode specs need the dist-cms bundle (playwright.cms.config.js); tests/next/, tests/next-cms/ and
-  // tests/next-visual/ target the Next.js build (playwright.next*.config.js).
-  testIgnore: [/cms-.*\.spec\.js/, /[\\/]next(-cms|-visual)?[\\/]/],
+  testIgnore: OTHER_BUILDS,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
@@ -36,10 +42,12 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium-desktop',
+      testIgnore: [...OTHER_BUILDS, MOBILE_ONLY],
       use: { browserName: 'chromium', viewport: { width: 1280, height: 720 } },
     },
     {
       name: 'chromium-mobile',
+      testIgnore: [...OTHER_BUILDS, DESKTOP_ONLY],
       use: { browserName: 'chromium', viewport: { width: 375, height: 667 } },
     },
   ],

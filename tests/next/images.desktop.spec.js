@@ -65,8 +65,7 @@ function check(m, dpr, where, { intrinsic = false } = {}) {
 }
 
 for (const target of TARGETS) {
-  test(`images on every page keep their ratio and resolution, ${target.name}`, async ({ browser, baseURL }, info) => {
-    test.skip(info.project.name !== 'chromium-desktop', 'one run sets its own viewports');
+  test(`images on every page keep their ratio and resolution, ${target.name}`, async ({ browser, baseURL }) => {
     test.setTimeout(180_000);
     const page = await browser.newPage({ viewport: target.viewport, deviceScaleFactor: target.deviceScaleFactor, baseURL });
     for (const key of KEYS) {
@@ -76,8 +75,7 @@ for (const target of TARGETS) {
     await page.close();
   });
 
-  test(`lightbox images keep their ratio and resolution, ${target.name}`, async ({ browser, baseURL }, info) => {
-    test.skip(info.project.name !== 'chromium-desktop', 'one run sets its own viewports');
+  test(`lightbox images keep their ratio and resolution, ${target.name}`, async ({ browser, baseURL }) => {
     test.setTimeout(180_000);
     const page = await browser.newPage({ viewport: target.viewport, deviceScaleFactor: target.deviceScaleFactor, baseURL });
     for (const box of LIGHTBOXES) {
