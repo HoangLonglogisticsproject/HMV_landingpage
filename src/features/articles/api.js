@@ -10,7 +10,7 @@ const isArticle = a => typeof a?.slug === 'string' && typeof a?.title === 'strin
 const MONTH = { month: 'long', year: 'numeric', timeZone: 'Asia/Ho_Chi_Minh' };
 // Matches the static article labels: "October 2026" / "Tháng 10, 2026".
 function dateLabel(iso, lang) {
-  const d = new Date(iso ?? NaN);
+  const d = new Date(iso ?? Number.NaN);
   if (Number.isNaN(d.getTime())) return '';
   if (lang !== 'vi') return new Intl.DateTimeFormat('en-US', MONTH).format(d);
   const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { ...MONTH, month: 'numeric' }).formatToParts(d).map(x => [x.type, x.value]));

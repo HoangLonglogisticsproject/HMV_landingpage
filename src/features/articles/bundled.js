@@ -5,13 +5,13 @@ import { articles, articleSlug, findArticle } from '@/data/articles';
 
 const dims = { farm: [1280, 960], factory: [768, 1024], farmTeam: [1308, 1600] };
 
-const toDoc = blocks => ({
-  type: 'doc',
-  content: blocks.map(([tag, c]) =>
-    tag === 'h2' ? { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: c }] }
-    : tag === 'ul' ? { type: 'bulletList', content: c.map(([b, t]) => ({ type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: b, marks: [{ type: 'bold' }] }, { type: 'text', text: ` ${t}` }] }] })) }
-    : { type: 'paragraph', content: [{ type: 'text', text: c }] }),
-});
+function toNode([tag, c]) {
+  if (tag === 'h2') return { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: c }] };
+  if (tag === 'ul') return { type: 'bulletList', content: c.map(([b, t]) => ({ type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: b, marks: [{ type: 'bold' }] }, { type: 'text', text: ` ${t}` }] }] })) };
+  return { type: 'paragraph', content: [{ type: 'text', text: c }] };
+}
+
+const toDoc = blocks => ({ type: 'doc', content: blocks.map(toNode) });
 
 function staticView(a, lang) {
   const [width, height] = dims[a.image] ?? [];

@@ -12,8 +12,8 @@ export function ArticleGrid({ state, lang, aboveFold = false }) {
   const t = copy[lang];
   if (state.status === 'loading') {
     return (
-      <div className="insight-grid" role="status" aria-busy="true">
-        <span className="sr-only">{t.loading}</span>
+      <div className="insight-grid" aria-busy="true">
+        <output className="sr-only">{t.loading}</output>
         {[0, 1, 2].map(i => <div key={i} className="insight-card" aria-hidden="true"><figure /></div>)}
       </div>
     );

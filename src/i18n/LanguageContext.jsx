@@ -23,19 +23,20 @@ function readStoredLang() {
 const LanguageContext = createContext(null);
 
 export function LanguageProvider({ children }) {
-  const [lang, setLangState] = useState(() => readStoredLang() ?? DEFAULT_LANG);
+  const [lang, setLang] = useState(() => readStoredLang() ?? DEFAULT_LANG);
 
-  const setLang = useCallback(next => {
+  // Exposed as `setLang`: accepts only a supported language and remembers it.
+  const chooseLang = useCallback(next => {
     if (!SUPPORTED_LANGS.includes(next)) return;
     try {
       localStorage.setItem(STORAGE_KEY, next);
     } catch {
       // Ignore if localStorage is restricted
     }
-    setLangState(next);
+    setLang(next);
   }, []);
 
-  const value = useMemo(() => ({ lang, setLang }), [lang, setLang]);
+  const value = useMemo(() => ({ lang, setLang: chooseLang }), [lang, chooseLang]);
   return (
     <LanguageContext.Provider value={value}>
       {children}

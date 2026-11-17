@@ -1,10 +1,10 @@
 // Navigation port `@/lib/navigation`, Vite (React Router) implementation, selected by the alias in vite.config.js.
 // URLs stay locale-free here: links are not localized and switching language is a re-render.
 // MIGRATION-ONLY: delete at cleanup (docs/architecture/MIGRATION_ROADMAP.md, PR-12).
-import { Link, useLocation, useNavigate, useSearchParams as useRouterSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams as useRouterSearchParams } from 'react-router-dom';
 import { useLanguage } from '@/i18n/LanguageContext';
 
-export { Link };
+export { Link } from 'react-router-dom';
 
 export const useRoutePath = () => useLocation().pathname;
 

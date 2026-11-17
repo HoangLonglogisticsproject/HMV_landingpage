@@ -36,7 +36,7 @@ function render(node) {
   const a = node.attrs ?? {};
   switch (node.type) {
     case 'text':
-      return text(node);
+      return h(Fragment, null, text(node));
     case 'heading':
       // The CMS allows levels 2 and 3 only; the page <h1> is the article title.
       return h(a.level === 3 ? 'h3' : 'h2', null, ...content.map(render));

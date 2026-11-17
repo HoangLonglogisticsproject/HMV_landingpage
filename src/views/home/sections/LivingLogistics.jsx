@@ -29,7 +29,7 @@ const markets = [
 ];
 
 export function LivingLogistics({ lang }) {
-  const uid = useId().replace(/:/g, '');
+  const uid = useId().replaceAll(':', '');
   const [active, setActive] = useState(/** @type {string | null} */ (null));
   const vi = lang === 'vi';
 

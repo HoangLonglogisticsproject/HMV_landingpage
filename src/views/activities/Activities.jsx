@@ -11,6 +11,10 @@ import {
 } from '@/components/ui/dialog';
 import { copy, photos, photoCopy } from '@/data/hmv';
 import Image from '@/lib/image';
+
+const slideshowEn = { play: 'Play slideshow', pause: 'Pause slideshow' };
+const slideshowVi = { play: 'Phát trình chiếu', pause: 'Tạm dừng trình chiếu' };
+
 export function Activities({ lang, full = false }) {
   const t = copy[lang];
   const [selected, setSelected] = useState(null);
@@ -137,15 +141,7 @@ export function Activities({ lang, full = false }) {
             <Button
               variant="ghost"
               size="icon"
-              aria-label={
-                paused
-                  ? lang === 'vi'
-                    ? 'Phát trình chiếu'
-                    : 'Play slideshow'
-                  : lang === 'vi'
-                    ? 'Tạm dừng trình chiếu'
-                    : 'Pause slideshow'
-              }
+              aria-label={(lang === 'vi' ? slideshowVi : slideshowEn)[paused ? 'play' : 'pause']}
               onClick={() => setPaused(!paused)}
             >
               {paused ? <Play /> : <Pause />}

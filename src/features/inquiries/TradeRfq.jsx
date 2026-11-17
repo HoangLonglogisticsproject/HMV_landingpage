@@ -8,9 +8,9 @@ import { RfqSubmit } from './RfqSubmit';
 
 const commodities = ['Passion Fruit', 'Dried Cassava Chips', 'Cavendish Bananas', 'Dragon Fruit', 'Spices (Pepper, Cinnamon, Star Anise)', 'Cashew Nuts', 'Tapioca Starch', 'Other'];
 const leaders = [
-  ['Mr. Ho Quang Minh', { en: 'Chairman', vi: 'Chủ tịch' }, 'minhho@hmvglobal.com'],
-  ['Mr. Hieu Truong', { en: 'Managing Director', vi: 'Giám đốc điều hành' }, 'hieutruong@hmvglobal.com'],
-  ['Ms. Van Nguyen', { en: 'General Manager', vi: 'Tổng giám đốc' }, 'vannguyen@hmvglobal.com'],
+  { name: 'Mr. Ho Quang Minh', role: { en: 'Chairman', vi: 'Chủ tịch' }, email: 'minhho@hmvglobal.com' },
+  { name: 'Mr. Hieu Truong', role: { en: 'Managing Director', vi: 'Giám đốc điều hành' }, email: 'hieutruong@hmvglobal.com' },
+  { name: 'Ms. Van Nguyen', role: { en: 'General Manager', vi: 'Tổng giám đốc' }, email: 'vannguyen@hmvglobal.com' },
 ];
 
 export function TradeRfq({ lang }) {
@@ -34,8 +34,8 @@ export function TradeRfq({ lang }) {
           <h2 id="rfq-title">{L('Discuss Your Sourcing Requirements', 'Trao đổi nhu cầu thu mua')}</h2>
           <p className="rfq-lead">{L('Share your product, estimated volume, destination and key requirements so HMV Global can review the sourcing and trade brief.', 'Chia sẻ sản phẩm, sản lượng dự kiến, thị trường đích và các yêu cầu chính để HMV Global xem xét nhu cầu nguồn hàng và giao thương.')}</p>
           <ul className="leader-list">
-            {leaders.map(([n, r, m]) => (
-              <li key={m}><span className="review-avatar">{n.split(' ').pop()[0]}</span><div><strong>{n}</strong><em>{r[lang]}</em><a href={`mailto:${m}`}><Mail size={14} />{m}</a></div></li>
+            {leaders.map(({ name, role, email }) => (
+              <li key={email}><span className="review-avatar">{name.split(' ').pop()[0]}</span><div><strong>{name}</strong><em>{role[lang]}</em><a href={`mailto:${email}`}><Mail size={14} />{email}</a></div></li>
             ))}
           </ul>
           <p className="rfq-office"><MapPin size={16} />{address}</p>

@@ -5,7 +5,7 @@ import { pageMetadata } from '@/next/seo';
 import { ProductView } from '@/views/products/ProductView';
 import { productMeta } from '@/views/meta';
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = Readonly<{ params: Promise<{ slug: string }> }>;
 
 // Only the bundled products exist: any other slug is answered by the global 404.
 export const dynamicParams = false;

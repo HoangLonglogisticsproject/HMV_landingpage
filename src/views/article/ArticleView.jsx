@@ -13,27 +13,31 @@ export function ArticleView({ lang, state, readIn }) {
   const a = state.article;
   const t = articleCopy[lang];
   const message = t.status[state.status];
+  let heading = <p className="article-note"><output>{t.loading}</output></p>;
+  if (a) {
+    heading = (
+      <>
+        <p className="article-meta"><span>{a.category}</span><time dateTime={a.date.iso}>{a.date.label}</time></p>
+        <h1>{a.title}</h1>
+      </>
+    );
+  } else if (message) {
+    heading = (
+      <>
+        <h1>{message[0]}</h1>
+        <p className="article-note">{message[1]}</p>
+        <div className="article-status-actions">
+          {readIn}
+          <Button asChild variant="outline"><Link to="/insights">{t.all}</Link></Button>
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <div className="article-col">
         <BackButton><ArrowLeft size={16} />{t.back}</BackButton>
-        {a ? (
-          <>
-            <p className="article-meta"><span>{a.category}</span><time dateTime={a.date.iso}>{a.date.label}</time></p>
-            <h1>{a.title}</h1>
-          </>
-        ) : message ? (
-          <>
-            <h1>{message[0]}</h1>
-            <p className="article-note">{message[1]}</p>
-            <div className="article-status-actions">
-              {readIn}
-              <Button asChild variant="outline"><Link to="/insights">{t.all}</Link></Button>
-            </div>
-          </>
-        ) : (
-          <p className="article-note" role="status">{t.loading}</p>
-        )}
+        {heading}
       </div>
       {a && (
         <>

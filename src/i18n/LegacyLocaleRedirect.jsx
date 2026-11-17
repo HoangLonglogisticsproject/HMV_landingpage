@@ -18,7 +18,7 @@ export function LegacyLocaleRedirect() {
   const { pathname, search, hash } = useLocation();
   const { setLang } = useLanguage();
 
-  const match = pathname.match(/^\/(en|vi)(\/.*)?$/);
+  const match = /^\/(en|vi)(\/.*)?$/.exec(pathname);
   const legacyLang = match?.[1];
 
   // Runs before the <Navigate> effect commits, so no flash of the wrong language

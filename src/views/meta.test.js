@@ -73,6 +73,8 @@ test('article structured data: absolute image; no </script>', () => {
   const article = { title: 'T</script>', date: { iso: '2026-10-01' }, image: { src: '/media/x.jpg' }, author: null };
   const json = articleJsonLd('vi', article);
   assert.ok(!json.includes('</script>'));
+  // `<` is escaped as a JSON unicode escape, so the parsed title is unchanged.
+  assert.equal(JSON.parse(json).headline, 'T</script>');
   assert.equal(JSON.parse(json).image, 'https://www.hmv-global.com/media/x.jpg');
 });
 

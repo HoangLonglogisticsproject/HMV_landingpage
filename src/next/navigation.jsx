@@ -4,7 +4,7 @@
 // Survives cleanup: components write English key paths and `Link` localizes them to the page's locale.
 // MIGRATION-ONLY: the `useSearchParams` re-export; after cleanup, import it from next/navigation directly.
 import NextLink from 'next/link';
-import { usePathname, useRouter, useSearchParams as useNextSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { delocalizePath, localeOf, localizePath, pageLocales, switchHref } from '@/i18n/routes';
 
 export function Link({ to, ...props }) {
@@ -18,7 +18,7 @@ export function Link({ to, ...props }) {
 /** The current page as an English key path, for active-link checks. */
 export const useRoutePath = () => delocalizePath(usePathname()).path;
 
-export const useSearchParams = useNextSearchParams;
+export { useSearchParams } from 'next/navigation';
 
 /** Back to the previous page, or to the home page when there is none (the page was opened directly). */
 export function useGoBack() {
