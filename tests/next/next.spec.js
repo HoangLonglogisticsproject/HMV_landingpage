@@ -286,7 +286,7 @@ for (const [path, trigger, close] of [['/logistics', '.dg-img-thumb', '.pack-lig
   test(`${path}: a gallery photo opens from the keyboard, Escape closes it, focus returns`, async ({ page }) => {
     await page.goto(path);
     const thumb = page.locator(trigger).first();
-    const dialog = page.locator('.pack-lightbox [role="dialog"]');
+    const dialog = page.getByRole('dialog');
     // Before hydration the key does nothing: retry.
     await expect(async () => {
       await thumb.focus();

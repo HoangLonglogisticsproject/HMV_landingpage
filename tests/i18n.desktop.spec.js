@@ -25,9 +25,7 @@ test('language switcher changes the active locale', async ({ page }) => {
   await viItem.click();
 
   // After selection, localStorage must be updated to 'vi'
-  await page.waitForTimeout(300);
-  const langAfter = await page.evaluate(() => localStorage.getItem('hmv_lang'));
-  expect(langAfter).toBe('vi');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('hmv_lang'))).toBe('vi');
 
   // H1 must now contain Vietnamese text (Bám rễ)
   const h1 = page.locator('h1').first();

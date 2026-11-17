@@ -146,8 +146,8 @@ export function SupplyChainPillars({ lang }) {
                     <h3>{p[lang]}</h3>
                     <p className="pillar-card-sub">{vi ? p.subVi : p.subEn}</p>
                     <ul className="pillar-card-specs">
-                      {p.specs.slice(0, 3).map((spec, idx) => (
-                        <li key={idx}>
+                      {p.specs.slice(0, 3).map((spec) => (
+                        <li key={spec}>
                           <CheckCircle2 size={13} />
                           <span>{spec.split(' / ')[vi ? 1 : 0]}</span>
                         </li>
@@ -315,10 +315,10 @@ export function SupplyChainPillars({ lang }) {
           </div>
 
           <div className="logistics-features-grid">
-            {logisticsFeatures.map((item, idx) => {
+            {logisticsFeatures.map((item) => {
               const Icon = item.icon;
               return (
-                <div key={idx} className="logistics-feature-card">
+                <div key={item.title} className="logistics-feature-card">
                   <div className="logistics-icon-wrap">
                     <Icon size={24} />
                   </div>

@@ -218,12 +218,12 @@
 }
 
 .chain-nodes li:hover,
-.chain-nodes li:focus-visible {
+.chain-nodes li:has(:focus-visible) {
   transform: translateY(-4px)
 }
 
 .chain-nodes li:hover em,
-.chain-nodes li:focus-visible em {
+.chain-nodes li:has(:focus-visible) em {
   opacity: 1;
   transform: none
 }

@@ -13,7 +13,8 @@ export function GlobalReach({ lang }) {
         <p className="eyebrow">{lang === 'vi' ? 'TẦM VƯƠN TOÀN CẦU' : 'GLOBAL REACH'}</p>
         <h2>{lang === 'vi' ? 'Từ Việt Nam đến châu Âu & Hoa Kỳ.' : 'From Vietnam to Europe & the USA.'}</h2>
         <LivingLogistics lang={lang} />
-        <ol className="chain-nodes">{nodes.map((n, i) => <li key={n[0]} tabIndex={0} className="glass"><span>0{i + 1}</span><strong>{n[0]}</strong><em role="tooltip">{n[1]}</em></li>)}</ol>
+        {/* Each node is a button described by its tooltip, which shows on hover and on keyboard focus. */}
+        <ol className="chain-nodes">{nodes.map((n, i) => <li key={n[0]} className="glass"><button type="button" className="flex items-center gap-[14px]" aria-describedby={`reach-tip-${i}`}><span>0{i + 1}</span><strong>{n[0]}</strong></button><em role="tooltip" id={`reach-tip-${i}`}>{n[1]}</em></li>)}</ol>
         <ul className="trust-list">{trust.map((t) => <li key={t}>{t}</li>)}</ul>
         <p className="reach-note">{lang === 'vi' ? 'Bản đồ minh họa thị trường mục tiêu, không phải tuyến hàng đã vận hành.' : 'Illustrative target markets, not a record of operated routes.'}</p>
       </div>

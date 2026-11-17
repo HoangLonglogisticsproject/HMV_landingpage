@@ -1,5 +1,6 @@
 'use client';
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 // Image preview for server-rendered galleries: the page stays a server component; only the thumbnails
 // (`ZoomTrigger`) and the page's own preview markup (`LightboxPreview`) run on the client.
@@ -16,28 +17,17 @@ export function Lightbox({ children }) {
   }, []);
   const close = useCallback(() => setImage(null), []);
   const restoreFocus = useCallback(() => opener.current?.focus(), []);
-  return <LightboxContext.Provider value={{ image, open, close, restoreFocus }}>{children}</LightboxContext.Provider>;
+  const value = useMemo(() => ({ image, open, close, restoreFocus }), [image, open, close, restoreFocus]);
+  return <LightboxContext.Provider value={value}>{children}</LightboxContext.Provider>;
 }
 
-/** A thumbnail that opens the preview, by mouse or keyboard (Enter, Space). */
+/** A thumbnail that opens the preview: a button, so mouse, Enter and Space all open it. Laid out as the block it wraps. */
 export function ZoomTrigger({ image, className, title, children }) {
   const { open } = useContext(LightboxContext);
   return (
-    <div
-      className={className}
-      title={title}
-      role="button"
-      tabIndex={0}
-      onClick={e => open(image, e.currentTarget)}
-      onKeyDown={e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          open(image, e.currentTarget);
-        }
-      }}
-    >
+    <button type="button" className={cn('block w-full text-left', className)} title={title} onClick={e => open(image, e.currentTarget)}>
       {children}
-    </div>
+    </button>
   );
 }
 
@@ -56,4 +46,39 @@ export function LightboxPreview({ children }) {
     };
   }, [image, close, restoreFocus]);
   return image ? children(image, close) : null;
+}
+
+// The open preview: a native modal <dialog> (showModal), so the page behind it is inert and Tab and Shift+Tab stay in
+// it. The Lightbox state stays the one source of truth: the dialog exists while an image is open, and every way out
+// (Escape, the close button, a click on the dialog beside its content) calls `close`, which unmounts it;
+// LightboxPreview gives focus back to the thumbnail that opened it. Its first button, the close button, takes focus.
+export function PreviewDialog({ className, label, close, children }) {
+  const dialogRef = useRef(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    // Escape: the browser's cancel would close the dialog on its own; the state closes it instead (LightboxPreview
+    // also handles that Escape, and a second close is a no-op).
+    const onCancel = e => {
+      e.preventDefault();
+      close();
+    };
+    const onClick = e => e.target === dialog && close();
+    dialog.addEventListener('cancel', onCancel);
+    dialog.addEventListener('click', onClick);
+    // Should the browser close it anyway (a repeated Escape), the state follows.
+    dialog.addEventListener('close', close);
+    dialog.showModal();
+    dialog.querySelector('button')?.focus();
+    return () => {
+      dialog.removeEventListener('cancel', onCancel);
+      dialog.removeEventListener('click', onClick);
+      dialog.removeEventListener('close', close);
+      if (dialog.open) dialog.close();
+    };
+  }, [close]);
+  return (
+    <dialog ref={dialogRef} className={className} aria-label={label}>
+      {children}
+    </dialog>
+  );
 }

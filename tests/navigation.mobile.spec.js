@@ -14,7 +14,6 @@ test('mobile: hamburger opens the nav drawer and shows links', async ({ page }) 
   await expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
 
   await menuToggle.click();
-  await page.waitForTimeout(400); // allow CSS transition
 
   // After click: aria-expanded="true", button label changes to "Close navigation"
   await expect(menuToggle).toHaveAttribute('aria-expanded', 'true');

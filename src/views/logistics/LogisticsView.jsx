@@ -153,8 +153,8 @@ export function LogisticsView({ lang }) {
                   {/* Highlights checklist */}
                   <ul className="dg-highlights">
                     {(vi ? sub.highlightsVi : sub.highlightsEn).map(
-                      (hl, hIdx) => (
-                        <li key={hIdx}>
+                      (hl) => (
+                        <li key={hl}>
                           <CheckCircle2 size={15} className="dg-check" />
                           <span>{hl}</span>
                         </li>
@@ -164,9 +164,9 @@ export function LogisticsView({ lang }) {
 
                   {/* Photo Gallery for this subservice */}
                   <div className="dg-media-grid">
-                    {sub.images.map((img, iIdx) => (
+                    {sub.images.map((img) => (
                       <ZoomTrigger
-                        key={iIdx}
+                        key={img.src}
                         image={img}
                         className="dg-img-thumb"
                         title={img.title}
@@ -214,7 +214,7 @@ export function LogisticsView({ lang }) {
                 <ul className="cb-feature-list">
                   {(vi ? crossBorder.featuresVi : crossBorder.featuresEn).map(
                     (feat, fIdx) => (
-                      <li key={fIdx}>
+                      <li key={feat}>
                         <div className="cb-num">{fIdx + 1}</div>
                         <span>{feat}</span>
                       </li>
@@ -255,8 +255,8 @@ export function LogisticsView({ lang }) {
             {/* Gallery of 6 Cross-Border Photos */}
             <div className="cb-gallery-col">
               <div className="cb-gallery-grid">
-                {crossBorder.images.map((img, cIdx) => (
-                  <ZoomTrigger key={cIdx} image={img} className="cb-img-card">
+                {crossBorder.images.map((img) => (
+                  <ZoomTrigger key={img.src} image={img} className="cb-img-card">
                     <Image src={img.src} alt={img.title} sizes="(max-width: 768px) 100vw, (max-width: 1100px) 47vw, 300px" loading="lazy" />
                     <div className="cb-img-overlay">
                       <span className="cb-tag">{img.tag}</span>
@@ -299,8 +299,8 @@ export function LogisticsView({ lang }) {
                 {(vi
                   ? localAgency.capabilitiesVi
                   : localAgency.capabilitiesEn
-                ).map((cap, capIdx) => (
-                  <div key={capIdx} className="agency-item">
+                ).map((cap) => (
+                  <div key={cap} className="agency-item">
                     <CheckCircle2 size={17} className="agency-check" />
                     <span>{cap}</span>
                   </div>
@@ -354,8 +354,8 @@ export function LogisticsView({ lang }) {
                 {(vi
                   ? overseaAgency.advantagesVi
                   : overseaAgency.advantagesEn
-                ).map((adv, aIdx) => (
-                  <div key={aIdx} className="agency-item">
+                ).map((adv) => (
+                  <div key={adv} className="agency-item">
                     <CheckCircle2 size={17} className="agency-check jc" />
                     <span>{adv}</span>
                   </div>

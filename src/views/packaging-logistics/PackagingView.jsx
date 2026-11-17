@@ -61,8 +61,8 @@ export function PackagingView({ lang }) {
 
           {/* QUICK STATS STRIP */}
           <div className="pack-stats-banner">
-            {stats.map((s, idx) => (
-              <div key={idx} className="pack-stat-item">
+            {stats.map((s) => (
+              <div key={s.labelEn} className="pack-stat-item">
                 <strong>{s.value}</strong>
                 <span>{vi ? s.labelVi : s.labelEn}</span>
               </div>

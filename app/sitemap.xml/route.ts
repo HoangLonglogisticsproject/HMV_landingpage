@@ -10,7 +10,7 @@ import { absoluteUrl, alternateUrls, scopedLocales, type Lang, type LocalePaths,
 // CMS_CONTENT=true, ISR with the interval and `cms` tag of its fetches (architecture §9.4).
 export const dynamic = 'force-static';
 
-const escapeXml = (s: string) => s.replace(/[&<>"']/g, c => `&#${c.codePointAt(0)};`);
+const escapeXml = (s: string) => s.replaceAll(/[&<>"']/g, c => `&#${c.codePointAt(0)};`);
 
 export async function GET() {
   const products = Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`);
