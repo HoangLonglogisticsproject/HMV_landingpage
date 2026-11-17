@@ -21,7 +21,7 @@ src/
     trade-desk/        HMV Trade Desk: TradeDeskHost (in SiteShell, lazy-loads TradeDesk), openTradeDesk(), rules,
                        validation, follow-up channels (+ tests); delivery: docs/inbound/TRADE_DESK_DELIVERY.md
   components/
-    layout/            site chrome: SiteShell, Navigation, Footer, LanguageSwitcher, DetailLayout
+    layout/            site chrome: SiteShell, Navigation, Footer, LanguageSwitcher, PremiumLanguageMenu, DetailLayout
     common/            PageMeta (SEO tags), BrandLogo
     ui/                shadcn primitives: business-agnostic, regenerate with the shadcn CLI
   i18n/                language state (localStorage `hmv_lang`), ?lang= and /en|/vi URL handling
@@ -75,7 +75,7 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 | Shared chrome (nav + footer) | `app/SiteLayout.jsx` → `components/layout/SiteShell` |
 | Navigation (desktop + mobile) | `components/layout/Navigation` (~592 lines — see tech debt) |
 | Footer | `components/layout/Footer` |
-| Language switcher | `components/layout/LanguageSwitcher` (Radix DropdownMenu) |
+| Language switcher | `components/layout/LanguageSwitcher` resolves the site header's languages; `components/layout/PremiumLanguageMenu` (Radix DropdownMenu) draws the menu: flag, self-name, the current language checked |
 | Inner-page layout (hero + body + CTA) | `components/layout/DetailLayout` (shared, no head tags); the page's adapter adds the head tags (Vite: `PageMeta`, Next.js: route `metadata`) |
 | Blog page chrome | `views/article/ArticlePage` (its own SiteShell — intentional remount) |
 
@@ -101,7 +101,8 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 | `features/articles/ArticleGrid` | EcoNews cards plus loading/empty/error states; used by LatestInsights and InsightsPage |
 | `features/articles/RichText` | Whitelist renderer for CMS Tiptap JSON (no raw HTML); also renders the bundled articles |
 | `features/regulations/Regulations` | Regulation card list; used by InsightsPage and RegulationsPage |
-| `features/scoped-chrome/ScopedChrome` | Header (section links, optional language links, one action) and footer of the pages outside SiteShell: the Chinese and Korean cassava pages and the Korean market page |
+| `features/scoped-chrome/ScopedChrome` | Header (section links, the language menu when the page has other languages, one action) and footer of the pages outside SiteShell: the Chinese and Korean cassava pages and the Korean market page (one language, no menu) |
+| `features/scoped-chrome/ScopedLanguages` | The scoped header's language menu (PremiumLanguageMenu) and the same links hidden in the server HTML, since the menu renders them only while it is open. A module of its own, passed to ScopedHeader, so a page in one language ships no menu code |
 | `features/cassava-supply-evidence/SupplyEvidence` | The cassava supply-evidence photographs (`data/cassavaEvidence.js`), each opening larger in `SupplyEvidencePreview` (`components/common/Lightbox`); used by the EN/VI cassava page (ProductLanding) and the Chinese and Korean ones (CassavaChinaView, CassavaKoreaView) |
 | `features/trade-desk/TradeDeskHost` | Mounted once in SiteShell: listens for `openTradeDesk()`, records the first-touch visit, loads `TradeDesk` on the first open (with an error boundary and retry) |
 | `features/trade-desk/TradeDesk` | The HMV Trade Desk dialog: the conversation (product, destination, volume), the route (quotation or Customer Service), the inline contact card, submission to `POST /api/inquiry` (`@/lib/inquiry`), sent state and optional follow-up links |

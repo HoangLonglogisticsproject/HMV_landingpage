@@ -73,6 +73,9 @@ test('links: internal ones reach the supply page and answer 200; no other /ko/ta
   for (const a of links.filter(a => a.href.startsWith('#'))) expect(html, a.href).toContain(`id="${a.href.slice(1)}"`);
   for (const a of links.filter(a => /^https?:/.test(a.href))) expect([a.target, a.rel], a.href).toEqual(['_blank', 'noopener noreferrer']);
   expect(html).not.toContain('<button');
+  // Korean only: no language menu, no link to a translation that does not exist.
+  expect(html).not.toContain('hmv-lang-trigger');
+  expect(links.filter(a => a.lang)).toEqual([]);
 });
 
 test('the Korean supply page links to the market page; nothing else does', async ({ request }) => {

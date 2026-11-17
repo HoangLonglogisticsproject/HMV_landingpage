@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUpRight, Check, ClipboardList } from 'lucide-react';
 import { ScopedFooter, ScopedHeader } from '@/features/scoped-chrome/ScopedChrome';
+import { ScopedLanguages } from '@/features/scoped-chrome/ScopedLanguages';
 import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
 import { TradeDeskHost } from '@/features/trade-desk/TradeDeskHost';
 import { localizePath } from '@/i18n/routes';
@@ -16,13 +17,10 @@ const LANGUAGES = [['en', 'English'], ['vi', 'Tiếng Việt'], ['zh-CN', '简�
 
 /** The page in `locale`: its header, the sections (children), its footer and the HMV Trade Desk (English). */
 export function ScopedPage({ c, locale, source, children }) {
-  const languages = {
-    label: c.nav.languages,
-    items: LANGUAGES.map(([lang, label]) => ({ lang, label, href: localizePath(`/products/${PRODUCT}`, lang), current: lang === locale })),
-  };
+  const languages = LANGUAGES.map(([code, label]) => ({ code, label, href: localizePath(`/products/${PRODUCT}`, code), current: code === locale }));
   return (
     <>
-      <ScopedHeader nav={c.nav} languages={languages}>
+      <ScopedHeader nav={c.nav} languages={<ScopedLanguages items={languages} />}>
         <TradeDeskButton variant="brand" className="nav-support-btn" product={PRODUCT} source={`${source}_nav`} title={c.tradeDesk}>
           <ClipboardList size={15} />
           <span>HMV Trade Desk</span>

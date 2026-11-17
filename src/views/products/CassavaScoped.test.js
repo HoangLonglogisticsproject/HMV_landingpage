@@ -61,13 +61,17 @@ for (const { name, View, c, lang, locale } of PAGES) {
       assert.equal(container.querySelector(`.nav-center a[href="#${id}"]`).textContent, label);
       assert.ok(container.querySelector(`section#${id}`), id);
     }
-    const languages = [...container.querySelectorAll('.scoped-langs a')].map(a => [a.hreflang, a.getAttribute('href'), a.getAttribute('aria-current')]);
+    // The site's language menu shows this page's language; the four links are in the HTML even while it is closed.
+    const trigger = container.querySelector('header button.hmv-lang-trigger');
+    assert.equal(trigger.textContent, { 'zh-CN': '简体中文', ko: '한국어' }[locale]);
+    assert.equal(trigger.getAttribute('aria-label'), { 'zh-CN': '选择语言，当前：简体中文', ko: '언어 선택, 현재: 한국어' }[locale]);
+    const languages = [...container.querySelectorAll('header ul[hidden] a')].map(a => [a.hreflang, a.lang, a.getAttribute('href'), a.getAttribute('aria-current')]);
     assert.deepEqual(languages, [
       ['en', '/products/dried-cassava-chips'],
       ['vi', '/vi/san-pham/san-lat-kho'],
       ['zh-CN', '/zh-cn/cassava-chips'],
       ['ko', '/ko/tapioca-chips'],
-    ].map(([l, href]) => [l, href, l === locale ? 'page' : null]));
+    ].map(([l, href]) => [l, l, href, l === locale ? 'page' : null]));
   });
 
   test(`${name}: each call to action opens the HMV Trade Desk with dried cassava chips, and says it is in English`, async () => {
