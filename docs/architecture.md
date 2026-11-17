@@ -27,7 +27,7 @@ src/
   i18n/                language state (localStorage `hmv_lang`), ?lang= and /en|/vi URL handling
   data/                static bilingual content and photo registries (future CMS seam)
   lib/                 generic helpers (cn), CMS public-API client (cms.js) and fetch hook + CMS flag (useFetched.js)
-  styles/              index.css (Tailwind + tokens), hmv.css (all layout/editorial CSS)
+  styles/              index.css (Tailwind + tokens), hmv.css (imports hmv/*.css, the layout/editorial CSS; architecture/CSS_ARCHITECTURE.md)
   assets/              bundled images
 ```
 
@@ -121,7 +121,7 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 - **Inner page:** wrap the view in `<DetailLayout lang {...<name>Meta(lang)}>`; the adapters set the head tags.
 - **Next.js migration (in progress):** see `docs/architecture/`. Shared code imports links and router hooks from the port `@/lib/navigation` only, never from `react-router-dom` or `next/*`; `npm run lint` enforces the layer rules (`scripts/check-boundaries.js`).
 - **New section:** if only one page uses it, put it in that page's folder. If it is business-specific and used by two or more pages, put it in `features/<name>/`. If it is generic UI, put it in `components/ui/`.
-- **Styles:** `hmv.css` is one global stylesheet with no scoping. Keep class names stable; renaming a class silently unstyles markup.
+- **Styles:** `hmv.css` is one global stylesheet with no scoping, split into ordered modules (`docs/architecture/CSS_ARCHITECTURE.md`). Keep class names stable; renaming a class silently unstyles markup.
 
 ## Checks
 
@@ -142,7 +142,7 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 
 | Item | Detail |
 |---|---|
-| **9,179-line monolithic `hmv.css`** | One global stylesheet with no scoping. Renaming any class silently breaks markup. The file mixes design tokens, layout utilities, component-specific rules and page-specific overrides. Candidate for gradual migration to co-located Tailwind utilities or CSS Modules per section. |
+| **Global `hmv.css` (24 modules, about 9,200 lines)** | One global stylesheet with no scoping, now split into ordered modules without changing the cascade (Phase 1, `docs/architecture/CSS_ARCHITECTURE.md`). Renaming any class silently breaks markup. It still mixes design tokens, layout utilities, component-specific rules and page-specific overrides, with duplicate selectors across modules (Phase 2). Candidate for gradual migration to co-located Tailwind utilities or CSS Modules per section. |
 | **592-line `Navigation.jsx`** | Handles desktop multi-level dropdowns, mobile drawer, keyboard navigation, scroll-aware sticky behavior, and language switching all in one component. Candidate for splitting into `DesktopNav`, `MobileDrawer`, and `NavItem`. |
 
 ### P2 — Medium impact
