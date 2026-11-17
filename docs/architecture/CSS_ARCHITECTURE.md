@@ -140,15 +140,22 @@ An audit, no migration:
 
 ### Phase 3: incremental feature migration
 
-In this order, each module or small group in its own reviewable PR:
+In this order, each module or small group in its own reviewable PR, so that every legacy module has a step:
 
 1. `40-header-navigation.css`
-2. `70-product-pages.css`
+2. `70-product-pages.css` and `71-supply-evidence.css`
 3. `90-scoped-cassava.css`
 4. `91-tapioca-market.css`
-5. `80-trade-desk.css`
-6. the homepage modules (`10`, `11`, `12`, `20`, `21`, `22`)
-7. logistics, compliance and about (`31`, `50` to `54`, `60` to `62`)
+5. `80-trade-desk.css` and `41-privacy-contact.css`
+6. `30-articles.css`
+7. the homepage legacy modules (`10`, `11`, `12`, `20`, `21`, `22`)
+8. logistics, compliance and about (`31`, `50`, `51`, `52`, `53`, `54`, `60`, `61`, `62`)
+9. `00-legacy-foundation.css`, last: the cross-cutting residue pass
+
+`00-legacy-foundation.css` holds cross-cutting legacy base and layout rules. Its selectors may be removed step by step
+while the feature modules above are migrated. What remains in `00` after those migrations gets a final, audited
+residue pass: a rule that is truly global may stay, in `index.css`; a feature-specific leftover moves to Tailwind
+utilities or a scoped CSS Module.
 
 Each migration succeeds when the UI is equivalent, the module's legacy CSS shrinks or disappears, no visual baseline
 regresses, and no new global CSS replaces the old.
