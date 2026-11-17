@@ -19,7 +19,7 @@ export function Navigation({ lang = 'en' }) {
   const t = copy[lang];
   const vi = lang === 'vi';
   const [menu, setMenu] = useState(false);
-  const [drop, setDrop] = useState(null);
+  const [drop, setDrop] = useState(/** @type {'supply-chain' | 'about' | null} */ (null));
   const [logisticsOpen, setLogisticsOpen] = useState(false);
   const [dgOpen, setDgOpen] = useState(false);
   const [cbOpen, setCbOpen] = useState(false);
