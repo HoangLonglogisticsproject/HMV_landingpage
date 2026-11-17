@@ -60,20 +60,27 @@ export async function fetchArticles(get, { locale, pageSize }) {
 // last good sitemap stays) instead of being cut silently.
 const MAX_INDEX_PAGES = 50;
 
+/** One locale's published articles, page by page. */
+async function fetchLocaleArticles(get, locale, pageSize) {
+  const articles = [];
+  for (let page = 1, pages = 1; page <= pages; page++) {
+    // Page 1 without `page`: the same request, and the same data cache entry, as the EcoNews list.
+    const body = await get('/articles', page === 1 ? { locale, pageSize } : { locale, page, pageSize });
+    const items = listItems(body);
+    if (!Number.isInteger(body.total) || body.total < 0) throw malformed();
+    pages = Math.ceil(body.total / pageSize);
+    if (pages > MAX_INDEX_PAGES) throw cmsError(0, `Article index over ${MAX_INDEX_PAGES} pages`);
+    articles.push(...items.map(x => toView(x, locale)));
+    if (!items.length) break;
+  }
+  return articles;
+}
+
 /** Every published article as `{ en?: slug, vi?: slug }`, paired by the CMS id that translations share. */
 export async function fetchArticleIndex(get, { pageSize }) {
   const byKey = new Map();
   for (const locale of LOCALES) {
-    for (let page = 1, pages = 1; page <= pages; page++) {
-      // Page 1 without `page`: the same request, and the same data cache entry, as the EcoNews list.
-      const body = await get('/articles', page === 1 ? { locale, pageSize } : { locale, page, pageSize });
-      const items = listItems(body);
-      if (!Number.isInteger(body.total) || body.total < 0) throw malformed();
-      pages = Math.ceil(body.total / pageSize);
-      if (pages > MAX_INDEX_PAGES) throw cmsError(0, `Article index over ${MAX_INDEX_PAGES} pages`);
-      for (const a of items.map(x => toView(x, locale))) byKey.set(a.key, { ...byKey.get(a.key), [locale]: a.slug });
-      if (!items.length) break;
-    }
+    for (const a of await fetchLocaleArticles(get, locale, pageSize)) byKey.set(a.key, { ...byKey.get(a.key), [locale]: a.slug });
   }
   return [...byKey.values()];
 }
