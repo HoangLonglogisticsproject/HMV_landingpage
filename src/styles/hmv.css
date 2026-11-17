@@ -4846,12 +4846,13 @@ article[id] {
   flex-shrink: 0;
 }
 
-@media (max-width: 1024px) {
-  .nav-right .hmv-lang-switcher {
+/* In the site header's drawer (below), full width. */
+@media (max-width: 1040px) {
+  .nav-links-wrap .hmv-lang-switcher {
     width: 100%;
   }
 
-  .nav-right .hmv-lang-trigger {
+  .nav-links-wrap .hmv-lang-trigger {
     width: 100%;
     justify-content: space-between;
     height: 42px;
@@ -4860,7 +4861,7 @@ article[id] {
     border-radius: 10px;
   }
 
-  .nav-right .hmv-lang-menu-content {
+  .nav-links-wrap .hmv-lang-menu-content {
     width: var(--radix-dropdown-menu-trigger-width) !important;
     min-width: 200px !important;
     max-width: calc(100vw - 48px) !important;
@@ -4983,16 +4984,14 @@ article[id] {
   }
 }
 
-/* Tablet and phone: the drawer. The full row (logo, links, language menu, HMV Trade Desk) needs about 1010 px. */
-@media(max-width: 1024px) {
-  .nav-inner {
-    display: flex !important;
-    align-items: center;
-    justify-content: space-between;
-  }
-
+/* Tablet and phone: the drawer. The full row (logo, links, language menu, HMV Trade Desk) is up to 979 px wide; with
+   its 24 px gutters it needs a 1027 px viewport, 1044 px beside a classic 17 px scrollbar, and overflows below about
+   1003 px. Only the site header has the drawer (.nav-links-wrap): the page-scoped header keeps its own row. */
+@media(max-width: 1040px) {
   .mobile-toggle {
     display: inline-flex !important;
+    grid-column: 3;
+    justify-self: end;
   }
 
   .nav-links-wrap {
@@ -5018,14 +5017,14 @@ article[id] {
     z-index: 70;
   }
 
-  .nav-center {
+  .nav-links-wrap .nav-center {
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
     grid-column: auto;
   }
 
-  .nav-center>a,
+  .nav-links-wrap .nav-center>a,
   .nav-group>a {
     padding: 12px 0;
     font-size: 14px;
@@ -5050,7 +5049,7 @@ article[id] {
     background: transparent;
   }
 
-  .nav-right {
+  .nav-links-wrap .nav-right {
     flex-direction: column;
     align-items: stretch;
     gap: 16px;
@@ -5060,7 +5059,7 @@ article[id] {
     border-top: 1px solid var(--border);
   }
 
-  .nav-support-btn {
+  .nav-links-wrap .nav-support-btn {
     width: 100% !important;
     justify-content: center !important;
   }
@@ -5074,6 +5073,9 @@ article[id] {
 
   .nav-inner {
     width: calc(100% - 40px);
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .nav-links-wrap.nav-open {
@@ -10477,27 +10479,6 @@ article[id] {
 @media(max-width:1024px) {
   .scoped-nav .nav-center {
     display: none
-  }
-}
-
-/* The site header's drawer rules stretch the menu at this width; this header has no drawer. */
-@media(max-width:1024px) {
-  .scoped-nav .nav-right {
-    flex-direction: row;
-    align-items: center;
-    gap: 16px;
-    padding-top: 0;
-    border-top: 0
-  }
-
-  .scoped-nav .nav-right .hmv-lang-switcher {
-    width: auto
-  }
-
-  .scoped-nav .nav-right .hmv-lang-trigger {
-    width: 176px;
-    height: 40px;
-    font-size: 13.5px
   }
 }
 
