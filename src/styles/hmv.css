@@ -1,6 +1,7 @@
-/* The site's stylesheet: imports only, no rules (docs/architecture/CSS_ARCHITECTURE.md, scripts/check-css-entry.js).
-   The import order is the cascade order: each module is one contiguous part of the former single stylesheet, in its
-   original order, so a later rule still wins over an earlier one. New CSS goes into the module it belongs to. */
+/* The legacy stylesheet, to be migrated to Tailwind: imports only, no rules (docs/architecture/CSS_ARCHITECTURE.md,
+   scripts/check-css-entry.js). The import order is the cascade order: each module is one contiguous part of the former
+   single stylesheet, in its original order, so a later rule still wins over an earlier one. New UI uses Tailwind
+   utilities, not new modules. */
 @import './hmv/00-legacy-foundation.css';
 @import './hmv/10-home-farm-journey.css';
 @import './hmv/11-home-farm-art.css';
