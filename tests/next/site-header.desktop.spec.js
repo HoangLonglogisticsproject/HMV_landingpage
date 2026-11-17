@@ -2,13 +2,13 @@
 import { test, expect } from '@playwright/test';
 
 // The site header from desktop to phone widths. Its full row (logo, links, language menu, HMV Trade Desk) is up to
-// 979 px wide, so at 1040 px and below the links and actions are in the drawer, with room for a classic scrollbar;
+// 979 px wide, so at 1043 px and below the links and actions are in the drawer, with room for a classic scrollbar;
 // between 821 and 1010 px the row used to overflow every English and Vietnamese page, by up to 167 px. The page-scoped
 // header has no drawer and keeps its own row. The tests set each viewport themselves, so they run in the desktop
 // project only (*.desktop.spec.js, playwright.next.config.js).
 const PAGES = ['/', '/vi', '/products/dried-cassava-chips', '/vi/san-pham/san-lat-kho', '/products/passion-fruit', '/vi/san-pham/chanh-day'];
-const DRAWER_MAX = 1040;
-const WIDTHS = [821, 850, 900, 950, 1024, 1025, 1027, 1030, 1040, 1041, 375, 390, 768, 1280, 1440];
+const DRAWER_MAX = 1043;
+const WIDTHS = [821, 850, 900, 950, 1024, 1025, 1027, 1030, 1040, 1041, 1042, 1043, 1044, 375, 390, 768, 1280, 1440];
 
 const overflow = page => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
@@ -37,14 +37,18 @@ for (const path of PAGES) {
 
 test('the page-scoped header keeps its row, section links shown, where the site header has its drawer', async ({ page }) => {
   for (const path of ['/zh-cn/cassava-chips', '/ko/tapioca-chips', '/ko/tapioca-market']) {
-    for (const width of [1025, 1030, 1040, 1041]) {
+    for (const width of [1025, 1030, 1040, 1041, 1042, 1043, 1044]) {
       const where = `${path} ${width}px`;
       await page.setViewportSize({ width, height: 900 });
       await page.goto(path);
       expect(await overflow(page), where).toBeLessThanOrEqual(0);
-      // One line of section links, not the drawer's column.
-      const tops = await page.locator('.site-nav .nav-center > a').evaluateAll(els => els.map(el => Math.round(el.getBoundingClientRect().top)));
-      expect(tops.length > 1 && new Set(tops).size === 1, where).toBe(true);
+      // Every section link shown, then on one line, not the drawer's column: hidden links would all share top 0.
+      const links = page.locator('.site-nav .nav-center > a');
+      const count = await links.count();
+      expect(count, where).toBeGreaterThan(1);
+      for (let i = 0; i < count; i++) await expect(links.nth(i), where).toBeVisible();
+      const tops = await links.evaluateAll(els => els.map(el => Math.round(el.getBoundingClientRect().top)));
+      expect(new Set(tops).size, where).toBe(1);
       await expect(page.locator('.site-nav .nav-support-btn'), where).toBeInViewport({ ratio: 1 });
     }
   }

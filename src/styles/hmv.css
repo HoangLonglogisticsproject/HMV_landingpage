@@ -4847,7 +4847,7 @@ article[id] {
 }
 
 /* In the site header's drawer (below), full width. */
-@media (max-width: 1040px) {
+@media (max-width: 1043px) {
   .nav-links-wrap .hmv-lang-switcher {
     width: 100%;
   }
@@ -4985,9 +4985,10 @@ article[id] {
 }
 
 /* Tablet and phone: the drawer. The full row (logo, links, language menu, HMV Trade Desk) is up to 979 px wide; with
-   its 24 px gutters it needs a 1027 px viewport, 1044 px beside a classic 17 px scrollbar, and overflows below about
-   1003 px. Only the site header has the drawer (.nav-links-wrap): the page-scoped header keeps its own row. */
-@media(max-width: 1040px) {
+   its 24 px gutters it needs a 1027 px viewport, 1044 px beside a classic 17 px scrollbar, so it starts at 1044 px
+   (it would overflow below about 1003 px). Only the site header has the drawer (.nav-links-wrap): the page-scoped
+   header keeps its own row. */
+@media(max-width: 1043px) {
   .mobile-toggle {
     display: inline-flex !important;
     grid-column: 3;
