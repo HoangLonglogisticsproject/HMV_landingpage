@@ -1,0 +1,127 @@
+/* ==========================================================================
+   LOGISTICS CLEAN TEXT DROPDOWN (.logistics-text-dropdown)
+   ========================================================================== */
+.logistics-text-dropdown {
+  min-width: 340px;
+  max-width: 400px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.log-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.log-text-parent-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.log-text-parent-row:hover {
+  background: rgba(0, 41, 123, 0.06);
+}
+
+.log-text-parent-row.is-active-dropdown {
+  background: rgba(0, 41, 123, 0.08);
+}
+
+.log-text-parent-row.is-active-dropdown .log-parent-title {
+  color: var(--brand, #00297b);
+  font-weight: 700;
+}
+
+.log-text-parent-row.is-active-dropdown .log-parent-toggle {
+  color: var(--brand, #00297b);
+}
+
+.log-parent-title {
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  padding: 8px 10px;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.log-parent-title:hover {
+  color: var(--brand, #00297b);
+}
+
+.log-parent-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px 10px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, color 0.15s ease;
+}
+
+.log-parent-toggle:hover {
+  color: var(--brand, #00297b);
+}
+
+.log-parent-toggle.is-open {
+  transform: rotate(180deg);
+  color: var(--brand, #00297b);
+}
+
+.log-text-sublist {
+  display: flex;
+  flex-direction: column;
+  padding-left: 18px;
+  margin: 2px 0 6px;
+}
+
+.log-text-sublist>a {
+  display: block;
+  font-size: 13px;
+  color: #475569;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  line-height: 1.4;
+}
+
+.log-text-sublist>a:hover {
+  background: rgba(0, 41, 123, 0.05);
+  color: var(--brand, #00297b);
+  padding-left: 16px;
+}
+
+.log-text-item {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  padding: 8px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.log-text-item:hover {
+  background: rgba(0, 41, 123, 0.06);
+  color: var(--brand, #00297b);
+}
+
+.mega-logistics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--card, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: 0 4px 14px -3px rgba(0, 0, 0, 0.04);
+}

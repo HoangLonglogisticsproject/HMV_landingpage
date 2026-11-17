@@ -1,0 +1,150 @@
+/* Page-scoped cassava pages (views/products/CassavaScoped.jsx): Simplified Chinese (CassavaChinaView) and Korean
+   (CassavaKoreaView). Poppins and Plus Jakarta Sans have no CJK or Hangul glyphs: that text takes the system fonts,
+   not a CJK web font (megabytes, LCP), and Latin text keeps the brand fonts. */
+:root:lang(zh-CN) {
+  --font-sans: 'Poppins', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', 'Noto Sans CJK SC', ui-sans-serif, system-ui, sans-serif
+}
+
+:root:lang(ko) {
+  --font-sans: 'Poppins', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Noto Sans CJK KR', ui-sans-serif, system-ui, sans-serif
+}
+
+/* Korean breaks lines between words, not between syllables. */
+:lang(ko) body {
+  word-break: keep-all;
+  overflow-wrap: break-word
+}
+
+/* CJK and Hangul headings: no negative tracking, and line height for the taller glyphs. */
+:is(:lang(zh-CN), :lang(ko)) :is(.money-hero h1, .rfq-info h2) {
+  font-family: 'Plus Jakarta Sans', var(--font-sans);
+  letter-spacing: 0;
+  line-height: 1.25;
+  text-wrap: balance
+}
+
+/* A sentence, not a two-word English title: smaller, so lines break between phrases. */
+:is(:lang(zh-CN), :lang(ko)) .rfq-info h2 {
+  font-size: clamp(28px, 3vw, 40px)
+}
+
+/* The supply-evidence heading breaks only at its space and 、, never inside a word (实景). */
+:lang(zh-CN) .supply-evidence-section h2 {
+  word-break: keep-all
+}
+
+.scoped-phrase {
+  display: inline-block
+}
+
+/* The Korean hero's second sentence: importers and wholesalers, after the manufacturers. */
+.scoped-support {
+  max-width: 620px;
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink-muted)
+}
+
+/* Facts instead of figures in the hero panel (CassavaKoreaView): words, not amounts. */
+.scoped-facts dd {
+  font-size: 16px;
+  line-height: 1.4
+}
+
+/* The network figures below the network statement (CassavaKoreaView). */
+.scoped-network+.money-panel {
+  max-width: 760px;
+  margin-top: 32px
+}
+
+/* The site's language menu (components/layout/PremiumLanguageMenu) in the page-scoped header: a compact trigger as high
+   as the HMV Trade Desk button beside it, its list at least as wide as the trigger. */
+.scoped-nav .hmv-lang-trigger {
+  width: 176px
+}
+
+/* On the list itself, which Radix portals out of the header: two classes outrank the shared min-width rules. */
+.hmv-lang-menu-content.scoped-lang-menu {
+  min-width: 176px
+}
+
+.scoped-network {
+  max-width: 760px;
+  margin-top: 56px;
+  padding: 22px 28px;
+  border-left: 3px solid var(--brand);
+  background: var(--surface)
+}
+
+.scoped-network h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink)
+}
+
+.scoped-network p {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--ink-muted)
+}
+
+.scoped-rfq-prepare {
+  font-weight: 600;
+  color: var(--ink)
+}
+
+.scoped-rfq-card .day-cta {
+  justify-self: start
+}
+
+.scoped-market h2 {
+  font-size: 28px;
+  color: var(--ink)
+}
+
+.scoped-market p:not(.eyebrow) {
+  max-width: 640px;
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--ink-muted)
+}
+
+.scoped-footer {
+  padding: 40px 0 30px
+}
+
+.scoped-footer .footer-bottom {
+  margin-top: 24px
+}
+
+.scoped-nav-desk {
+  display: flex
+}
+
+/* Tablet and phone: the language menu stays; the section links give way (the page is one scroll). */
+@media(max-width:1024px) {
+  .scoped-nav .nav-center {
+    display: none
+  }
+}
+
+/* Phone: logo and a compact language menu, its list a little wider so that every name stays on one line; the Trade
+   Desk call to action leads the hero right below. */
+@media(max-width:600px) {
+  .scoped-nav-desk {
+    display: none
+  }
+
+  .scoped-nav .nav-right .hmv-lang-trigger {
+    width: 160px
+  }
+}
+
+
+/* The market teaser on the Korean cassava page links to the Korean market page. */
+.scoped-market .text-link {
+  margin-top: 20px
+}
