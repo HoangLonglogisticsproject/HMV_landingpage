@@ -355,7 +355,7 @@ function LogisticsPillar({ vi, lang, logisticsFeatures }) {
         </div>
 
         {/* Specialized Logistics Banner */}
-        <LogisticsComplianceCard vi={vi} lang={lang} />
+        <LogisticsComplianceCard vi={vi} />
 
         <div className="logistics-proof-banner">
           <div className="proof-metric">
@@ -407,7 +407,7 @@ function LogisticsPillar({ vi, lang, logisticsFeatures }) {
   );
 }
 
-function LogisticsComplianceCard({ vi, lang }) {
+function LogisticsComplianceCard({ vi }) {
   return (
     <div className="logistics-compliance-card">
       <div className="compliance-card-left">
