@@ -114,3 +114,9 @@
 .cms-status {
   color: var(--muted-foreground)
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .reg-card {
+    transition: none
+  }
+}

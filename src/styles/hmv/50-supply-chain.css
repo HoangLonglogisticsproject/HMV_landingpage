@@ -35,7 +35,7 @@
   padding: 6px 14px;
   border-radius: 999px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .pillar-pill-green {
@@ -336,7 +336,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: all 0.25s ease;
+  transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .logistics-feature-card:hover {
@@ -557,4 +557,11 @@
 
 .mega-compliance-link:hover {
   color: var(--ocean-blue) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pillar-product-card,
+  .logistics-feature-card {
+    transition: none
+  }
 }

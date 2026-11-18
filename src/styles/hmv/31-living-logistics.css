@@ -272,3 +272,13 @@
 .global-reach .living-logistics {
   margin: 44px 0 20px
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hub-btn {
+    transition: none
+  }
+
+  .living-tip {
+    animation: none
+  }
+}

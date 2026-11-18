@@ -287,7 +287,7 @@
   padding: 28px 24px;
   display: flex;
   flex-direction: column;
-  transition: all 0.25s ease;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
@@ -433,5 +433,12 @@
 
   .team-committed-banner {
     padding: 24px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vm-card,
+  .leader-card {
+    transition: none
   }
 }

@@ -70,7 +70,7 @@
   color: #1e293b;
   text-decoration: none;
   box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
 .log-nav-pill:hover {
@@ -718,5 +718,14 @@
   .jctrans-metric-card {
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .log-nav-pill,
+  .dg-card,
+  .dg-img-thumb img,
+  .cb-img-card img {
+    transition: none
   }
 }

@@ -460,3 +460,10 @@
     transition: none
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .cine-cta,
+  .commodity img {
+    transition: none
+  }
+}

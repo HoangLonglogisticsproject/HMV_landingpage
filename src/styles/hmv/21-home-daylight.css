@@ -212,7 +212,7 @@
   border-radius: 12px;
   opacity: 0;
   transform: translateY(-6px);
-  transition: .25s;
+  transition: opacity .25s, transform .25s;
   pointer-events: none;
   z-index: 2
 }
@@ -612,5 +612,15 @@
   .rfq-grid {
     grid-template-columns: 1fr;
     gap: 40px
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chain-nodes li,
+  .chain-nodes em,
+  .nav-links>a::after,
+  .nav-group>a::after,
+  .nav-contact {
+    transition: none
   }
 }

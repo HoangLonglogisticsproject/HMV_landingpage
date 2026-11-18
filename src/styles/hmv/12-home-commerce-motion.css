@@ -347,3 +347,9 @@
     transition: none
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-product .featured-image img {
+    transition: none
+  }
+}

@@ -557,3 +557,10 @@
     padding: 18px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .pack-card,
+  .stage-media img {
+    transition: none
+  }
+}
