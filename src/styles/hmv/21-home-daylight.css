@@ -22,11 +22,12 @@
 
 .day-hero h1 {
   font-family: 'Plus Jakarta Sans', var(--font-sans);
-  font-size: clamp(40px, 5.4vw, 76px);
-  line-height: 1.06;
+  font-size: clamp(44px, 6.2vw, 88px);
+  line-height: .98;
   font-weight: 800;
   color: var(--ink);
-  margin: 0
+  margin: 0;
+  letter-spacing: -.02em
 }
 
 .day-hero h1 span {
@@ -51,10 +52,11 @@
 .day-cta {
   height: 54px;
   padding: 0 26px;
-  border-radius: 999px;
-  background: var(--ocean-blue);
+  border-radius: 12px;
+  background: var(--cta-gradient);
   color: var(--primary-foreground);
-  gap: 14px
+  gap: 14px;
+  box-shadow: var(--cta-shadow)
 }
 
 .day-cta:hover {
@@ -71,7 +73,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 32px;
+  border-radius: 14px;
   box-shadow: 0 40px 80px -40px rgb(2 132 199 / .45);
   animation: cineBreathe 20s ease-in-out infinite alternate
 }
@@ -86,33 +88,40 @@
 
 .day-ocean {
   position: absolute;
-  left: -40px;
-  bottom: -30px;
-  width: 44%;
+  left: -56px;
+  bottom: 40px;
+  width: 42%;
   margin: 0;
-  padding: 10px;
-  border-radius: 22px
+  padding: 12px;
+  border-radius: 16px;
+  background: rgb(255 255 255 / .35);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid rgb(255 255 255 / .55);
+  box-shadow: 0 30px 60px -24px rgb(15 23 42 / .35)
 }
 
 .day-ocean img {
   width: 100%;
   aspect-ratio: 4/3;
   object-fit: cover;
-  border-radius: 14px
+  border-radius: 10px
 }
 
 .day-ocean figcaption {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--ink);
-  padding: 8px 4px 2px
+  padding: 8px 4px 2px;
+  text-transform: uppercase;
+  letter-spacing: .14em
 }
 
 .day-chip {
   position: absolute;
   top: 24px;
   right: 24px;
-  border-radius: 999px;
+  border-radius: 10px;
   padding: 10px 18px;
   font-size: 13px;
   font-weight: 600;
@@ -276,49 +285,7 @@
   color: var(--ink)
 }
 
-.day-cta {
-  background: var(--cta-gradient);
-  box-shadow: var(--cta-shadow);
-  border-radius: 12px
-}
-
 /* Editorial hero refinement */
-.day-hero h1 {
-  font-size: clamp(44px, 6.2vw, 88px);
-  line-height: .98;
-  letter-spacing: -.02em
-}
-
-.day-farm {
-  border-radius: 14px
-}
-
-.day-ocean {
-  left: -56px;
-  bottom: 40px;
-  width: 42%;
-  padding: 12px;
-  border-radius: 16px;
-  background: rgb(255 255 255 / .35);
-  backdrop-filter: blur(24px) saturate(1.6);
-  -webkit-backdrop-filter: blur(24px) saturate(1.6);
-  border: 1px solid rgb(255 255 255 / .55);
-  box-shadow: 0 30px 60px -24px rgb(15 23 42 / .35)
-}
-
-.day-ocean img {
-  border-radius: 10px
-}
-
-.day-ocean figcaption {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .14em
-}
-
-.day-chip {
-  border-radius: 10px
-}
 
 /* Partner community marquee */
 .partner-community {
@@ -414,10 +381,6 @@
 }
 
 @media(max-width:900px) {
-  .day-ocean {
-    left: 12px;
-    bottom: -24px
-  }
 
   .review-card {
     width: 300px

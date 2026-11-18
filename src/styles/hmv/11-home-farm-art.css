@@ -62,7 +62,8 @@
 }
 
 .activities-section .section-heading {
-  gap: 50px
+  gap: 50px;
+  align-items: center
 }
 
 @media(max-width:820px) {
@@ -91,17 +92,13 @@
   }
 
   .activity-controls {
-    margin: 0 0 18px
+    margin: 0 0 20px
   }
 }
 
 /* Featured origins lead the concise ecosystem overview. */
 .featured-products {
   padding: 76px 0 88px
-}
-
-.activities-section .section-heading {
-  align-items: center
 }
 
 .activity-controls button:focus-visible {
@@ -112,9 +109,5 @@
 @media(max-width:600px) {
   .featured-products {
     padding: 48px 0
-  }
-
-  .activity-controls {
-    margin: 0 0 20px
   }
 }
