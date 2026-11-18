@@ -13,7 +13,8 @@ export default defineConfig({
   testIgnore: /stale\.spec\.js/,
   fullyParallel: false,
   workers: 1,
-  projects: [base.projects[0]],
+  // The desktop project without the Vite suite's own file filter (playwright.config.js).
+  projects: [{ name: base.projects[0].name, use: base.projects[0].use }],
   use: { ...base.use, baseURL: `http://localhost:${NEXT_PORT}` },
   webServer: {
     command: 'node tests/next-cms/serve.js',
