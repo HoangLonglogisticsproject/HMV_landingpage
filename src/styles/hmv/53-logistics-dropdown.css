@@ -98,30 +98,3 @@
   color: var(--brand, #00297b);
   padding-left: 16px;
 }
-
-.log-text-item {
-  display: block;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #0f172a;
-  padding: 8px 10px;
-  border-radius: 6px;
-  text-decoration: none;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.log-text-item:hover {
-  background: rgba(0, 41, 123, 0.06);
-  color: var(--brand, #00297b);
-}
-
-.mega-logistics-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  background: var(--card, #ffffff);
-  border: 1px solid var(--border, #e2e8f0);
-  border-radius: 12px;
-  padding: 8px 10px;
-  box-shadow: 0 4px 14px -3px rgba(0, 0, 0, 0.04);
-}

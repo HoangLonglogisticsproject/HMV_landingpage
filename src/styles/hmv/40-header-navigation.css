@@ -200,10 +200,6 @@
   white-space: nowrap;
 }
 
-.hmv-lang-name-short {
-  display: none;
-}
-
 /* min-width needs no !important: the list's Tailwind min-w-[8rem] is in @layer utilities, and this unlayered rule wins
    over any layered one. The page-scoped width (.scoped-lang-menu) wins by specificity. */
 .hmv-lang-menu-content {
@@ -345,37 +341,6 @@
   padding: 24px 0;
 }
 
-.supply-mega-panel {
-  position: absolute;
-  top: calc(100% - 4px);
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  max-width: 1200px;
-  width: calc(100% - 60px);
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(24px) saturate(1.6);
-  -webkit-backdrop-filter: blur(24px) saturate(1.6);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 25px 50px -12px rgba(0, 29, 89, 0.18), 0 0 0 1px rgba(212, 220, 234, 0.6);
-  padding: 24px;
-  z-index: 60;
-  display: grid;
-  grid-template-columns: 1.15fr 1fr 1.25fr;
-  gap: 20px;
-  animation: megaPanelIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.supply-mega-panel::before {
-  content: "";
-  position: absolute;
-  top: -16px;
-  left: 0;
-  right: 0;
-  height: 16px;
-}
-
 @keyframes megaPanelIn {
   from {
     opacity: 0;
@@ -508,35 +473,6 @@
   }
 }
 
-.mega-col {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.mega-col-header {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.mega-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 999px;
-  letter-spacing: 0.05em;
-  width: fit-content;
-}
-
 .badge-green {
   background: #e2f7f0;
   color: #047857;
@@ -555,204 +491,11 @@
   border: 1px solid rgba(0, 41, 123, 0.2);
 }
 
-.mega-col-header h4 {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink);
-  margin: 0;
-}
-
-.mega-col-desc {
-  font-size: 11px;
-  line-height: 1.45;
-  color: var(--ink-muted);
-  margin: 0;
-}
-
 /* Products list inside dropdown */
-.mega-products-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.mega-product-item {
-  background: var(--card);
-  border: 1px solid rgba(212, 220, 234, 0.7);
-  border-radius: 8px;
-  padding: 8px 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.mega-product-item:hover {
-  border-color: var(--brand);
-  background: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 29, 89, 0.07);
-}
-
-.mega-product-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--farm-green);
-  flex-shrink: 0;
-}
-
-.mega-product-text {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-
-.mega-product-text strong {
-  font-size: 12px;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mega-product-text span {
-  font-size: 10px;
-  color: var(--ink-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mega-arrow {
-  color: var(--ink-muted);
-  opacity: 0.5;
-  transition: transform 0.2s, opacity 0.2s;
-}
-
-.mega-product-item:hover .mega-arrow,
-.mega-feature-card:hover .mega-arrow,
-.mega-sol-item:hover .mega-arrow {
-  opacity: 1;
-  color: var(--brand);
-  transform: translate(2px, -2px);
-}
 
 /* Energy cards */
-.mega-energy-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.mega-feature-card {
-  background: var(--card);
-  border: 1px solid rgba(212, 220, 234, 0.7);
-  border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  text-decoration: none;
-  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.mega-feature-card:hover {
-  border-color: var(--ocean-blue);
-  background: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.09);
-}
-
-.mega-card-content strong {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ink);
-  margin-bottom: 4px;
-}
-
-.mega-card-content p {
-  font-size: 10px;
-  line-height: 1.4;
-  color: var(--ink-muted);
-  margin: 0;
-}
 
 /* Logistics & Solutions list */
-.mega-solutions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.mega-sol-item {
-  background: var(--card);
-  border: 1px solid rgba(212, 220, 234, 0.7);
-  border-radius: 8px;
-  padding: 8px 10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.mega-sol-item:hover {
-  border-color: var(--deep-blue);
-  background: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 41, 123, 0.08);
-}
-
-.mega-sol-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: rgba(0, 66, 162, 0.08);
-  color: var(--brand);
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-}
-
-.mega-sol-text {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-
-.mega-sol-text strong {
-  font-size: 12px;
-  color: var(--ink);
-}
-
-.mega-sol-text span {
-  font-size: 10px;
-  color: var(--ink-muted);
-}
-
-.mega-col-footer-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--brand);
-  padding: 8px 4px 0;
-  border-top: 1px solid rgba(212, 220, 234, 0.5);
-  text-decoration: none;
-  transition: color 0.2s, padding-left 0.2s;
-}
-
-.mega-col-footer-link:hover {
-  color: var(--deep-blue);
-  padding-left: 4px;
-}
 
 /* HMV Trade Desk button (navigation) */
 .nav-support-btn {
@@ -775,35 +518,14 @@
   box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45) !important;
 }
 
-@keyframes pulse-green-dot {
-  0% {
-    transform: scale(0.9);
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-  }
-
-  70% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
-  }
-
-  100% {
-    transform: scale(0.9);
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .nav-center>a::after,
   .nav-group>a::after,
-  .mega-product-item,
-  .mega-feature-card,
-  .mega-sol-item,
   .nav-support-btn {
     transition: none
   }
 
-  .dropdown-panel,
-  .supply-mega-panel {
+  .dropdown-panel {
     animation: none
   }
 }
