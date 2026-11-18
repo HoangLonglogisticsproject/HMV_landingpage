@@ -98,8 +98,8 @@
 
 @media(max-width:820px) {
   .nav-open {
-    background: var(--background) !important;
-    backdrop-filter: none !important;
+    background: var(--background);
+    backdrop-filter: none;
     max-height: calc(100svh - 76px);
     overflow-y: auto;
     overscroll-behavior: contain;
