@@ -76,7 +76,7 @@ export function SupplyChainPillars({ lang }) {
       <WindEnergyPillar vi={vi} />
 
       {/* PILLAR 3: COMPREHENSIVE LOGISTICS BACKBONE (AUXILIARY / OPERATIONAL CAPACITY) */}
-      <LogisticsPillar vi={vi} lang={lang} logisticsFeatures={logisticsFeatures} />
+      <LogisticsPillar vi={vi} logisticsFeatures={logisticsFeatures} />
     </div>
   );
 }
@@ -309,7 +309,7 @@ function WindEnergyPillar({ vi }) {
   );
 }
 
-function LogisticsPillar({ vi, lang, logisticsFeatures }) {
+function LogisticsPillar({ vi, logisticsFeatures }) {
   return (
     <section
       id="logistics-capacity"
