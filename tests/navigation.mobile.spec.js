@@ -18,8 +18,15 @@ test('mobile: hamburger opens the nav drawer and shows links', async ({ page }) 
   // After click: aria-expanded="true", button label changes to "Close navigation"
   await expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
 
-  // The drawer must now expose navigable links
-  const navLinks = page.locator('nav.site-nav .nav-links-wrap a[href^="/"]');
-  expect(await navLinks.count()).toBeGreaterThanOrEqual(4);
-  await expect(navLinks.first()).toBeVisible();
+  // The drawer itself is open and visible (hidden until the toggle opens it).
+  const drawer = page.locator('nav.site-nav .nav-links-wrap');
+  await expect(drawer).toHaveClass(/\bnav-open\b/);
+  await expect(drawer).toBeVisible();
+
+  // Every top-level link is visible in it: the direct links and the link of each dropdown group. Submenu links stay
+  // collapsed until their group opens, so they are not required here.
+  const topLevelLinks = drawer.locator('.nav-center > a, .nav-center > .nav-dropdown > .nav-group > a');
+  await expect(topLevelLinks).toHaveCount(5);
+  expect(await topLevelLinks.evaluateAll(links => links.map(a => a.getAttribute('href')))).toEqual(['/', '/supply-chain', '/insights', '/regulations', '/about']);
+  for (const link of await topLevelLinks.all()) await expect(link).toBeVisible();
 });
