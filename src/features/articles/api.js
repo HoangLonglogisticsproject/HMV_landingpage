@@ -78,10 +78,15 @@ async function fetchLocaleArticles(get, locale, pageSize) {
 
 /** Every published article as `{ en?: slug, vi?: slug }`, paired by the CMS id that translations share. */
 export async function fetchArticleIndex(get, { pageSize }) {
+  // The locales load in parallel and merge in LOCALES order; a failure is the first locale's, as when they loaded in
+  // turn.
+  const results = await Promise.allSettled(LOCALES.map(locale => fetchLocaleArticles(get, locale, pageSize)));
+  const failed = results.find(r => r.status === 'rejected');
+  if (failed) throw failed.reason;
   const byKey = new Map();
-  for (const locale of LOCALES) {
-    for (const a of await fetchLocaleArticles(get, locale, pageSize)) byKey.set(a.key, { ...byKey.get(a.key), [locale]: a.slug });
-  }
+  results.forEach(({ value: articles }, i) => {
+    for (const a of articles) byKey.set(a.key, { ...byKey.get(a.key), [LOCALES[i]]: a.slug });
+  });
   return [...byKey.values()];
 }
 
