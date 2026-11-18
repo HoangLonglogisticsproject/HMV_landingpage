@@ -132,16 +132,10 @@ function PackagingStandards({ vi, standards }) {
                 <div className="pack-card-tag">
                   <span>{vi ? item.tagVi : item.tagEn}</span>
                 </div>
-                {/* Decorative: the card itself is the zoom control (ZoomTrigger), so this is not a second focus stop. */}
-                <button
-                  type="button"
-                  className="pack-zoom-btn"
-                  title={vi ? 'Xem ảnh phóng to' : 'Zoom photo'}
-                  tabIndex={-1}
-                  aria-hidden="true"
-                >
+                {/* Decorative: the card itself is the zoom button (ZoomTrigger), so this is an icon, not a nested button. */}
+                <span className="pack-zoom-btn inline-block" title={vi ? 'Xem ảnh phóng to' : 'Zoom photo'} aria-hidden="true">
                   <Maximize2 size={15} />
-                </button>
+                </span>
               </ZoomTrigger>
               <div className="pack-card-body">
                 <div className="pack-card-meta">

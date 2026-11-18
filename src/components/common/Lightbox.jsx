@@ -63,16 +63,18 @@ export function PreviewDialog({ className, label, close, children }) {
       close();
     };
     const onClick = e => e.target === dialog && close();
+    // Should the browser close it anyway (a repeated Escape), the state follows. A dialog that is open again ignores
+    // the close event its previous cleanup queued (React StrictMode runs this effect twice in development).
+    const onClose = () => !dialog.open && close();
     dialog.addEventListener('cancel', onCancel);
     dialog.addEventListener('click', onClick);
-    // Should the browser close it anyway (a repeated Escape), the state follows.
-    dialog.addEventListener('close', close);
+    dialog.addEventListener('close', onClose);
     dialog.showModal();
     dialog.querySelector('button')?.focus();
     return () => {
       dialog.removeEventListener('cancel', onCancel);
       dialog.removeEventListener('click', onClick);
-      dialog.removeEventListener('close', close);
+      dialog.removeEventListener('close', onClose);
       if (dialog.open) dialog.close();
     };
   }, [close]);

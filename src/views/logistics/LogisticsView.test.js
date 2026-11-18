@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, test } from 'vitest';
 import assert from 'node:assert/strict';
-import { act, createElement as h } from 'react';
+import { StrictMode, act, createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { logisticsServicesData } from '@/data/logisticsServices';
@@ -12,8 +12,10 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 HTMLDialogElement.prototype.showModal = function showModal() {
   this.open = true;
 };
+// As in browsers, close() queues its close event.
 HTMLDialogElement.prototype.close = function close() {
   this.open = false;
+  setTimeout(() => this.dispatchEvent(new Event('close')));
 };
 
 let root, container;
@@ -37,6 +39,7 @@ test('the page sections, in both languages', async () => {
     assert.ok(container.querySelector('.log-bottom-cta'), lang);
   }
   assert.ok(container.textContent.includes(crossBorder.featuresVi[0]));
+  assert.equal(container.querySelectorAll('button button').length, 0, 'no button inside a gallery button');
 });
 
 test('a gallery photo is a button that opens it in a modal dialog; closing gives focus back', async () => {
@@ -52,4 +55,11 @@ test('a gallery photo is a button that opens it in a modal dialog; closing gives
   await act(() => document.activeElement.click());
   assert.equal(container.querySelector('dialog'), null);
   assert.equal(document.activeElement, thumb);
+});
+
+test('under StrictMode the dialog stays open: the close event of the replayed effect is ignored', async () => {
+  await act(() => root.render(h(StrictMode, null, h(MemoryRouter, null, h(LogisticsView, { lang: 'en' })))));
+  await act(() => container.querySelector('.dg-img-thumb').click());
+  await act(() => new Promise(resolve => setTimeout(resolve, 20)));
+  assert.ok(container.querySelector('dialog.pack-lightbox')?.open);
 });

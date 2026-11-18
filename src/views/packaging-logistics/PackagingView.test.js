@@ -35,6 +35,7 @@ test('the hero figures and the three parts, in both languages', async () => {
     for (const part of ['.pack-standards-section', '.pack-stages-section', '.pack-assurance-section']) assert.ok(container.querySelector(part), `${lang} ${part}`);
     assert.equal(container.querySelectorAll('.pack-card').length, packagingData.standards.length, lang);
     assert.equal(container.querySelectorAll('.transport-stage-row').length, packagingData.transportStages.length, lang);
+    assert.equal(container.querySelectorAll('button button').length, 0, `${lang}: no button inside a gallery button`);
   }
 });
 

@@ -19,7 +19,7 @@ test('mobile: hamburger opens the nav drawer and shows links', async ({ page }) 
   await expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
 
   // The drawer must now expose navigable links
-  const navLinks = page.locator('nav.site-nav a[href^="/"]');
-  const count = await navLinks.count();
-  expect(count).toBeGreaterThanOrEqual(4);
+  const navLinks = page.locator('nav.site-nav .nav-links-wrap a[href^="/"]');
+  expect(await navLinks.count()).toBeGreaterThanOrEqual(4);
+  await expect(navLinks.first()).toBeVisible();
 });
