@@ -17,7 +17,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: rgba(0, 41, 123, 0.08);
+  background: #e4e9f2;
   border: 1px solid rgba(0, 41, 123, 0.2);
   color: #00297b;
   padding: 5px 14px;
@@ -81,13 +81,13 @@
 }
 
 .log-nav-pill.highlight {
-  background: rgba(5, 150, 105, 0.08);
+  background: #e5f2f0;
   color: #047857;
   border-color: rgba(5, 150, 105, 0.3);
 }
 
 .log-nav-pill.highlight:hover {
-  background: #059669;
+  background: #047857;
   color: #ffffff;
 }
 
@@ -116,26 +116,26 @@
 }
 
 .log-sub-badge.danger {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
+  background: #f7e8ea;
+  color: #b91c1c;
   border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .log-sub-badge.primary {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  background: #e1f4f0;
+  color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .log-sub-badge.navy {
-  background: rgba(0, 41, 123, 0.08);
+  background: #ebeef4;
   color: #00297b;
   border: 1px solid rgba(0, 41, 123, 0.2);
 }
 
 .log-sub-badge.cyan {
-  background: rgba(2, 132, 199, 0.1);
-  color: #0284c7;
+  background: #e6f3f9;
+  color: #0369a1;
   border: 1px solid rgba(2, 132, 199, 0.25);
 }
 
@@ -203,22 +203,22 @@
 }
 
 .dg-icon-box.airsea {
-  background: rgba(2, 132, 199, 0.12);
-  color: #0284c7;
+  background: #e1f0f8;
+  color: #0369a1;
 }
 
 .dg-icon-box.special {
-  background: rgba(239, 68, 68, 0.12);
-  color: #dc2626;
+  background: #fde9e9;
+  color: #b91c1c;
 }
 
 .dg-icon-box.general {
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
+  background: #e2f7f0;
+  color: #047857;
 }
 
 .dg-icon-box.factory {
-  background: rgba(0, 41, 123, 0.1);
+  background: #e6eaf2;
   color: #00297b;
 }
 
@@ -372,7 +372,7 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: rgba(16, 185, 129, 0.15);
+  background: #dbf5ec;
   color: #047857;
   font-size: 11px;
   font-weight: 800;
@@ -453,7 +453,7 @@
 
 .cb-tag {
   align-self: flex-start;
-  background: #10b981;
+  background: #047857;
   color: #ffffff;
   font-size: 9.5px;
   font-weight: 800;

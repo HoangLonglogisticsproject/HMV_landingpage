@@ -39,29 +39,29 @@
 }
 
 .pillar-pill-green {
-  background: rgba(16, 185, 129, 0.1);
+  background: #e7f8f2;
   color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .pillar-pill-green:hover {
-  background: #10b981;
+  background: #047857;
   color: #ffffff;
 }
 
 .pillar-pill-cyan {
-  background: rgba(2, 132, 199, 0.1);
-  color: #0284c7;
+  background: #e6f3f9;
+  color: #0369a1;
   border: 1px solid rgba(2, 132, 199, 0.3);
 }
 
 .pillar-pill-cyan:hover {
-  background: #0284c7;
+  background: #0369a1;
   color: #ffffff;
 }
 
 .pillar-pill-navy {
-  background: rgba(0, 41, 123, 0.08);
+  background: #ebeef4;
   color: #00297b;
   border: 1px solid rgba(0, 41, 123, 0.25);
 }

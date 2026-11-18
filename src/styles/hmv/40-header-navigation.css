@@ -237,7 +237,7 @@
 .hmv-lang-menu-item:hover,
 .hmv-lang-menu-item:focus,
 .hmv-lang-menu-item[data-highlighted] {
-  background-color: rgba(8, 126, 194, 0.08) !important;
+  background-color: #ebf5fa !important;
   color: #00297b !important;
 }
 
@@ -538,19 +538,19 @@
 }
 
 .badge-green {
-  background: rgba(16, 185, 129, 0.12);
+  background: #e2f7f0;
   color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .badge-cyan {
-  background: rgba(2, 132, 199, 0.12);
-  color: #0284c7;
+  background: #d8eaf6;
+  color: #0369a1;
   border: 1px solid rgba(2, 132, 199, 0.3);
 }
 
 .badge-navy {
-  background: rgba(0, 41, 123, 0.08);
+  background: #ebeef4;
   color: #00297b;
   border: 1px solid rgba(0, 41, 123, 0.2);
 }
