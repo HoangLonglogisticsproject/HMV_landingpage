@@ -20,7 +20,7 @@ const NOT_FOUND = { status: 'not-found' } as const;
 type Slugs = Partial<Record<Lang, string>>;
 const withoutBlocked = (slugs: Slugs): Slugs => Object.fromEntries(Object.entries(slugs).filter(([, s]) => !BLOCKED.has(s)));
 
-export const loadPage = (key: string, lang: Lang) => (CMS ? fetchPage(cmsGet, { key, locale: lang }) : bundledPage(key, lang));
+export const loadPage = (key: string, lang: Lang) => (CMS ? fetchPage(cmsGet, { key, locale: lang }) : Promise.resolve(bundledPage(key, lang)));
 
 // Site pages whose content comes from the CMS (key path → CMS page key). A CMS page locale may never have been
 // published; that URL is a noindex "not published" page, so it is left out of hreflang and the sitemap.

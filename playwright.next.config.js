@@ -1,5 +1,5 @@
 import { defineConfig } from '@playwright/test';
-import base from './playwright.config.js';
+import base, { DESKTOP_ONLY, MOBILE_ONLY } from './playwright.config.js';
 
 /**
  * Next.js E2E (tests/next/). Locally: `npm run test:e2e:next` builds and serves `next start` on port 4175.
@@ -14,11 +14,8 @@ if (/(^|\.)hmv-global\.com$/i.test(new URL(baseURL).hostname)) {
 }
 const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 
-// Specs scoped by file name instead of skipped at run time: *.mobile.spec.js runs in the phone project only,
-// *.desktop.spec.js (which sets its own viewports) in the desktop project only, and *.local-build.spec.js reads this
-// machine's .next build, so it is not collected against a hosted preview.
-const MOBILE_ONLY = /\.mobile\.spec\.js$/;
-const DESKTOP_ONLY = /\.desktop\.spec\.js$/;
+// Specs scoped by file name (playwright.config.js), and *.local-build.spec.js reads this machine's .next build or
+// `next start` headers, so it is not collected against a hosted preview.
 const LOCAL_BUILD_ONLY = target ? [/\.local-build\.spec\.js$/] : [];
 
 export default defineConfig({

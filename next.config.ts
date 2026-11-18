@@ -15,16 +15,16 @@ const nextConfig: NextConfig = {
   agentRules: false,
   // app/global-not-found.tsx: the server-rendered 404 for URLs without a route (two root layouts, no shared one).
   experimental: { globalNotFound: true },
-  async headers() {
-    return indexable ? [] : [{ source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }];
+  headers() {
+    return Promise.resolve(indexable ? [] : [{ source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }]);
   },
-  async redirects() {
-    return INDEX_URLS.map(source => ({
+  redirects() {
+    return Promise.resolve(INDEX_URLS.map(source => ({
       source,
       destination: canonicalUrl(source),
       permanent: true,
       missing: [{ type: 'query' as const, key: 'lang' }],
-    }));
+    })));
   },
 };
 

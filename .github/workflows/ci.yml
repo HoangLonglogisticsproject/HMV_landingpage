@@ -31,7 +31,7 @@ jobs:
           node-version: 24.18.0 # same Node.js as development
           cache: npm
       - run: npm ci
-      - run: npm run lint # ESLint, then the layer boundaries (scripts/check-boundaries.js)
+      - run: npm run lint # ESLint, the layer boundaries (scripts/check-boundaries.js), the stylesheet entry (scripts/check-css-entry.js)
       - run: npm test
       - run: npm run next:build
       - run: npx playwright install --with-deps chromium

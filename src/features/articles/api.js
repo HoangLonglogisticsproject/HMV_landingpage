@@ -10,7 +10,7 @@ const isArticle = a => typeof a?.slug === 'string' && typeof a?.title === 'strin
 const MONTH = { month: 'long', year: 'numeric', timeZone: 'Asia/Ho_Chi_Minh' };
 // Matches the static article labels: "October 2026" / "Tháng 10, 2026".
 function dateLabel(iso, lang) {
-  const d = new Date(iso ?? NaN);
+  const d = new Date(iso ?? Number.NaN);
   if (Number.isNaN(d.getTime())) return '';
   if (lang !== 'vi') return new Intl.DateTimeFormat('en-US', MONTH).format(d);
   const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { ...MONTH, month: 'numeric' }).formatToParts(d).map(x => [x.type, x.value]));
@@ -60,21 +60,33 @@ export async function fetchArticles(get, { locale, pageSize }) {
 // last good sitemap stays) instead of being cut silently.
 const MAX_INDEX_PAGES = 50;
 
+/** One locale's published articles, page by page. */
+async function fetchLocaleArticles(get, locale, pageSize) {
+  const articles = [];
+  for (let page = 1, pages = 1; page <= pages; page++) {
+    // Page 1 without `page`: the same request, and the same data cache entry, as the EcoNews list.
+    const body = await get('/articles', page === 1 ? { locale, pageSize } : { locale, page, pageSize });
+    const items = listItems(body);
+    if (!Number.isInteger(body.total) || body.total < 0) throw malformed();
+    pages = Math.ceil(body.total / pageSize);
+    if (pages > MAX_INDEX_PAGES) throw cmsError(0, `Article index over ${MAX_INDEX_PAGES} pages`);
+    articles.push(...items.map(x => toView(x, locale)));
+    if (!items.length) break;
+  }
+  return articles;
+}
+
 /** Every published article as `{ en?: slug, vi?: slug }`, paired by the CMS id that translations share. */
 export async function fetchArticleIndex(get, { pageSize }) {
+  // The locales load in parallel and merge in LOCALES order; a failure is the first locale's, as when they loaded in
+  // turn.
+  const results = await Promise.allSettled(LOCALES.map(locale => fetchLocaleArticles(get, locale, pageSize)));
+  const failed = results.find(r => r.status === 'rejected');
+  if (failed) throw failed.reason;
   const byKey = new Map();
-  for (const locale of LOCALES) {
-    for (let page = 1, pages = 1; page <= pages; page++) {
-      // Page 1 without `page`: the same request, and the same data cache entry, as the EcoNews list.
-      const body = await get('/articles', page === 1 ? { locale, pageSize } : { locale, page, pageSize });
-      const items = listItems(body);
-      if (!Number.isInteger(body.total) || body.total < 0) throw malformed();
-      pages = Math.ceil(body.total / pageSize);
-      if (pages > MAX_INDEX_PAGES) throw cmsError(0, `Article index over ${MAX_INDEX_PAGES} pages`);
-      for (const a of items.map(x => toView(x, locale))) byKey.set(a.key, { ...byKey.get(a.key), [locale]: a.slug });
-      if (!items.length) break;
-    }
-  }
+  results.forEach(({ value: articles }, i) => {
+    for (const a of articles) byKey.set(a.key, { ...byKey.get(a.key), [LOCALES[i]]: a.slug });
+  });
   return [...byKey.values()];
 }
 

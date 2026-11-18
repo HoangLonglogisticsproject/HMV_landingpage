@@ -1,0 +1,52 @@
+/* Privacy notice (/privacy) */
+.privacy-notice {
+  display: grid;
+  gap: 28px;
+  max-width: 760px
+}
+
+.privacy-notice h2 {
+  margin-bottom: 10px;
+  font-size: 20px;
+  color: var(--deep-blue)
+}
+
+.privacy-notice p {
+  margin-bottom: 10px;
+  line-height: 1.7;
+  color: var(--ink)
+}
+
+.privacy-updated {
+  font-size: 13px;
+  color: var(--ink-muted)
+}
+
+/* HMV Trade Desk card on Contact */
+.support-desk-card {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(0, 66, 162, 0.04) 100%);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 26px;
+}
+
+.support-desk-card .day-cta {
+  margin-top: 14px;
+}
+
+.support-desk-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.support-channel-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand);
+}

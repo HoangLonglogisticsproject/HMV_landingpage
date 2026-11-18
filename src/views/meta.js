@@ -129,7 +129,7 @@ const ORGANIZATION = {
 };
 
 /** JSON-LD as a string that is safe inside <script>. */
-const jsonLd = data => JSON.stringify({ '@context': 'https://schema.org', ...data }).replace(/</g, '\\u003c');
+const jsonLd = data => JSON.stringify({ '@context': 'https://schema.org', ...data }).replaceAll('<', String.raw`\u003c`);
 
 /** Organization and WebSite, for the home page of each language. */
 export const siteJsonLd = () =>

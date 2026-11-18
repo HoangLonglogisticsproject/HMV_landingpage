@@ -59,12 +59,7 @@ export function Operations({ lang, full = false }) {
                   ['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)
                 ) {
                   e.preventDefault();
-                  const next =
-                    e.key === 'Home'
-                      ? 0
-                      : e.key === 'End'
-                        ? 5
-                        : (active + (e.key === 'ArrowRight' ? 1 : 5)) % 6;
+                  const next = { Home: 0, End: 5 }[e.key] ?? (active + (e.key === 'ArrowRight' ? 1 : 5)) % 6;
                   setActive(next);
                   document.getElementById(`tab-${stages[next].id}`)?.focus();
                 }

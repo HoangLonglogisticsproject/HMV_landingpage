@@ -29,7 +29,7 @@ export function ValueJourney({ lang }) {
           <p className="eyebrow">{lang === 'vi' ? 'HÀNH TRÌNH GIÁ TRỊ' : 'THE VALUE JOURNEY'}</p>
           <ol>
             {steps.map((s, i) => (
-              <li key={i} className={active === i ? 'on' : ''}>
+              <li key={assetSrc(s.src)} className={active === i ? 'on' : ''}>
                 <span>0{i + 1}</span>
                 <div><h3>{s[lang][0]}</h3><p>{s[lang][1]}</p></div>
               </li>
@@ -39,7 +39,7 @@ export function ValueJourney({ lang }) {
         </div>
         <div className="journey-media">
           {steps.map((s, i) => (
-            <figure key={i} data-i={i} ref={(el) => (refs.current[i] = el)} className={active === i ? 'on' : ''}>
+            <figure key={assetSrc(s.src)} data-i={i} ref={(el) => (refs.current[i] = el)} className={active === i ? 'on' : ''}>
               <Image src={assetSrc(s.src)} alt={s[lang][0]} width={s.w} height={s.h} sizes="(max-width: 768px) 720px, (max-width: 900px) calc(100vw - 40px), 940px" loading="lazy" decoding="async" />
             </figure>
           ))}

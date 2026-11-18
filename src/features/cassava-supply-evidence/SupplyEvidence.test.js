@@ -43,8 +43,7 @@ test('every photograph is a button that opens it in a modal dialog: the same fil
     const buttons = triggers();
     assert.equal(buttons.length, cassavaEvidence.photos.length, lang);
     for (const [i, button] of buttons.entries()) {
-      assert.equal(button.getAttribute('role'), 'button');
-      assert.equal(button.tabIndex, 0);
+      assert.deepEqual([button.tagName, button.type], ['BUTTON', 'button']);
       assert.equal(button.title, cassavaEvidence.copy[lang].zoom);
       assert.equal(preview(), null, 'closed until clicked');
       await act(() => button.click());
@@ -65,15 +64,16 @@ test('every photograph is a button that opens it in a modal dialog: the same fil
   }
 });
 
-test('the keyboard: Enter and Space open; Escape closes once and gives focus back', async () => {
+// Enter and Space are the native button's (a real browser: tests/next/supply-evidence.spec.js).
+test('Escape closes once and gives focus back to the photograph that opened it', async () => {
   await render('en');
   const [lead, loading] = triggers();
-  await key(lead, 'Enter');
+  await act(() => lead.click());
   assert.match(preview().querySelector('img').getAttribute('src'), /cassava-bulk-stock\.webp$/);
   await key(document, 'Escape');
   assert.equal(preview(), null);
   assert.equal(document.activeElement, lead);
-  await key(loading, ' ');
+  await act(() => loading.click());
   assert.match(preview().querySelector('img').getAttribute('src'), /cassava-container-loading\.webp$/);
   await key(document, 'Escape');
   assert.equal(document.activeElement, loading);

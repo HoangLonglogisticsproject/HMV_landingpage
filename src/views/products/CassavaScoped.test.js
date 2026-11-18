@@ -79,11 +79,11 @@ for (const { name, View, c, lang, locale } of PAGES) {
     const opened = [];
     const onOpen = e => opened.push(e.detail);
     window.addEventListener(OPEN_TRADE_DESK, onOpen);
-    const buttons = [...container.querySelectorAll('button[title]')];
+    const buttons = [...container.querySelectorAll('button[title]')].filter(b => b.title === c.tradeDesk);
+    assert.equal(buttons.length, 3);
     for (const button of buttons) await act(() => button.click());
     window.removeEventListener(OPEN_TRADE_DESK, onOpen);
     assert.deepEqual(opened, ['nav', 'hero', 'rfq'].map(at => ({ product: 'dried-cassava-chips', source: `${lang}_${at}` })));
-    assert.ok(buttons.every(b => b.title === c.tradeDesk));
   });
 }
 

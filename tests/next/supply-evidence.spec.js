@@ -65,8 +65,8 @@ test('EN, VI and Chinese cassava pages: the same photographs, with their languag
     expect(images.map(i => i.alt), lang).toEqual(COPY[lang].alt);
     expect([...evidence.matchAll(/<figcaption>(.*?)<\/figcaption>/g)].map(m => m[1]), lang).toEqual(COPY[lang].captions);
     // Each photograph is the button that opens it larger (components/common/Lightbox ZoomTrigger).
-    const frames = tags(evidence, 'div').filter(d => d.class === 'supply-evidence-frame');
-    expect(frames.map(d => [d.role, d.tabindex, d.title]), lang).toEqual(FILES.map(() => ['button', '0', COPY[lang].zoom]));
+    const frames = tags(evidence, 'button').filter(b => b.class?.split(' ').includes('supply-evidence-frame'));
+    expect(frames.map(b => [b.type, b.title]), lang).toEqual(FILES.map(() => ['button', COPY[lang].zoom]));
     // Sized, lazy and never prioritized: the hero keeps the bandwidth.
     for (const img of images) {
       expect(Number(img.width) * Number(img.height), img.alt).toBeGreaterThan(0);

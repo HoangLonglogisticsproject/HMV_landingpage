@@ -21,10 +21,10 @@ export function ContactForm({ lang, product = '' }) {
     <form onSubmit={submit} className="inquiry-form">
       <div className="form-grid">
         {[
-          { key: 'name', label: t.name, type: 'text' },
-          { key: 'email', label: t.email, type: 'email' },
-          { key: 'company', label: t.company, type: 'text' },
-          { key: 'destination', label: t.destination, type: 'text' },
+          { key: 'name', label: t.name, type: 'text', autoComplete: 'name' },
+          { key: 'email', label: t.email, type: 'email', autoComplete: 'email' },
+          { key: 'company', label: t.company, type: 'text', autoComplete: 'organization' },
+          { key: 'destination', label: t.destination, type: 'text', autoComplete: 'off' },
         ].map(f => (
           <label key={f.key}>
             {f.label}
@@ -33,15 +33,7 @@ export function ContactForm({ lang, product = '' }) {
               type={f.type}
               required
               maxLength={200}
-              autoComplete={
-                f.key === 'name'
-                  ? 'name'
-                  : f.key === 'email'
-                    ? 'email'
-                    : f.key === 'company'
-                      ? 'organization'
-                      : 'off'
-              }
+              autoComplete={f.autoComplete}
             />
           </label>
         ))}
@@ -74,7 +66,7 @@ export function ContactForm({ lang, product = '' }) {
         <ArrowUpRight />
       </Button>
       <p className="form-note">{t.emailNote}</p>
-      {prepared && <p role="status">{t.draftReady}</p>}
+      {prepared && <p><output>{t.draftReady}</output></p>}
     </form>
   );
 }

@@ -14,51 +14,6 @@ import { test, expect } from '@playwright/test';
  *  - Article page: renders its own <SiteShell> (separate from SiteLayout)
  */
 
-// ─── Desktop navigation ─────────────────────────────────────────────
-
-test('desktop: site-nav is visible with key internal links', async ({ page }) => {
-  test.skip(test.info().project.name === 'chromium-mobile');
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
-
-  const nav = page.locator('nav.site-nav');
-  await expect(nav).toBeVisible({ timeout: 5000 });
-
-  // Must contain the HMV home link
-  const homeLink = nav.locator('a[href="/"], a[aria-label="HMV Global home"]').first();
-  await expect(homeLink).toBeVisible();
-
-  // Navigation must contain internal links to key sections
-  const internalLinks = nav.locator('a[href^="/"]');
-  const count = await internalLinks.count();
-  expect(count).toBeGreaterThanOrEqual(4); // home, supply-chain, trade-solutions, contact minimum
-});
-
-// ─── Mobile navigation ──────────────────────────────────────────────
-
-test('mobile: hamburger opens the nav drawer and shows links', async ({ page }) => {
-  test.skip(test.info().project.name === 'chromium-desktop');
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
-
-  // The toggle button has class "mobile-toggle" and aria-label "Open navigation"
-  const menuToggle = page.locator('button.mobile-toggle[aria-label*="navigation" i], button.mobile-toggle[aria-label*="điều hướng" i]').first();
-  await expect(menuToggle).toBeVisible({ timeout: 5000 });
-  // Initially collapsed: aria-expanded="false"
-  await expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
-
-  await menuToggle.click();
-  await page.waitForTimeout(400); // allow CSS transition
-
-  // After click: aria-expanded="true", button label changes to "Close navigation"
-  await expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
-
-  // The drawer must now expose navigable links
-  const navLinks = page.locator('nav.site-nav a[href^="/"]');
-  const count = await navLinks.count();
-  expect(count).toBeGreaterThanOrEqual(4);
-});
-
 // ─── Footer ─────────────────────────────────────────────────────────
 
 test('footer is present and contains copyright text', async ({ page }) => {

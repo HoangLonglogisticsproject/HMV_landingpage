@@ -15,7 +15,7 @@
     "test:e2e:fast": "npx playwright test",
     "test:e2e:cms": "npm run build:cms && npx playwright test -c playwright.cms.config.js",
     "test:visual": "npm run build && npx playwright test tests/visual.spec.js",
-    "lint": "eslint . && node scripts/check-boundaries.js",
+    "lint": "eslint . && node scripts/check-boundaries.js && node scripts/check-css-entry.js",
     "build:dev": "vite build --mode development",
     "next:dev": "next dev -p 4175",
     "next:build": "next build",

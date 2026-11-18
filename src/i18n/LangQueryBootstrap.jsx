@@ -21,7 +21,9 @@ export function LangQueryBootstrap() {
 
     params.delete('lang');
     const rest = params.toString();
-    navigate(`${pathname}${rest ? `?${rest}` : ''}${hash}`, { replace: true });
+    const query = rest ? `?${rest}` : '';
+    // Under <BrowserRouter> navigate() returns nothing; its type allows a promise only for data routers.
+    void navigate(`${pathname}${query}${hash}`, { replace: true });
   }, [pathname, search, hash, setLang, navigate]);
 
   return null;

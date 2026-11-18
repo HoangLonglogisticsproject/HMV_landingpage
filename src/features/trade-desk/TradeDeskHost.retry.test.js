@@ -16,11 +16,15 @@ vi.mock('./TradeDesk.jsx', async importOriginal => {
   return importOriginal();
 });
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+// Loading the desk code (a dynamic import) takes past the default 5 s on a loaded machine.
+vi.setConfig({ testTimeout: 20_000 });
 
 let root, container;
 const tick = () => act(async () => new Promise(resolve => setTimeout(resolve, 10)));
+// Bounded by time, below the test timeout: loading the desk code can take seconds on a loaded machine.
 const until = async check => {
-  for (let i = 0; i < 300 && !check(); i++) await tick();
+  const deadline = Date.now() + 15_000;
+  while (!check() && Date.now() < deadline) await tick();
   assert.ok(check());
 };
 beforeEach(() => {

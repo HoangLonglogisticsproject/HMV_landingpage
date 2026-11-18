@@ -29,14 +29,13 @@ const markets = [
 ];
 
 export function LivingLogistics({ lang }) {
-  const uid = useId().replace(/:/g, '');
-  const [active, setActive] = useState(null);
+  const uid = useId().replaceAll(':', '');
+  const [active, setActive] = useState(/** @type {string | null} */ (null));
   const vi = lang === 'vi';
 
   return (
-    <div
+    <figure
       className="living-logistics"
-      role="group"
       aria-label={vi ? 'Kết nối thị trường mục tiêu từ Việt Nam' : 'Target market connections from Vietnam'}
     >
       <svg viewBox="0 0 900 380" className="living-map" aria-hidden="true">
@@ -187,6 +186,6 @@ export function LivingLogistics({ lang }) {
           )}
         </div>
       ))}
-    </div>
+    </figure>
   );
 }

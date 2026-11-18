@@ -35,7 +35,7 @@ export async function articleMetadata(lang: Lang, slug: string): Promise<Metadat
 }
 
 // Outside the (site) layout: the article page frames its own site shell, as on the Vite site.
-export async function ArticlePage({ lang, slug }: { lang: Lang; slug: string }) {
+export async function ArticlePage({ lang, slug }: Readonly<{ lang: Lang; slug: string }>) {
   const state = await stateAt(lang, slug);
   return (
     <>

@@ -1,5 +1,5 @@
 import { defineConfig } from '@playwright/test';
-import base from './playwright.config.js';
+import base, { DESKTOP_ONLY, MOBILE_ONLY } from './playwright.config.js';
 
 /**
  * CMS-mode E2E: the `npm run build:cms` bundle (dist-cms) served by `vite preview` on port 4174.
@@ -10,6 +10,10 @@ export default defineConfig({
   ...base,
   testIgnore: undefined,
   testMatch: /cms-.*\.spec\.js/,
+  projects: base.projects.map(project => ({
+    ...project,
+    testIgnore: project.name === 'chromium-mobile' ? DESKTOP_ONLY : MOBILE_ONLY,
+  })),
   use: { ...base.use, baseURL: 'http://localhost:4174' },
   webServer: {
     command: `${process.env.CI ? 'npm run build:cms && ' : ''}npx vite preview --outDir dist-cms --port 4174 --strictPort`,

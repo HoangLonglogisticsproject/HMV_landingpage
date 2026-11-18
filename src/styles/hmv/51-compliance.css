@@ -1,0 +1,40 @@
+/* ===============================================================
+   Enterprise Compliance & Standards Documentation Layout
+   =============================================================== */
+
+/* Documentation 2-Column Grid */
+
+/* Sticky Sidebar */
+
+/* Sidebar Desk Mini-Card */
+
+/* Sidebar Official Reference Links */
+
+/* Documentation Content / Prose */
+
+/* Legal Foundation Card */
+
+/* Documentation Content Blocks */
+
+/* Sub-cards Grid */
+
+/* ISPM 15 Stamp Card */
+
+/* RASFF Warning Callout */
+
+/* 4-Step Testing Pipeline */
+
+/* CBAM Material Breakdown */
+
+/* Scope 3 Readiness Box */
+
+/* Bottom B2B Consultation Action Card */
+
+/* Responsive Overrides */
+@media(max-width: 1080px) {
+  .logistics-compliance-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 28px;
+  }
+}
