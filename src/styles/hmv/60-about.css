@@ -27,9 +27,9 @@
   margin: 0;
 }
 
-.team-intro-lead {
-  font-size: 1.1rem !important;
-  color: #334155 !important;
+.section-heading-center .team-intro-lead {
+  font-size: 1.1rem;
+  color: #334155;
   font-weight: 500;
 }
 

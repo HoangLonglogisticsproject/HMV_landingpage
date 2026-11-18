@@ -528,4 +528,8 @@
   .dropdown-panel {
     animation: none
   }
+
+  .nav-center>a, .nav-group>a, .nav-group button, .hmv-lang-trigger, .hmv-lang-chevron, .hmv-lang-menu-item, .dropdown-panel a {
+    transition: none;
+  }
 }

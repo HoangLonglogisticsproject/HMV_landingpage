@@ -710,4 +710,7 @@
   .cb-img-card img {
     transition: none
   }
+  .dg-zoom-hint, .cb-zoom-btn {
+    transition: none;
+  }
 }

@@ -328,4 +328,10 @@
   .insight-card img {
     transition: none
   }
+  .insight-card em, .premium-footer nav a {
+    transition: none
+  }
+  .marquee-track {
+    animation: none
+  }
 }

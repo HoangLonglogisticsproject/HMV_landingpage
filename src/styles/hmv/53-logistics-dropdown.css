@@ -98,3 +98,9 @@
   color: var(--brand, #00297b);
   padding-left: 16px;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .log-text-parent-row, .log-parent-title, .log-parent-toggle, .log-text-sublist>a {
+    transition: none;
+  }
+}

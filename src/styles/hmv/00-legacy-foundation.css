@@ -384,7 +384,7 @@ article[id] {
 
 .photo-dialog {
   width: min(980px, calc(100vw - 32px));
-  max-width: 980px !important;
+  max-width: 980px;
   max-height: 92svh;
   overflow: auto;
   background: var(--card)
@@ -1006,7 +1006,11 @@ article[id] {
   *,
   *::before,
   *::after {
-    animation: none !important;
-    transition: none !important
+    animation: none;
+    transition: none
+  }
+
+  .product-item, .activity-photo img {
+    transition: none
   }
 }

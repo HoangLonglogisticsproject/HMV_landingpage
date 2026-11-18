@@ -180,3 +180,10 @@
 }
 
 /* Keep the photographic stage filling the viewport throughout its scroll range. */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .product-photo {
+    transition: none
+  }
+}

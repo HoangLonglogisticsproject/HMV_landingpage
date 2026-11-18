@@ -751,3 +751,9 @@
     grid-template-columns: minmax(0, 1fr)
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .desk-choice, .desk-explore, .desk-panel-toggle svg {
+    transition: none
+  }
+}

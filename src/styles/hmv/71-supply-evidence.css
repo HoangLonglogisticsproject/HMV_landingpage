@@ -178,3 +178,9 @@
     aspect-ratio: 3/4
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .supply-evidence-zoom {
+    transition: none
+  }
+}

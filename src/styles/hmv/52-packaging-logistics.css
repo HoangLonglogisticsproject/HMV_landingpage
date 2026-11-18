@@ -340,4 +340,7 @@
   .stage-media img {
     transition: none
   }
+  .pack-card-media img, .pack-lightbox-close {
+    transition: none;
+  }
 }

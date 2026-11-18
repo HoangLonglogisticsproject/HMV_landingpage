@@ -543,4 +543,7 @@
   .nav-group>a::after {
     transition: none
   }
+  .nav-group>a, .rfq-fields input, .rfq-fields select, .rfq-fields textarea {
+    transition: none
+  }
 }

@@ -207,8 +207,8 @@
   margin: 0
 }
 
-.living-tip-sub {
-  font-size: 11px !important;
+.living-tip .living-tip-sub {
+  font-size: 11px;
   opacity: .75
 }
 
@@ -279,6 +279,10 @@
   }
 
   .living-tip {
+    animation: none
+  }
+
+  .living-hub-dot {
     animation: none
   }
 }

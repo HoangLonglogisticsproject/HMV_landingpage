@@ -255,4 +255,7 @@
   .commodity img {
     transition: none
   }
+  .journey-sticky li {
+    transition: none
+  }
 }

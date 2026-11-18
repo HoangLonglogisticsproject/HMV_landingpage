@@ -48,5 +48,5 @@
   gap: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--brand) !important;
+  color: var(--brand);
 }
