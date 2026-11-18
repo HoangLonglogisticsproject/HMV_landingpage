@@ -12,9 +12,9 @@ intent is statically clear.
 | | Count |
 |---|---|
 | Starting total | 259 |
-| Current total | 173: all CSS; JS/TS fixed, pending the next analysis of `main` |
-| Resolved | 86 |
-| Remaining | 173 |
+| Current total | 0 in the local checks; Sonar confirms on the next analyses |
+| Resolved | 259 |
+| Remaining | 0 |
 
 Read on 2026-11-18.
 
@@ -33,11 +33,11 @@ Security hotspots: 0. Vulnerabilities: 0.
 |---|---|---|---|---|
 | `javascript:S3403` | Bug | `===` between types the analyzer sees as dissimilar | 10 | 0 |
 | `javascript:S9383` | Bug | Unhandled promise | 1 | 0 |
-| `css:S9423` | Smell | `!important` | 92 | 92 |
-| `css:S7924` | Smell | Text contrast | 28 | 28 |
-| `css:S9440` | Smell | Motion without reduced-motion handling | 21 | 21 |
-| `css:S4666` | Smell | Duplicate selector | 19 | 19 |
-| `css:S9449` | Smell | `transition: all` | 13 | 13 |
+| `css:S9423` | Smell | `!important` | 92 | 0 |
+| `css:S7924` | Smell | Text contrast | 28 | 0 |
+| `css:S9440` | Smell | Motion without reduced-motion handling | 21 | 0 |
+| `css:S4666` | Smell | Duplicate selector | 19 | 0 |
+| `css:S9449` | Smell | `transition: all` | 13 | 0 |
 | `javascript:S6479` | Smell | Array index as React key | 12 | 0 |
 | `javascript:S6819` | Smell | ARIA role instead of a native element | 9 | 0 |
 | `javascript:S1607` | Smell | Skipped test without a reason | 9 | 0 |
@@ -112,3 +112,62 @@ Each batch is one or more commits in PR #29, with its decisions recorded here.
   - The header mega menu became `SupplyChainMenu`, made of `NavGroup`s. The rendered header is byte-identical with
     every group expanded.
   - Three views are split into their page sections. Their prerendered HTML is identical.
+
+### CSS (173 resolved)
+
+Each change was verified on the rendered site. Two builds were served side by side and the computed style of every
+element (with ::before and ::after) was compared:
+- every page, in EN and VI, at 1440, 768 and 390 px;
+- the interactive states: open menus, drawers, dialogs, the Trade Desk, hover;
+- for the header, the full and page-scoped headers at ten widths from 390 to 1440 px, in normal and reduced motion.
+
+- **`transition: all` (13).** Each names the properties its states change, with the same timing.
+- **Reduced motion (21).**
+  - Each module stops its own transitions and animations under `prefers-reduced-motion`, after the rules it overrides.
+  - The global reset in `00` therefore needs no `!important`: unlayered, it still beats every Tailwind utility.
+- **Contrast (28).**
+  - 12 already passed in the rendered page; the analyzer reads translucent backgrounds as opaque. Each now uses the
+    opaque color it renders as.
+  - 15 failed and take the next darker tone of their hue. The table below lists them.
+- **Dead CSS.** 2,918 lines are removed. Every class they name is absent from the source, including the run-time class
+  families, and from the rendered DOM of every sitemap URL in every state. The computed styles of all 19,524 elements
+  are unchanged. The CSS bundle went from 171.9 kB to 134.5 kB (32.5 to 26.4 kB gzip).
+  - Earlier homepage generations: farm journey, farm art, cinematic.
+  - The former compliance layout.
+  - Old header pieces and mega-menu panels.
+  - `.stage-num-badge`.
+- **Duplicate selectors (19).**
+  - The dead CSS removal took some.
+  - The 14 left merged into the first occurrence, so the reduced-motion and breakpoint rules after it still win.
+- **`!important` (92).**
+  - 30 went with the dead CSS.
+  - Of the 62 left, 58 won no conflict: they overrode shadcn/Tailwind utilities, which unlayered CSS already beats, or a
+    rule that no longer exists. They are removed.
+  - The global reduced-motion reset is no longer needed (see above).
+  - 3 won a conflict against a more specific rule. Each is now written as the state or part of the element it styles:
+    - `.nav-center>a.nav-active`
+    - `.section-heading-center .team-intro-lead`
+    - `.living-tip .living-tip-sub`
+  - Removing the header's `!important` also fixed a reduced-motion bug: the Trade Desk button's `!important`
+    transition had beaten every reduced-motion rule.
+
+#### Intentional color changes (contrast)
+
+The text, or the white text's background, takes the next darker tone of its hue:
+
+| Selector | Before | After | Contrast |
+|---|---|---|---|
+| `.badge-cyan` (supply chain wind badge) | `#0284c7` on `rgba(2, 132, 199, .12)` | `#0369a1` on `#d8eaf6` | 3.32 → 4.81 |
+| `.pillar-pill-cyan` | `#0284c7` on `rgba(2, 132, 199, .1)` | `#0369a1` on `#e6f3f9` | 3.62 → 5.24 |
+| `.pillar-pill-green:hover` | white on `#10b981` | white on `#047857` | 2.54 → 5.48 |
+| `.pillar-pill-cyan:hover` | white on `#0284c7` | white on `#0369a1` | 4.10 → 5.93 |
+| `.log-nav-pill.highlight:hover` | white on `#059669` | white on `#047857` | 3.77 → 5.48 |
+| `.log-sub-badge.danger` | `#dc2626` | `#b91c1c` | 4.07 → 5.45 |
+| `.log-sub-badge.primary` | `#059669` | `#047857` | 3.30 → 4.80 |
+| `.log-sub-badge.cyan` | `#0284c7` | `#0369a1` | 3.62 → 5.24 |
+| `.dg-icon-box.airsea` (icon) | `#0284c7` | `#0369a1` | 3.51 → 5.09 |
+| `.dg-icon-box.special` (icon) | `#dc2626` | `#b91c1c` | 4.14 → 5.55 |
+| `.dg-icon-box.general` (icon) | `#059669` | `#047857` | 3.37 → 4.91 |
+| `.cb-tag` | white on `#10b981` | white on `#047857` | 2.54 → 5.48 |
+| `.vm-mission-card .vm-card-tag` | `#0284c7` | `#0369a1` | 3.70 → 5.36 |
+| `.leader-exp-badge` | `#059669` | `#047857` | 3.43 → 5.00 |
