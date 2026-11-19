@@ -32,29 +32,6 @@ const render = View => act(() => root.render(h(View)));
 const texts = selector => [...container.querySelectorAll(selector)].map(e => e.textContent);
 
 for (const { name, View, c, lang, locale } of PAGES) {
-  test(`${name}: one heading, the hero, the Intertek rows, the workflow and the RFQ checklist, from its copy`, async () => {
-    await render(View);
-    assert.deepEqual(texts('h1'), [c.hero.h1]);
-    assert.deepEqual(texts('.money-trust li'), c.hero.trust);
-    assert.deepEqual(texts('#quality .landing-table tbody tr').map(String), c.quality.rows.map(([n, value]) => n + value));
-    assert.deepEqual(texts('.landing-steps strong'), c.workflow.steps.map(s => s.title));
-    assert.deepEqual(texts('.scoped-rfq-card li'), c.rfq.items);
-    assert.equal(container.querySelector('#scoped-rfq-title').textContent, c.rfq.title.join(''));
-    assert.ok(container.querySelector('#capability .scoped-network').textContent.includes(c.network.text));
-  });
-
-  // The photographs the EN/VI page shows, in this page's language: after the buyer value, before the quality results.
-  test(`${name}: the supply evidence between the buyer section and the quality results`, async () => {
-    await render(View);
-    const section = container.querySelector('section#supply-evidence');
-    assert.equal(section.previousElementSibling.id, 'capability');
-    assert.equal(section.nextElementSibling.id, 'quality');
-    assert.equal(section.querySelector('h2').textContent, cassavaEvidence.copy[lang].title);
-    const images = [...section.querySelectorAll('img')].map(i => [i.getAttribute('src'), i.alt, i.getAttribute('loading')]);
-    assert.deepEqual(images, cassavaEvidence.photos.map(p => [p.src, p.alt[lang], 'lazy']));
-    assert.deepEqual(texts('#supply-evidence figcaption'), cassavaEvidence.photos.map(p => p.caption[lang]));
-  });
-
   test(`${name}: section links to this page; the page in English, Vietnamese, Chinese and Korean, this one current`, async () => {
     await render(View);
     for (const [id, label] of c.nav.items) {
@@ -86,6 +63,112 @@ for (const { name, View, c, lang, locale } of PAGES) {
     assert.deepEqual(opened, ['nav', 'hero', 'rfq'].map(at => ({ product: 'dried-cassava-chips', source: `${lang}_${at}` })));
   });
 }
+
+// The Korean page keeps the shared sections (CassavaScoped); the Chinese page has its own (CassavaProcurement), below.
+test('Korean: one heading, the hero, the Intertek rows, the workflow and the RFQ checklist, from its copy', async () => {
+  await render(CassavaKoreaView);
+  const c = cassavaKorea;
+  assert.deepEqual(texts('h1'), [c.hero.h1]);
+  assert.deepEqual(texts('.money-trust li'), c.hero.trust);
+  assert.deepEqual(texts('#quality .landing-table tbody tr').map(String), c.quality.rows.map(([n, value]) => n + value));
+  assert.deepEqual(texts('.landing-steps strong'), c.workflow.steps.map(s => s.title));
+  assert.deepEqual(texts('.scoped-rfq-card li'), c.rfq.items);
+  assert.equal(container.querySelector('#scoped-rfq-title').textContent, c.rfq.title.join(''));
+  assert.ok(container.querySelector('#capability .scoped-network').textContent.includes(c.network.text));
+});
+
+// The photographs the EN/VI page shows, in Korean: after the buyer value, before the quality results.
+test('Korean: the supply evidence between the buyer section and the quality results', async () => {
+  await render(CassavaKoreaView);
+  const section = container.querySelector('section#supply-evidence');
+  assert.equal(section.previousElementSibling.id, 'capability');
+  assert.equal(section.nextElementSibling.id, 'quality');
+  assert.equal(section.querySelector('h2').textContent, cassavaEvidence.copy.ko.title);
+  const images = [...section.querySelectorAll('img')].map(i => [i.getAttribute('src'), i.alt, i.getAttribute('loading')]);
+  assert.deepEqual(images, cassavaEvidence.photos.map(p => [p.src, p.alt.ko, 'lazy']));
+  assert.deepEqual(texts('#supply-evidence figcaption'), cassavaEvidence.photos.map(p => p.caption.ko));
+});
+
+const zh = cassavaChina;
+const ZH_SECTIONS = ['overview', 'applications', 'why-hmv', 'supply-evidence', 'quality', 'capability', 'workflow', 'faq', 'rfq'];
+const labelOf = section => container.querySelector(`#${section.getAttribute('aria-labelledby')}`);
+
+test('Chinese: one h1; every section in page order, named by its heading; the strip links each one', async () => {
+  await render(CassavaChinaView);
+  assert.deepEqual(texts('h1'), [zh.hero.h1]);
+  const sections = [...container.querySelectorAll('main section')];
+  assert.deepEqual(sections.map(s => s.id), ZH_SECTIONS);
+  for (const section of sections) {
+    assert.equal(labelOf(section).closest('section'), section, section.id);
+    assert.equal(labelOf(section).tagName, section.id === 'overview' ? 'H1' : 'H2', section.id);
+  }
+  assert.deepEqual(sections.slice(1).map(s => labelOf(s).textContent), [
+    zh.applications.title, zh.why.title, cassavaEvidence.copy.zh.title, zh.quality.title, zh.network.title, zh.workflow.title, zh.faq.title, zh.rfq.title,
+  ]);
+  // The strip below the hero: a link to each section, in page order.
+  const strip = container.querySelector(`nav[aria-label="${zh.sections.label}"]`);
+  assert.equal(strip.parentElement.previousElementSibling.id, 'overview');
+  assert.deepEqual([...strip.querySelectorAll('a')].map(a => [a.getAttribute('href'), a.textContent]), zh.sections.items.map(([id, label]) => [`#${id}`, label]));
+});
+
+test('Chinese hero: the trust points, the network figures and the Intertek sample reference, each qualified', async () => {
+  await render(CassavaChinaView);
+  const hero = container.querySelector('#overview');
+  assert.deepEqual([...hero.querySelectorAll('ul li')].map(li => li.textContent), zh.hero.trust);
+  assert.deepEqual([...hero.querySelectorAll('dd')].map(dd => dd.textContent), [...zh.figures.items.map(f => f.value), ...zh.intertek.results.map(([, v]) => v)]);
+  for (const text of [zh.hero.lead, zh.figures.short, zh.intertek.report, zh.intertek.caption]) assert.ok(hero.textContent.includes(text), text);
+});
+
+test('Chinese quality: four result cards, the full Intertek table, the source and how to read a sample result', async () => {
+  await render(CassavaChinaView);
+  const quality = container.querySelector('#quality');
+  assert.deepEqual([...quality.querySelectorAll('dl dd')].map(dd => dd.textContent), zh.quality.highlights.map(m => m.value));
+  assert.deepEqual([...quality.querySelectorAll('thead th')].map(th => [th.textContent, th.scope]), zh.quality.head.map(h => [h, 'col']));
+  assert.deepEqual([...quality.querySelectorAll('tbody tr')].map(tr => [tr.querySelector('th[scope=row]').textContent, tr.querySelector('td').textContent]), zh.quality.rows);
+  for (const text of [zh.quality.note, zh.quality.source, zh.quality.report, ...zh.quality.explain.points]) assert.ok(quality.textContent.includes(text), text);
+  // No report file is linked: the repository has none to show.
+  assert.equal(quality.querySelector('a'), null);
+});
+
+test('Chinese supply evidence: the HMV photographs between why HMV and quality, lazy, each opening larger', async () => {
+  // jsdom has no showModal() or close(): the preview's dialog needs them (tests/next/supply-evidence.spec.js uses the
+  // browser's).
+  HTMLDialogElement.prototype.showModal ??= function showModal() {
+    this.open = true;
+  };
+  HTMLDialogElement.prototype.close ??= function close() {
+    this.open = false;
+  };
+  await render(CassavaChinaView);
+  const section = container.querySelector('section#supply-evidence');
+  assert.equal(section.previousElementSibling.id, 'why-hmv');
+  assert.equal(section.nextElementSibling.id, 'quality');
+  const images = [...section.querySelectorAll('img')].map(i => [i.getAttribute('src'), i.alt, i.getAttribute('loading')]);
+  assert.deepEqual(images, cassavaEvidence.photos.map(p => [p.src, p.alt.zh, 'lazy']));
+  assert.deepEqual(texts('#supply-evidence figcaption'), ['集货仓储与堆放', '装柜及出运准备', '木薯干片原料近景']);
+  const frames = section.querySelectorAll('button.supply-evidence-frame');
+  assert.equal(frames.length, 3);
+  await act(() => frames[1].click());
+  const dialog = section.querySelector('dialog.supply-evidence-preview');
+  assert.equal(dialog.getAttribute('aria-label'), cassavaEvidence.photos[1].caption.zh);
+  assert.equal(dialog.querySelector('img').alt, cassavaEvidence.photos[1].alt.zh);
+});
+
+test('Chinese capability, process, questions and call to action, from the copy', async () => {
+  await render(CassavaChinaView);
+  const capability = container.querySelector('#capability');
+  assert.deepEqual([...capability.querySelectorAll('dd')].map(dd => dd.textContent), zh.figures.items.map(f => f.value));
+  for (const text of [zh.network.text, zh.figures.note, zh.network.regions.label, ...zh.network.role.points]) assert.ok(capability.textContent.includes(text), text);
+  assert.deepEqual([...capability.querySelectorAll('ol li')].map(li => li.textContent), zh.network.regions.items.map(([name, role]) => name + role));
+  assert.deepEqual(texts('#workflow ol > li h3'), zh.workflow.steps.map(s => s.title));
+  assert.deepEqual(texts('#workflow ol > li p'), zh.workflow.steps.map(s => s.text));
+  // Native disclosure widgets, closed; the answers are in the markup all the same.
+  const details = [...container.querySelectorAll('#faq details')];
+  assert.deepEqual(details.map(d => [d.open, d.querySelector('summary').textContent, d.querySelector('p').textContent]), zh.faq.items.map(i => [false, i.q, i.a]));
+  assert.deepEqual([...container.querySelectorAll('#faq details a')].map(a => [a.getAttribute('href'), a.textContent]), zh.faq.items.filter(i => i.link).map(i => i.link));
+  assert.deepEqual(texts('#rfq li'), zh.rfq.items.map(([label, hint]) => label + hint));
+  assert.ok(container.querySelector('#rfq').textContent.includes(zh.rfq.note));
+});
 
 // Manufacturers first: the use cases follow the hero, the network figures come after the buyer value.
 test('Korean: the hero panel shows what a factory buys; the use cases come next; the network figures after the buyer value', async () => {

@@ -32,9 +32,9 @@ const COPY = {
     close: 'Đóng ảnh phóng to',
   },
   zh: {
-    title: 'HMV 供应网络中的产品、集货与出运实景',
+    title: '集货与出运实景',
     alt: ['钢结构屋顶下的大堆木薯干片，前景是手中的一把木薯干片', '已装入木薯干片的敞开集装箱，箱门处码放编织袋', '木薯干片特写，白色切面与褐色外皮'],
-    captions: ['大宗木薯干片供应实景', '装柜及出运准备', '木薯干片产品实拍'],
+    captions: ['集货仓储与堆放', '装柜及出运准备', '木薯干片原料近景'],
     zoom: '查看大图',
     close: '关闭大图',
   },
@@ -47,8 +47,8 @@ const get = async (request, path) => {
 const FILES = ['cassava-bulk-stock.webp', 'cassava-container-loading.webp', 'dried-cassava-chips-detail.webp'];
 // The file behind a next/image URL, without its build hash.
 const asset = src => new URL(src, 'http://x').searchParams.get('url')?.split('/').pop()?.replace(/\.[\w-]{8,}\./, '.');
-// The buyer section before the evidence: its eyebrow, or its id on the Chinese page.
-const BUYER_SECTION = { en: 'WHY BUYERS WORK WITH HMV', vi: 'VÌ SAO NGƯỜI MUA CHỌN HMV', zh: 'id="capability"' };
+// The buyer section before the evidence: its eyebrow, or its id on the Chinese page (why HMV).
+const BUYER_SECTION = { en: 'WHY BUYERS WORK WITH HMV', vi: 'VÌ SAO NGƯỜI MUA CHỌN HMV', zh: 'id="why-hmv"' };
 
 test('EN, VI and Chinese cassava pages: the same photographs, with their language\'s copy, alt text and captions', async ({ request }) => {
   const files = {};
@@ -60,10 +60,11 @@ test('EN, VI and Chinese cassava pages: the same photographs, with their languag
     expect(start, lang).toBeGreaterThan(buyer);
     expect(quality, lang).toBeGreaterThan(start);
     const evidence = html.slice(start, quality);
-    expect(evidence).toContain(`<h2>${COPY[lang].title.replace("'", '&#x27;')}</h2>`);
+    // The Chinese page's heading carries its id, for the section's aria-labelledby.
+    expect([...evidence.matchAll(/<h2\b[^>]*>(.*?)<\/h2>/g)].map(m => m[1]), lang).toEqual([COPY[lang].title.replace("'", '&#x27;')]);
     const images = tags(evidence, 'img');
     expect(images.map(i => i.alt), lang).toEqual(COPY[lang].alt);
-    expect([...evidence.matchAll(/<figcaption>(.*?)<\/figcaption>/g)].map(m => m[1]), lang).toEqual(COPY[lang].captions);
+    expect([...evidence.matchAll(/<figcaption\b[^>]*>(.*?)<\/figcaption>/g)].map(m => m[1]), lang).toEqual(COPY[lang].captions);
     // Each photograph is the button that opens it larger (components/common/Lightbox ZoomTrigger).
     const frames = tags(evidence, 'button').filter(b => b.class?.split(' ').includes('supply-evidence-frame'));
     expect(frames.map(b => [b.type, b.title]), lang).toEqual(FILES.map(() => ['button', COPY[lang].zoom]));
@@ -72,7 +73,7 @@ test('EN, VI and Chinese cassava pages: the same photographs, with their languag
       expect(Number(img.width) * Number(img.height), img.alt).toBeGreaterThan(0);
       expect(img.loading, img.alt).toBe('lazy');
       expect(img.fetchpriority, img.alt).toBeUndefined();
-      expect(img.sizes, img.alt).toMatch(/^\(max-width: 600px\)/);
+      expect(img.sizes, img.alt).toMatch(/^\(max-width: \d+px\) calc\(100vw - \d+px\)/);
     }
     files[lang] = images.map(i => asset(i.src));
     // No preload of an evidence photograph.

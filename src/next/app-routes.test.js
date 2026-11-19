@@ -28,7 +28,7 @@ test('/zh-cn/cassava-chips: the Chinese title and the cassava hreflang set; the 
   assert.equal(title, '越南木薯干片供应商与工厂批量采购方案');
   assert.match(alternates.canonical, /\/zh-cn\/cassava-chips$/);
   assert.deepEqual(Object.keys(alternates.languages), LANGUAGES);
-  assert.match(renderToStaticMarkup(h(ZhCassavaPage)), /<h1 id="scoped-title">由 HMV Global 管理的木薯干片批量供应方案<\/h1>/);
+  assert.match(renderToStaticMarkup(h(ZhCassavaPage)), /<h1 id="scoped-title"[^>]*>由 HMV Global 管理的木薯干片批量供应方案<\/h1>/);
 });
 
 test('/ko/tapioca-chips: the Korean title and the cassava hreflang set; the page renders the Korean view', () => {
