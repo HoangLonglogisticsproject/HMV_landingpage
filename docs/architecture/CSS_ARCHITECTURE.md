@@ -51,8 +51,11 @@ migrate the styling to utilities and remove the legacy rule.
 - The legacy modules are not extended with new features. A small fix to UI they already style can stay in its module;
   a larger change is the moment to migrate that part (Phase 3).
 - When a new component genuinely needs authored CSS (below), prefer a small CSS Module colocated with the component or
-  feature (`Component.module.css`) over feature rules in `index.css`. This is an escape hatch, not the default. None
-  exists yet; Vite and Next.js both support CSS Modules without configuration.
+  feature (`Component.module.css`) over feature rules in `index.css`. This is an escape hatch, not the default. Vite
+  and Next.js both support CSS Modules without configuration. The first one, `views/products/CassavaProcurement.module.css`,
+  holds a single class: the legacy element rules on `h1`–`h3` (weight; size and line height of `h2` and `h3`) are
+  unlayered, so they beat any utility on a heading; the class sets those three properties to `revert-layer`, which
+  hands them back to the heading's utilities. It goes once those element rules are migrated.
 - Nothing new goes into `hmv.css` or the legacy modules.
 
 ## When authored CSS is right

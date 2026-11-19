@@ -34,8 +34,8 @@ export const cassavaEvidence = {
     },
     zh: {
       eyebrow: '真实供应记录',
-      title: 'HMV 供应网络中的产品、集货与出运实景',
-      text: '以下照片记录 HMV 供应网络中的木薯干片、集货及出运准备情况。实际原产地、可供数量及交付条件以每个商业供应方案为准。',
+      title: '集货与出运实景',
+      text: '以下为 HMV 供应网络中的集货、仓储与装运参考照片。实际原产地、可供数量及交付条件按每位买方的需求确认。',
       note: '照片由 HMV 提供。',
       zoom: '查看大图',
       close: '关闭大图',
@@ -65,7 +65,7 @@ export const cassavaEvidence = {
       caption: {
         en: 'Bulk dried cassava chips — real supply evidence',
         vi: 'Sắn lát khô số lượng lớn — hình ảnh nguồn hàng thực tế',
-        zh: '大宗木薯干片供应实景',
+        zh: '集货仓储与堆放',
         ko: '대량 타피오카 칩 — 실제 공급 현장',
       },
     },
@@ -101,7 +101,7 @@ export const cassavaEvidence = {
       caption: {
         en: 'Dried cassava chips — product detail',
         vi: 'Cận cảnh sắn lát khô',
-        zh: '木薯干片产品实拍',
+        zh: '木薯干片原料近景',
         ko: '타피오카 칩 제품 실사',
       },
     },

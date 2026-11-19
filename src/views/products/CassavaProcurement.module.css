@@ -1,0 +1,10 @@
+/* The legacy stylesheet's element rules (styles/hmv/00-legacy-foundation.css: the weight of h1–h3, the size and line
+   height of h2 and h3) are unlayered, so they outrank every Tailwind utility on a heading, whatever its specificity
+   (docs/architecture/CSS_ARCHITECTURE.md, B). This class outranks them by specificity and hands the three properties
+   back to the layered styles (`revert-layer`): the heading's own utilities then apply. Delete it once those legacy
+   rules are migrated. */
+.heading {
+  font-size: revert-layer;
+  line-height: revert-layer;
+  font-weight: revert-layer;
+}

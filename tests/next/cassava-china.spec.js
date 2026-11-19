@@ -29,30 +29,49 @@ test('server HTML: a zh-CN document with the Chinese title, description, heading
   const body = text(html);
   for (const copy of [
     'HMV GLOBAL · 工业原料批量供应管理',
-    'HMV Global 面向饲料厂、淀粉加工厂和生物乙醇生产企业，提供持续、可执行的木薯干片批量供应方案；同时服务进口商及大宗批发采购。',
-    '工厂原料采购', '月度批量供应', '按买方要求协调质量', '区域供应网络',
+    'HMV Global 面向饲料厂、淀粉加工厂和生物乙醇生产企业提供可执行的木薯干片批量供应方案，同时服务进口商及大宗批发采购。',
+    '工业原料供应', '月度批量供应', '按买方要求协调质量', '区域供应网络',
     'HMV GLOBAL 供应网络能力', 'HMV 供应网络能力参考', '50,000 吨/月', '10,000 吨/月', '150 集装箱/月', '250 集装箱/月',
     '过境出口组织能力', '砂和二氧化硅（Sand & silica）',
-    '并非对每一位买方的供货承诺',
-    '为什么工厂采购团队选择 HMV', '不只是找到货源，而是由 HMV 管理整套供应执行',
-    '供应网络', '质量要求协调', '集货与装运协调', '贸易执行',
-    'HMV 的区域供应网络覆盖越南及柬埔寨。具体原产地、规格、可供数量及商务条件均按每个供应方案和批次确认。',
-    '以下结果来自特定送检样品，仅作为质量参考，并不代表所有供应批次的固定规格。最终批次要求以双方确认的供应方案及合同为准。',
-    'Intertek 越南分析报告 AGRIVIETNAM2026-1700',
+    '并非对每一位买方的供货承诺', '并非对单一买方的供货承诺',
+    '主要应用领域', '生物乙醇生产', '饲料原料', '淀粉加工', '取决于买方的配方设计与原料策略',
+    '为什么选择 HMV Global', '多产地组织', '灵活的月度供应', '质量匹配', '出口与交付执行',
+    '集货与出运实景',
+    '质量参考', '送检样品结果，仅作采购评估参考；实际供货规格以双方确认的供应方案及合同为准。',
+    'Intertek 越南分析报告 AGRIVIETNAM2026-1700', '如何理解本次样品结果？',
     '71.1%', '11.55%', '2.99%', '1.86%', '0.45%', '未检出', '0.17 mg/kg', '0.28 mg/kg', '<0.02 mg/kg',
-    '饲料生产', '淀粉加工', '生物乙醇', '从采购需求到交付',
-    '确认采购需求', '组织适配货源', '取样与质量确认', '批次集货', '装运协调', '单证与交付',
-    '让 HMV 为您的工厂制定木薯干片供应方案', 'HMV Trade Desk 目前为英文界面',
-    '关注中国木薯市场',
+    '供应能力与网络',
+    'HMV 的区域供应网络覆盖越南及柬埔寨。具体原产地、规格、可供数量及商务条件均按每个供应方案和批次确认。',
+    '合作与采购流程', '提交需求', '匹配货源', '样品与确认', '商务协商', '集货与装运', '交付与跟进',
+    '常见问题', '木薯干片适合哪些工业用途？', '采购木薯干片通常关注哪些质量指标？', '木薯干片的淀粉含量如何确认？',
+    'HMV 是否支持大批量月度采购？', '可以根据买方规格协调供应吗？', '越南与柬埔寨货源如何选择？',
+    '获取木薯干片采购方案', 'HMV Trade Desk 目前为英文界面',
   ]) expect(body, copy).toContain(copy);
   // Factory buyers lead; importers and wholesalers follow.
   expect(body.indexOf('饲料厂')).toBeLessThan(body.indexOf('进口商'));
   // The regional statement (Vietnam and Cambodia) is below the buyer section, not in the hero.
-  const hero = html.slice(html.indexOf('id="overview"'), html.indexOf('id="capability"'));
+  const hero = html.slice(html.indexOf('id="overview"'), html.indexOf('aria-label="本页目录"'));
+  expect(hero).toContain('由 HMV Global 管理的木薯干片批量供应方案');
   expect(hero).not.toContain('覆盖越南及柬埔寨');
-  expect(body.indexOf('贸易执行')).toBeLessThan(body.indexOf('覆盖越南及柬埔寨'));
+  expect(body.indexOf('出口与交付执行')).toBeLessThan(body.indexOf('覆盖越南及柬埔寨'));
   // No specification limits beyond the sample results.
   expect(body).not.toMatch(/[≤≥]/);
+});
+
+test('server HTML: the sections in page order, each a labelled section with one h2; the strip and FAQ answers in it', async ({ request }) => {
+  const html = await get(request);
+  const sections = tags(html, 'section');
+  expect(sections.map(s => s.id)).toEqual(['overview', 'applications', 'why-hmv', 'supply-evidence', 'quality', 'capability', 'workflow', 'faq', 'rfq']);
+  for (const s of sections) expect(html, s.id).toMatch(new RegExp(`<h[12] id="${s['aria-labelledby']}"`));
+  // The strip below the hero: real links to each section, in page order.
+  const strip = html.slice(html.indexOf('aria-label="本页目录"'), html.indexOf('id="applications"'));
+  expect([...strip.matchAll(/href="#([\w-]+)"/g)].map(m => m[1])).toEqual(['overview', 'applications', 'supply-evidence', 'quality', 'capability', 'workflow', 'faq']);
+  // Closed disclosure widgets whose answers are server-rendered, crawlable text.
+  expect(html.match(/<details\b/g)).toHaveLength(6);
+  expect(html).not.toMatch(/<details[^>]*\bopen\b/);
+  expect(text(html)).toContain('本页所示 71.1% 为一份 Intertek 送检样品的结果，并非固定批次规格');
+  // No FAQ structured data: FAQ rich results are limited to government and health sites, so it would add markup only.
+  expect(html).not.toContain('FAQPage');
 });
 
 test('header: the real HMV logo, the section links, and this page in English, Vietnamese, Chinese and Korean', async ({ request }) => {
@@ -70,7 +89,7 @@ test('header: the real HMV logo, the section links, and this page in English, Vi
     ['ko', 'ko', '/ko/tapioca-chips', undefined],
   ]);
   expect(language.some(a => /nofollow/.test(a.rel ?? ''))).toBe(false);
-  for (const [href, label] of [['#overview', '产品概览'], ['#capability', '供应能力'], ['#quality', '质量参考'], ['#workflow', '供应流程']]) {
+  for (const [href, label] of [['#overview', '产品概览'], ['#quality', '质量参考'], ['#capability', '供应能力'], ['#workflow', '采购流程']]) {
     expect(html).toContain(`<a href="${href}">${label}</a>`);
   }
   // Not the site navigation and footer, whose links lead to pages without a Chinese version.
@@ -95,7 +114,7 @@ test('every link works: section anchors exist on the page, every other link answ
 
 test('the call to action opens the English HMV Trade Desk with dried cassava chips', async ({ page }) => {
   await page.goto(PATH);
-  // Two calls to action share the label: the hero's and the RFQ section's.
+  // Two calls to action share the label: the hero's and the closing one's.
   await expect(page.getByRole('button', { name: '向 HMV 提交采购需求' })).toHaveCount(2);
   await page.getByRole('button', { name: '向 HMV 提交采购需求' }).first().click();
   const desk = page.getByRole('dialog', { name: 'HMV Trade Desk' });

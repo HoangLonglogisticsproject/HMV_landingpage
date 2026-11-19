@@ -2,11 +2,13 @@
 // (i18n/routes.js PAGE_LOCALES): written for mainland-China factory procurement first (feed, starch, bioethanol), then
 // importers and large-volume wholesalers. Rendered by views/products/CassavaChinaView.jsx.
 // Claims are those of the EN/VI cassava page (data/productPages.js): its network figures, its Intertek sample results
-// and its qualifications, translated. No new figures, specifications, certifications, customers or prices. Its
-// supply-evidence photographs and their Chinese captions: data/cassavaEvidence.js.
+// and its qualifications, translated. No new figures, specifications, certifications, customers, prices, stock or lead
+// times. Its supply-evidence photographs and their Chinese captions: data/cassavaEvidence.js.
 import { cassavaDossier } from './productPages.js';
 
 const evidence = cassavaDossier('zh');
+// The English result names, beside the Chinese ones on the quality cards: the Intertek report is in English.
+const english = cassavaDossier('en').results;
 
 const card = (title, text) => ({ title, text });
 
@@ -15,25 +17,40 @@ export const cassavaChina = {
     title: '越南木薯干片供应商与工厂批量采购方案',
     description: 'HMV Global 面向饲料厂、淀粉加工厂和生物乙醇企业提供木薯干片批量供应，按目的地、月度采购量和质量要求协调货源、取样、集货、单证及交付。',
   },
+  // The header's section links: the four a buyer looks for first.
   nav: {
     label: '页面导航',
-    // Section ids on this page.
-    items: [['overview', '产品概览'], ['capability', '供应能力'], ['quality', '质量参考'], ['workflow', '供应流程']],
+    items: [['overview', '产品概览'], ['quality', '质量参考'], ['capability', '供应能力'], ['workflow', '采购流程']],
+  },
+  // The strip below the hero: every section of the page, in page order.
+  sections: {
+    label: '本页目录',
+    items: [
+      ['overview', '概览'],
+      ['applications', '应用领域'],
+      ['supply-evidence', '实景与装运'],
+      ['quality', '质量参考'],
+      ['capability', '供应能力'],
+      ['workflow', '采购流程'],
+      ['faq', '常见问题'],
+    ],
   },
   // The HMV Trade Desk has no Chinese version yet: every call to action opens it in English, and says so.
   tradeDesk: '向 HMV 发送采购询盘（HMV Trade Desk 为英文界面）',
   hero: {
     eyebrow: 'HMV GLOBAL · 工业原料批量供应管理',
     h1: '由 HMV Global 管理的木薯干片批量供应方案',
-    lead: 'HMV Global 面向饲料厂、淀粉加工厂和生物乙醇生产企业，提供持续、可执行的木薯干片批量供应方案；同时服务进口商及大宗批发采购。我们根据目的地、月度采购量和质量要求，统筹货源组织、取样、集货、单证与交付。',
+    lead: 'HMV Global 面向饲料厂、淀粉加工厂和生物乙醇生产企业提供可执行的木薯干片批量供应方案，同时服务进口商及大宗批发采购。我们按目的地、月度采购量和质量要求，统筹货源、取样、集货、单证与交付。',
     cta: '向 HMV 提交采购需求',
     secondary: '查看质量参考',
-    trust: ['工厂原料采购', '月度批量供应', '按买方要求协调质量', '区域供应网络'],
+    trust: ['工业原料供应', '月度批量供应', '按买方要求协调质量', '区域供应网络'],
   },
   figures: {
     eyebrow: 'HMV GLOBAL 供应网络能力',
     title: 'HMV 供应网络能力参考',
     items: evidence.figures,
+    // The hero panel's qualification; the full one is in the supply network section.
+    short: '供应网络能力参考，并非对单一买方的供货承诺。',
     note: '以上为 HMV Global 供应网络的整体能力数据，仅作能力参考，并非对每一位买方的供货承诺。您订单的供货量以双方确认的供应方案及合同为准。',
   },
   intertek: {
@@ -42,65 +59,123 @@ export const cassavaChina = {
     report: evidence.report,
     caption: '送检样品结果 · 非固定批次规格',
   },
-  audience: {
-    eyebrow: '为什么工厂采购团队选择 HMV',
-    title: '不只是找到货源，而是由 HMV 管理整套供应执行',
+  applications: {
+    title: '主要应用领域',
+    text: '面向生物乙醇、饲料与淀粉加工企业的工业原料采购。',
     items: [
-      card('供应网络', 'HMV 统筹多个供应点，以匹配工厂的月度采购量和交付计划，减少整个采购方案对单一来源的依赖。'),
-      card('质量要求协调', '在承诺供货前先对齐买方的质量要求，并按每个供应方案协调取样、分析和确认。'),
-      card('集货与装运协调', 'HMV 根据采购规模组织批次集货及装运安排，为工厂持续性、大宗原料采购提供执行支持。'),
-      card('贸易执行', '由 HMV 统一协调商务方案、单证、订单跟进及交付计划，减少采购团队在多个环节之间重复协调。'),
+      {
+        title: '生物乙醇生产',
+        text: '木薯干片可作为乙醇发酵的工业碳水化合物原料。',
+        points: ['重点关注淀粉含量与水分', '重视长期供应的连续性', 'HMV 协调货源组织与供应执行'],
+      },
+      {
+        title: '饲料原料',
+        text: '可作为饲料配方的能量原料之一；实际用途及添加比例取决于买方的配方设计与原料策略。',
+        points: ['关注水分、粗纤维与砂含量', '按月度采购计划批量供应', '规格以商务确认为准'],
+      },
+      {
+        title: '淀粉加工',
+        text: '面向淀粉加工企业的原料采购。',
+        points: ['淀粉含量与批次一致性是关键', '买方规格在商务阶段确认', 'HMV 按约定要求协调取样确认'],
+      },
     ],
   },
-  network: {
-    title: '区域供应网络',
-    text: 'HMV 的区域供应网络覆盖越南及柬埔寨。具体原产地、规格、可供数量及商务条件均按每个供应方案和批次确认。',
+  why: {
+    title: '为什么选择 HMV Global',
+    text: '面向工业买家的供应组织与执行能力。',
+    items: [
+      card('多产地组织', '在越南与柬埔寨协调货源，减少采购方案对单一来源的依赖。'),
+      card('灵活的月度供应', '支持持续性的月度批量采购，按采购计划安排集货与装运。'),
+      card('质量匹配', '对照买方质量要求与样品检测参考，协调取样、分析与确认。'),
+      card('出口与交付执行', '统筹集货、单证与交付协调，减少采购团队的多方沟通。'),
+    ],
   },
   quality: {
-    eyebrow: 'INTERTEK 送检样品结果',
     title: '质量参考',
-    note: '以下结果来自特定送检样品，仅作为质量参考，并不代表所有供应批次的固定规格。最终批次要求以双方确认的供应方案及合同为准。',
+    note: '送检样品结果，仅作采购评估参考；实际供货规格以双方确认的供应方案及合同为准。',
+    // The four results buyers compare first: starch, moisture, raw fiber, sand and silica.
+    highlights: [0, 1, 2, 4].map(i => ({
+      label: evidence.results[i][0].split('（')[0],
+      en: english[i][0],
+      value: evidence.results[i][1],
+    })),
     head: ['指标', '结果'],
     rows: evidence.results,
+    report: evidence.report,
     source: evidence.source,
+    explain: {
+      title: '如何理解本次样品结果？',
+      points: [
+        '这是一份经 Intertek 检测的送检样品结果，仅供采购评估参考。',
+        '它不是每个供应批次的固定规格。',
+        '实际供货要求由 HMV 与买方在供应方案及合同中确认。',
+        'HMV 可按双方约定的质量要求协调货源组织与取样确认。',
+      ],
+    },
   },
-  applications: {
-    eyebrow: '饲料 · 淀粉 · 生物乙醇',
-    title: '主要应用',
-    items: [
-      card('饲料生产', '面向饲料生产企业的大宗原料采购需求。'),
-      card('淀粉加工', '面向淀粉加工企业的原料供应需求。'),
-      card('生物乙醇', '面向生物乙醇生产企业的工业原料采购。'),
+  network: {
+    title: '供应能力与网络',
+    text: 'HMV 的区域供应网络覆盖越南及柬埔寨。具体原产地、规格、可供数量及商务条件均按每个供应方案和批次确认。',
+    // Where each figure comes from, not a map: no route, distance or location beyond the figures' own labels.
+    regions: {
+      label: '供应网络示意（非地图）',
+      items: [['柬埔寨', '货源与集货'], ['越南', '货源与工厂供应'], ['中国 · 广西', '交付参考']],
+    },
+    role: {
+      title: 'HMV 的协调角色',
+      points: ['区域货源组织与协调', '批次集货与装柜协调', '单证与交付执行跟进', '支持长期与月度采购计划'],
+    },
+  },
+  workflow: {
+    title: '合作与采购流程',
+    text: '从采购需求到交付的标准流程。',
+    steps: [
+      card('提交需求', '说明目的地、用途与月度采购量'),
+      card('匹配货源', '按用途与质量要求组织适配产区'),
+      card('样品与确认', '按约定取样、检测并确认指标'),
+      card('商务协商', '确认数量、规格、价格与交付条款'),
+      card('集货与装运', '批次集货、装柜与出运协调'),
+      card('交付与跟进', '单证、交付与后续供应跟进'),
     ],
   },
-  // The EN/VI workflow (data/productPages.js), led by the buyer brief of its RFQ; field inspection and sampling are
-  // one step here.
-  workflow: {
-    eyebrow: '供应流程',
-    title: '从采购需求到交付',
-    steps: [
-      card('确认采购需求', '确认目的地、预计月度采购量及用途。'),
-      card('组织适配货源', '按您的用途选择原料产区。'),
-      card('取样与质量确认', '在产地检查原料，并按约定取样分析。'),
-      card('批次集货', '集中各批次，准备出运。'),
-      card('装运协调', '按您的要求装柜。'),
-      card('单证与交付', '按约定条款办理单证与交付。'),
+  faq: {
+    title: '常见问题',
+    text: '工业买家采购木薯干片时的常见问题。',
+    items: [
+      {
+        q: '木薯干片适合哪些工业用途？',
+        a: '木薯干片主要用作生物乙醇（酒精）生产、饲料原料和淀粉加工的工业原料。具体是否适用取决于买方的工艺、配方与质量要求，HMV 会在商务阶段与买方确认用途和规格。',
+      },
+      {
+        q: '采购木薯干片通常关注哪些质量指标？',
+        a: '工业买家通常关注淀粉含量、水分、粗纤维、灰分、砂和二氧化硅，以及杂质和重金属等指标。各项要求因用途而异，应在供应方案和合同中明确约定；本页的 Intertek 样品结果可作参考。',
+        link: ['#quality', '查看质量参考'],
+      },
+      {
+        q: '木薯干片的淀粉含量如何确认？',
+        a: '淀粉含量按双方约定的取样与检测方式确认。本页所示 71.1% 为一份 Intertek 送检样品的结果，并非固定批次规格；每个供应批次的淀粉要求及检测安排在供应方案及合同中约定。',
+      },
+      {
+        q: 'HMV 是否支持大批量月度采购？',
+        a: '支持。HMV 面向持续性的月度批量采购组织货源、集货与装运。页面所列的供应网络数据为能力参考，并非对单一买方的供货承诺；您的月度供货量以双方确认的供应方案及合同为准。',
+        link: ['#capability', '查看供应能力'],
+      },
+      {
+        q: '可以根据买方规格协调供应吗？',
+        a: '可以。请在询盘中说明用途以及淀粉、水分、包装等要求，HMV 会据此协调货源与取样确认。能否满足特定规格，需在取样检测和商务确认后确定。',
+      },
+      {
+        q: '越南与柬埔寨货源如何选择？',
+        a: 'HMV 的区域供应网络覆盖越南及柬埔寨。选用哪一产区，取决于买方的目的地、用途、质量要求和采购计划，并在每个供应方案中确认。',
+      },
     ],
   },
   rfq: {
-    eyebrow: '采购需求 · 木薯干片',
-    // Two phrases: the heading breaks between them, never inside a word.
-    title: ['让 HMV 为您的工厂', '制定木薯干片供应方案'],
-    lead: '请提供目的地及预计月度采购量，HMV 将根据您的原料需求协调货源、质量要求及交付方案。',
-    prepare: '提交时请准备：',
-    items: ['工厂或公司名称', '目的地', '预计月度采购量（吨/月）'],
+    title: '获取木薯干片采购方案',
+    lead: '请提供以下信息，HMV 将根据您的原料需求协调货源、质量要求及交付方案。',
+    items: [['目的地', '交付港口或城市'], ['月度需求量', '预计吨/月'], ['用途', '乙醇 · 饲料 · 淀粉加工']],
     cta: '向 HMV 提交采购需求',
     note: 'HMV Trade Desk 目前为英文界面。淀粉、水分、包装等技术要求可在 HMV 跟进时进一步确认。',
-  },
-  market: {
-    eyebrow: '市场参考',
-    title: '关注中国木薯市场',
-    text: 'HMV 将持续整理中国进口需求、区域供应、天气及价格驱动因素，为工业采购团队提供市场参考。',
   },
   footer: { address: '总部' },
 };
