@@ -3,6 +3,8 @@ import {
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
+  Boxes,
+  Building2,
   CalendarDays,
   Check,
   CircleHelp,
@@ -15,22 +17,26 @@ import {
   MapPin,
   Plus,
   ShieldCheck,
+  TrendingUp,
   Truck,
   Wheat,
   Workflow,
 } from 'lucide-react';
 import { Lightbox, ZoomTrigger } from '@/components/common/Lightbox';
+import { cassavaEvidence } from '@/data/cassavaEvidence';
 import { SupplyEvidenceGallery } from '@/features/cassava-supply-evidence/SupplyEvidence';
 import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
 import { cn } from '@/lib/utils';
-import { PRODUCT } from './CassavaScoped';
+import { PRODUCT, ScopedPage } from './CassavaScoped';
 import { QualityReportPreview } from './QualityReportPreview';
 import styles from './CassavaProcurement.module.css';
 
-// The sections of the Chinese cassava page (CassavaChinaView), a procurement page for industrial buyers: each takes
-// the page copy (data/cassavaChina.js) and nothing else, so the Korean page can adopt them with its own copy. Tailwind
-// utilities on the HMV tokens (styles/index.css); `styles.heading` lets the utilities size the headings, which the
-// legacy element rules would otherwise override (CassavaProcurement.module.css).
+// The procurement page of the page-scoped cassava pages (CassavaProcurementPage; Simplified Chinese: CassavaChinaView,
+// Korean: CassavaKoreaView), for industrial buyers. Each section takes its part of the page copy and nothing else; the
+// copy of every language has one shape (data/cassavaChina.js, data/cassavaKorea.js), and an item whose icon depends on
+// what it is carries a `key`, since the order differs between languages. Tailwind utilities on the HMV tokens
+// (styles/index.css); `styles.heading` lets the utilities size the headings, which the legacy element rules would
+// otherwise override (CassavaProcurement.module.css).
 
 const WIDTH = 'mx-auto w-full max-w-[1240px] px-4 sm:px-6 lg:px-10';
 const H2 = cn(styles.heading, 'text-[22px] leading-[1.3] font-bold text-balance text-navy sm:text-2xl');
@@ -47,10 +53,10 @@ const SECTION_ICONS = {
   workflow: Workflow,
   faq: CircleHelp,
 };
-// In the order of the copy's items.
-const APPLICATION_ICONS = [FlaskConical, Wheat, Factory];
-const WHY_ICONS = [Layers, CalendarDays, ShieldCheck, Truck];
-const RFQ_ICONS = [MapPin, Layers, FlaskConical];
+// By the item's `key`, never its position.
+const APPLICATION_ICONS = { bioethanol: FlaskConical, feed: Wheat, starch: Factory };
+const WHY_ICONS = { network: Layers, monthly: CalendarDays, quality: ShieldCheck, consolidation: Boxes, delivery: Truck };
+const RFQ_ICONS = { company: Building2, destination: MapPin, volume: Layers, application: FlaskConical };
 
 function Checks({ items, className }) {
   return (
@@ -92,26 +98,40 @@ function Section({ id, title, text, children }) {
   );
 }
 
-// The network figures and the Intertek sample reference, each qualified as a reference.
-function CapabilityPanel({ figures, intertek }) {
+// Beside the hero, each qualified as a reference: the network figures (`c.figures`) or, on a page that shows them
+// after the buyer value (Korean), its facts of what a factory buys (`c.panel`); then the Intertek sample reference.
+function HeroPanel({ c }) {
+  const { panel, figures, intertek } = c;
+  const head = panel ?? figures;
   return (
     <aside aria-labelledby="capability-panel-title" className="flex flex-col gap-5 rounded-2xl bg-navy p-6 text-white shadow-[0_28px_56px_-28px_rgb(0_29_89/0.75)] sm:p-8">
       <div className="flex flex-col gap-1">
-        <p className="text-[11px] font-semibold text-cyan-light">{figures.eyebrow}</p>
+        <p className="text-[11px] font-semibold text-cyan-light">{head.eyebrow}</p>
         <h2 id="capability-panel-title" className={cn(styles.heading, 'text-xl leading-snug font-semibold text-white')}>
-          {figures.title}
+          {head.title}
         </h2>
       </div>
-      <dl className="grid grid-cols-2">
-        {figures.items.map(f => (
-          <div key={f.label} className="flex flex-col-reverse justify-end gap-1.5 border-t border-white/15 py-4 odd:pr-4 even:border-l even:pl-5">
-            <dt className="text-[13px] leading-snug text-white/75">{f.label}</dt>
-            <dd className="text-sm font-medium text-white/90">
-              <Amount value={f.value} className="text-[28px] text-white sm:text-[32px]" />
-            </dd>
-          </div>
-        ))}
-      </dl>
+      {panel ? (
+        <dl className="grid grid-cols-2">
+          {panel.items.map(([term, value]) => (
+            <div key={term} className="flex flex-col gap-1.5 border-t border-white/15 py-4 odd:pr-4 even:border-l even:pl-5">
+              <dt className="text-[13px] leading-snug text-white/75">{term}</dt>
+              <dd className="text-base leading-snug font-semibold text-white">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <dl className="grid grid-cols-2">
+          {figures.items.map(f => (
+            <div key={f.label} className="flex flex-col-reverse justify-end gap-1.5 border-t border-white/15 py-4 odd:pr-4 even:border-l even:pl-5">
+              <dt className="text-[13px] leading-snug text-white/75">{f.label}</dt>
+              <dd className="text-sm font-medium text-white/90">
+                <Amount value={f.value} className="text-[28px] text-white sm:text-[32px]" />
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
       <div className="flex flex-col gap-3 rounded-xl border border-white/12 bg-white/6 p-4 sm:p-5">
         <h3 className={cn(styles.heading, 'text-xs leading-normal font-semibold text-cyan-light')}>{intertek.title}</h3>
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
@@ -129,13 +149,13 @@ function CapabilityPanel({ figures, intertek }) {
           </div>
         </div>
       </div>
-      <p className="text-xs leading-relaxed text-white/70">{figures.short}</p>
+      {head.short && <p className="text-xs leading-relaxed text-white/70">{head.short}</p>}
     </aside>
   );
 }
 
-/** The first screen: positioning, the calls to action and the trust points beside the capability panel. */
-export function ProcurementHero({ c, source }) {
+/** The first screen: positioning, the calls to action and the trust points beside the hero panel. */
+function ProcurementHero({ c, source }) {
   const { hero } = c;
   return (
     <section
@@ -150,6 +170,8 @@ export function ProcurementHero({ c, source }) {
             {hero.h1}
           </h1>
           <p className="max-w-[620px] text-[15px] leading-[1.85] text-ink-muted sm:text-base">{hero.lead}</p>
+          {/* The secondary audience, after the primary one (Korean: importers and wholesalers after manufacturers). */}
+          {hero.support && <p className="max-w-[620px] border-l-2 border-border pl-3 text-sm leading-relaxed text-ink-muted">{hero.support}</p>}
           <div className="flex flex-wrap items-center gap-3">
             <TradeDeskButton
               variant="brand"
@@ -179,14 +201,14 @@ export function ProcurementHero({ c, source }) {
             ))}
           </ul>
         </div>
-        <CapabilityPanel figures={c.figures} intertek={c.intertek} />
+        <HeroPanel c={c} />
       </div>
     </section>
   );
 }
 
 /** Links to every section, over the foot of the hero; one row that scrolls sideways on narrow screens. */
-export function SectionNav({ nav }) {
+function SectionNav({ nav }) {
   return (
     <nav aria-label={nav.label} className={cn(WIDTH, 'relative -top-7')}>
       <ul className="flex gap-1 overflow-x-auto rounded-xl border border-border/70 bg-white p-1.5 shadow-[0_12px_32px_-16px_rgb(0_29_89/0.35)] [scrollbar-width:none] lg:justify-between">
@@ -209,12 +231,12 @@ export function SectionNav({ nav }) {
   );
 }
 
-export function Applications({ content }) {
+function Applications({ content }) {
   return (
     <Section id="applications" title={content.title} text={content.text}>
       <div className="grid gap-3 md:grid-cols-3">
-        {content.items.map((item, i) => {
-          const Icon = APPLICATION_ICONS[i];
+        {content.items.map(item => {
+          const Icon = APPLICATION_ICONS[item.key];
           return (
             <article key={item.title} className={cn(CARD, 'flex flex-col gap-3 p-5')}>
               <div className="flex items-center gap-3">
@@ -224,7 +246,7 @@ export function Applications({ content }) {
                 <h3 className={H3}>{item.title}</h3>
               </div>
               <p className="text-sm leading-relaxed text-ink-muted">{item.text}</p>
-              <Checks items={item.points} />
+              {item.points && <Checks items={item.points} />}
             </article>
           );
         })}
@@ -233,12 +255,12 @@ export function Applications({ content }) {
   );
 }
 
-export function WhyHmv({ content }) {
+function WhyHmv({ content }) {
   return (
     <Section id="why-hmv" title={content.title} text={content.text}>
       <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {content.items.map((item, i) => {
-          const Icon = WHY_ICONS[i];
+        {content.items.map(item => {
+          const Icon = WHY_ICONS[item.key];
           return (
             <li key={item.title} className={cn(CARD, 'flex flex-col gap-2 p-5')}>
               <Icon className="size-6 text-emerald-600" aria-hidden="true" />
@@ -253,7 +275,7 @@ export function WhyHmv({ content }) {
 }
 
 /** HMV's photographs (data/cassavaEvidence.js), each opening larger. */
-export function Evidence({ evidence, lang }) {
+function Evidence({ evidence, lang }) {
   const copy = evidence.copy[lang];
   return (
     <Section id="supply-evidence" title={copy.title} text={copy.text}>
@@ -367,7 +389,7 @@ function QualityEvidence({ evidence, reportPages }) {
 }
 
 /** The network figures, lighter than the hero's, where they come from, and HMV's role. */
-export function Network({ network, figures }) {
+function Network({ network, figures }) {
   return (
     <Section id="capability" title={network.title} text={network.text}>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
@@ -415,7 +437,7 @@ export function Network({ network, figures }) {
 }
 
 /** Six numbered steps: one row on wide screens, one column on phones. */
-export function ProcessSteps({ workflow }) {
+function ProcessSteps({ workflow }) {
   return (
     <Section id="workflow" title={workflow.title} text={workflow.text}>
       <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -436,7 +458,7 @@ export function ProcessSteps({ workflow }) {
 }
 
 /** Questions as native disclosure widgets: keyboard-operable, and the answers in the server HTML. */
-export function Faq({ faq }) {
+function Faq({ faq }) {
   return (
     <Section id="faq" title={faq.title} text={faq.text}>
       <div className="grid items-start gap-3 lg:grid-cols-2">
@@ -468,7 +490,7 @@ export function Faq({ faq }) {
 }
 
 /** The closing call to action: what to send, and the HMV Trade Desk (English, as the note says). */
-export function FinalCta({ c, source }) {
+function FinalCta({ c, source }) {
   const { rfq } = c;
   return (
     <section id="rfq" aria-labelledby="rfq-title" className="pb-12 lg:pb-16">
@@ -482,14 +504,14 @@ export function FinalCta({ c, source }) {
           </div>
           <div className="flex flex-col gap-4">
             <ul className="grid gap-3 sm:grid-cols-3">
-              {rfq.items.map(([label, hint], i) => {
-                const Icon = RFQ_ICONS[i];
+              {rfq.items.map(item => {
+                const Icon = RFQ_ICONS[item.key];
                 return (
-                  <li key={label} className="flex items-center gap-3 rounded-xl border border-white/12 bg-white/6 px-4 py-3">
+                  <li key={item.key} className="flex items-center gap-3 rounded-xl border border-white/12 bg-white/6 px-4 py-3">
                     <Icon className="size-5 shrink-0 text-cyan-light" aria-hidden="true" />
                     <span className="flex flex-col">
-                      <span className="text-sm font-semibold">{label}</span>
-                      <span className="text-xs text-white/70">{hint}</span>
+                      <span className="text-sm font-semibold">{item.label}</span>
+                      {item.hint && <span className="text-xs text-white/70">{item.hint}</span>}
                     </span>
                   </li>
                 );
@@ -512,5 +534,61 @@ export function FinalCta({ c, source }) {
         </div>
       </div>
     </section>
+  );
+}
+
+/** The page's market intelligence, where it has a market page (the Korean one): what HMV follows, and the link to it. */
+function MarketInsight({ market }) {
+  return (
+    <Section id="market" title={market.title}>
+      <div className={cn(CARD, 'flex flex-col gap-4 p-5 sm:p-6 md:flex-row md:items-center md:justify-between md:gap-8')}>
+        <div className="flex gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand">
+            <TrendingUp className="size-5" aria-hidden="true" />
+          </span>
+          <div className="flex flex-col gap-1.5">
+            <h3 className={H3}>{market.heading}</h3>
+            <p className="text-sm leading-relaxed text-ink-muted">{market.text}</p>
+          </div>
+        </div>
+        <a
+          href={market.link.href}
+          className={cn('inline-flex h-11 shrink-0 items-center gap-2 self-start rounded-lg border border-border bg-white px-4 text-sm font-semibold text-navy hover:border-brand/50 hover:text-brand md:self-center', FOCUS)}
+        >
+          {market.link.label}
+          <ArrowRight className="size-4" aria-hidden="true" />
+        </a>
+      </div>
+    </Section>
+  );
+}
+
+/**
+ * A page-scoped cassava page in `locale` ('zh-CN', 'ko'): its chrome (ScopedPage), the hero, the section strip, the
+ * sections in procurement order, the market intelligence block where the page has one (`market`), and the closing call
+ * to action. `content` is the page copy; `source` prefixes the analytics source of its calls to action (`zh_hero`,
+ * `ko_rfq`…); `reportPages`, the analysis report's pages (data/cassavaQualityReport.js).
+ */
+export function CassavaProcurementPage({ content: c, locale, source, reportPages, market }) {
+  // The supply-evidence copy (data/cassavaEvidence.js) is keyed by language, without the region.
+  const lang = locale.split('-')[0];
+  return (
+    <ScopedPage c={c} locale={locale} source={source}>
+      <ProcurementHero c={c} source={source} />
+      <div className="bg-(--surface-light)">
+        <SectionNav nav={c.sections} />
+        <div className="-mt-7 divide-y divide-border/50">
+          <Applications content={c.applications} />
+          <WhyHmv content={c.why} />
+          <Evidence evidence={cassavaEvidence} lang={lang} />
+          <Quality quality={c.quality} reportPages={reportPages} />
+          <Network network={c.network} figures={c.figures} />
+          <ProcessSteps workflow={c.workflow} />
+          <Faq faq={c.faq} />
+          {market && <MarketInsight market={market} />}
+        </div>
+        <FinalCta c={c} source={source} />
+      </div>
+    </ScopedPage>
   );
 }

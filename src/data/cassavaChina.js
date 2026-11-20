@@ -7,10 +7,9 @@
 import { cassavaDossier } from './productPages.js';
 
 const evidence = cassavaDossier('zh');
-// The English result names, beside the Chinese ones on the quality cards: the Intertek report is in English.
-const english = cassavaDossier('en').results;
 
-const card = (title, text) => ({ title, text });
+// A card; `key` names what it is, whatever its position (views/products/CassavaProcurement resolves its icon by it).
+const card = (title, text, key) => ({ key, title, text });
 
 export const cassavaChina = {
   seo: {
@@ -64,16 +63,19 @@ export const cassavaChina = {
     text: '面向生物乙醇、饲料与淀粉加工企业的工业原料采购。',
     items: [
       {
+        key: 'bioethanol',
         title: '生物乙醇生产',
         text: '木薯干片可作为乙醇发酵的工业碳水化合物原料。',
         points: ['重点关注淀粉含量与水分', '重视长期供应的连续性', 'HMV 协调货源组织与供应执行'],
       },
       {
+        key: 'feed',
         title: '饲料原料',
         text: '可作为饲料配方的能量原料之一；实际用途及添加比例取决于买方的配方设计与原料策略。',
         points: ['关注水分、粗纤维与砂含量', '按月度采购计划批量供应', '规格以商务确认为准'],
       },
       {
+        key: 'starch',
         title: '淀粉加工',
         text: '面向淀粉加工企业的原料采购。',
         points: ['淀粉含量与批次一致性是关键', '买方规格在商务阶段确认', 'HMV 按约定要求协调取样确认'],
@@ -84,21 +86,16 @@ export const cassavaChina = {
     title: '为什么选择 HMV Global',
     text: '面向工业买家的供应组织与执行能力。',
     items: [
-      card('多产地组织', '在越南与柬埔寨协调货源，减少采购方案对单一来源的依赖。'),
-      card('灵活的月度供应', '支持持续性的月度批量采购，按采购计划安排集货与装运。'),
-      card('质量匹配', '对照买方质量要求与样品检测参考，协调取样、分析与确认。'),
-      card('出口与交付执行', '统筹集货、单证与交付协调，减少采购团队的多方沟通。'),
+      card('多产地组织', '在越南与柬埔寨协调货源，减少采购方案对单一来源的依赖。', 'network'),
+      card('灵活的月度供应', '支持持续性的月度批量采购，按采购计划安排集货与装运。', 'monthly'),
+      card('质量匹配', '对照买方质量要求与样品检测参考，协调取样、分析与确认。', 'quality'),
+      card('出口与交付执行', '统筹集货、单证与交付协调，减少采购团队的多方沟通。', 'delivery'),
     ],
   },
   quality: {
     title: '质量参考',
     note: '送检样品结果，仅作采购评估参考；实际供货规格以双方确认的供应方案及合同为准。',
-    // The four results buyers compare first: starch, moisture, raw fiber, sand and silica.
-    highlights: [0, 1, 2, 4].map(i => ({
-      label: evidence.results[i][0].split('（')[0],
-      en: english[i][0],
-      value: evidence.results[i][1],
-    })),
+    highlights: evidence.highlights,
     head: ['指标', '结果'],
     rows: evidence.results,
     source: evidence.source,
@@ -189,7 +186,11 @@ export const cassavaChina = {
   rfq: {
     title: '获取木薯干片采购方案',
     lead: '请提供以下信息，HMV 将根据您的原料需求协调货源、质量要求及交付方案。',
-    items: [['目的地', '交付港口或城市'], ['月度需求量', '预计吨/月'], ['用途', '乙醇 · 饲料 · 淀粉加工']],
+    items: [
+      { key: 'destination', label: '目的地', hint: '交付港口或城市' },
+      { key: 'volume', label: '月度需求量', hint: '预计吨/月' },
+      { key: 'application', label: '用途', hint: '乙醇 · 饲料 · 淀粉加工' },
+    ],
     cta: '向 HMV 提交采购需求',
     note: 'HMV Trade Desk 目前为英文界面。淀粉、水分、包装等技术要求可在 HMV 跟进时进一步确认。',
   },
