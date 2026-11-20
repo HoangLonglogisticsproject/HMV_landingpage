@@ -2,19 +2,40 @@
 // Pure, no hooks or transport: shared by the Vite hooks (hooks.js) and the Next.js routes.
 import { photos } from '@/data/hmv';
 import { articles, articleSlug, findArticle } from '@/data/articles';
+import { cassavaEvidence } from '@/data/cassavaEvidence';
 
 const dims = { farm: [1280, 960], factory: [768, 1024], farmTeam: [1308, 1600] };
+// Article photographs by key: the site's (data/hmv.js) and the cassava supply evidence as `cassava-<id>`.
+const IMAGES = {
+  ...Object.fromEntries(Object.entries(dims).map(([key, [width, height]]) => [key, { src: photos[key], width, height }])),
+  ...Object.fromEntries(cassavaEvidence.photos.map(p => [`cassava-${p.id}`, p])),
+};
+
+// Inline links in bundled copy: `[text](/path)`, a Tiptap link mark, so RichText renders and checks them like CMS links.
+const LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+function inline(text) {
+  const nodes = [];
+  let last = 0;
+  for (const m of text.matchAll(LINK)) {
+    if (m.index > last) nodes.push({ type: 'text', text: text.slice(last, m.index) });
+    nodes.push({ type: 'text', text: m[1], marks: [{ type: 'link', attrs: { href: m[2] } }] });
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) nodes.push({ type: 'text', text: text.slice(last) });
+  return nodes;
+}
 
 function toNode([tag, c]) {
   if (tag === 'h2') return { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: c }] };
-  if (tag === 'ul') return { type: 'bulletList', content: c.map(([b, t]) => ({ type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: b, marks: [{ type: 'bold' }] }, { type: 'text', text: ` ${t}` }] }] })) };
-  return { type: 'paragraph', content: [{ type: 'text', text: c }] };
+  if (tag === 'ul') return { type: 'bulletList', content: c.map(([b, t]) => ({ type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: b, marks: [{ type: 'bold' }] }, ...inline(` ${t}`)] }] })) };
+  return { type: 'paragraph', content: inline(c) };
 }
 
-const toDoc = blocks => ({ type: 'doc', content: blocks.map(toNode) });
+/** Bundled copy blocks (['p' | 'h2', text] or ['ul', [[bold, text]]]) as a Tiptap document for RichText. */
+export const toDoc = blocks => ({ type: 'doc', content: blocks.map(toNode) });
 
 function staticView(a, lang) {
-  const [width, height] = dims[a.image] ?? [];
+  const image = IMAGES[a.image];
   return {
     key: a.id,
     slug: articleSlug(a),
@@ -25,10 +46,12 @@ function staticView(a, lang) {
     category: a.category[lang],
     author: null,
     date: { iso: a.iso, label: a.date[lang] },
-    image: photos[a.image] ? { src: photos[a.image], width, height, alt: a.alt[lang], position: a.imagePosition } : null,
+    image: image?.src ? { src: image.src, width: image.width, height: image.height, alt: a.alt[lang], position: a.imagePosition } : null,
     content: toDoc(a.body[lang]),
     cta: a.cta[lang],
     product: a.product,
+    // The analytics source of the article's HMV Trade Desk call to action, where it has one (ArticleView).
+    tradeDesk: a.tradeDesk?.[lang],
   };
 }
 

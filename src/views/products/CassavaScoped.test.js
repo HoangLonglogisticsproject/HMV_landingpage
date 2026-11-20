@@ -80,7 +80,8 @@ for (const { name, View, c, lang, locale } of PAGES) {
 }
 
 // The procurement page (CassavaProcurement) in each language, from its own copy: the same sections in the same order;
-// the Korean page adds its market intelligence block before the call to action. The EN/VI page is the product route's
+// the EN/VI and Chinese pages add their buyer guides, the Korean page its market intelligence block, the Chinese page its
+// commercial support, before the call to action. The EN/VI page is the product route's
 // body (ProductView), in the site's main element (SiteShell is the layout's).
 const cassava = products.find(p => p.id === 'dried-cassava-chips');
 const productPage = lang => () => h(MemoryRouter, null, h('main', null, h(ProductView, { lang, product: cassava })));
@@ -135,14 +136,15 @@ for (const { name, View, c, lang } of PROCUREMENT) {
     await render(View);
     assert.deepEqual(texts('h1'), [c.hero.h1]);
     const sections = [...container.querySelectorAll('main section')];
-    assert.deepEqual(sections.map(s => s.id), [...SECTIONS, ...(c.market ? ['market'] : []), 'rfq']);
+    const extra = [['guides', c.guides], ['market', c.market], ['commercial-support', c.support]].filter(([, block]) => block);
+    assert.deepEqual(sections.map(s => s.id), [...SECTIONS, ...extra.map(([id]) => id), 'rfq']);
     for (const section of sections) {
       assert.equal(labelOf(section).closest('section'), section, section.id);
       assert.equal(labelOf(section).tagName, section.id === 'overview' ? 'H1' : 'H2', section.id);
     }
     assert.deepEqual(sections.slice(1).map(s => labelOf(s).textContent), [
       c.applications.title, c.why.title, cassavaEvidence.copy[lang].title, c.quality.title, c.network.title, c.workflow.title, c.faq.title,
-      ...(c.market ? [c.market.title] : []),
+      ...extra.map(([, block]) => block.title),
       c.rfq.title,
     ]);
     // The strip below the hero: a link to each section, in page order.
