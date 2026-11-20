@@ -63,3 +63,12 @@ test('under StrictMode the dialog stays open: the close event of the replayed ef
   await act(() => new Promise(resolve => setTimeout(resolve, 20)));
   assert.ok(container.querySelector('dialog.pack-lightbox')?.open);
 });
+
+// The hub's one link to the corridor's own page: in the Vietnam–Cambodia section, in the page's language.
+test('the cross-border section links the Vietnam–Cambodia consolidation page', async () => {
+  for (const [lang, text] of [['en', 'Vietnam–Cambodia LTL consolidation'], ['vi', 'Ghép hàng Việt Nam – Campuchia']]) {
+    await render(lang);
+    const links = [...container.querySelectorAll('a[href="/logistics/vietnam-cambodia-consolidation"]')];
+    assert.deepEqual(links.map(a => [a.closest('section').id, a.textContent]), [['cross-border', text]], lang);
+  }
+});

@@ -230,6 +230,13 @@ function CrossBorderSection({ vi, crossBorder }) {
           <p className="log-section-lead">
             {vi ? crossBorder.leadVi : crossBorder.leadEn}
           </p>
+          {/* The corridor's B2B less-than-truckload service has its own page. */}
+          <p className="log-section-lead pt-3">
+            {vi ? 'Lô hàng B2B chưa đủ một xe? ' : 'B2B shipments that do not fill a truck? '}
+            <Link to="/logistics/vietnam-cambodia-consolidation" className="font-semibold text-brand underline underline-offset-2">
+              {vi ? 'Ghép hàng Việt Nam – Campuchia' : 'Vietnam–Cambodia LTL consolidation'}
+            </Link>
+          </p>
         </div>
 
         <div className="cb-container-layout">

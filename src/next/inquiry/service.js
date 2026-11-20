@@ -35,15 +35,20 @@ export function toRecord(value, { reference, createdAt }) {
 }
 
 /**
+ * `validate` and `record`: the request's validation and the record it is delivered as; by default a Trade Desk inquiry
+ * (the route assessment passes its own: src/next/inquiry/route-assessment.js).
  * @param {{ adapter: { deliver(record: object, inquiry: object): Promise<{ reference: string } | void> } | null, now?: () => Date,
- *   newReference?: (date: Date) => string, cache?: Map<string, any>, ttlMs?: number }} options
+ *   newReference?: (date: Date) => string, cache?: Map<string, any>, ttlMs?: number,
+ *   validate?: (input: any) => { ok: true, value: any, spam: boolean } | { ok: false, errors: string[] },
+ *   record?: (value: any, meta: { reference: string, createdAt: string }) => object }} options
  */
-export function createInquiryService({ adapter, now = () => new Date(), newReference = createReference, cache = new Map(), ttlMs = 15 * 60_000 }) {
+export function createInquiryService({ adapter, now = () => new Date(), newReference = createReference, cache = new Map(), ttlMs = 15 * 60_000,
+  validate = validateInquiry, record = toRecord }) {
   async function deliver(value) {
     const date = now();
     const reference = newReference(date);
     try {
-      const receipt = await adapter.deliver(toRecord(value, { reference, createdAt: date.toISOString() }), value);
+      const receipt = await adapter.deliver(record(value, { reference, createdAt: date.toISOString() }), value);
       // A destination that issues references (the CMS) is authoritative: the buyer quotes the one it stored.
       return { status: 'accepted', reference: receipt?.reference ?? reference };
     } catch (error) {
@@ -54,7 +59,7 @@ export function createInquiryService({ adapter, now = () => new Date(), newRefer
   }
 
   return async function submit(input) {
-    const result = validateInquiry(input);
+    const result = validate(input);
     if (!result.ok) return { status: 'invalid', errors: result.errors };
     if (!adapter) return { status: 'unavailable' };
     if (result.spam) return { status: 'accepted', reference: newReference(now()) };

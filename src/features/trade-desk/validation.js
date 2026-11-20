@@ -1,7 +1,8 @@
 // Validation of an inquiry (POST /api/inquiry): authoritative on the server, shared with the Trade Desk for early
 // feedback. Only fields and values the rules allow survive; strings are trimmed; unknown keys are dropped. What the
 // buyer types has one length limit, the same in the field (maxLength), here and in the CMS contract: over it is an
-// error for that field, never a silently shortened value.
+// error for that field, never a silently shortened value. The contact, visit-context and key rules are shared with the
+// route assessment (features/route-assessment/validation.js).
 import { APPLICATIONS, TRANSPORT, VOLUME_UNITS, originsFor, productById, requirementsFor } from './rules';
 
 /** Character limits of the buyer's text fields (DeskSteps and TradeDesk use them as maxLength). */
@@ -21,7 +22,8 @@ const text = value => (typeof value === 'string' ? value.trim() : '');
 const PHONE = /^[+\d()\s.-]*$/;
 const AMOUNT = /^\d[\d.,\s]*$/;
 const UTM = /^[\w.+\- ]*$/;
-const KEY = /^[A-Za-z0-9-]{8,64}$/;
+/** An idempotency key: the Trade Desk's per-inquiry UUID, or another 8–64 character key of letters, digits and dashes. */
+export const KEY = /^[A-Za-z0-9-]{8,64}$/;
 
 /** A volume amount the inquiry accepts (2, 5000, 2,000), within its limit: the Trade Desk checks an answer with it. */
 export const isAmount = value => {
@@ -63,7 +65,7 @@ function isEmailShape(value) {
 }
 
 /** The fields with an error, in the order they are checked. `typed` reads buyer text against its length limit. */
-function errorList() {
+export function errorList() {
   const errors = [];
   const fail = field => errors.push(field);
   /** Trimmed buyer text; longer than its limit is an error for `field`, never a silently shortened value. */
@@ -122,7 +124,7 @@ function checkRequirements(body, product, { fail, typed }) {
 }
 
 /** The contact (email lower-cased) and the consent to be contacted. */
-function checkContact(body, { fail, typed }) {
+export function checkContact(body, { fail, typed }) {
   const contact = {
     company: typed('contact.company', body.contact?.company),
     email: typed('contact.email', body.contact?.email).toLowerCase(),
@@ -147,7 +149,7 @@ export function contactErrors(contact, consent) {
 }
 
 /** Where the visit came from: same-site paths, the referrer's origin and plain UTM values, nothing more. */
-function sourceContext(context) {
+export function sourceContext(context) {
   const utm = Object.fromEntries(['source', 'medium', 'campaign'].map(k => {
     const value = str(context?.utm?.[k], 100);
     return [k, UTM.test(value) ? value : ''];

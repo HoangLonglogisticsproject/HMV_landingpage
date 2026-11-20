@@ -16,14 +16,15 @@ export const contactChannels = {
 export const SEND_TIMEOUT_MS = 15_000;
 
 /**
- * POST the inquiry; rejects (AbortError) when no answer arrives within `timeoutMs`, so the Trade Desk can offer a
- * retry and the email draft instead of waiting forever.
+ * POST the inquiry to `url` (the Trade Desk's endpoint by default; the route assessment's: /api/route-assessment);
+ * rejects (AbortError) when no answer arrives within `timeoutMs`, so the form can offer a retry and the email draft
+ * instead of waiting forever.
  */
-export async function sendInquiry(inquiry, { timeoutMs = SEND_TIMEOUT_MS, fetchImpl = fetch } = {}) {
+export async function sendInquiry(inquiry, { timeoutMs = SEND_TIMEOUT_MS, fetchImpl = fetch, url = '/api/inquiry' } = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetchImpl('/api/inquiry', {
+    const res = await fetchImpl(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(inquiry),

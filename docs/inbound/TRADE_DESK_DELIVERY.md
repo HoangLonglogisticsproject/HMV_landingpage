@@ -153,3 +153,57 @@ Delivery is activated only when every item below is in place.
    Vercel Firewall (WAF) rate-limit rule on `POST /api/inquiry` per client IP (for example a few requests per minute,
    then deny or challenge) before setting `INQUIRY_DELIVERY=cms` in Production, and verify it on a preview. The site
    has no in-memory limiter by design: serverless instances do not share memory, so one would not limit anything.
+
+## Route assessments (Vietnam–Cambodia consolidation)
+
+The form of `/logistics/vietnam-cambodia-consolidation` posts to `POST /api/route-assessment` (same origin, same JSON
+handling, status codes and 20 000-byte limit as `/api/inquiry`: `src/next/inquiry/http.js`). Validation:
+`src/features/route-assessment/validation.js` (origin, destination, cargo description and weight/CBM/volume required;
+frequency and notes optional; the contact, consent, visit context, honeypot and idempotency key follow the Trade Desk's
+rules). The commodity Trade Desk and `/api/inquiry` are unchanged.
+
+Delivery goes through the adapter `INQUIRY_DELIVERY` configures, with no new variable:
+
+| `INQUIRY_DELIVERY` | Route assessment |
+| --- | --- |
+| `webhook` | Delivered: the record below, signed like a Trade Desk record, `idempotency-key` header included |
+| `log` | Kept in memory outside production, as for the Trade Desk |
+| `cms` | **Not accepted (503)**: the CMS ingestion contract takes commodity inquiries only; the form offers the email draft. Supporting it needs a logistics service in the CMS contract first. |
+| unset | 503, as for the Trade Desk |
+
+The record has every key of a Trade Desk record, so a destination that maps those keys (an automation flow writing a
+sheet row) takes it unchanged; the lead is identified by `product.name` (and `service.name`):
+
+```json
+{
+  "reference": "HMV-2026-7KQ4XM",
+  "createdAt": "2026-11-21T08:00:00.000Z",
+  "locale": "en",
+  "product": { "id": "vietnam-cambodia-consolidation", "name": "Vietnam–Cambodia Consolidation" },
+  "service": { "id": "vietnam-cambodia-consolidation", "name": "Vietnam–Cambodia Consolidation" },
+  "origin": "Binh Duong, Vietnam",
+  "destination": "Phnom Penh, Cambodia",
+  "volume": "4 pallets, 2.5 CBM, 900 kg",
+  "application": "",
+  "transport": "",
+  "requirements": [
+    { "key": "cargo", "label": "Cargo description", "value": "Electronic components in cartons" },
+    { "key": "frequency", "label": "Expected frequency", "value": "Weekly" }
+  ],
+  "notes": "",
+  "contact": { "company": "Example Co", "email": "ops@example.com", "name": "", "phone": "+84 28 1234 5678" },
+  "source": {
+    "page": "/logistics/vietnam-cambodia-consolidation",
+    "landingPage": "/logistics/vietnam-cambodia-consolidation",
+    "referrer": "https://www.google.com",
+    "utm": { "source": "", "medium": "", "campaign": "" },
+    "cta": "en_route_assessment"
+  },
+  "consent": { "contactAcceptedAt": "2026-11-21T08:00:00.000Z" }
+}
+```
+
+Unlike a Trade Desk record, `origin`, `destination` and `volume` are the shipper's own text, and `source.cta` names the
+call to action (`en_route_assessment`, `vi_route_assessment`). The form shows "sent" and the reference only after a
+201; otherwise it keeps the answers and offers a retry (same idempotency key) and an email draft. An accepted request
+emits `generate_lead` with `product: vietnam-cambodia-consolidation`, `route: route_assessment`.

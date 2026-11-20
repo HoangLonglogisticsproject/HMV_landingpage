@@ -5,6 +5,7 @@
 import { baseUrl, copy } from '@/data/hmv';
 import { productPages } from '@/data/productPages';
 import { privacyCopy } from '@/data/privacy';
+import { vnCambodiaConsolidation } from '@/data/vnCambodiaConsolidation';
 import { regulationCopy } from '@/data/regulations';
 import { articleCopy } from './article/copy';
 
@@ -75,6 +76,8 @@ const LOGISTICS = {
   },
 };
 export const logisticsMeta = lang => LOGISTICS[lang];
+// The Vietnam–Cambodia consolidation page: its own heading (the page's h1), so the title is its search title only.
+export const consolidationMeta = lang => vnCambodiaConsolidation[lang].seo;
 
 const PACKAGING = {
   en: {
