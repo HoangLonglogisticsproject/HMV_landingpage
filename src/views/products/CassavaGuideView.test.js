@@ -29,7 +29,7 @@ for (const [slug, guide] of Object.entries(items)) {
     await render({ slug });
     assert.deepEqual([...container.querySelectorAll('h1')].map(e => e.textContent), [guide.h1]);
     assert.equal(container.querySelector('.article-meta time').getAttribute('datetime'), guide.published);
-    assert.equal(container.querySelector('.article-meta time').textContent, '2026年11月21日');
+    assert.equal(container.querySelector('.article-meta time').textContent, '发布日期：2026年11月21日');
     for (const href of hrefs('.nav-center a')) assert.ok(container.querySelector(href), href);
     assert.ok(container.querySelector('#guide h2'));
   });

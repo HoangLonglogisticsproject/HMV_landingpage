@@ -22,11 +22,12 @@ const { copy } = cassavaChinaGuides;
 const dateLabel = iso =>
   new Date(`${iso}T00:00:00Z`).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 
+// A <time>, not a <span>: the article meta line styles its spans as the eyebrow.
 function Dated({ label, iso }) {
   return (
-    <span>
-      {label}：<time dateTime={iso}>{dateLabel(iso)}</time>
-    </span>
+    <time dateTime={iso}>
+      {label}：{dateLabel(iso)}
+    </time>
   );
 }
 
