@@ -87,7 +87,7 @@ test('validation: an empty request is not sent; each required field shows its er
     posted++;
     return route.abort();
   });
-  await page.goto(PAGES.en.path);
+  await page.goto(PAGES.en.path, { waitUntil: 'networkidle' });
   const form = page.locator('#route-assessment form');
   await form.getByRole('button', { name: PAGES.en.submit }).click();
   await expect(form.locator('[aria-invalid="true"]')).toHaveCount(7);
@@ -104,7 +104,7 @@ for (const [lang, p] of Object.entries(PAGES)) {
       bodies.push(route.request().postDataJSON());
       return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ reference: 'HMV-2026-7KQ4XM' }) });
     });
-    await page.goto(p.path);
+    await page.goto(p.path, { waitUntil: 'networkidle' });
     const form = await fill(page, p);
     await form.getByRole('button', { name: p.submit }).click();
     await expect(page.locator('#route-assessment output')).toContainText('HMV-2026-7KQ4XM');
@@ -132,7 +132,7 @@ test('the real endpoint without delivery: 400 for an invalid request, 503 for a 
   const bad = await request.post('/api/route-assessment', { data: { service: 'vietnam-cambodia-consolidation' } });
   expect(bad.status()).toBe(400);
   expect((await bad.json()).fields).toEqual(expect.arrayContaining(['origin', 'contact.email', 'consent.contact']));
-  await page.goto(PAGES.en.path);
+  await page.goto(PAGES.en.path, { waitUntil: 'networkidle' });
   const form = await fill(page, PAGES.en);
   const response = page.waitForResponse('**/api/route-assessment');
   await form.getByRole('button', { name: PAGES.en.submit }).click();
@@ -147,9 +147,13 @@ test('the real endpoint without delivery: 400 for an invalid request, 503 for a 
 
 test('the commodity Trade Desk is unchanged: it opens on this page, and its endpoint still validates commodity inquiries', async ({ page, request }) => {
   await page.goto(PAGES.en.path);
-  // openTradeDesk() (features/trade-desk/open.js), as every call to action does.
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-hmv-trade-desk', { detail: { source: 'nav' } })));
-  await expect(page.getByRole('dialog', { name: 'HMV Trade Desk' })).toBeVisible();
+  // openTradeDesk() (features/trade-desk/open.js), as every call to action does; again until the page has hydrated and
+  // its Trade Desk host listens (opening is idempotent).
+  const desk = page.getByRole('dialog', { name: 'HMV Trade Desk' });
+  await expect(async () => {
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-hmv-trade-desk', { detail: { source: 'nav' } })));
+    await expect(desk).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 20_000 });
   const res = await request.post('/api/inquiry', { data: { service: 'vietnam-cambodia-consolidation' } });
   expect(res.status()).toBe(400);
   expect((await res.json()).fields).toContain('product');
