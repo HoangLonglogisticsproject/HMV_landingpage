@@ -12,16 +12,20 @@ const IMAGES = {
 };
 
 // Inline links in bundled copy: `[text](/path)`, a Tiptap link mark, so RichText renders and checks them like CMS links.
-const LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+// A linear scan rather than a regular expression (no backtracking); copy has no other square brackets.
 function inline(text) {
   const nodes = [];
-  let last = 0;
-  for (const m of text.matchAll(LINK)) {
-    if (m.index > last) nodes.push({ type: 'text', text: text.slice(last, m.index) });
-    nodes.push({ type: 'text', text: m[1], marks: [{ type: 'link', attrs: { href: m[2] } }] });
-    last = m.index + m[0].length;
+  let rest = text;
+  for (;;) {
+    const open = rest.indexOf('[');
+    const middle = open < 0 ? -1 : rest.indexOf('](', open);
+    const close = middle < 0 ? -1 : rest.indexOf(')', middle);
+    if (close < 0) break;
+    if (open > 0) nodes.push({ type: 'text', text: rest.slice(0, open) });
+    nodes.push({ type: 'text', text: rest.slice(open + 1, middle), marks: [{ type: 'link', attrs: { href: rest.slice(middle + 2, close) } }] });
+    rest = rest.slice(close + 1);
   }
-  if (last < text.length) nodes.push({ type: 'text', text: text.slice(last) });
+  if (rest) nodes.push({ type: 'text', text: rest });
   return nodes;
 }
 
