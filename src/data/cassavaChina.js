@@ -101,16 +101,32 @@ export const cassavaChina = {
     })),
     head: ['指标', '结果'],
     rows: evidence.results,
-    report: evidence.report,
     source: evidence.source,
-    explain: {
-      title: '如何理解本次样品结果？',
-      points: [
-        '这是一份经 Intertek 检测的送检样品结果，仅供采购评估参考。',
-        '它不是每个供应批次的固定规格。',
-        '实际供货要求由 HMV 与买方在供应方案及合同中确认。',
-        'HMV 可按双方约定的质量要求协调货源组织与取样确认。',
+    // The third-party evidence beside the results: the one laboratory analysis they come from, and how to read it.
+    // An analysis of a submitted sample, not a certification of the product, the supplier or any shipment. Its report
+    // pages, once committed: data/cassavaQualityReport.js.
+    evidence: {
+      title: '第三方实验室分析',
+      en: 'Third-party laboratory analysis',
+      name: `Intertek 越南分析报告 ${evidence.reportNo}`,
+      details: [
+        ['检测机构', 'Intertek 越南'],
+        ['报告编号', evidence.reportNo],
+        ['报告日期', evidence.reportDate],
+        ['分析对象', '送检样品'],
       ],
+      explain: {
+        title: '如何理解本次样品结果？',
+        points: [
+          '这是一份经 Intertek 检测的送检样品结果，仅供采购评估参考。',
+          '它不是每个供应批次的固定规格。',
+          '实际供货要求由 HMV 与买方在供应方案及合同中确认。',
+          'HMV 可按双方约定的质量要求协调货源组织与取样确认。',
+        ],
+      },
+      view: '查看检测报告',
+      close: '关闭检测报告',
+      redacted: '报告中的发货人、收货人等商业信息已遮盖。',
     },
   },
   network: {

@@ -19,10 +19,12 @@ import {
   Wheat,
   Workflow,
 } from 'lucide-react';
+import { Lightbox, ZoomTrigger } from '@/components/common/Lightbox';
 import { SupplyEvidenceGallery } from '@/features/cassava-supply-evidence/SupplyEvidence';
 import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
 import { cn } from '@/lib/utils';
 import { PRODUCT } from './CassavaScoped';
+import { QualityReportPreview } from './QualityReportPreview';
 import styles from './CassavaProcurement.module.css';
 
 // The sections of the Chinese cassava page (CassavaChinaView), a procurement page for industrial buyers: each takes
@@ -261,8 +263,8 @@ export function Evidence({ evidence, lang }) {
   );
 }
 
-/** The Intertek sample results: the four buyers compare first, every result, and how to read them. */
-export function Quality({ quality }) {
+/** The Intertek sample results: the four buyers compare first, every result, then the analysis they come from. */
+export function Quality({ quality, reportPages }) {
   return (
     <Section id="quality" title={quality.title} text={quality.note}>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
@@ -304,18 +306,63 @@ export function Quality({ quality }) {
           </div>
           <p className="text-xs leading-relaxed text-ink-muted">{quality.source}</p>
         </div>
-        <aside aria-labelledby="quality-explain-title" className={cn(CARD, 'flex flex-col gap-4 self-start p-5')}>
-          <p className="flex items-center gap-2 border-b border-border/60 pb-3 text-sm font-semibold text-navy">
-            <FileText className="size-4 shrink-0 text-brand" aria-hidden="true" />
-            {quality.report}
-          </p>
-          <h3 id="quality-explain-title" className={H3}>
-            {quality.explain.title}
-          </h3>
-          <Checks items={quality.explain.points} className="gap-2 text-sm leading-relaxed" />
-        </aside>
+        <QualityEvidence evidence={quality.evidence} reportPages={reportPages} />
       </div>
     </Section>
+  );
+}
+
+/**
+ * The laboratory analysis behind the results: who analysed what, how to read it, and the report itself once its
+ * sanitized pages are committed (data/cassavaQualityReport.js); without them, no button.
+ */
+function QualityEvidence({ evidence, reportPages }) {
+  const report = {
+    title: evidence.name,
+    note: evidence.redacted,
+    pages: reportPages.map((p, i) => ({ ...p, alt: `${evidence.name} · ${i + 1}/${reportPages.length}` })),
+  };
+  return (
+    <aside aria-labelledby="quality-evidence-title" className={cn(CARD, 'flex flex-col gap-4 self-start p-5')}>
+      <div className="flex items-center gap-3">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand">
+          <FileText className="size-5" aria-hidden="true" />
+        </span>
+        <div className="flex flex-col">
+          <h3 id="quality-evidence-title" className={H3}>
+            {evidence.title}
+          </h3>
+          <p className="text-xs text-ink-muted">{evidence.en}</p>
+        </div>
+      </div>
+      <dl className="flex flex-col gap-2 border-y border-border/60 py-4 text-[13px]">
+        {evidence.details.map(([term, value]) => (
+          <div key={term} className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3">
+            <dt className="text-ink-muted">{term}</dt>
+            <dd className="font-medium wrap-anywhere text-navy">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <div className="flex flex-col gap-2.5">
+        <h4 className="text-sm font-semibold text-navy">{evidence.explain.title}</h4>
+        <Checks items={evidence.explain.points} className="gap-2 text-sm leading-relaxed" />
+      </div>
+      {report.pages.length > 0 && (
+        <Lightbox>
+          <ZoomTrigger
+            image={report}
+            className={cn(
+              'inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-brand/30 bg-brand-soft px-4 text-center text-sm font-semibold text-brand hover:border-brand/60',
+              FOCUS,
+            )}
+          >
+            <FileText className="size-4" aria-hidden="true" />
+            {evidence.view}
+          </ZoomTrigger>
+          <QualityReportPreview closeLabel={evidence.close} />
+        </Lightbox>
+      )}
+    </aside>
   );
 }
 

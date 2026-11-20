@@ -39,6 +39,7 @@ test('server HTML: a zh-CN document with the Chinese title, description, heading
     '集货与出运实景',
     '质量参考', '送检样品结果，仅作采购评估参考；实际供货规格以双方确认的供应方案及合同为准。',
     'Intertek 越南分析报告 AGRIVIETNAM2026-1700', '如何理解本次样品结果？',
+    '第三方实验室分析', 'Third-party laboratory analysis', '检测机构', 'Intertek 越南', '报告编号', '报告日期', '2026年10月5日', '分析对象', '送检样品',
     '71.1%', '11.55%', '2.99%', '1.86%', '0.45%', '未检出', '0.17 mg/kg', '0.28 mg/kg', '<0.02 mg/kg',
     '供应能力与网络',
     'HMV 的区域供应网络覆盖越南及柬埔寨。具体原产地、规格、可供数量及商务条件均按每个供应方案和批次确认。',
@@ -72,6 +73,21 @@ test('server HTML: the sections in page order, each a labelled section with one 
   expect(text(html)).toContain('本页所示 71.1% 为一份 Intertek 送检样品的结果，并非固定批次规格');
   // No FAQ structured data: FAQ rich results are limited to government and health sites, so it would add markup only.
   expect(html).not.toContain('FAQPage');
+});
+
+test('server HTML: quality reference, key results, then the third-party evidence; no report button yet; no certification claim', async ({ request }) => {
+  const html = await get(request);
+  const quality = html.slice(html.indexOf('<section id="quality"'), html.indexOf('<section id="capability"'));
+  const order = ['>质量参考</h2>', '>71.1%<', '<table', '>第三方实验室分析</h3>', '>如何理解本次样品结果？</h4>'].map(s => quality.indexOf(s));
+  expect(order.every(at => at > 0)).toBe(true);
+  expect(order).toEqual([...order].sort((a, b) => a - b));
+  expect(quality).toContain('<aside aria-labelledby="quality-evidence-title"');
+  expect(quality).toMatch(/<h3 id="quality-evidence-title"[^>]*>第三方实验室分析<\/h3>/);
+  // The sanitized report pages are not committed yet (src/data/cassavaQualityReport.js): nothing to open or download.
+  expect(quality).not.toMatch(/<(button|a|dialog)\b/);
+  expect(quality).not.toContain('查看检测报告');
+  // One submitted sample analysed by Intertek: never a certification or guarantee of the product, supplier or shipment.
+  expect(text(html)).not.toMatch(/certif|guarant|accredit|认证|认可|担保|保证/i);
 });
 
 test('header: the real HMV logo, the section links, and this page in English, Vietnamese, Chinese and Korean', async ({ request }) => {
