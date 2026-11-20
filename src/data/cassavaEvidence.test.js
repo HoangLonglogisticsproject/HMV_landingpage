@@ -28,7 +28,7 @@ test('each photograph declares the size of its file', async () => {
 
 test('copy, alt text and captions in English, Vietnamese, Simplified Chinese and Korean', () => {
   assert.deepEqual(Object.keys(evidence.copy), LANGS);
-  for (const lang of LANGS) assert.ok(['eyebrow', 'title', 'text', 'note'].every(k => evidence.copy[lang][k]), lang);
+  for (const lang of LANGS) assert.ok(['title', 'text', 'note', 'zoom', 'close'].every(k => evidence.copy[lang][k]), lang);
   for (const p of evidence.photos) {
     for (const lang of LANGS) assert.ok(p.alt[lang] && p.caption[lang] && p.alt[lang] !== p.caption[lang], `${p.id} ${lang}`);
     assert.equal(new Set(LANGS.map(l => p.alt[l])).size, LANGS.length, p.id);
@@ -36,8 +36,13 @@ test('copy, alt text and captions in English, Vietnamese, Simplified Chinese and
   }
 });
 
-test('the EN/VI dried cassava chips page shows these photographs; no other product page does', () => {
-  for (const [id, page] of Object.entries(productPages)) assert.equal(page.supplyEvidence, id === 'dried-cassava-chips' ? evidence : undefined, id);
+// The cassava procurement page shows them (views/products/CassavaProcurement), on the EN/VI page too; ProductLanding
+// does not, so no other product page can.
+test('the EN/VI dried cassava chips page is the procurement page; no product page carries photographs of its own', () => {
+  for (const [id, page] of Object.entries(productPages)) {
+    assert.equal(page.supplyEvidence, undefined, id);
+    assert.equal(Boolean(page.procurement), id === 'dried-cassava-chips', id);
+  }
 });
 
 // The photographs show product and activity. Where, in whose facility and how much are not asserted, so no place,

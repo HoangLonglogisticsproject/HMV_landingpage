@@ -3,13 +3,17 @@ import { afterEach, beforeEach, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { act, createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
+import { MemoryRouter } from 'react-router-dom';
 import { cassavaChina } from '@/data/cassavaChina.js';
 import { cassavaEvidence } from '@/data/cassavaEvidence.js';
 import { cassavaKorea } from '@/data/cassavaKorea.js';
+import { products } from '@/data/hmv.js';
+import { productPages } from '@/data/productPages.js';
 import { OPEN_TRADE_DESK } from '@/features/trade-desk/open.js';
 import { CassavaChinaView } from './CassavaChinaView.jsx';
 import { CassavaKoreaView } from './CassavaKoreaView.jsx';
 import { Quality } from './CassavaProcurement.jsx';
+import { ProductView } from './ProductView.jsx';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 vi.setConfig({ testTimeout: 20_000 });
@@ -76,7 +80,15 @@ for (const { name, View, c, lang, locale } of PAGES) {
 }
 
 // The procurement page (CassavaProcurement) in each language, from its own copy: the same sections in the same order;
-// the Korean page adds its market intelligence block before the call to action.
+// the Korean page adds its market intelligence block before the call to action. The EN/VI page is the product route's
+// body (ProductView), in the site's main element (SiteShell is the layout's).
+const cassava = products.find(p => p.id === 'dried-cassava-chips');
+const productPage = lang => () => h(MemoryRouter, null, h('main', null, h(ProductView, { lang, product: cassava })));
+const PROCUREMENT = [
+  ...PAGES,
+  { name: 'English', View: productPage('en'), c: productPages['dried-cassava-chips'].en, lang: 'en' },
+  { name: 'Vietnamese', View: productPage('vi'), c: productPages['dried-cassava-chips'].vi, lang: 'vi' },
+];
 const SECTIONS = ['overview', 'applications', 'why-hmv', 'supply-evidence', 'quality', 'capability', 'workflow', 'faq'];
 const labelOf = section => container.querySelector(`#${section.getAttribute('aria-labelledby')}`);
 // The lucide icon of a card: what it is, by its `key`, whatever its position in the copy.
@@ -95,17 +107,30 @@ const ICONS = {
 const CARD_NAMES = {
   Chinese: ['淀粉', '水分', '粗纤维', '砂和二氧化硅'],
   Korean: ['전분', '수분', '조섬유', '모래 및 실리카'],
+  English: ['Starch', 'Moisture', 'Raw fiber', 'Sand & silica'],
+  Vietnamese: ['Tinh bột', 'Độ ẩm', 'Xơ thô', 'Cát sạn'],
 };
 // The analysis' details, written out: laboratory, report number, report date, what was analysed.
 const DETAILS = {
   Chinese: [['检测机构', 'Intertek 越南'], ['报告编号', 'AGRIVIETNAM2026-1700'], ['报告日期', '2026年10月5日'], ['分析对象', '送检样品']],
   Korean: [['분석 기관', 'Intertek 베트남'], ['보고서 번호', 'AGRIVIETNAM2026-1700'], ['보고서 일자', '2026년 10월 5일'], ['분석 대상', '제출 샘플']],
+  English: [['Laboratory', 'Intertek Vietnam'], ['Report number', 'AGRIVIETNAM2026-1700'], ['Report date', '05 Oct 2026'], ['Analysed', 'Submitted sample']],
+  Vietnamese: [['Phòng thí nghiệm', 'Intertek Việt Nam'], ['Số báo cáo', 'AGRIVIETNAM2026-1700'], ['Ngày báo cáo', '05/10/2026'], ['Đối tượng phân tích', 'Mẫu gửi phân tích']],
+};
+// The report's name: the dialog's.
+const REPORT = {
+  Chinese: 'Intertek 越南分析报告 AGRIVIETNAM2026-1700',
+  Korean: 'Intertek 베트남 분석 보고서 AGRIVIETNAM2026-1700',
+  English: 'Intertek Vietnam analysis report AGRIVIETNAM2026-1700',
+  Vietnamese: 'Báo cáo phân tích Intertek Việt Nam AGRIVIETNAM2026-1700',
 };
 // One submitted sample analysed by Intertek: never a certification or a guarantee of the product, the supplier or a
-// shipment ("Intertek Certified Product", "Guaranteed by Intertek" and the like), in any of the pages' languages.
-const CLAIMS = /certif|guarant|accredit|认证|认可|担保|保证|인증|보증|보장|공인/i;
+// shipment ("Intertek Certified Product", "Guaranteed by Intertek", "được Intertek chứng nhận" and the like), in any of
+// the pages' languages. The one guarantee named is denied: the EN network figures' "not a guaranteed output".
+const CLAIMS = /certif|guarant|accredit|认证|认可|担保|保证|인증|보증|보장|공인|chứng nhận|bảo đảm|đảm bảo/i;
+const claimsIn = text => text.replaceAll('not a guaranteed output', '');
 
-for (const { name, View, c, lang } of PAGES) {
+for (const { name, View, c, lang } of PROCUREMENT) {
   test(`${name}: one h1; every section in page order, named by its h2; the strip links each one`, async () => {
     await render(View);
     assert.deepEqual(texts('h1'), [c.hero.h1]);
@@ -155,9 +180,11 @@ for (const { name, View, c, lang } of PAGES) {
     await render(View);
     const quality = container.querySelector('#quality');
     const [cards, details] = quality.querySelectorAll('dl');
-    assert.deepEqual([...cards.querySelectorAll('dd')].map(dd => dd.textContent), ['71.1%', '11.55%', '2.99%', '0.45%']);
+    // The table's starch, moisture, raw fiber and sand and silica, as the page's language writes them (71.1%, 71,1%).
+    assert.deepEqual([...cards.querySelectorAll('dd')].map(dd => dd.textContent), [0, 1, 2, 4].map(i => c.quality.rows[i][1]));
     assert.deepEqual([...cards.querySelectorAll('dt')].map(dt => dt.firstChild.textContent), CARD_NAMES[name]);
-    assert.deepEqual([...cards.querySelectorAll('dt span')].map(s => s.textContent), ['Starch', 'Moisture', 'Raw fiber', 'Sand & silica']);
+    // The English name beside another language's; the English page's names are the English ones.
+    assert.deepEqual([...cards.querySelectorAll('dt span')].map(s => s.textContent), lang === 'en' ? [] : ['Starch', 'Moisture', 'Raw fiber', 'Sand & silica']);
     assert.deepEqual([...quality.querySelectorAll('thead th')].map(th => [th.textContent, th.scope]), c.quality.head.map(head => [head, 'col']));
     assert.deepEqual([...quality.querySelectorAll('tbody tr')].map(tr => [tr.querySelector('th[scope=row]').textContent, tr.querySelector('td').textContent]), c.quality.rows);
     for (const text of [c.quality.note, c.quality.source]) assert.ok(quality.textContent.includes(text), text);
@@ -185,7 +212,7 @@ for (const { name, View, c, lang } of PAGES) {
     await act(() => button.click());
     const dialog = container.querySelector('dialog');
     assert.equal(dialog.open, true);
-    assert.equal(dialog.getAttribute('aria-label'), `Intertek ${{ Chinese: '越南分析报告', Korean: '베트남 분석 보고서' }[name]} AGRIVIETNAM2026-1700`);
+    assert.equal(dialog.getAttribute('aria-label'), REPORT[name]);
     const close = dialog.querySelector('button');
     assert.equal(close.getAttribute('aria-label'), evidence.close);
     assert.equal(document.activeElement, close);
@@ -201,8 +228,8 @@ for (const { name, View, c, lang } of PAGES) {
 
   test(`${name}: no certification or guarantee claim, on the page or in its copy`, async () => {
     await render(View);
-    assert.doesNotMatch(container.textContent, CLAIMS);
-    assert.doesNotMatch(JSON.stringify(c), CLAIMS);
+    assert.doesNotMatch(claimsIn(container.textContent), CLAIMS);
+    assert.doesNotMatch(claimsIn(JSON.stringify(c)), CLAIMS);
   });
 
   test(`${name}: network, process, questions (server-rendered, closed) and the call to action, from the copy`, async () => {
@@ -235,6 +262,22 @@ test('Chinese hero: the trust points, the network figures and the Intertek sampl
   assert.deepEqual([...hero.querySelectorAll('dd')].map(dd => dd.textContent), [...zh.figures.items.map(f => f.value), ...zh.intertek.results.map(([, v]) => v)]);
   for (const text of [zh.hero.lead, zh.figures.short, zh.intertek.report, zh.intertek.caption]) assert.ok(hero.textContent.includes(text), text);
 });
+
+// The EN/VI hero: the Chinese page's panel (network figures, then the Intertek reference), the product buyers confuse
+// with this one linked, and the site's own Trade Desk (EN and VI): no "English only" title on its buttons.
+for (const lang of ['en', 'vi']) {
+  test(`${lang} hero: the network figures and the Intertek reference, each qualified; the tapioca starch page linked`, async () => {
+    const c = productPages['dried-cassava-chips'][lang];
+    await render(productPage(lang));
+    const hero = container.querySelector('#overview');
+    assert.deepEqual([...hero.querySelectorAll('ul li')].map(li => li.textContent), c.hero.trust);
+    assert.deepEqual([...hero.querySelectorAll('dd')].map(dd => dd.textContent), [...c.figures.items.map(f => f.value), ...c.intertek.results.map(([, v]) => v)]);
+    for (const text of [c.hero.lead, c.figures.short, c.intertek.report, c.intertek.caption]) assert.ok(hero.textContent.includes(text), text);
+    const link = hero.querySelector('a[href="/products/tapioca-starch"]');
+    assert.equal(link.textContent, c.hero.seeAlso.text);
+    assert.deepEqual(['#overview button', '#rfq button'].map(s => container.querySelector(s).getAttribute('title')), [null, null]);
+  });
+}
 
 // Manufacturers first: the hero panel says what a factory buys; the network figures come after the buyer value.
 test('Korean hero: what a factory buys and the Intertek reference, manufacturers before importers; no network figure', async () => {

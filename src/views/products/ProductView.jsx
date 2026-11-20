@@ -5,14 +5,21 @@ import { Link } from '@/lib/navigation';
 import { copy, stages, photoCopy } from '@/data/hmv';
 import { productPhotos } from '@/data/productPhotos';
 import { productPages } from '@/data/productPages';
+import { qualityReportPages } from '@/data/cassavaQualityReport';
 import { productMeta } from '../meta';
+import { CassavaProcurementContent } from './CassavaProcurement';
 import { ProductLanding } from './ProductLanding';
 import Image from '@/lib/image';
 
-// Product page body, shared by both builds. `product` is undefined for an unknown id on the Vite site only.
-// Products with buyer-page content (data/productPages.js) get the full page; the others the generic one.
+// Product page body, shared by both builds, inside the site's chrome (SiteShell). `product` is undefined for an unknown
+// id on the Vite site only. Products with buyer-page content (data/productPages.js) get the full page: dried cassava
+// chips the cassava procurement page (`procurement`, as on the Chinese and Korean pages), the others ProductLanding;
+// the remaining products the generic one.
 export function ProductView({ lang, product }) {
   const page = product && productPages[product.id];
+  if (page?.procurement) {
+    return <CassavaProcurementContent content={page[lang]} lang={lang} source={lang} reportPages={qualityReportPages} />;
+  }
   if (page) return <ProductLanding lang={lang} product={product} page={page} />;
   const t = copy[lang];
   const photo = product && productPhotos[product.id];

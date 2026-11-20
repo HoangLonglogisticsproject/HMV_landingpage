@@ -232,11 +232,16 @@ test('POST /api/inquiry: validates, and without a delivery adapter refuses with 
   }
 });
 
-test('the existing RFQs remain as the fallback', async ({ page }) => {
+// Dried cassava chips has the procurement page instead, whose calls to action are the Trade Desk only
+// (cassava-procurement.spec.js).
+test('the existing RFQs remain as the fallback, except on the cassava procurement page', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('section#initiate-trade form.rfq-form')).toBeAttached();
+  await page.goto('/products/passion-fruit');
+  await expect(page.locator('section#rfq input[type="hidden"][name="product"]')).toHaveValue('Passion fruit');
   await page.goto('/products/dried-cassava-chips');
-  await expect(page.locator('section#rfq input[type="hidden"][name="product"]')).toHaveValue('Dried cassava chips');
+  await expect(page.locator('section#rfq')).toBeAttached();
+  await expect(page.locator('section#rfq form, input[name="product"]')).toHaveCount(0);
 });
 
 // Chunks a page loads, read from the network: whether the desk's code (its copy) is among them.

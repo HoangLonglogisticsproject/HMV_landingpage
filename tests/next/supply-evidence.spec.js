@@ -3,14 +3,14 @@ import { test, expect } from '@playwright/test';
 import { tags } from './html.js';
 
 /**
- * The cassava supply evidence (data/cassavaEvidence.js) in the server HTML of the EN, VI and Chinese cassava pages:
- * the same photographs, each language's copy, alt text and captions, between the buyer section and the quality
- * results, lazy and sized. The copy is written out here: these are the exact strings the pages must serve.
+ * The cassava supply evidence (data/cassavaEvidence.js) in the server HTML of the EN, VI and Chinese cassava pages,
+ * the procurement page in each (views/products/CassavaProcurement): the same photographs, each language's copy, alt
+ * text and captions, between why HMV and the quality results, lazy and sized. The copy is written out here: these are the exact strings the pages must serve.
  */
 const PAGES = { en: '/products/dried-cassava-chips', vi: '/vi/san-pham/san-lat-kho', zh: '/zh-cn/cassava-chips' };
 const COPY = {
   en: {
-    title: "Product, bulk supply and shipment evidence from HMV's supply operations",
+    title: 'Real supply evidence',
     alt: [
       'A large pile of dried cassava chips under a steel roof, a handful of chips held in the foreground',
       'An open shipping container loaded with dried cassava chips, sacks stacked at the door',
@@ -21,7 +21,7 @@ const COPY = {
     close: 'Close image preview',
   },
   vi: {
-    title: 'Sản phẩm, nguồn hàng và hoạt động chuẩn bị giao hàng trong mạng lưới HMV',
+    title: 'Hình ảnh nguồn hàng thực tế',
     alt: [
       'Đống sắn lát khô lớn dưới mái kèo thép, phía trước là một nắm sắn lát cầm trên tay',
       'Container mở cửa đã đóng sắn lát khô, các bao xếp ở cửa container',
@@ -47,20 +47,18 @@ const get = async (request, path) => {
 const FILES = ['cassava-bulk-stock.webp', 'cassava-container-loading.webp', 'dried-cassava-chips-detail.webp'];
 // The file behind a next/image URL, without its build hash.
 const asset = src => new URL(src, 'http://x').searchParams.get('url')?.split('/').pop()?.replace(/\.[\w-]{8,}\./, '.');
-// The buyer section before the evidence: its eyebrow, or its id on the Chinese page (why HMV).
-const BUYER_SECTION = { en: 'WHY BUYERS WORK WITH HMV', vi: 'VÌ SAO NGƯỜI MUA CHỌN HMV', zh: 'id="why-hmv"' };
 
 test('EN, VI and Chinese cassava pages: the same photographs, with their language\'s copy, alt text and captions', async ({ request }) => {
   const files = {};
   for (const [lang, path] of Object.entries(PAGES)) {
     const html = await get(request, path);
-    // What HMV organizes (the buyer section), the photographs, then the quality results.
-    const [buyer, start, quality] = [BUYER_SECTION[lang], 'id="supply-evidence"', 'id="quality"'].map(s => html.indexOf(s));
+    // What HMV organizes (why HMV), the photographs, then the quality results.
+    const [buyer, start, quality] = ['id="why-hmv"', 'id="supply-evidence"', 'id="quality"'].map(s => html.indexOf(s));
     expect(buyer, lang).toBeGreaterThan(0);
     expect(start, lang).toBeGreaterThan(buyer);
     expect(quality, lang).toBeGreaterThan(start);
     const evidence = html.slice(start, quality);
-    // The Chinese page's heading carries its id, for the section's aria-labelledby.
+    // The heading carries its id, for the section's aria-labelledby.
     expect([...evidence.matchAll(/<h2\b[^>]*>(.*?)<\/h2>/g)].map(m => m[1]), lang).toEqual([COPY[lang].title.replace("'", '&#x27;')]);
     const images = tags(evidence, 'img');
     expect(images.map(i => i.alt), lang).toEqual(COPY[lang].alt);

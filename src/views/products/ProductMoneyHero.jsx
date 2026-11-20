@@ -1,6 +1,5 @@
 import { ArrowDown, ArrowUpRight, Check } from 'lucide-react';
 import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
-import { Link } from '@/lib/navigation';
 import { productPhotos } from '@/data/productPhotos';
 import Image from '@/lib/image';
 
@@ -38,56 +37,8 @@ function HeroPhotos({ lang, main, detail }) {
   );
 }
 
-// The Intertek sample reference: two results, the report and its qualification.
-function IntertekReference({ intertek }) {
-  return (
-    <div className="money-intertek">
-      <h3>{intertek.title}</h3>
-      <dl>
-        {intertek.results.map(([name, value]) => (
-          <div key={name}>
-            <dt>{name}</dt>
-            <dd>{value}</dd>
-          </div>
-        ))}
-      </dl>
-      <div className="money-intertek-source">
-        <p className="money-intertek-report">{intertek.report}</p>
-        <p className="money-panel-note">{intertek.caption}</p>
-      </div>
-    </div>
-  );
-}
-
-// Evidence instead of imagery: HMV network capacity and the Intertek sample reference (photographs: SupplyEvidence).
-function EvidencePanel({ figures, intertek }) {
-  return (
-    <aside className="money-panel" aria-labelledby="money-panel-title">
-      <p className="money-panel-label">{figures.eyebrow}</p>
-      <h2 id="money-panel-title">{figures.title}</h2>
-      <dl className="money-figures">
-        {figures.items.map(f => {
-          // "50,000 MT/month": the amount leads, the unit follows in the label size.
-          const [amount, ...unit] = f.value.split(' ');
-          return (
-            <div key={f.label}>
-              <dt>{f.label}</dt>
-              <dd>
-                <span className="money-figure-amount">{amount}</span> {unit.join(' ')}
-              </dd>
-            </div>
-          );
-        })}
-      </dl>
-      <p className="money-panel-note">{figures.note}</p>
-      {intertek && <IntertekReference intertek={intertek} />}
-    </aside>
-  );
-}
-
 // The first screen of a buyer page (data/productPages.js): positioning, heading, lead and the RFQ call to action, next to
-// HMV photographs or, without them, the evidence panel; then the trust facts. Replaces DetailLayout's heading band on
-// these pages only.
+// HMV photographs; then the trust facts. Replaces DetailLayout's heading band on these pages only.
 export function ProductMoneyHero({ lang, product, page }) {
   const c = page[lang];
   const { hero } = c;
@@ -110,18 +61,9 @@ export function ProductMoneyHero({ lang, product, page }) {
                 <ArrowDown size={16} />
               </a>
             </div>
-            {c.seeAlso && (
-              <p className="money-see-also">
-                <Link to={`/products/${c.seeAlso.id}`}>{c.seeAlso.text}</Link>
-              </p>
-            )}
           </div>
           <div className="money-hero-media">
-            {c.figures ? (
-              <EvidencePanel figures={c.figures} intertek={hero.intertek} />
-            ) : (
-              <HeroPhotos lang={lang} main={page.heroPhoto} detail={productPhotos[product.id]} />
-            )}
+            <HeroPhotos lang={lang} main={page.heroPhoto} detail={productPhotos[product.id]} />
           </div>
           {hero.trust && (
             <ul className="money-trust">

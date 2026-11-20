@@ -4,9 +4,11 @@ import { test, expect } from '@playwright/test';
 // The page-scoped cassava pages' layout, from desktop to phone widths. The test sets each viewport itself, so it runs
 // in the desktop project only (*.desktop.spec.js, playwright.next.config.js).
 const PAGES = [['/zh-cn/cassava-chips', '向 HMV 提交采购需求'], ['/ko/tapioca-chips', 'HMV에 원료 구매 요구사항 전달']];
+// The same procurement page in the site's chrome (EN, VI): its layout test too.
+const PROCUREMENT = [...PAGES, ['/products/dried-cassava-chips', 'Build Your Cassava Supply Plan with HMV'], ['/vi/san-pham/san-lat-kho', 'Xây dựng phương án cung ứng sắn lát cùng HMV']];
 
 test('layout: no horizontal overflow from 1440 to 375 px; the primary call to action is in the first viewport', async ({ page }) => {
-  for (const [path, cta] of PAGES) {
+  for (const [path, cta] of PROCUREMENT) {
     for (const [width, height] of [[1440, 900], [1280, 720], [1024, 768], [768, 1024], [390, 844], [375, 667]]) {
       const where = `${path} ${width}×${height}`;
       await page.setViewportSize({ width, height });
@@ -16,6 +18,26 @@ test('layout: no horizontal overflow from 1440 to 375 px; the primary call to ac
       const box = await page.getByRole('button', { name: cta }).first().boundingBox();
       expect(box && box.y >= 0 && box.y + box.height <= height && box.x + box.width <= width, where).toBe(true);
     }
+  }
+});
+
+// The closing call to action on the narrowest phones: a label wider than its card (EN, VI, KO at 320 px) wraps, the
+// button stays inside the card and at least 48 px tall, and the page never scrolls sideways.
+test('320 px: the closing call to action wraps inside its card, at least 48 px tall; no horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  for (const [path] of PROCUREMENT) {
+    await page.goto(path);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), path).toBe(0);
+    const cta = await page.locator('#rfq button').evaluate(button => {
+      // The navy card of the call to action, and the room inside its padding.
+      const card = button.closest('.rounded-2xl');
+      const b = button.getBoundingClientRect();
+      const c = card.getBoundingClientRect();
+      const pad = parseFloat(getComputedStyle(card).paddingLeft);
+      return { inside: b.left >= c.left + pad - 0.5 && b.right <= c.right - pad + 0.5, height: b.height };
+    });
+    expect(cta.inside, path).toBe(true);
+    expect(cta.height, path).toBeGreaterThanOrEqual(48);
   }
 });
 

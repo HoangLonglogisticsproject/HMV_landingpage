@@ -41,12 +41,10 @@ test('contact page renders the inquiry form with expected fields', async ({ page
 //  - select defaultValue={params.get('product') || ''}
 //  - URL param 'Passion fruit' → defaultValue 'Passion fruit' → matches option → preselected
 
-// Buyer pages (passion fruit, dried cassava chips): the hero CTA opens the HMV Trade Desk with the page's product
-// known. Their own RFQ (ProductRfq) stays lower on the page as the fallback, fixed to the product (read-only
-// field, no product select).
+// Buyer pages (passion fruit): the hero CTA opens the HMV Trade Desk with the page's product known. Their own RFQ
+// (ProductRfq) stays lower on the page as the fallback, fixed to the product (read-only field, no product select).
 for (const [id, product, cta] of [
   ['passion-fruit', 'Passion fruit', 'Discuss Your Passion Fruit Requirements'],
-  ['dried-cassava-chips', 'Dried cassava chips', 'Build Your Cassava Supply Plan with HMV'],
 ]) {
   test(`${id} page CTA opens the Trade Desk with "${product}"; the RFQ fallback stays`, async ({ page }) => {
     await page.goto(`/products/${id}?lang=en`);
@@ -64,6 +62,21 @@ for (const [id, product, cta] of [
     await expect(rfq.locator('select[name="product"]')).toHaveCount(0);
   });
 }
+
+// Dried cassava chips: the procurement page (views/products/CassavaProcurement). Both calls to action open the HMV Trade
+// Desk with the product known; there is no RFQ form or email draft on the page.
+test('dried-cassava-chips: the hero and the closing call to action open the Trade Desk with the product; no RFQ form', async ({ page }) => {
+  await page.goto('/products/dried-cassava-chips?lang=en');
+  const desk = page.getByRole('dialog', { name: 'HMV Trade Desk' });
+  for (const [section, cta] of [['#overview', 'Build Your Cassava Supply Plan with HMV'], ['#rfq', 'Send your requirement to HMV']]) {
+    await page.locator(section).getByRole('button', { name: cta }).click();
+    await expect(desk).toBeVisible();
+    await expect(desk.getByRole('complementary', { name: 'Your requirement' })).toContainText('Dried cassava chips');
+    await page.keyboard.press('Escape');
+    await expect(desk).toBeHidden();
+  }
+  await expect(page.locator('form, input[name="product"]')).toHaveCount(0);
+});
 
 test('ProductDetailPage inquiry button for bananas preselects "Cavendish bananas"', async ({ page }) => {
   await page.goto('/products/bananas?lang=en');
