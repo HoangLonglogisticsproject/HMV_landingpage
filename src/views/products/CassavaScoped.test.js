@@ -91,6 +91,11 @@ const ICONS = {
   consolidation: 'lucide-boxes',
   delivery: 'lucide-truck',
 };
+// The quality cards' names: the result's name without its English gloss ("砂和二氧化硅（Sand & silica）").
+const CARD_NAMES = {
+  Chinese: ['淀粉', '水分', '粗纤维', '砂和二氧化硅'],
+  Korean: ['전분', '수분', '조섬유', '모래 및 실리카'],
+};
 // The analysis' details, written out: laboratory, report number, report date, what was analysed.
 const DETAILS = {
   Chinese: [['检测机构', 'Intertek 越南'], ['报告编号', 'AGRIVIETNAM2026-1700'], ['报告日期', '2026年10月5日'], ['分析对象', '送检样品']],
@@ -151,6 +156,7 @@ for (const { name, View, c, lang } of PAGES) {
     const quality = container.querySelector('#quality');
     const [cards, details] = quality.querySelectorAll('dl');
     assert.deepEqual([...cards.querySelectorAll('dd')].map(dd => dd.textContent), ['71.1%', '11.55%', '2.99%', '0.45%']);
+    assert.deepEqual([...cards.querySelectorAll('dt')].map(dt => dt.firstChild.textContent), CARD_NAMES[name]);
     assert.deepEqual([...cards.querySelectorAll('dt span')].map(s => s.textContent), ['Starch', 'Moisture', 'Raw fiber', 'Sand & silica']);
     assert.deepEqual([...quality.querySelectorAll('thead th')].map(th => [th.textContent, th.scope]), c.quality.head.map(head => [head, 'col']));
     assert.deepEqual([...quality.querySelectorAll('tbody tr')].map(tr => [tr.querySelector('th[scope=row]').textContent, tr.querySelector('td').textContent]), c.quality.rows);
