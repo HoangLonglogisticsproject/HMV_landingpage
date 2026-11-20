@@ -3,6 +3,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
+  BookOpen,
   Boxes,
   Building2,
   CalendarDays,
@@ -15,6 +16,7 @@ import {
   Layers,
   LayoutGrid,
   MapPin,
+  MessagesSquare,
   Plus,
   ShieldCheck,
   TrendingUp,
@@ -552,6 +554,64 @@ function FinalCta({ c, source }) {
   );
 }
 
+/**
+ * The buyer guides, where the page has them (EN/VI: the cassava articles; Chinese: its guides): linked cards. Plain links
+ * with the page's own URLs, as on the page-scoped pages, which render outside the site's router.
+ */
+function Guides({ guides }) {
+  return (
+    <Section id="guides" title={guides.title} text={guides.text}>
+      <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {guides.items.map(item => (
+          <li key={item.href} className="flex">
+            <a href={item.href} className={cn(CARD, 'group flex w-full flex-col gap-2 p-4 hover:border-brand/50 sm:p-5', FOCUS)}>
+              <BookOpen className="size-5 text-brand" aria-hidden="true" />
+              <h3 className={cn(H3, 'group-hover:text-brand')}>{item.title}</h3>
+              <p className="text-sm leading-relaxed text-ink-muted">{item.text}</p>
+              <span className="mt-auto inline-flex items-center gap-1 pt-1 text-sm font-medium text-brand">
+                {guides.more}
+                <ArrowRight className="size-3.5" aria-hidden="true" />
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  );
+}
+
+/**
+ * Chinese-speaking commercial follow-up (Chinese page: `support`), before the closing call to action and on the Chinese
+ * guides: what it covers, nothing more. `className` places it (default: the page width).
+ */
+export function CommercialSupport({ support, className = cn(WIDTH, 'pb-6') }) {
+  return (
+    <section id="commercial-support" aria-labelledby="commercial-support-title" className={className}>
+      <div className={cn(CARD, 'flex flex-col gap-4 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between lg:gap-8')}>
+        <div className="flex gap-3 lg:max-w-[460px]">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand">
+            <MessagesSquare className="size-5" aria-hidden="true" />
+          </span>
+          <div className="flex flex-col gap-1">
+            <h2 id="commercial-support-title" className={H3}>
+              {support.title}
+            </h2>
+            <p className="text-sm leading-relaxed text-ink-muted">{support.text}</p>
+          </div>
+        </div>
+        <ul className="flex flex-wrap gap-2">
+          {support.items.map(item => (
+            <li key={item} className="flex items-center gap-1.5 rounded-full border border-border/70 bg-(--surface-light) px-3 py-1.5 text-sm font-medium text-navy">
+              <Check className="size-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 /** The page's market intelligence, where it has a market page (the Korean one): what HMV follows, and the link to it. */
 function MarketInsight({ market }) {
   return (
@@ -580,7 +640,8 @@ function MarketInsight({ market }) {
 
 /**
  * The procurement page's body, whatever chrome surrounds it: the hero, the section strip, the sections in procurement
- * order, the market intelligence block where the page has one (`market`), and the closing call to action. `content` is
+ * order, the buyer guides and the market intelligence block where the page has them (`content.guides`, `market`), the
+ * Chinese commercial support (`content.support`) and the closing call to action. `content` is
  * the page copy; `lang`, the supply-evidence copy's language (data/cassavaEvidence.js: 'en', 'vi', 'zh', 'ko'); `source`
  * prefixes the analytics source of its calls to action (`en_hero`, `ko_rfq`…); `reportPages`, the analysis report's
  * pages (data/cassavaQualityReport.js).
@@ -599,8 +660,10 @@ export function CassavaProcurementContent({ content: c, lang, source, reportPage
           <Network network={c.network} figures={c.figures} />
           <ProcessSteps workflow={c.workflow} />
           <Faq faq={c.faq} />
+          {c.guides && <Guides guides={c.guides} />}
           {market && <MarketInsight market={market} />}
         </div>
+        {c.support && <CommercialSupport support={c.support} />}
         <FinalCta c={c} source={source} />
       </div>
     </>

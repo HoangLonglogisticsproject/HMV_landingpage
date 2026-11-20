@@ -139,6 +139,7 @@ The limitations below apply to the Vite CMS mode; the Next.js build renders on t
 3. A CDN or rate limit in front of the public API (the CMS has none on public routes).
 4. An SEO decision: pre-rendering or server rendering, a generated sitemap, and `hreflang`/locale URLs. These are URL and SEO changes that need approval.
 5. The three bundled articles recreated in the CMS with their legacy slugs (table above).
+   The two dried cassava chips buyer guides (`data/articles.js`) too, under the same EN and VI slugs: the cassava pages link them by those slugs (`data/productPages.js` `guides`), and a CMS article has no Trade Desk source, so their call to action would fall back to the quotation link until the CMS contract carries one.
 6. Editors should not add "| HMV Global" to SEO titles; the site appends it.
 
 ## CMS-side follow-ups (no CMS change made)

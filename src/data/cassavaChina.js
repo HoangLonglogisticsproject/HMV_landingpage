@@ -4,6 +4,7 @@
 // Claims are those of the EN/VI cassava page (data/productPages.js): its network figures, its Intertek sample results
 // and its qualifications, translated. No new figures, specifications, certifications, customers, prices, stock or lead
 // times. Its supply-evidence photographs and their Chinese captions: data/cassavaEvidence.js.
+import { cassavaChinaGuides } from './cassavaChinaGuides.js';
 import { cassavaDossier } from './productPages.js';
 
 const evidence = cassavaDossier('zh');
@@ -14,7 +15,7 @@ const card = (title, text, key) => ({ key, title, text });
 export const cassavaChina = {
   seo: {
     title: '越南木薯干片供应商与工厂批量采购方案',
-    description: 'HMV Global 面向饲料厂、淀粉加工厂和生物乙醇企业提供木薯干片批量供应，按目的地、月度采购量和质量要求协调货源、取样、集货、单证及交付。',
+    description: 'HMV Global 面向饲料厂、淀粉加工厂和生物乙醇企业提供越南木薯干片批量供应与采购协调，按目的地、月度采购量和质量要求统筹货源、取样、集货、单证及交付，并提供中文商务沟通。',
   },
   // The header's section links: the four a buyer looks for first.
   nav: {
@@ -193,6 +194,22 @@ export const cassavaChina = {
     ],
     cta: '向 HMV 提交采购需求',
     note: 'HMV Trade Desk 目前为英文界面。淀粉、水分、包装等技术要求可在 HMV 跟进时进一步确认。',
+  },
+  // Chinese-speaking commercial follow-up, beside the closing call to action and on the guides: a conversion signal. What
+  // it covers, nothing more: no response time, team size or availability is promised.
+  support: {
+    title: '中文商务支持',
+    text: 'HMV Trade Desk 目前为英文界面。提交采购需求后，HMV 可安排中文商务沟通，协助确认：',
+    items: ['产品规格', '月度采购量', '目的地', '商务条款', '订单跟进'],
+  },
+  // The buyer guides (data/cassavaChinaGuides.js), each with its own page; market updates are not listed here.
+  guides: {
+    title: '采购指南',
+    text: '询盘前可参考的木薯干片采购与质量要点。',
+    more: '阅读指南',
+    items: Object.entries(cassavaChinaGuides.items)
+      .filter(([, guide]) => guide.kind === 'guide')
+      .map(([slug, guide]) => ({ href: `/zh-cn/cassava-chips/${slug}`, title: guide.h1, text: guide.seo.description })),
   },
   footer: { address: '总部' },
 };

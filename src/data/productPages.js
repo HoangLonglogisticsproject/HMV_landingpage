@@ -11,6 +11,8 @@
 // written once and formatted per language. definePage() resolves the tree into `seo.en`, `seo.vi`, `en` and `vi`.
 // The cassava figures and sample results also carry Simplified Chinese and Korean, `t(en, vi, zh, ko)`, for the
 // page-scoped pages (data/cassavaChina.js, data/cassavaKorea.js), which show the same evidence.
+import { localizePath } from '../i18n/routes.js';
+import { articles } from './articles.js';
 import { photos, photoCopy } from './hmv.js';
 
 const LOCALES = { en: 'en-US', vi: 'vi-VN', zh: 'zh-CN', ko: 'ko-KR' };
@@ -434,6 +436,17 @@ export const productPages = {
             ),
           },
         ],
+      },
+      // The buyer guides: the EcoNews articles about this product (data/articles.js).
+      guides: {
+        title: t('Buyer guides', 'Hướng dẫn thu mua'),
+        text: t('Procurement and quality points to read before an inquiry.', 'Những điểm về thu mua và chất lượng nên đọc trước khi gửi yêu cầu.'),
+        more: t('Read the guide', 'Đọc hướng dẫn'),
+        items: articles.filter(a => a.product === 'dried-cassava-chips').map(a => ({
+          href: lang => localizePath(`/blog/${a.slug.en}`, lang),
+          title: t(a.title.en, a.title.vi),
+          text: t(a.description.en, a.description.vi),
+        })),
       },
       // The closing call to action: the HMV Trade Desk with this product, in the site's language.
       rfq: {

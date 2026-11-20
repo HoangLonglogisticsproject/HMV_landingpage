@@ -82,11 +82,13 @@ test('EN, VI and Chinese cassava pages: the same photographs, with their languag
   expect(files.zh).toEqual(files.en);
 });
 
+// The home page lists the cassava buyer guides (EcoNews), whose cards show two of the photographs: there, only the
+// gallery is checked.
 test('no other page shows the supply evidence or its photographs', async ({ request }) => {
   for (const path of ['/', '/products/passion-fruit', '/vi/san-pham/chanh-day', '/products/bananas', '/products/tapioca-starch', '/trade-solutions']) {
     const html = await get(request, path);
     expect(html, path).not.toContain('supply-evidence');
-    expect(html, path).not.toMatch(/cassava-bulk-stock|cassava-container-loading|dried-cassava-chips-detail/);
+    if (path !== '/') expect(html, path).not.toMatch(/cassava-bulk-stock|cassava-container-loading|dried-cassava-chips-detail/);
   }
 });
 
