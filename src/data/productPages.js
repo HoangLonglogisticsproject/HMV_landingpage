@@ -337,11 +337,20 @@ export const productPages = {
   }),
 };
 
+// The four results buyers compare first (starch, moisture, raw fiber, sand and silica), for the quality cards: the
+// name without its English gloss, the English name beside it (the Intertek report is in English) and the value.
+const CASSAVA_HIGHLIGHTS = [0, 1, 2, 4].map(i => CASSAVA_RESULTS[i]).map(([name, value]) => ({
+  label: lang => name(lang).split(/[（(]/)[0].trimEnd(),
+  en: name('en'),
+  value,
+}));
+
 // The cassava dossier in a page-scoped language ('zh', 'ko') for data/cassavaChina.js and data/cassavaKorea.js: the
 // same figures, sample results and report as the EN/VI page.
 export const cassavaDossier = lang => resolve({
   figures: CASSAVA_FIGURES,
   results: CASSAVA_RESULTS,
+  highlights: CASSAVA_HIGHLIGHTS,
   report: `Intertek ${INTERTEK.report}`,
   reportNo: INTERTEK.report,
   reportDate,

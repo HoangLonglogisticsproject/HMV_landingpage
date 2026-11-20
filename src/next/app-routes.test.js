@@ -36,7 +36,7 @@ test('/ko/tapioca-chips: the Korean title and the cassava hreflang set; the page
   assert.equal(title, '베트남 타피오카 칩 공급 - 주정·에탄올·사료 제조업체용 원료');
   assert.match(alternates.canonical, /\/ko\/tapioca-chips$/);
   assert.deepEqual(Object.keys(alternates.languages), LANGUAGES);
-  assert.match(renderToStaticMarkup(h(KoTapiocaPage)), /<h1 id="scoped-title">HMV Global이 관리하는 제조사용 타피오카 칩 대량 공급<\/h1>/);
+  assert.match(renderToStaticMarkup(h(KoTapiocaPage)), /<h1 id="scoped-title"[^>]*>HMV Global이 관리하는 제조사용 타피오카 칩 대량 공급<\/h1>/);
 });
 
 test('sitemap: the four cassava URLs, each with the zh-CN and ko alternates; no other entry has either', async () => {

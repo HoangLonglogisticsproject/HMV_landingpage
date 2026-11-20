@@ -31,8 +31,7 @@ function EvidencePhoto({ photo: p, lang, title, sizes, className, imageClassName
 // HMV photographs of the cassava product, stock and container loading (data/cassavaEvidence.js): the lead beside the
 // others. Lazy like every image below the hero. Each opens larger on click, Enter or Space (components/common/Lightbox):
 // the page stays server-rendered, only the triggers and the preview run on the client. Used by the EN/VI cassava page
-// (views/products/ProductLanding) and the Korean one (views/products/CassavaKoreaView); the Chinese page shows the same
-// photographs in SupplyEvidenceGallery below.
+// (views/products/ProductLanding); the Chinese and Korean pages show the same photographs in SupplyEvidenceGallery below.
 export function SupplyEvidence({ evidence, lang }) {
   const c = evidence.copy[lang];
   return (
@@ -71,7 +70,8 @@ const GALLERY_SIZES = [
 
 // The same photographs and preview as SupplyEvidence, without its section: the page gives the heading. The lead
 // photograph, landscape, beside the other two stacked; each caption a label on the photograph. The frames' aspect
-// ratios fix every size, so nothing shifts while the lazy images load. Used by the Chinese page (CassavaChinaView).
+// ratios fix every size, so nothing shifts while the lazy images load. Used by the procurement page (Chinese and Korean,
+// views/products/CassavaProcurement).
 export function SupplyEvidenceGallery({ evidence, lang }) {
   const c = evidence.copy[lang];
   return (

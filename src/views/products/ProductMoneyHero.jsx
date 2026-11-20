@@ -38,8 +38,8 @@ function HeroPhotos({ lang, main, detail }) {
   );
 }
 
-// The Intertek sample reference: two results, the report and its qualification. Also in the Korean page's facts panel.
-export function IntertekReference({ intertek }) {
+// The Intertek sample reference: two results, the report and its qualification.
+function IntertekReference({ intertek }) {
   return (
     <div className="money-intertek">
       <h3>{intertek.title}</h3>
@@ -60,13 +60,11 @@ export function IntertekReference({ intertek }) {
 }
 
 // Evidence instead of imagery: HMV network capacity and the Intertek sample reference (photographs: SupplyEvidence).
-// Without `intertek`, the network capacity alone (the Korean page shows it below its buyer value). `id`: the
-// heading's, when a page shows two panels.
-export function EvidencePanel({ figures, intertek, id = 'money-panel-title' }) {
+function EvidencePanel({ figures, intertek }) {
   return (
-    <aside className="money-panel" aria-labelledby={id}>
+    <aside className="money-panel" aria-labelledby="money-panel-title">
       <p className="money-panel-label">{figures.eyebrow}</p>
-      <h2 id={id}>{figures.title}</h2>
+      <h2 id="money-panel-title">{figures.title}</h2>
       <dl className="money-figures">
         {figures.items.map(f => {
           // "50,000 MT/month": the amount leads, the unit follows in the label size.

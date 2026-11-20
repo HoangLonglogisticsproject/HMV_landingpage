@@ -1,24 +1,40 @@
 // The Korean tapioca chips page (/ko/tapioca-chips), the page-scoped ko version of the dried cassava chips page
 // (i18n/routes.js PAGE_LOCALES): written for manufacturers first, in this order (distilled alcohol and ethanol, feed,
 // starch), then importers and large-volume wholesale buyers. 타피오카 칩 is the Korean industry term for dried cassava
-// chips. Rendered by views/products/CassavaKoreaView.jsx.
+// chips. Rendered by views/products/CassavaKoreaView.jsx with the procurement sections (CassavaProcurement), in the
+// content shape of data/cassavaChina.js; its own: the hero panel of what a factory buys, the importers' sentence and
+// the market intelligence block.
 // Claims are those of the EN/VI cassava page (data/productPages.js): its network figures, its Intertek sample results
 // and its qualifications, translated. No new figures, specifications, certifications, customers or prices. Its
 // supply-evidence photographs and their Korean captions: data/cassavaEvidence.js.
 import { cassavaDossier } from './productPages.js';
 
 const dossier = cassavaDossier('ko');
-const card = (title, text) => ({ title, text });
+// A card; `key` names what it is, whatever its position (views/products/CassavaProcurement resolves its icon by it).
+const card = (title, text, key) => ({ key, title, text });
 
 export const cassavaKorea = {
   seo: {
     title: '베트남 타피오카 칩 공급 - 주정·에탄올·사료 제조업체용 원료',
     description: 'HMV Global은 주정·에탄올, 사료 및 전분 가공 제조사를 위한 베트남 타피오카 칩 대량 공급을 관리합니다. 월간 구매량, 품질 요구사항, 집하 및 납품 계획에 맞춰 공급안을 조율합니다.',
   },
+  // The header's section links, in page order.
   nav: {
     label: '페이지 탐색',
-    // Section ids on this page.
-    items: [['overview', '제품 개요'], ['applications', '제조사 적용'], ['capability', '공급 역량'], ['quality', '품질 참고'], ['workflow', '공급 절차']],
+    items: [['overview', '제품 개요'], ['applications', '제조사 적용'], ['quality', '품질 참고'], ['capability', '공급 역량'], ['workflow', '공급 절차']],
+  },
+  // The strip below the hero: the page's sections, in page order.
+  sections: {
+    label: '페이지 목차',
+    items: [
+      ['overview', '개요'],
+      ['applications', '적용 분야'],
+      ['supply-evidence', '공급 현장'],
+      ['quality', '품질 참고'],
+      ['capability', '공급 역량'],
+      ['workflow', '공급 절차'],
+      ['faq', '자주 묻는 질문'],
+    ],
   },
   // The HMV Trade Desk has no Korean version yet: every call to action opens it in English, and says so.
   tradeDesk: 'HMV에 원료 구매 요구사항 전달 (HMV Trade Desk는 현재 영어로 제공됩니다)',
@@ -49,48 +65,79 @@ export const cassavaKorea = {
     caption: '분석 샘플 결과 · 고정 선적 규격 아님',
   },
   // Why these manufacturers buy tapioca chips: each a possible raw material, never one every plant uses.
-  useCases: {
-    eyebrow: '제조업별 원료 사용',
+  applications: {
     title: '타피오카 칩을 사용하는 주요 제조 분야',
     items: [
-      card('주정·에탄올 생산', '타피오카 칩은 발효주정 및 에탄올 생산에 사용되는 원료 중 하나입니다. 공장 조달에서는 월간 구매량과 함께 전분, 수분 등 합의된 품질 기준과 반복 공급의 안정성이 중요합니다.'),
-      card('사료 생산', '타피오카 칩은 사료용 원료로 사용될 수 있습니다. 실제 사용 여부와 배합 기준은 각 제조사의 원료 전략과 배합 설계에 따라 달라집니다.'),
-      card('전분 가공', '타피오카 칩은 전분 생산용 원료로 활용될 수 있습니다. HMV는 목적지, 월간 구매량 및 합의된 품질 기준을 바탕으로 공급안을 조율합니다.'),
+      card('주정·에탄올 생산', '타피오카 칩은 발효주정 및 에탄올 생산에 사용되는 원료 중 하나입니다. 공장 조달에서는 월간 구매량과 함께 전분, 수분 등 합의된 품질 기준과 반복 공급의 안정성이 중요합니다.', 'bioethanol'),
+      card('사료 생산', '타피오카 칩은 사료용 원료로 사용될 수 있습니다. 실제 사용 여부와 배합 기준은 각 제조사의 원료 전략과 배합 설계에 따라 달라집니다.', 'feed'),
+      card('전분 가공', '타피오카 칩은 전분 생산용 원료로 활용될 수 있습니다. HMV는 목적지, 월간 구매량 및 합의된 품질 기준을 바탕으로 공급안을 조율합니다.', 'starch'),
     ],
   },
-  audience: {
-    eyebrow: '제조사가 HMV와 협력하는 이유',
-    title: '단순한 공급처 연결이 아니라 공장 조달을 위한 공급 실행',
+  why: {
+    title: '제조사가 HMV와 협력하는 이유',
+    text: '단순한 공급처 연결이 아니라 공장 조달을 위한 공급 실행',
     items: [
-      card('공급 네트워크', 'HMV는 공장의 월간 사용량과 납품 일정에 맞춰 여러 공급 지점을 조율하여, 반복 조달이 단일 공급원에 의존하지 않도록 합니다.'),
-      card('품질 기준 조율', '공급 확정 전에 공장의 품질 기준을 먼저 협의하고, 샘플링과 분석은 각 공급안의 구매 요구사항에 따라 진행합니다.'),
-      card('집하 및 선적 관리', '월간 구매량에 맞춰 여러 로트를 집하하고 선적을 준비하여, 정기적인 산업용 물량 조달을 지원합니다.'),
-      card('상업 및 납품 실행', '견적, 선적 서류, 주문 관리 및 납품 계획을 HMV가 단일 거래 창구로서 일관되게 조율합니다.'),
+      card('공급 네트워크', 'HMV는 공장의 월간 사용량과 납품 일정에 맞춰 여러 공급 지점을 조율하여, 반복 조달이 단일 공급원에 의존하지 않도록 합니다.', 'network'),
+      card('품질 기준 조율', '공급 확정 전에 공장의 품질 기준을 먼저 협의하고, 샘플링과 분석은 각 공급안의 구매 요구사항에 따라 진행합니다.', 'quality'),
+      card('집하 및 선적 관리', '월간 구매량에 맞춰 여러 로트를 집하하고 선적을 준비하여, 정기적인 산업용 물량 조달을 지원합니다.', 'consolidation'),
+      card('상업 및 납품 실행', '견적, 선적 서류, 주문 관리 및 납품 계획을 HMV가 단일 거래 창구로서 일관되게 조율합니다.', 'delivery'),
     ],
+  },
+  quality: {
+    title: '품질 참고',
+    note: '아래 수치는 특정 제출 샘플의 시험 결과이며 모든 공급 물량의 고정 규격을 의미하지 않습니다. 최종 품질 기준은 공급 제안 및 계약에서 확정됩니다.',
+    highlights: dossier.highlights,
+    head: ['항목', '결과'],
+    rows: dossier.results,
+    source: dossier.source,
+    // The laboratory analysis behind the results: one submitted sample, not a certification of the product, the
+    // supplier or any shipment. Its report pages, once committed: data/cassavaQualityReport.js.
+    evidence: {
+      title: '제3자 실험실 분석',
+      en: 'Third-party laboratory analysis',
+      name: `Intertek 베트남 분석 보고서 ${dossier.reportNo}`,
+      details: [
+        ['분석 기관', 'Intertek 베트남'],
+        ['보고서 번호', dossier.reportNo],
+        ['보고서 일자', dossier.reportDate],
+        ['분석 대상', '제출 샘플'],
+      ],
+      explain: {
+        title: '이 샘플 결과는 어떻게 이해해야 하나요?',
+        points: [
+          'Intertek이 분석한 제출 샘플 1건의 결과로, 구매 검토를 위한 참고 자료입니다.',
+          '모든 로트나 선적에 적용되는 고정 규격이 아닙니다.',
+          '실제 공급 품질 기준은 HMV와 구매사가 공급 제안 및 계약에서 확정합니다.',
+          'HMV는 합의된 품질 기준에 따라 공급원 조율과 샘플링 확인을 조정합니다.',
+        ],
+      },
+      view: '분석 보고서 보기',
+      close: '분석 보고서 닫기',
+      redacted: '보고서의 송하인, 수하인 등 거래 정보는 가려져 있습니다.',
+    },
   },
   network: {
     title: '지역 공급 네트워크',
     text: 'HMV의 지역 공급 네트워크는 베트남과 캄보디아의 공급 역량을 연계합니다. 실제 원산지, 규격, 공급 가능 물량 및 상업 조건은 각 공급 제안과 선적별로 확인됩니다.',
+    // Where each figure comes from, not a map: no route, distance or location beyond the figures' own labels.
+    regions: {
+      label: '공급 네트워크 개요 (지도 아님)',
+      items: [['캄보디아', '공급원 및 집하'], ['베트남', '공급원 및 공장 공급'], ['중국 · 광시', '납품 참고']],
+    },
+    role: {
+      title: 'HMV의 조율 역할',
+      points: ['지역 공급원 조율', '로트 집하 및 컨테이너 적재 조율', '선적 서류 및 납품 실행 관리', '정기·월간 구매 계획 지원'],
+    },
   },
   figures: {
-    eyebrow: 'HMV GLOBAL 공급 네트워크 역량',
-    title: 'HMV 공급 네트워크 역량 참고',
     items: dossier.figures,
     note: '위 수치는 HMV Global 공급 네트워크 전체의 역량 참고 자료이며, 모든 구매사에 대한 공급 확약이 아닙니다. 주문별 공급 물량은 양측이 확정한 공급안과 계약에 따릅니다.',
-  },
-  quality: {
-    eyebrow: 'INTERTEK 분석 샘플 결과',
-    title: '품질 참고',
-    note: '아래 수치는 특정 제출 샘플의 시험 결과이며 모든 공급 물량의 고정 규격을 의미하지 않습니다. 최종 품질 기준은 공급 제안 및 계약에서 확정됩니다.',
-    head: ['항목', '결과'],
-    rows: dossier.results,
-    source: dossier.source,
   },
   // The EN/VI workflow (data/productPages.js), led by the buyer brief of its RFQ; field inspection and sampling are
   // one step here, as on the Chinese page.
   workflow: {
-    eyebrow: '공급 절차',
-    title: '구매 요구사항에서 납품까지',
+    title: '공급 절차',
+    text: '구매 요구사항에서 납품까지',
     steps: [
       card('구매 요구사항 확인', '도착지, 예상 월간 구매량 및 용도를 확인합니다.'),
       card('적합한 공급원 조율', '용도에 맞는 원료 산지를 선정합니다.'),
@@ -100,21 +147,56 @@ export const cassavaKorea = {
       card('서류 및 납품', '합의된 조건에 따라 서류와 납품을 진행합니다.'),
     ],
   },
+  // What manufacturers ask before buying: answered from the page's own claims, nothing beyond them.
+  faq: {
+    title: '자주 묻는 질문',
+    text: '제조사가 타피오카 칩을 구매할 때 자주 묻는 질문입니다.',
+    items: [
+      {
+        q: '타피오카 칩은 어떤 제조 분야에 사용되나요?',
+        a: '타피오카 칩은 주정·에탄올 생산, 사료 및 전분 가공의 산업용 원료로 사용될 수 있습니다. 실제 적용 여부는 각 공장의 공정, 배합 설계 및 품질 기준에 따라 달라지며, HMV는 상업 협의 단계에서 용도와 규격을 구매사와 확인합니다.',
+      },
+      {
+        q: '타피오카 칩 구매 시 주로 확인하는 품질 항목은 무엇인가요?',
+        a: '제조사는 일반적으로 전분, 수분, 조섬유, 회분, 모래 및 실리카, 이물질과 중금속 등의 항목을 확인합니다. 항목별 기준은 용도에 따라 다르며 공급 제안과 계약에서 합의합니다. 이 페이지의 Intertek 샘플 결과는 참고 자료입니다.',
+        link: ['#quality', '품질 참고 보기'],
+      },
+      {
+        q: '전분 함량은 어떻게 확인하나요?',
+        a: '전분 함량은 양측이 합의한 샘플링 및 분석 방식으로 확인합니다. 이 페이지의 71.1%는 Intertek이 분석한 제출 샘플 1건의 결과이며 고정 선적 규격이 아닙니다. 공급 물량별 전분 기준과 분석 방법은 공급 제안 및 계약에서 정합니다.',
+      },
+      {
+        q: '월 단위 정기 대량 구매가 가능한가요?',
+        a: '가능합니다. HMV는 정기적인 월간 대량 구매를 위해 공급원, 집하 및 선적을 조율합니다. 이 페이지의 공급 네트워크 수치는 역량 참고 자료이며 개별 구매사에 대한 공급 확약이 아닙니다. 주문별 공급 물량은 양측이 확정한 공급안과 계약에 따릅니다.',
+        link: ['#capability', '공급 역량 보기'],
+      },
+      {
+        q: '공장의 구매 규격에 맞춰 공급을 조율할 수 있나요?',
+        a: '문의 시 용도와 전분, 수분, 포장 등 요구사항을 알려주시면 HMV가 이를 바탕으로 공급원과 샘플링 확인을 조율합니다. 특정 규격의 충족 여부는 샘플 분석과 상업 협의를 거쳐 확정됩니다.',
+      },
+      {
+        q: '베트남과 캄보디아 중 어느 산지에서 공급되나요?',
+        a: 'HMV의 지역 공급 네트워크는 베트남과 캄보디아를 포함합니다. 적용 산지는 도착지, 용도, 품질 요구사항 및 구매 계획에 따라 공급 제안별로 확인합니다.',
+      },
+    ],
+  },
+  // The Korean market intelligence page (views/tapioca-market), after the questions; no other page has one.
+  market: {
+    title: '원료 시장 정보',
+    heading: '공장 조달에 영향을 주는 타피오카 시장 변수',
+    text: 'HMV는 작황, 수확 시기, 날씨, 국제 곡물가격 및 환율 등 제조사의 원료 조달에 영향을 줄 수 있는 시장 요인을 지속적으로 검토합니다.',
+    link: { label: '타피오카 조달 인사이트 보기', href: '/ko/tapioca-market' },
+  },
   rfq: {
-    eyebrow: '원료 구매 요구사항 · 타피오카 칩',
-    title: ['공장 맞춤형 타피오카 칩', '공급을 HMV와 협의하세요'],
+    title: '공장 맞춤형 타피오카 칩 공급을 HMV와 협의하세요',
     lead: '도착지와 예상 월간 구매량을 알려주시면 HMV가 원료 소싱, 품질 요구사항 및 납품 계획을 검토합니다.',
-    prepare: '요청 시 준비해 주세요:',
-    items: ['회사 / 공장명', '도착지', '예상 월간 구매량 (톤/월)'],
+    items: [
+      { key: 'company', label: '회사 / 공장명' },
+      { key: 'destination', label: '도착지', hint: '도착 항구 또는 도시' },
+      { key: 'volume', label: '예상 월간 구매량', hint: '톤/월' },
+    ],
     cta: 'HMV에 원료 구매 요구사항 전달',
     note: 'HMV Trade Desk는 현재 영어로 제공됩니다. 전분, 수분, 포장 등 세부 기술 요건은 HMV의 후속 협의에서 확인합니다.',
-  },
-  market: {
-    eyebrow: '원료 시장 정보',
-    title: '공장 조달에 영향을 주는 타피오카 시장 변수',
-    text: 'HMV는 작황, 수확 시기, 날씨, 국제 곡물가격 및 환율 등 제조사의 원료 조달에 영향을 줄 수 있는 시장 요인을 지속적으로 검토합니다.',
-    // The Korean market intelligence page (views/tapioca-market).
-    link: { label: '타피오카 조달 인사이트 보기', href: '/ko/tapioca-market' },
   },
   footer: { address: '본사' },
 };
