@@ -1,11 +1,10 @@
 import { Check } from 'lucide-react';
-import { SupplyEvidence } from '@/features/cassava-supply-evidence/SupplyEvidence';
 import { ProductRfq } from '@/features/inquiries/ProductRfq';
 import Image from '@/lib/image';
 import { ProductMoneyHero } from './ProductMoneyHero';
 
-// Section heading: eyebrow, h2 and an optional intro line. Also used by CassavaChinaView.
-export const Heading = ({ eyebrow, title, text }) => (
+// Section heading: eyebrow, h2 and an optional intro line.
+const Heading = ({ eyebrow, title, text }) => (
   <div className="section-heading">
     <div>
       <p className="eyebrow">{eyebrow}</p>
@@ -15,7 +14,7 @@ export const Heading = ({ eyebrow, title, text }) => (
   </div>
 );
 
-export const Cards = ({ items }) => (
+const Cards = ({ items }) => (
   <div className="business-grid landing-grid">
     {items.map(item => (
       <article key={item.title}>
@@ -26,17 +25,16 @@ export const Cards = ({ items }) => (
   </div>
 );
 
-export const Photo = ({ photo, lang, sizes }) => (
+const Photo = ({ photo, lang, sizes }) => (
   <figure className="landing-photo">
     <Image src={photo.src} width={photo.width} height={photo.height} sizes={sizes} loading="lazy" decoding="async" alt={photo.caption[lang]} />
     <figcaption>{photo.caption[lang]}</figcaption>
   </figure>
 );
 
-// A product page built for buyers (data/productPages.js): its own hero (ProductMoneyHero), then buyer requirements,
-// supply evidence, quality results, evidence, the requirements to agree, applications, workflow, images and the
-// product RFQ. Sections without content are left out; backgrounds alternate in the order the sections appear on
-// either page, the supply evidence sharing the quality results' background.
+// A product page built for buyers (data/productPages.js; passion fruit, dried cassava chips having the procurement
+// page): its own hero (ProductMoneyHero), then buyer requirements, evidence, the requirements to agree, workflow, images
+// and the product RFQ. Sections without content are left out.
 export function ProductLanding({ lang, product, page }) {
   const c = page[lang];
   return (
@@ -49,35 +47,6 @@ export function ProductLanding({ lang, product, page }) {
           <Cards items={c.audience.items} />
         </div>
       </section>
-
-      {page.supplyEvidence && <SupplyEvidence evidence={page.supplyEvidence} lang={lang} />}
-
-      {c.quality && (
-        <section className="section-pad landing-alt" id="quality">
-          <div className="content-width">
-            <Heading {...c.quality} />
-            <div className="landing-table-wrap">
-              <table className="landing-table">
-                <thead>
-                  <tr>
-                    {c.quality.head.map(h => <th key={h} scope="col">{h}</th>)}
-                  </tr>
-                </thead>
-                <tbody>
-                  {c.quality.rows.map(([name, value]) => (
-                    <tr key={name}>
-                      <th scope="row">{name}</th>
-                      <td>{value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="commercial-note">{c.quality.source}</p>
-            <p className="commercial-note">{c.quality.note}</p>
-          </div>
-        </section>
-      )}
 
       {c.evidence && (
         <section className="section-pad landing-alt">
@@ -105,15 +74,6 @@ export function ProductLanding({ lang, product, page }) {
             <Heading {...c.requirements} />
             <Cards items={c.requirements.items} />
             <p className="commercial-note">{c.requirements.note}</p>
-          </div>
-        </section>
-      )}
-
-      {c.applications && (
-        <section className="section-pad">
-          <div className="content-width">
-            <Heading {...c.applications} />
-            <Cards items={c.applications.items} />
           </div>
         </section>
       )}

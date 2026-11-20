@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { act, createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
 import { cassavaEvidence } from '@/data/cassavaEvidence.js';
-import { SupplyEvidence } from './SupplyEvidence.jsx';
+import { SupplyEvidenceGallery } from './SupplyEvidence.jsx';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -21,7 +21,7 @@ HTMLDialogElement.prototype.close = function close() {
 };
 
 let root, container;
-const render = lang => act(() => root.render(h(SupplyEvidence, { evidence: cassavaEvidence, lang })));
+const render = lang => act(() => root.render(h(SupplyEvidenceGallery, { evidence: cassavaEvidence, lang })));
 beforeEach(() => {
   container = document.body.appendChild(document.createElement('div'));
   root = createRoot(container);

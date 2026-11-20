@@ -1,6 +1,6 @@
 // The cassava supply evidence: photographs HMV supplied of the product, bulk stock and container loading, shown by
-// SupplyEvidence (features/cassava-supply-evidence) on the EN/VI dried cassava chips page and on the page-scoped
-// Chinese and Korean pages. Another language adds its copy, captions and alt text here; the photographs stay the same.
+// SupplyEvidenceGallery (features/cassava-supply-evidence) on the cassava procurement page, EN/VI, Chinese and
+// Korean. Another language adds its copy, captions and alt text here; the photographs stay the same.
 // They show physical product and activity in HMV's supply network, nothing more: no location, facility ownership,
 // lot or link to the network capacity figures is asserted. The originals are not committed; the container photograph
 // is cropped to the container opening, leaving out the camera's date and location stamp, the container number and
@@ -17,23 +17,20 @@ const PRODUCT = productPhotos['dried-cassava-chips'];
 export const cassavaEvidence = {
   copy: {
     en: {
-      eyebrow: 'REAL SUPPLY EVIDENCE',
-      title: "Product, bulk supply and shipment evidence from HMV's supply operations",
+      title: 'Real supply evidence',
       text: "These photographs document dried cassava chips, consolidation activity and shipment preparation within HMV's supply network. Origin, available volume and delivery conditions are confirmed for each commercial proposal.",
       note: 'Photos supplied by HMV.',
       zoom: 'View larger image',
       close: 'Close image preview',
     },
     vi: {
-      eyebrow: 'HÌNH ẢNH NGUỒN HÀNG THỰC TẾ',
-      title: 'Sản phẩm, nguồn hàng và hoạt động chuẩn bị giao hàng trong mạng lưới HMV',
+      title: 'Hình ảnh nguồn hàng thực tế',
       text: 'Các hình ảnh dưới đây ghi nhận sắn lát khô, hoạt động gom hàng và chuẩn bị giao hàng trong mạng lưới cung ứng của HMV. Nguồn gốc, sản lượng khả dụng và điều kiện giao hàng được xác nhận theo từng phương án thương mại.',
       note: 'Ảnh do HMV cung cấp.',
       zoom: 'Phóng to ảnh',
       close: 'Đóng ảnh phóng to',
     },
     zh: {
-      eyebrow: '真实供应记录',
       title: '集货与出运实景',
       text: '以下为 HMV 供应网络中的集货、仓储与装运参考照片。实际原产地、可供数量及交付条件按每位买方的需求确认。',
       note: '照片由 HMV 提供。',
@@ -41,7 +38,6 @@ export const cassavaEvidence = {
       close: '关闭大图',
     },
     ko: {
-      eyebrow: '실제 공급 현장',
       title: 'HMV 공급 네트워크의 제품·대량 공급·출하 현장',
       text: '아래 사진은 HMV 공급 네트워크의 타피오카 칩, 대량 공급 현장 및 출하 준비 과정을 보여줍니다. 실제 원산지, 공급 가능 물량 및 납품 조건은 각 공급 제안별로 확인됩니다.',
       note: 'HMV 제공 사진.',

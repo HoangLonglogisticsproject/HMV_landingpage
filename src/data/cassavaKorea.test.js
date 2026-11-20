@@ -12,7 +12,7 @@ test('the Korean page shows the EN/VI evidence: the same network figures and Int
   assert.equal(ko.quality.rows.length, en.quality.rows.length);
   ko.quality.rows.forEach(([, value], i) => assert.equal(value, en.quality.rows[i][1] === 'Not detected' ? '불검출' : en.quality.rows[i][1]));
   assert.deepEqual(ko.intertek.results, ko.quality.rows.slice(0, 2));
-  assert.equal(ko.intertek.report, en.hero.intertek.report);
+  assert.equal(ko.intertek.report, en.intertek.report);
   assert.match(ko.quality.source, /AGRIVIETNAM2026-1700, 보고일 2026년 10월 5일/);
 });
 

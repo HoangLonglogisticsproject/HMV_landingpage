@@ -12,7 +12,7 @@ test('the Chinese page shows the EN/VI evidence: the same network figures and In
   assert.equal(zh.quality.rows.length, en.quality.rows.length);
   zh.quality.rows.forEach(([, value], i) => assert.equal(value, en.quality.rows[i][1] === 'Not detected' ? '未检出' : en.quality.rows[i][1]));
   assert.deepEqual(zh.intertek.results, zh.quality.rows.slice(0, 2));
-  assert.equal(zh.intertek.report, en.hero.intertek.report);
+  assert.equal(zh.intertek.report, en.intertek.report);
   assert.match(zh.quality.source, /AGRIVIETNAM2026-1700，报告日期 2026年10月5日/);
   // The quality cards: starch, moisture, raw fiber and sand and silica, the table's own values and English names.
   const pick = [0, 1, 2, 4];

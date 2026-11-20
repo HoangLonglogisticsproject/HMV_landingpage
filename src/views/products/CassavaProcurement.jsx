@@ -26,15 +26,17 @@ import { Lightbox, ZoomTrigger } from '@/components/common/Lightbox';
 import { cassavaEvidence } from '@/data/cassavaEvidence';
 import { SupplyEvidenceGallery } from '@/features/cassava-supply-evidence/SupplyEvidence';
 import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
+import { Link } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { PRODUCT, ScopedPage } from './CassavaScoped';
 import { QualityReportPreview } from './QualityReportPreview';
 import styles from './CassavaProcurement.module.css';
 
-// The procurement page of the page-scoped cassava pages (CassavaProcurementPage; Simplified Chinese: CassavaChinaView,
-// Korean: CassavaKoreaView), for industrial buyers. Each section takes its part of the page copy and nothing else; the
-// copy of every language has one shape (data/cassavaChina.js, data/cassavaKorea.js), and an item whose icon depends on
-// what it is carries a `key`, since the order differs between languages. Tailwind utilities on the HMV tokens
+// The cassava procurement page, for industrial buyers (CassavaProcurementContent): in its own chrome on the page-scoped
+// pages (CassavaProcurementPage; Simplified Chinese: CassavaChinaView, Korean: CassavaKoreaView), in the site's on the
+// EN/VI product page (ProductView). Each section takes its part of the page copy and nothing else; the copy of every
+// language has one shape (data/cassavaChina.js, data/cassavaKorea.js, data/productPages.js), and an item whose icon
+// depends on what it is carries a `key`, since the order differs between languages. Tailwind utilities on the HMV tokens
 // (styles/index.css); `styles.heading` lets the utilities size the headings, which the legacy element rules would
 // otherwise override (CassavaProcurement.module.css).
 
@@ -176,7 +178,9 @@ function ProcurementHero({ c, source }) {
             <TradeDeskButton
               variant="brand"
               size="lg"
-              className={cn(PRIMARY, 'shadow-[0_12px_24px_-12px_rgb(0_66_162/0.8)]')}
+              // Alone on its line and wider than a phone (the EN and VI labels), the label wraps instead of widening the
+              // page; on one line the button stays 48 px tall.
+              className={cn(PRIMARY, 'h-auto min-h-12 shrink py-2.5 text-center whitespace-normal shadow-[0_12px_24px_-12px_rgb(0_66_162/0.8)]')}
               product={PRODUCT}
               source={`${source}_hero`}
               title={c.tradeDesk}
@@ -192,6 +196,14 @@ function ProcurementHero({ c, source }) {
               <ArrowDown className="size-4" aria-hidden="true" />
             </a>
           </div>
+          {/* A product buyers confuse with this one (EN/VI: tapioca starch), with its own page. */}
+          {hero.seeAlso && (
+            <p className="text-sm">
+              <Link to={`/products/${hero.seeAlso.id}`} className={cn('rounded font-medium text-brand hover:underline', FOCUS)}>
+                {hero.seeAlso.text}
+              </Link>
+            </p>
+          )}
           <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm font-medium text-ink sm:flex sm:flex-wrap sm:gap-x-6">
             {hero.trust.map(item => (
               <li key={item} className="flex items-center gap-1.5">
@@ -296,7 +308,8 @@ export function Quality({ quality, reportPages }) {
               <div key={m.en} className="flex flex-col-reverse items-center justify-end gap-1.5 rounded-xl border border-emerald-100 bg-emerald-50/70 px-2 py-3.5 text-center">
                 <dt className="flex flex-col text-[13px] leading-tight font-medium text-ink">
                   {m.label}
-                  <span className="text-[11px] font-normal text-ink-muted">{m.en}</span>
+                  {/* The English name, the report's, beside another language's; on the English page it is the name. */}
+                  {m.en !== m.label && <span className="text-[11px] font-normal text-ink-muted">{m.en}</span>}
                 </dt>
                 <dd className="text-2xl leading-none font-bold text-(--farm-green-ink)">{m.value}</dd>
               </div>
@@ -354,7 +367,7 @@ function QualityEvidence({ evidence, reportPages }) {
           <h3 id="quality-evidence-title" className={H3}>
             {evidence.title}
           </h3>
-          <p className="text-xs text-ink-muted">{evidence.en}</p>
+          {evidence.en && <p className="text-xs text-ink-muted">{evidence.en}</p>}
         </div>
       </div>
       <dl className="flex flex-col gap-2 border-y border-border/60 py-4 text-[13px]">
@@ -564,16 +577,15 @@ function MarketInsight({ market }) {
 }
 
 /**
- * A page-scoped cassava page in `locale` ('zh-CN', 'ko'): its chrome (ScopedPage), the hero, the section strip, the
- * sections in procurement order, the market intelligence block where the page has one (`market`), and the closing call
- * to action. `content` is the page copy; `source` prefixes the analytics source of its calls to action (`zh_hero`,
- * `ko_rfq`…); `reportPages`, the analysis report's pages (data/cassavaQualityReport.js).
+ * The procurement page's body, whatever chrome surrounds it: the hero, the section strip, the sections in procurement
+ * order, the market intelligence block where the page has one (`market`), and the closing call to action. `content` is
+ * the page copy; `lang`, the supply-evidence copy's language (data/cassavaEvidence.js: 'en', 'vi', 'zh', 'ko'); `source`
+ * prefixes the analytics source of its calls to action (`en_hero`, `ko_rfq`…); `reportPages`, the analysis report's
+ * pages (data/cassavaQualityReport.js).
  */
-export function CassavaProcurementPage({ content: c, locale, source, reportPages, market }) {
-  // The supply-evidence copy (data/cassavaEvidence.js) is keyed by language, without the region.
-  const lang = locale.split('-')[0];
+export function CassavaProcurementContent({ content: c, lang, source, reportPages, market }) {
   return (
-    <ScopedPage c={c} locale={locale} source={source}>
+    <>
       <ProcurementHero c={c} source={source} />
       <div className="bg-(--surface-light)">
         <SectionNav nav={c.sections} />
@@ -589,6 +601,19 @@ export function CassavaProcurementPage({ content: c, locale, source, reportPages
         </div>
         <FinalCta c={c} source={source} />
       </div>
+    </>
+  );
+}
+
+/**
+ * A page-scoped cassava page in `locale` ('zh-CN', 'ko'): its own chrome (ScopedPage) around the procurement page's
+ * body. The EN/VI page has the site's chrome instead (views/products/ProductView, inside SiteShell).
+ */
+export function CassavaProcurementPage({ content, locale, source, reportPages, market }) {
+  return (
+    <ScopedPage c={content} locale={locale} source={source}>
+      {/* The supply-evidence copy is keyed by language, without the region. */}
+      <CassavaProcurementContent content={content} lang={locale.split('-')[0]} source={source} reportPages={reportPages} market={market} />
     </ScopedPage>
   );
 }
