@@ -112,3 +112,28 @@ test('INQUIRY_DELIVERY=cms: 201 with the reference the CMS issued; a CMS failure
   assert.equal(failed.status, 502);
   vi.unstubAllGlobals();
 });
+
+// POST /api/route-assessment: the same HTTP handling, the route assessment's service and the Trade Desk's adapter, unless
+// that is the CMS.
+async function assessmentRoute(env = {}) {
+  vi.resetModules();
+  for (const [k, v] of Object.entries(env)) vi.stubEnv(k, v);
+  return import('../../../app/api/route-assessment/route.ts');
+}
+const assessmentPost = body => new Request('http://localhost/api/route-assessment', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+
+test('route assessment: 201 with a delivery adapter, 400 with its fields, 503 without one or with the CMS', async () => {
+  const { assessment } = await import('../../features/route-assessment/fixtures/assessment.js');
+  vi.spyOn(console, 'info').mockImplementation(() => {});
+  const { POST } = await assessmentRoute({ INQUIRY_DELIVERY: 'log', NODE_ENV: 'test' });
+  const res = await POST(assessmentPost(assessment));
+  assert.equal(res.status, 201);
+  assert.match((await res.json()).reference, /^HMV-\d{4}-[A-Z0-9]{6}$/);
+  const invalid = await POST(assessmentPost({ ...assessment, cargo: '' }));
+  assert.deepEqual([invalid.status, await invalid.json()], [400, { error: 'invalid', fields: ['cargo'] }]);
+  vi.unstubAllEnvs();
+  assert.equal((await (await assessmentRoute({ INQUIRY_DELIVERY: '' })).POST(assessmentPost(assessment))).status, 503);
+  vi.unstubAllEnvs();
+  const cms = await assessmentRoute({ INQUIRY_DELIVERY: 'cms', CMS_INQUIRY_URL: 'https://cms.example/api/v1/integrations/trade-inquiries', CMS_INQUIRY_SECRET: 'x'.repeat(32) });
+  assert.equal((await cms.POST(assessmentPost(assessment))).status, 503);
+});

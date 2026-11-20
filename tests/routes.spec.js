@@ -24,6 +24,7 @@ const ROUTES = [
   { path: '/insights', titleFrag: 'Insights', h1Text: /econews/i },
   { path: '/regulations', titleFrag: 'Regulations', h1Text: /regulations|quy định/i },
   { path: '/logistics', titleFrag: 'Logistics', h1Text: /specialized operational capabilities|năng lực vận hành chuyên biệt/i },
+  { path: '/logistics/vietnam-cambodia-consolidation', titleFrag: 'Cambodia', h1Text: /vietnam–cambodia cross-border consolidation|ghép hàng việt nam – campuchia/i },
   { path: '/packaging-logistics', titleFrag: 'Packaging', h1Text: /packaging|đóng gói/i },
   // ProductDetailPage: title = product[lang] from data/hmv.js
   { path: '/products/passion-fruit', titleFrag: 'Passion fruit', h1Text: /passion fruit|chanh dây/i },

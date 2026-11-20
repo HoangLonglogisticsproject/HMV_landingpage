@@ -23,3 +23,13 @@ test('an answer in time is returned; its body is parsed, an unreadable one is {}
   const broken = async () => ({ status: 502, json: async () => { throw new SyntaxError('bad json'); } });
   assert.deepEqual(await sendInquiry({}, { fetchImpl: broken }), { status: 502, body: {} });
 });
+
+test('another endpoint: the route assessment posts to its own URL', async () => {
+  const seen = [];
+  const fetchImpl = async url => {
+    seen.push(url);
+    return { status: 201, json: async () => ({ reference: 'HMV-2026-7KQ4XM' }) };
+  };
+  await sendInquiry({ idempotencyKey: 'k' }, { url: '/api/route-assessment', fetchImpl });
+  assert.deepEqual(seen, ['/api/route-assessment']);
+});

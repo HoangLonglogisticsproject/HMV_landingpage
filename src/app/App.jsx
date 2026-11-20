@@ -16,11 +16,13 @@ import { RegulationsView } from '@/views/regulations/RegulationsView';
 import { PrivacyView } from '@/views/privacy/PrivacyView';
 import { PackagingView } from '@/views/packaging-logistics/PackagingView';
 import { LogisticsHubPage } from '@/views/logistics/LogisticsHubPage';
+import { ConsolidationView } from '@/views/consolidation/ConsolidationView';
 import { ProductDetailPage } from '@/views/products/ProductDetailPage';
 import { ArticlePage } from '@/views/article/ArticlePage';
 import { NotFoundPage } from '@/views/not-found/NotFoundPage';
 import {
   activitiesMeta,
+  consolidationMeta,
   contactMeta,
   packagingMeta,
   regulationsMeta,
@@ -51,6 +53,7 @@ export default function App() {
               <Route path="/privacy" element={<StaticPage view={PrivacyView} meta={privacyMeta} />} />
               <Route path="/packaging-logistics" element={<StaticPage view={PackagingView} meta={packagingMeta} />} />
               <Route path="/logistics" element={<LogisticsHubPage />} />
+              <Route path="/logistics/vietnam-cambodia-consolidation" element={<StaticPage view={ConsolidationView} meta={consolidationMeta} />} />
               <Route path="/products/:id" element={<ProductDetailPage />} />
             </Route>
             {/* Outside SiteLayout on purpose: articles render their own SiteShell
