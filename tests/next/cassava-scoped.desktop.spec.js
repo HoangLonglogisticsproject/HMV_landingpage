@@ -21,6 +21,26 @@ test('layout: no horizontal overflow from 1440 to 375 px; the primary call to ac
   }
 });
 
+// The closing call to action on the narrowest phones: a label wider than its card (EN, VI, KO at 320 px) wraps, the
+// button stays inside the card and at least 48 px tall, and the page never scrolls sideways.
+test('320 px: the closing call to action wraps inside its card, at least 48 px tall; no horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  for (const [path] of PROCUREMENT) {
+    await page.goto(path);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), path).toBe(0);
+    const cta = await page.locator('#rfq button').evaluate(button => {
+      // The navy card of the call to action, and the room inside its padding.
+      const card = button.closest('.rounded-2xl');
+      const b = button.getBoundingClientRect();
+      const c = card.getBoundingClientRect();
+      const pad = parseFloat(getComputedStyle(card).paddingLeft);
+      return { inside: b.left >= c.left + pad - 0.5 && b.right <= c.right - pad + 0.5, height: b.height };
+    });
+    expect(cta.inside, path).toBe(true);
+    expect(cta.height, path).toBeGreaterThanOrEqual(48);
+  }
+});
+
 // The site's language menu in the scoped header: beside the HMV Trade Desk button, as high, down to tablets; alone and
 // compact on phones; open, the list is as wide as the trigger and inside the viewport.
 test('header: the language menu beside the HMV Trade Desk, then alone on phones; its list fits from 1440 to 375 px', async ({ page }) => {

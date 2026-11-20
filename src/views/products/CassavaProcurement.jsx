@@ -533,7 +533,9 @@ function FinalCta({ c, source }) {
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-5">
               <TradeDeskButton
                 size="lg"
-                className={cn(PRIMARY, 'bg-emerald-700 hover:bg-emerald-800')}
+                // Wider than its card on a phone (EN, VI, KO at 320 px), the label wraps; on one line the button stays 48 px
+                // tall. No `shrink`: from 640 px it sits beside the note, which would squeeze it onto two lines.
+                className={cn(PRIMARY, 'h-auto min-h-12 py-2.5 text-center whitespace-normal bg-emerald-700 hover:bg-emerald-800')}
                 product={PRODUCT}
                 source={`${source}_rfq`}
                 title={c.tradeDesk}
