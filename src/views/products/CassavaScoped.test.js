@@ -9,6 +9,7 @@ import { cassavaKorea } from '@/data/cassavaKorea.js';
 import { OPEN_TRADE_DESK } from '@/features/trade-desk/open.js';
 import { CassavaChinaView } from './CassavaChinaView.jsx';
 import { CassavaKoreaView } from './CassavaKoreaView.jsx';
+import { Quality } from './CassavaProcurement.jsx';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 vi.setConfig({ testTimeout: 20_000 });
@@ -30,6 +31,16 @@ afterEach(async () => {
 });
 const render = View => act(() => root.render(h(View)));
 const texts = selector => [...container.querySelectorAll(selector)].map(e => e.textContent);
+// jsdom has no showModal() or close(): the previews' dialogs need them (tests/next/supply-evidence.spec.js uses the
+// browser's).
+const stubDialog = () => {
+  HTMLDialogElement.prototype.showModal ??= function showModal() {
+    this.open = true;
+  };
+  HTMLDialogElement.prototype.close ??= function close() {
+    this.open = false;
+  };
+};
 
 for (const { name, View, c, lang, locale } of PAGES) {
   test(`${name}: section links to this page; the page in English, Vietnamese, Chinese and Korean, this one current`, async () => {
@@ -119,26 +130,67 @@ test('Chinese hero: the trust points, the network figures and the Intertek sampl
   for (const text of [zh.hero.lead, zh.figures.short, zh.intertek.report, zh.intertek.caption]) assert.ok(hero.textContent.includes(text), text);
 });
 
-test('Chinese quality: four result cards, the full Intertek table, the source and how to read a sample result', async () => {
+test('Chinese quality: result cards, the full Intertek table and its source, then the laboratory analysis and how to read it', async () => {
   await render(CassavaChinaView);
   const quality = container.querySelector('#quality');
-  assert.deepEqual([...quality.querySelectorAll('dl dd')].map(dd => dd.textContent), zh.quality.highlights.map(m => m.value));
+  const [cards, details] = quality.querySelectorAll('dl');
+  assert.deepEqual([...cards.querySelectorAll('dd')].map(dd => dd.textContent), zh.quality.highlights.map(m => m.value));
   assert.deepEqual([...quality.querySelectorAll('thead th')].map(th => [th.textContent, th.scope]), zh.quality.head.map(h => [h, 'col']));
   assert.deepEqual([...quality.querySelectorAll('tbody tr')].map(tr => [tr.querySelector('th[scope=row]').textContent, tr.querySelector('td').textContent]), zh.quality.rows);
-  for (const text of [zh.quality.note, zh.quality.source, zh.quality.report, ...zh.quality.explain.points]) assert.ok(quality.textContent.includes(text), text);
-  // No report file is linked: the repository has none to show.
-  assert.equal(quality.querySelector('a'), null);
+  for (const text of [zh.quality.note, zh.quality.source]) assert.ok(quality.textContent.includes(text), text);
+  // After the results: the evidence, an aside named by its heading, with the analysis it comes from and how to read it.
+  const aside = quality.querySelector('aside');
+  assert.equal(labelOf(aside).tagName, 'H3');
+  assert.equal(labelOf(aside).textContent, '第三方实验室分析');
+  assert.ok(aside.contains(details));
+  assert.deepEqual([...details.children].map(d => [d.querySelector('dt').textContent, d.querySelector('dd').textContent]), [
+    ['检测机构', 'Intertek 越南'],
+    ['报告编号', 'AGRIVIETNAM2026-1700'],
+    ['报告日期', '2026年10月5日'],
+    ['分析对象', '送检样品'],
+  ]);
+  assert.equal(aside.querySelector('h4').textContent, '如何理解本次样品结果？');
+  assert.deepEqual([...aside.querySelectorAll('li')].map(li => li.textContent), zh.quality.evidence.explain.points);
+  // No report pages are committed yet (data/cassavaQualityReport.js): no button, no link, nothing to open.
+  assert.equal(quality.querySelector('button, a, dialog'), null);
+});
+
+test('Chinese quality report: its pages open in a modal dialog from a button; Escape closes it and focus returns', async () => {
+  stubDialog();
+  const pages = [1, 2].map(n => ({ src: `/report-${n}.webp`, width: 1654, height: 2339 }));
+  await act(() => root.render(h(Quality, { quality: zh.quality, reportPages: pages })));
+  const button = container.querySelector('#quality aside button');
+  assert.equal(button.type, 'button');
+  assert.equal(button.textContent, '查看检测报告');
+  button.focus();
+  await act(() => button.click());
+  const dialog = container.querySelector('dialog');
+  assert.equal(dialog.open, true);
+  assert.equal(dialog.getAttribute('aria-label'), 'Intertek 越南分析报告 AGRIVIETNAM2026-1700');
+  const close = dialog.querySelector('button');
+  assert.equal(close.getAttribute('aria-label'), '关闭检测报告');
+  assert.equal(document.activeElement, close);
+  assert.deepEqual([...dialog.querySelectorAll('img')].map(i => [i.getAttribute('src'), i.alt, i.getAttribute('loading')]), [
+    ['/report-1.webp', 'Intertek 越南分析报告 AGRIVIETNAM2026-1700 · 1/2', null],
+    ['/report-2.webp', 'Intertek 越南分析报告 AGRIVIETNAM2026-1700 · 2/2', 'lazy'],
+  ]);
+  assert.ok(dialog.textContent.includes('报告中的发货人、收货人等商业信息已遮盖。'));
+  await act(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })));
+  assert.equal(container.querySelector('dialog'), null);
+  assert.equal(document.activeElement, button);
+});
+
+// One submitted sample analysed by Intertek: never a certification or a guarantee, of the product, the supplier or a
+// shipment ("Intertek Certified Product", "Guaranteed by Intertek" and the like), on the page or in its copy.
+test('Chinese page: no certification or guarantee claim', async () => {
+  await render(CassavaChinaView);
+  const claims = /certif|guarant|accredit|认证|认可|担保|保证/i;
+  assert.doesNotMatch(container.textContent, claims);
+  assert.doesNotMatch(JSON.stringify(zh), claims);
 });
 
 test('Chinese supply evidence: the HMV photographs between why HMV and quality, lazy, each opening larger', async () => {
-  // jsdom has no showModal() or close(): the preview's dialog needs them (tests/next/supply-evidence.spec.js uses the
-  // browser's).
-  HTMLDialogElement.prototype.showModal ??= function showModal() {
-    this.open = true;
-  };
-  HTMLDialogElement.prototype.close ??= function close() {
-    this.open = false;
-  };
+  stubDialog();
   await render(CassavaChinaView);
   const section = container.querySelector('section#supply-evidence');
   assert.equal(section.previousElementSibling.id, 'why-hmv');

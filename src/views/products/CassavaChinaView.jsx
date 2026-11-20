@@ -1,11 +1,13 @@
 import { cassavaChina as c } from '@/data/cassavaChina';
 import { cassavaEvidence } from '@/data/cassavaEvidence';
+import { qualityReportPages } from '@/data/cassavaQualityReport';
 import { Applications, Evidence, Faq, FinalCta, Network, ProcessSteps, ProcurementHero, Quality, SectionNav, WhyHmv } from './CassavaProcurement';
 import { ScopedPage } from './CassavaScoped';
 
 // The Simplified Chinese dried cassava chips page (data/cassavaChina.js), for industrial buyers: the hero with the
 // network figures and the Intertek reference, the section links, then applications, why HMV, the supply evidence,
-// quality, the supply network, the procurement steps, the questions buyers ask and the call to action.
+// quality with its laboratory evidence, the supply network, the procurement steps, the questions buyers ask and the
+// call to action.
 export function CassavaChinaView() {
   return (
     <ScopedPage c={c} locale="zh-CN" source="zh">
@@ -16,7 +18,7 @@ export function CassavaChinaView() {
           <Applications content={c.applications} />
           <WhyHmv content={c.why} />
           <Evidence evidence={cassavaEvidence} lang="zh" />
-          <Quality quality={c.quality} />
+          <Quality quality={c.quality} reportPages={qualityReportPages} />
           <Network network={c.network} figures={c.figures} />
           <ProcessSteps workflow={c.workflow} />
           <Faq faq={c.faq} />

@@ -343,5 +343,7 @@ export const cassavaDossier = lang => resolve({
   figures: CASSAVA_FIGURES,
   results: CASSAVA_RESULTS,
   report: `Intertek ${INTERTEK.report}`,
+  reportNo: INTERTEK.report,
+  reportDate,
   source: CASSAVA_SOURCE,
 }, lang);
