@@ -6,9 +6,10 @@ import { createInquiryService } from './service';
 
 /**
  * The record a delivery adapter receives, in the shape of a Trade Desk record (service.js toRecord), so the webhook
- * destination and its sheet columns take it as they are: `product` names the service where a commodity inquiry names its
- * product, the cargo and the frequency are labelled requirements, and `source` adds the call to action (`cta`) to the
- * visit context. `service` says the same explicitly.
+ * keeps one format: `product` names the service where a commodity inquiry names its product, the cargo and the
+ * frequency are labelled requirements, and `source` adds the call to action (`cta`) to the visit context. `service`
+ * says the same explicitly; n8n routes on `service.id` to the Consol pipeline and its own sheet
+ * (docs/inbound/TRADE_DESK_DELIVERY.md).
  */
 export function routeAssessmentRecord(value, { reference, createdAt }) {
   const requirements = [

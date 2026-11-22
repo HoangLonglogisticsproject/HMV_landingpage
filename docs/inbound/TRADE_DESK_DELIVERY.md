@@ -59,11 +59,24 @@ Production runs `INQUIRY_DELIVERY=webhook`; the webhook is the n8n production we
 
 Any non-2xx answer or a timeout is a 502 for the buyer (retry and email draft); a 2xx is a 201 with the site's
 reference `HMV-YYYY-XXXXXX`, the `reference` of the record sent in that attempt (the webhook's answer body is not read).
-A retry with the same key reaching the same server instance within 15 minutes gets the first attempt's result and is
-not sent again. On another instance it is sent again with a new reference, and n8n's deduplication on the
-`idempotency-key` keeps the first record: the buyer's reference then differs from the stored lead's, and the
-`idempotency-key` (with the contact) is what ties the lead to the submission. Making the two always match needs the
-webhook to answer with the stored reference and the adapter to use it, a change to the shared webhook contract.
+
+**Known limitation of the shared webhook contract: the reference is not stable across retries.** n8n deduplicates on
+the `idempotency-key` header, never on `reference`, and each attempt that reaches the webhook carries a newly drawn
+reference. Only a retry handled by the same server instance while that instance still caches the key's accepted result
+gets the first answer without sending again. A retry is sent again, with a new reference, when:
+
+- it is handled by another server instance;
+- the earlier attempt failed (a non-2xx answer or the 8 s timeout): a failed result is removed from the cache at once.
+  The webhook may nevertheless have stored that attempt's lead (a timeout after n8n wrote it), so the buyer can be shown
+  a failure, and offered the email draft, for a lead that already exists;
+- the cached result is gone before its 15 minutes: an instance keeps at most 500 keys and drops the oldest, and loses
+  them all when it is recycled.
+
+n8n then keeps the first record for the key, and the reference shown to the buyer (that of the attempt that got a 201)
+can differ from the stored lead's: the `idempotency-key` (with the contact) is what ties the lead to the submission.
+This applies to commodity inquiries and route assessments alike. A stable reference (the webhook answering with the
+stored one and the adapter using it, or a reference derived from the key) changes the shared contract and the
+production Trade Desk path, so it is left to a separate change.
 
 Commodity inquiries (`/api/inquiry`) and Vietnam–Cambodia route assessments (`/api/route-assessment`) share **only
 this transport**: the same webhook URL, signature and idempotency header. n8n separates them after receipt, and each
@@ -135,7 +148,8 @@ Submission rules (browser and `/api/inquiry`):
 - The body is read with a 20 000-byte limit: a larger `Content-Length` is refused unread, a chunked body is cut off at
   the limit (413).
 - The webhook adapter sends the inquiry's idempotency key as `idempotency-key` (stable across retries; the record's
-  reference is drawn anew for each attempt), so the destination can deduplicate.
+  reference is drawn anew for each attempt), so the destination can deduplicate on the key, never on the reference
+  (see *Known limitation* above).
 
 Only a 201 from `/api/inquiry` shows the sent state and emits `generate_lead`. Failures are logged with the idempotency
 key and the CMS status/error code only, never contact details.

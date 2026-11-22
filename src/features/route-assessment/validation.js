@@ -3,7 +3,7 @@
 // context and idempotency key follow the Trade Desk's rules (features/trade-desk/validation.js); the shipment fields are
 // the shipper's own text, trimmed, each with one length limit (the field's maxLength): over it is an error, never a
 // shortened value. Unknown keys are dropped.
-import { KEY, LIMITS as CONTACT_LIMITS, checkContact, errorList, sourceContext } from '../trade-desk/validation.js';
+import { KEY, LIMITS as CONTACT_LIMITS, checkContact, errorList, sourceContext } from '@/features/trade-desk/validation';
 
 /** The service a route assessment is for: its id in the request, its name for the commercial team (record, sheet). */
 export const SERVICE = { id: 'vietnam-cambodia-consolidation', name: 'Vietnam–Cambodia Consolidation' };

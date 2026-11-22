@@ -106,6 +106,7 @@ test('failed: the answers kept, a retry with the same key, the email draft; a 40
   sendInquiry.mockResolvedValue({ status: 503, body: { error: 'unavailable' } });
   await render('vi');
   await fill();
+  await act(() => type('phone', '+84 90 123 4567'));
   await submit();
   const alert = $('[role="alert"]');
   assert.ok(alert.textContent.includes(vnCambodiaConsolidation.vi.form.failed.text));
@@ -124,15 +125,16 @@ test('failed: the answers kept, a retry with the same key, the email draft; a 40
   assert.deepEqual(assign.mock.calls, [['#email-draft']]);
   assert.deepEqual(createInquiryMailto.mock.calls.at(-1)[0], {
     company: 'Factory Co', name: '', email: 'ops@factory.example', product: 'Vietnam–Cambodia Consolidation', destination: 'Phnom Penh', volume: '2 CBM',
-    requirements: [['Origin', 'Binh Duong'], ['Cargo', 'Cartons of parts'], ['Expected frequency', '']], message: '',
+    requirements: [['Origin', 'Binh Duong'], ['Cargo', 'Cartons of parts'], ['Expected frequency', ''], ['WhatsApp / phone', '+84 90 123 4567']], message: '',
   });
 });
 
-test("the server's field errors are shown at their fields", async () => {
+test("the server's field errors are shown at their fields, the first focused once the form is enabled again", async () => {
   sendInquiry.mockResolvedValueOnce({ status: 400, body: { error: 'invalid', fields: ['contact.email'] } });
   await render('en');
   await fill();
   await submit();
   assert.equal($('[name="email"]').getAttribute('aria-invalid'), 'true');
+  assert.equal(document.activeElement, $('[name="email"]'));
   assert.equal($('[role="alert"]'), null);
 });

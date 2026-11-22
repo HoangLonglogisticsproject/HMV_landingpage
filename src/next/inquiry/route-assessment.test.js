@@ -12,7 +12,7 @@ const fixed = { now: () => new Date('2026-11-21T08:00:00Z'), newReference: () =>
 
 afterEach(() => vi.restoreAllMocks());
 
-test('the record has every key of a Trade Desk record, so the webhook flow and its sheet columns take it', () => {
+test('the record has every key of a Trade Desk record (one webhook format) and names its service', () => {
   const tradeDesk = toRecord(validateInquiry({
     idempotencyKey: 'k-12345678', product: 'dried-cassava-chips', contact: { company: 'Feed Co', email: 'b@example.com' }, consent: { contact: true },
   }).value, meta);

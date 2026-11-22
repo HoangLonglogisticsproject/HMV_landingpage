@@ -1,5 +1,5 @@
 'use client';
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { ArrowRight, Check, Mail, RotateCcw } from 'lucide-react';
 import { createInquiryMailto } from '@/features/inquiries/inquiry';
 import { LIMITS, SERVICE, SHIPMENT, validateRouteAssessment } from '@/features/route-assessment/validation';
@@ -73,6 +73,15 @@ export function RouteAssessmentForm({ lang, copy, source }) {
   const [errors, setErrors] = useState([]);
   const [status, setStatus] = useState('idle');
   const [reference, setReference] = useState('');
+  // The first field the server found invalid. Its answer arrives while the fieldsets are disabled (sending), when no
+  // field takes focus: it is focused once the form is enabled again and the errors are rendered.
+  const serverInvalid = useRef(null);
+
+  useEffect(() => {
+    if (!serverInvalid.current) return;
+    form.current?.querySelector(`[data-field="${serverInvalid.current}"]`)?.focus();
+    serverInvalid.current = null;
+  }, [status]);
 
   /** The request as it would be sent now: an exact retry keeps the key, any change takes a new one. */
   const prepare = () => {
@@ -84,11 +93,15 @@ export function RouteAssessmentForm({ lang, copy, source }) {
     return { ...draft, idempotencyKey: key };
   };
 
-  /** Errors of fields the buyer can correct, shown at their fields, the first one focused; false when there are none. */
-  const showErrors = fields => {
+  /**
+   * Errors of fields the buyer can correct, shown at their fields, the first one focused (`fromServer`: once the form is
+   * enabled again); false when there are none.
+   */
+  const showErrors = (fields, fromServer = false) => {
     const own = fields.filter(f => form.current?.querySelector(`[data-field="${f}"]`));
     setErrors(own);
-    form.current?.querySelector(`[data-field="${own[0]}"]`)?.focus();
+    if (fromServer) serverInvalid.current = own[0];
+    else form.current?.querySelector(`[data-field="${own[0]}"]`)?.focus();
     return own.length > 0;
   };
 
@@ -113,7 +126,7 @@ export function RouteAssessmentForm({ lang, copy, source }) {
       }
       // 409: this key was used for other content; the next attempt takes a new one.
       if (response.status === 409) submission.current = null;
-      setStatus(response.status === 400 && showErrors(response.body.fields ?? []) ? 'idle' : 'failed');
+      setStatus(response.status === 400 && showErrors(response.body.fields ?? [], true) ? 'idle' : 'failed');
     } catch {
       setStatus('failed');
     }
@@ -126,8 +139,9 @@ export function RouteAssessmentForm({ lang, copy, source }) {
 
   // The fallback when the endpoint cannot take the request: the same answers as an email draft.
   const mailto = () => {
-    const { company, name, email, origin, destination, cargo, volume, frequency, notes } = values;
-    const requirements = [['Origin', origin], ['Cargo', cargo], ['Expected frequency', frequency]];
+    const { company, name, email, phone, origin, destination, cargo, volume, frequency, notes } = values;
+    // The helper leaves out empty values.
+    const requirements = [['Origin', origin], ['Cargo', cargo], ['Expected frequency', frequency], ['WhatsApp / phone', phone]];
     window.location.assign(createInquiryMailto({ company, name, email, product: SERVICE.name, destination, volume, requirements, message: notes }));
   };
 
