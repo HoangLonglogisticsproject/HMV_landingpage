@@ -121,12 +121,19 @@ test('a page-scoped locale has its own URL for its page only, and maps back to i
 
 // Korean-only original content: its own URL in its one language, not a translation of any page.
 test('a standalone content page keeps its URL: no translation, `lang` dropped and nothing else', () => {
-  assert.deepEqual(SCOPED_CONTENT_PAGES, [{ locale: 'ko', path: '/ko/tapioca-market' }]);
+  assert.deepEqual(SCOPED_CONTENT_PAGES, [
+    { locale: 'ko', path: '/ko/tapioca-market' },
+    ...['procurement-guide', 'quality-guide', 'ethanol-guide'].map(slug => ({ locale: 'zh-CN', path: `/zh-cn/cassava-chips/${slug}` })),
+  ]);
   assert.deepEqual(LOCALES, ['en', 'vi']);
-  assert.ok(!Object.values(PAGE_LOCALES).some(urls => Object.values(urls).includes('/ko/tapioca-market')));
-  assert.equal(legacyRedirect('/ko/tapioca-market'), null);
-  for (const lang of ['vi', 'en', 'ko', 'zh-CN']) assert.equal(canonicalUrl('/ko/tapioca-market', `?lang=${lang}`), '/ko/tapioca-market', lang);
+  for (const { path } of SCOPED_CONTENT_PAGES) {
+    assert.ok(!Object.values(PAGE_LOCALES).some(urls => Object.values(urls).includes(path)), path);
+    assert.equal(legacyRedirect(path), null, path);
+    for (const lang of ['vi', 'en', 'ko', 'zh-CN']) assert.equal(canonicalUrl(path, `?lang=${lang}`), path, lang);
+  }
   assert.equal(legacyRedirect('/ko/tapioca-market', '?lang=vi&utm_source=naver'), '/ko/tapioca-market?utm_source=naver');
+  // The Chinese guides sit under the Chinese supply page's URL, which keeps its translation group.
+  assert.equal(legacyRedirect('/zh-cn/cassava-chips', '?lang=en'), '/products/dried-cassava-chips');
   // The Korean supply page keeps its translation group.
   assert.equal(legacyRedirect('/ko/tapioca-chips', '?lang=vi'), '/vi/san-pham/san-lat-kho');
 });

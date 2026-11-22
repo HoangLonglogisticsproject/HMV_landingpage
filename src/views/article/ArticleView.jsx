@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RichText } from '@/features/articles/RichText';
+import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
 import { Link } from '@/lib/navigation';
 import { BackButton } from './BackButton';
 import { articleCopy } from './copy';
@@ -47,7 +48,12 @@ export function ArticleView({ lang, state, readIn }) {
             <aside className="article-cta glass">
               {/* Bundled articles about a product link their question to its page; CMS articles have no product. */}
               {a.cta && <p>{a.product ? <Link to={`/products/${a.product}`}>{a.cta}</Link> : a.cta}</p>}
-              <Button asChild size="lg" className="day-cta"><Link to="/#initiate-trade">{t.quote}<ArrowUpRight size={18} /></Link></Button>
+              {/* An article with a Trade Desk source opens the desk with its product; others keep the quotation form. */}
+              {a.tradeDesk ? (
+                <TradeDeskButton size="lg" className="day-cta" product={a.product} source={a.tradeDesk}>{t.tradeDesk}<ArrowUpRight size={18} /></TradeDeskButton>
+              ) : (
+                <Button asChild size="lg" className="day-cta"><Link to="/#initiate-trade">{t.quote}<ArrowUpRight size={18} /></Link></Button>
+              )}
             </aside>
           </article>
         </>

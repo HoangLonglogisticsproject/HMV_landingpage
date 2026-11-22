@@ -1,5 +1,6 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
+import { ZH_CASSAVA_GUIDES } from '../../src/i18n/routes.js';
 import { abs, head, tags } from './html.js';
 
 /**
@@ -21,7 +22,7 @@ test('server HTML: a zh-CN document with the Chinese title, description, heading
   const h = head(html);
   expect(h.lang).toBe('zh-CN');
   expect(h.title).toBe('越南木薯干片供应商与工厂批量采购方案 | HMV Global');
-  expect(h.description).toBe('HMV Global 面向饲料厂、淀粉加工厂和生物乙醇企业提供木薯干片批量供应，按目的地、月度采购量和质量要求协调货源、取样、集货、单证及交付。');
+  expect(h.description).toBe('HMV Global 面向饲料厂、淀粉加工厂和生物乙醇企业提供越南木薯干片批量供应与采购协调，按目的地、月度采购量和质量要求统筹货源、取样、集货、单证及交付，并提供中文商务沟通。');
   expect(html.match(/<h1\b/g)).toHaveLength(1);
   expect(h.h1).toBe('由 HMV Global 管理的木薯干片批量供应方案');
   expect(h.canonical).toBe(abs(PATH));
@@ -62,7 +63,7 @@ test('server HTML: a zh-CN document with the Chinese title, description, heading
 test('server HTML: the sections in page order, each a labelled section with one h2; the strip and FAQ answers in it', async ({ request }) => {
   const html = await get(request);
   const sections = tags(html, 'section');
-  expect(sections.map(s => s.id)).toEqual(['overview', 'applications', 'why-hmv', 'supply-evidence', 'quality', 'capability', 'workflow', 'faq', 'rfq']);
+  expect(sections.map(s => s.id)).toEqual(['overview', 'applications', 'why-hmv', 'supply-evidence', 'quality', 'capability', 'workflow', 'faq', 'guides', 'commercial-support', 'rfq']);
   for (const s of sections) expect(html, s.id).toMatch(new RegExp(`<h[12] id="${s['aria-labelledby']}"`));
   // The strip below the hero: real links to each section, in page order.
   const strip = html.slice(html.indexOf('aria-label="本页目录"'), html.indexOf('id="applications"'));
@@ -113,6 +114,8 @@ test('header: the real HMV logo, the section links, and this page in English, Vi
   expect(html).not.toContain('pf-grid');
 });
 
+// Its /zh-cn links: this page, and its guides (data/cassavaChinaGuides.js).
+const ZH_URLS = [PATH, ...ZH_CASSAVA_GUIDES.map(slug => `${PATH}/${slug}`)];
 test('every link works: section anchors exist on the page, every other link answers 200; no other /zh-cn URL', async ({ request }) => {
   const html = await get(request);
   const hrefs = [...new Set(tags(html, 'a').map(a => a.href))];
@@ -121,7 +124,7 @@ test('every link works: section anchors exist on the page, every other link answ
     if (href.startsWith('#')) expect(html, href).toContain(`id="${href.slice(1)}"`);
     else {
       expect(href, href).toMatch(/^\/(?!\/)/);
-      if (href.startsWith('/zh-cn')) expect(href).toBe(PATH);
+      if (href.startsWith('/zh-cn')) expect(ZH_URLS).toContain(href);
       if (href.startsWith('/ko')) expect(href).toBe('/ko/tapioca-chips');
       expect((await request.get(href, { maxRedirects: 0 })).status(), href).toBe(200);
     }

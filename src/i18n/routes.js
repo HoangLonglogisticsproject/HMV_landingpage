@@ -37,8 +37,14 @@ export const pageLocales = path => Object.keys(PAGE_LOCALES[path] ?? {});
 
 // Standalone localized content: original pages in one language only, at their own URL. Unlike PAGE_LOCALES, they are
 // not translations of a page, so they have no hreflang set; each is its own canonical, listed in the sitemap.
+// The Simplified Chinese dried cassava chips guides and market updates, by slug (data/cassavaChinaGuides.js), under the
+// Chinese procurement page; listed here because that data is too large for the proxy, which loads this module.
+export const ZH_CASSAVA_GUIDES = ['procurement-guide', 'quality-guide', 'ethanol-guide'];
 /** @type {{ locale: string, path: string }[]} */
-export const SCOPED_CONTENT_PAGES = [{ locale: 'ko', path: '/ko/tapioca-market' }];
+export const SCOPED_CONTENT_PAGES = [
+  { locale: 'ko', path: '/ko/tapioca-market' },
+  ...ZH_CASSAVA_GUIDES.map(slug => ({ locale: 'zh-CN', path: `/zh-cn/cassava-chips/${slug}` })),
+];
 const CONTENT_PAGE = new Set(SCOPED_CONTENT_PAGES.map(page => page.path));
 
 // Collection URLs without a page of their own, keyed by English path.
