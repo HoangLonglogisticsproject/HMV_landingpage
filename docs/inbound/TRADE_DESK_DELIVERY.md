@@ -58,7 +58,12 @@ Production runs `INQUIRY_DELIVERY=webhook`; the webhook is the n8n production we
 | `x-hmv-signature` | `sha256=` + lower-case hex `HMAC-SHA256(INQUIRY_WEBHOOK_SECRET, <exact body>)`, when the secret is set |
 
 Any non-2xx answer or a timeout is a 502 for the buyer (retry and email draft); a 2xx is a 201 with the site's
-reference `HMV-YYYY-XXXXXX`, which is also the record's `reference`.
+reference `HMV-YYYY-XXXXXX`, the `reference` of the record sent in that attempt (the webhook's answer body is not read).
+A retry with the same key reaching the same server instance within 15 minutes gets the first attempt's result and is
+not sent again. On another instance it is sent again with a new reference, and n8n's deduplication on the
+`idempotency-key` keeps the first record: the buyer's reference then differs from the stored lead's, and the
+`idempotency-key` (with the contact) is what ties the lead to the submission. Making the two always match needs the
+webhook to answer with the stored reference and the adapter to use it, a change to the shared webhook contract.
 
 Commodity inquiries (`/api/inquiry`) and Vietnam–Cambodia route assessments (`/api/route-assessment`) share **only
 this transport**: the same webhook URL, signature and idempotency header. n8n separates them after receipt, and each
@@ -189,8 +194,11 @@ Production delivery stays on the webhook until every item below is in place:
 2. Vercel (Production): `INQUIRY_DELIVERY=cms`, `CMS_INQUIRY_URL`, `CMS_INQUIRY_SECRET` (server-only).
 3. Optional `NEXT_PUBLIC_HMV_*` channels (then redeploy: they are inlined at build).
 4. A test inquiry on a preview deployment, seen in the CMS Sales Inbox with the same reference the buyer saw.
-5. Route assessments: the CMS contract supports logistics-service inquiries. Until then the CMS adapter refuses them
-   (503) and they must stay on the webhook path, so switching to `cms` would stop Vietnam–Cambodia leads.
+5. Route assessments: the CMS contract supports logistics-service inquiries, **and** `createRouteAssessmentService`
+   (`src/next/inquiry/route-assessment.js`), which deliberately refuses the CMS adapter today, is changed to send them
+   to it; a valid assessment is verified to reach the CMS and return 201. Until both are in place the CMS adapter
+   refuses route assessments (503) and they must stay on the webhook path, so switching to `cms` would stop
+   Vietnam–Cambodia leads.
 
 ## Route assessments (Vietnam–Cambodia consolidation)
 
