@@ -1,5 +1,6 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
+import { KO_CASSAVA_GUIDES } from '../../src/i18n/routes.js';
 import { abs, head, tags } from './html.js';
 
 /**
@@ -60,7 +61,7 @@ test('server HTML: a ko document with the Korean title, description and heading;
 test('server HTML: the procurement sections in page order, each a labelled section with one h2; the strip and FAQ answers in it', async ({ request }) => {
   const html = await get(request);
   const sections = tags(html, 'section');
-  expect(sections.map(s => s.id)).toEqual(['overview', 'applications', 'why-hmv', 'supply-evidence', 'quality', 'capability', 'workflow', 'faq', 'market', 'rfq']);
+  expect(sections.map(s => s.id)).toEqual(['overview', 'applications', 'why-hmv', 'supply-evidence', 'quality', 'capability', 'workflow', 'faq', 'guides', 'market', 'rfq']);
   for (const s of sections) expect(html, s.id).toMatch(new RegExp(`<h[12] id="${s['aria-labelledby']}"`));
   expect(html.match(/<h1\b/g)).toHaveLength(1);
   // The strip below the hero: real links to each section, in page order.
@@ -91,6 +92,20 @@ test('server HTML: quality reference, key results, then the third-party evidence
   expect(quality).not.toContain('분석 보고서 보기');
   // One submitted sample analysed by Intertek: never a certification or guarantee of the product, supplier or shipment.
   expect(text(html)).not.toMatch(/certif|guarant|accredit|인증|보증|보장|공인/i);
+});
+
+test('the buyer guides, after the questions and before the market block, link the three Korean guides', async ({ request }) => {
+  const html = await get(request);
+  const guides = html.slice(html.indexOf('<section id="guides"'), html.indexOf('<section id="market"'));
+  expect(guides).toMatch(/<h2 id="guides-title"[^>]*>구매 가이드<\/h2>/);
+  expect(tags(guides, 'a').map(a => a.href)).toEqual(KO_CASSAVA_GUIDES.map(slug => `${PATH}/${slug}`));
+  expect(text(guides)).toContain('산업용 타피오카 칩 구매 가이드');
+  expect(text(guides)).toContain('타피오카 칩 품질 확인 가이드');
+  expect(text(guides)).toContain('에탄올 생산용 타피오카 칩 구매 시 확인할 사항');
+  expect(html.indexOf('<section id="faq"')).toBeLessThan(html.indexOf('<section id="guides"'));
+  // The guides are not the money page: its heading, title and canonical stay the page's own.
+  expect(html.match(/<h1\b/g)).toHaveLength(1);
+  expect(head(html).canonical).toBe(abs(PATH));
 });
 
 test('the market intelligence block, after the questions, links to the Korean market page', async ({ request }) => {
@@ -133,8 +148,8 @@ test('every link works: section anchors exist on the page, every other link answ
     if (href.startsWith('#')) expect(html, href).toContain(`id="${href.slice(1)}"`);
     else {
       expect(href, href).toMatch(/^\/(?!\/)/);
-      // This page and the Korean market page (its market teaser), the only Korean pages.
-      if (href.startsWith('/ko')) expect([PATH, '/ko/tapioca-market']).toContain(href);
+      // This page, its three guides and the Korean market page (its market teaser), the only Korean pages.
+      if (href.startsWith('/ko')) expect([PATH, '/ko/tapioca-market', ...KO_CASSAVA_GUIDES.map(slug => `${PATH}/${slug}`)]).toContain(href);
       expect((await request.get(href, { maxRedirects: 0 })).status(), href).toBe(200);
     }
   }

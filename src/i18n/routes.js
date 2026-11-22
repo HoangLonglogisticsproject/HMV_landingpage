@@ -40,10 +40,14 @@ export const pageLocales = path => Object.keys(PAGE_LOCALES[path] ?? {});
 // The Simplified Chinese dried cassava chips guides and market updates, by slug (data/cassavaChinaGuides.js), under the
 // Chinese procurement page; listed here because that data is too large for the proxy, which loads this module.
 export const ZH_CASSAVA_GUIDES = ['procurement-guide', 'quality-guide', 'ethanol-guide'];
+// The Korean buyer guides, by slug (data/cassavaKoreaGuides.js), under the Korean procurement page: original Korean
+// pages, not translations of the Chinese guides or the EN/VI articles.
+export const KO_CASSAVA_GUIDES = ['procurement-guide', 'quality-guide', 'ethanol-guide'];
 /** @type {{ locale: string, path: string }[]} */
 export const SCOPED_CONTENT_PAGES = [
   { locale: 'ko', path: '/ko/tapioca-market' },
   ...ZH_CASSAVA_GUIDES.map(slug => ({ locale: 'zh-CN', path: `/zh-cn/cassava-chips/${slug}` })),
+  ...KO_CASSAVA_GUIDES.map(slug => ({ locale: 'ko', path: `/ko/tapioca-chips/${slug}` })),
 ];
 const CONTENT_PAGE = new Set(SCOPED_CONTENT_PAGES.map(page => page.path));
 

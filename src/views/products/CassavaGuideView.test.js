@@ -5,6 +5,8 @@ import { act, createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
 import { cassavaChina } from '@/data/cassavaChina.js';
 import { cassavaChinaGuides } from '@/data/cassavaChinaGuides.js';
+import { cassavaKorea } from '@/data/cassavaKorea.js';
+import { cassavaKoreaGuides } from '@/data/cassavaKoreaGuides.js';
 import { OPEN_TRADE_DESK } from '@/features/trade-desk/open.js';
 import { CassavaGuideView } from './CassavaGuideView.jsx';
 
@@ -24,39 +26,51 @@ const render = props => act(() => root.render(h(CassavaGuideView, props)));
 const hrefs = selector => [...container.querySelectorAll(selector)].map(a => a.getAttribute('href'));
 const { copy, items } = cassavaChinaGuides;
 
-for (const [slug, guide] of Object.entries(items)) {
-  test(`${slug}: one h1, its date, the body; every header link has its section`, async () => {
-    await render({ slug });
-    assert.deepEqual([...container.querySelectorAll('h1')].map(e => e.textContent), [guide.h1]);
-    assert.equal(container.querySelector('.article-meta time').getAttribute('datetime'), guide.published);
-    assert.equal(container.querySelector('.article-meta time').textContent, '发布日期：2026年11月21日');
-    for (const href of hrefs('.nav-center a')) assert.ok(container.querySelector(href), href);
-    assert.ok(container.querySelector('#guide h2'));
-  });
+// The guides of each language: the page they belong to, the date line of their first entry and what their related list
+// adds after the other guides. Only the Chinese page has the commercial support block.
+const SETS = [
+  { locale: 'zh-CN', data: cassavaChinaGuides, content: cassavaChina, page: '/zh-cn/cassava-chips', date: '发布日期：2026年11月21日', nav: ['#guide', '#commercial-support', '#related'], extra: [] },
+  { locale: 'ko', data: cassavaKoreaGuides, content: cassavaKorea, page: '/ko/tapioca-chips', date: '게시일: 2026년 11월 22일', nav: ['#guide', '#related'], extra: ['/ko/tapioca-market'] },
+];
 
-  test(`${slug}: links back to the procurement page and to the other guides`, async () => {
-    await render({ slug });
-    // The header action, the link above the title and the related list; the body links to the page or its sections.
-    assert.deepEqual(hrefs('header a.nav-support-btn, main > .article-col:first-child a'), ['/zh-cn/cassava-chips', '/zh-cn/cassava-chips']);
-    assert.ok(hrefs('#guide a').some(href => href.startsWith('/zh-cn/cassava-chips')));
-    const others = Object.keys(items).filter(other => other !== slug).map(other => `/zh-cn/cassava-chips/${other}`);
-    assert.deepEqual(hrefs('#related li a'), ['/zh-cn/cassava-chips', ...others]);
-  });
+for (const { locale, data, content, page, date, nav, extra } of SETS) {
+  for (const [slug, guide] of Object.entries(data.items)) {
+    test(`${locale} ${slug}: one h1, its date, the body; every header link has its section`, async () => {
+      await render({ slug, locale });
+      assert.deepEqual([...container.querySelectorAll('h1')].map(e => e.textContent), [guide.h1]);
+      assert.equal(container.querySelector('.article-meta time').getAttribute('datetime'), guide.published);
+      assert.equal(container.querySelector('.article-meta time').textContent, date);
+      assert.deepEqual(hrefs('.nav-center a'), nav);
+      for (const href of nav) assert.ok(container.querySelector(href), href);
+      assert.ok(container.querySelector('#guide h2'));
+    });
 
-  test(`${slug}: the call to action opens the HMV Trade Desk with its own source; the Chinese commercial support`, async () => {
-    await render({ slug });
-    const opened = [];
-    const onOpen = e => opened.push(e.detail);
-    window.addEventListener(OPEN_TRADE_DESK, onOpen);
-    const button = container.querySelector('.article-cta button');
-    assert.equal(button.title, cassavaChina.tradeDesk);
-    await act(() => button.click());
-    window.removeEventListener(OPEN_TRADE_DESK, onOpen);
-    assert.deepEqual(opened, [{ product: 'dried-cassava-chips', source: guide.source }]);
-    const support = container.querySelector('#commercial-support');
-    assert.equal(support.querySelector('h2').textContent, '中文商务支持');
-    assert.deepEqual([...support.querySelectorAll('li')].map(li => li.textContent), ['产品规格', '月度采购量', '目的地', '商务条款', '订单跟进']);
-  });
+    test(`${locale} ${slug}: links back to the procurement page and to the other guides${extra.length ? ' and the market page' : ''}`, async () => {
+      await render({ slug, locale });
+      // The header action and the link above the title; the body links to the page or its sections.
+      assert.deepEqual(hrefs('header a.nav-support-btn, main > .article-col:first-child a'), [page, page]);
+      assert.ok(hrefs('#guide a').some(href => href.startsWith(page)));
+      const others = Object.keys(data.items).filter(other => other !== slug).map(other => `${page}/${other}`);
+      assert.deepEqual(hrefs('#related li a'), [page, ...others, ...extra]);
+    });
+
+    test(`${locale} ${slug}: the call to action opens the HMV Trade Desk with its own source${content.support ? '; the Chinese commercial support' : ''}`, async () => {
+      await render({ slug, locale });
+      const opened = [];
+      const onOpen = e => opened.push(e.detail);
+      window.addEventListener(OPEN_TRADE_DESK, onOpen);
+      const button = container.querySelector('.article-cta button');
+      assert.equal(button.title, content.tradeDesk);
+      assert.equal(button.textContent, data.copy.cta.button);
+      await act(() => button.click());
+      window.removeEventListener(OPEN_TRADE_DESK, onOpen);
+      assert.deepEqual(opened, [{ product: 'dried-cassava-chips', source: guide.source }]);
+      const support = container.querySelector('#commercial-support');
+      if (!content.support) return assert.equal(support, null);
+      assert.equal(support.querySelector('h2').textContent, '中文商务支持');
+      assert.deepEqual([...support.querySelectorAll('li')].map(li => li.textContent), ['产品规格', '月度采购量', '目的地', '商务条款', '订单跟进']);
+    });
+  }
 }
 
 // A dated market update: external data with its original sources, apart from HMV's reading. Fixture only: none is

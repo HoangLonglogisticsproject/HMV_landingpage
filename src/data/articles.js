@@ -29,6 +29,7 @@ const passionEn = [
 // one Intertek-analysed sample, quality agreed before commitment). No specification limit, price, minimum order, stock,
 // lead time, certification or customer. Each links to the cassava page and opens the HMV Trade Desk with its own
 // analytics source (`tradeDesk`). Inline links: `[text](path)`, written per language (features/articles/bundled.js).
+// They support the cassava page, which keeps the supplier keyword: no guide's title targets it.
 const CASSAVA_EN = '/products/dried-cassava-chips';
 const CASSAVA_VI = '/vi/san-pham/san-lat-kho';
 const ethanolEn = [
@@ -149,7 +150,77 @@ const qualityVi = [
   ['h2', 'Gửi yêu cầu chất lượng cho HMV'],
   ['p', `Bắt đầu bằng điểm đến và sản lượng dự kiến hằng tháng; yêu cầu về tinh bột, độ ẩm và quy cách đóng hàng được xác nhận cùng HMV khi trao đổi tiếp theo. [Trang sắn lát khô](${CASSAVA_VI}) trình bày mạng lưới cung ứng và quy trình từ vùng nguyên liệu đến cảng của bạn.`],
 ];
+const importEn = [
+  ['p', `Importing dried cassava chips from Vietnam is a procurement project before it is a shipment. A feed, starch or ethanol buyer who settles the application, the destination, the monthly demand and the quality requirement first can compare proposals on the same terms and brief a sourcing team once. This guide sets out the points to define before an inquiry, in the order they usually come up, and how HMV Global structures [dried cassava chips supply from Vietnam](${CASSAVA_EN}) around them.`],
+  ['h2', 'Define the industrial application'],
+  ['p', 'Dried cassava chips are bought as a raw material for bioethanol and distilled alcohol, animal feed and starch processing. The application decides which parameters carry the most weight: ethanol producers look first at starch, feed manufacturers also at raw fiber, sand and foreign matter, starch processors at starch and consistency between lots. Name the application in the first message; it frames every other requirement. The [ethanol procurement guide](/blog/dried-cassava-chips-ethanol-procurement-guide) covers that use in detail.'],
+  ['h2', 'Define the destination and the monthly demand'],
+  ['p', 'The destination, a port or a plant, decides the route, the documents and how containers are planned. Monthly demand is the other anchor: state it in metric tons, with the start month and any seasonal change in the plant’s needs. A plant consumes feedstock every day, so a supply plan that holds from month to month matters more than one attractive shipment.'],
+  ['h2', 'Agree the quality parameters'],
+  ['p', 'Quality is the part of an import that is hardest to correct once the cargo is loaded, so it is agreed before commitment. Buyers usually fix starch, moisture, raw fiber, ash, sand and silica and foreign matter, and add heavy metals where the destination or the application sets limits, each with a limit and a method of measurement. The [quality guide](/blog/dried-cassava-chips-quality-procurement-guide) explains each parameter and how to read a laboratory report.'],
+  ['h2', 'Understand sample results versus the contractual specification'],
+  ['p', `A laboratory result describes the sample the laboratory received, nothing more. HMV’s own reference is one Intertek Vietnam analysis of a submitted sample, shown in the [quality reference on the cassava page](${CASSAVA_EN}#quality). It supports a first evaluation. The specification of each lot, the sampling plan and the laboratory are agreed in the supply proposal and contract; the sample result is not a specification for every shipment.`],
+  ['h2', 'Plan the origin and the continuity of supply'],
+  ['p', 'A recurring program should not rest on one source. HMV coordinates sourcing across its regional network in Vietnam and Cambodia and consolidates lots around the agreed shipment volume. Which origin supplies a shipment is confirmed in each proposal according to the destination, the application and the quality requirements, and the volume for each buyer is confirmed in the supply proposal and contract.'],
+  ['h2', 'Decide packaging and loading'],
+  ['p', 'Decide whether the cargo ships in bulk or bagged, which container type is used and how loading is checked. State what is already fixed in the inquiry; if it is open, say so and settle it in the follow-up.'],
+  ['h2', 'Documentation depends on the destination rules and the contract'],
+  ['p', 'The inspection, quarantine and customs documents a shipment needs depend on the rules in force in the destination market and on the contract. Confirm the list with your import or customs team and with HMV before the first shipment, rather than assuming it from another market. This guide is not legal advice.'],
+  ['h2', 'Trial shipment or recurring program'],
+  ['p', 'A trial lot lets a plant check the cargo against its own process before it commits to a program; a quarterly or annual program sets a rhythm of monthly volumes. Say which one you are planning: the sourcing, sampling and consolidation plan differs between the two.'],
+  ['h2', 'What to send HMV'],
+  ['p', 'Two facts are enough to begin: the destination and the expected monthly volume. HMV structures the sourcing, quality and delivery proposal around them. It also helps to add:'],
+  ['ul', [
+    ['Application:', 'ethanol, feed or starch.'],
+    ['Destination:', 'the port or plant.'],
+    ['Monthly volume:', 'in metric tons, with the start month.'],
+    ['Quality requirements:', 'the parameters and methods you already use.'],
+    ['Packaging and loading:', 'bulk or bagged, and the container type.'],
+    ['Program:', 'a trial lot, a quarterly program or a recurring annual program.'],
+  ]],
+  ['p', `Starch, moisture and packaging requirements are confirmed in the follow-up. For the network, the sample reference and the workflow from origin to port, see the [Vietnam dried cassava chips supply page](${CASSAVA_EN}).`],
+];
+const importVi = [
+  ['p', `Nhập sắn lát khô từ Việt Nam là một dự án thu mua trước khi là một chuyến hàng. Người mua cho sản xuất ethanol, thức ăn chăn nuôi hoặc tinh bột xác định trước mục đích sử dụng, điểm đến, nhu cầu hằng tháng và yêu cầu chất lượng sẽ so sánh được các phương án trên cùng một mặt bằng và chỉ cần trao đổi nhu cầu với đội ngũ nguồn hàng một lần. Bài viết này nêu những điểm cần xác định trước khi gửi yêu cầu, theo thứ tự thường gặp, và cách HMV Global tổ chức [nguồn cung sắn lát khô từ Việt Nam](${CASSAVA_VI}) xoay quanh các điểm đó.`],
+  ['h2', 'Xác định mục đích sử dụng công nghiệp'],
+  ['p', 'Sắn lát khô được mua làm nguyên liệu cho sản xuất bioethanol và cồn, thức ăn chăn nuôi và chế biến tinh bột. Mục đích sử dụng quyết định chỉ tiêu nào quan trọng nhất: nhà sản xuất ethanol xem tinh bột trước tiên, nhà máy thức ăn chăn nuôi xem thêm xơ thô, cát sạn và tạp chất, nhà chế biến tinh bột xem tinh bột và độ đồng đều giữa các lô. Hãy nêu rõ mục đích ngay trong yêu cầu đầu tiên vì nó định hình mọi yêu cầu còn lại. [Hướng dẫn thu mua cho sản xuất ethanol](/vi/tin-tuc/san-lat-kho-cho-san-xuat-ethanol) trình bày chi tiết mục đích này.'],
+  ['h2', 'Xác định điểm đến và nhu cầu hằng tháng'],
+  ['p', 'Điểm đến, là một cảng hoặc một nhà máy, quyết định tuyến vận chuyển, chứng từ và cách bố trí container. Nhu cầu hằng tháng là điểm neo còn lại: hãy nêu theo tấn, kèm tháng bắt đầu và mọi biến động theo mùa trong nhu cầu của nhà máy. Nhà máy dùng nguyên liệu mỗi ngày, nên một kế hoạch cung ứng duy trì được từ tháng này sang tháng khác quan trọng hơn một chuyến hàng đơn lẻ có điều kiện hấp dẫn.'],
+  ['h2', 'Thống nhất các chỉ tiêu chất lượng'],
+  ['p', 'Chất lượng là phần khó điều chỉnh nhất sau khi hàng đã đóng, vì vậy cần được thống nhất trước khi cam kết. Người mua thường chốt tinh bột, độ ẩm, xơ thô, tro, cát sạn (sand & silica) và tạp chất, rồi thêm kim loại nặng khi điểm đến hoặc mục đích sử dụng đặt giới hạn; mỗi chỉ tiêu có giới hạn và phương pháp đo. [Hướng dẫn về chất lượng sắn lát khô](/vi/tin-tuc/chat-luong-san-lat-kho-huong-dan-thu-mua) giải thích từng chỉ tiêu và cách đọc một báo cáo phòng thí nghiệm.'],
+  ['h2', 'Phân biệt kết quả mẫu với thông số trong hợp đồng'],
+  ['p', `Kết quả phòng thí nghiệm chỉ mô tả mẫu mà phòng thí nghiệm đã nhận, không hơn. HMV công bố một tham chiếu như vậy, kết quả Intertek Việt Nam phân tích một mẫu sắn lát khô được gửi, trong [phần tham chiếu chất lượng trên trang sắn lát khô](${CASSAVA_VI}#quality). Nó hỗ trợ đánh giá ban đầu. Thông số của từng lô, kế hoạch lấy mẫu và phòng thí nghiệm được thống nhất trong phương án cung ứng và hợp đồng; kết quả mẫu không phải thông số cho mọi chuyến hàng.`],
+  ['h2', 'Lên kế hoạch nguồn gốc và tính liên tục của nguồn cung'],
+  ['p', 'Một chương trình cung ứng định kỳ không nên dựa vào một nguồn duy nhất. HMV điều phối nguồn hàng trong mạng lưới khu vực tại Việt Nam và Campuchia và gom các lô theo sản lượng chuyến hàng đã thống nhất. Nguồn gốc của từng chuyến hàng được xác nhận trong mỗi phương án theo điểm đến, mục đích sử dụng và yêu cầu chất lượng, còn sản lượng cho mỗi người mua được xác nhận trong phương án cung ứng và hợp đồng.'],
+  ['h2', 'Đóng gói và đóng hàng'],
+  ['p', 'Hãy quyết định hàng rời hay đóng bao, loại container sử dụng và cách kiểm tra khi đóng hàng. Nêu những gì đã cố định trong yêu cầu; nếu còn để ngỏ, hãy nói rõ và thống nhất khi trao đổi tiếp theo.'],
+  ['h2', 'Chứng từ phụ thuộc quy định tại điểm đến và hợp đồng'],
+  ['p', 'Các chứng từ kiểm tra, kiểm dịch và hải quan mà một chuyến hàng cần phụ thuộc vào quy định đang có hiệu lực tại thị trường điểm đến và vào hợp đồng. Hãy xác nhận danh sách với bộ phận nhập khẩu hoặc khai báo hải quan của bạn và với HMV trước chuyến hàng đầu tiên, thay vì suy ra từ một thị trường khác. Bài viết này không phải tư vấn pháp lý.'],
+  ['h2', 'Chuyến hàng thử hay chương trình định kỳ'],
+  ['p', 'Một lô thử giúp nhà máy kiểm tra hàng theo quy trình của mình trước khi cam kết một chương trình; chương trình theo quý hoặc theo năm thiết lập nhịp sản lượng hằng tháng. Hãy nói rõ bạn đang lên kế hoạch loại nào: kế hoạch nguồn hàng, lấy mẫu và gom hàng khác nhau giữa hai loại.'],
+  ['h2', 'Thông tin cần gửi cho HMV'],
+  ['p', 'Hai thông tin là đủ để bắt đầu: điểm đến và sản lượng dự kiến hằng tháng. HMV xây dựng phương án nguồn hàng, chất lượng và giao hàng xoay quanh hai thông tin này. Bạn cũng có thể bổ sung:'],
+  ['ul', [
+    ['Mục đích sử dụng:', 'ethanol, thức ăn chăn nuôi hoặc tinh bột.'],
+    ['Điểm đến:', 'cảng hoặc nhà máy.'],
+    ['Sản lượng hằng tháng:', 'tính theo tấn, kèm tháng bắt đầu.'],
+    ['Yêu cầu chất lượng:', 'các chỉ tiêu và phương pháp bạn đang áp dụng.'],
+    ['Đóng gói và đóng hàng:', 'hàng rời hay đóng bao, loại container.'],
+    ['Chương trình:', 'lô thử, chương trình theo quý hoặc chương trình định kỳ theo năm.'],
+  ]],
+  ['p', `Yêu cầu về tinh bột, độ ẩm và quy cách đóng hàng được xác nhận cùng HMV khi trao đổi tiếp theo. [Trang sắn lát khô Việt Nam](${CASSAVA_VI}) trình bày mạng lưới, tham chiếu mẫu phân tích và quy trình thực hiện.`],
+];
 export const articles = [
+  {
+    id: 'cassava-import-guide', slug: { vi: 'huong-dan-nhap-khau-san-lat-kho-tu-viet-nam', en: 'importing-dried-cassava-chips-from-vietnam' }, iso: '2026-11-22', image: 'cassava-stock', imagePosition: 'center 72%',
+    date: { vi: 'Tháng 11, 2026', en: 'November 2026' }, category: { vi: 'Hướng dẫn thu mua', en: 'Buyer guide' },
+    title: { vi: 'Hướng dẫn buyer nhập sắn lát khô từ Việt Nam', en: 'Importing Dried Cassava Chips from Vietnam: A Buyer’s Procurement Guide' },
+    description: { vi: 'Người mua công nghiệp cần xác định gì khi nhập sắn lát khô từ Việt Nam: mục đích sử dụng, điểm đến, nhu cầu hằng tháng, chỉ tiêu chất lượng, kết quả mẫu so với thông số hợp đồng, tính liên tục của nguồn cung và chứng từ.', en: 'How industrial buyers plan an import of dried cassava chips from Vietnam: application, destination, monthly demand, quality parameters, sample results versus the contract specification, supply continuity and documentation.' },
+    alt: { vi: 'Đống sắn lát khô lớn dưới mái kèo thép, phía trước là một nắm sắn lát cầm trên tay', en: 'A large pile of dried cassava chips under a steel roof, a handful of chips held in the foreground' },
+    cta: { vi: 'Bạn đang lên kế hoạch nhập sắn lát khô từ Việt Nam?', en: 'Planning to import dried cassava chips from Vietnam?' }, product: 'dried-cassava-chips',
+    tradeDesk: { vi: 'vi_import_guide', en: 'en_import_guide' },
+    body: { vi: importVi, en: importEn },
+  },
   {
     id: 'cassava-ethanol-guide', slug: { vi: 'san-lat-kho-cho-san-xuat-ethanol', en: 'dried-cassava-chips-ethanol-procurement-guide' }, iso: '2026-11-21', image: 'cassava-loading',
     date: { vi: 'Tháng 11, 2026', en: 'November 2026' }, category: { vi: 'Hướng dẫn thu mua', en: 'Buyer guide' },

@@ -124,6 +124,7 @@ test('a standalone content page keeps its URL: no translation, `lang` dropped an
   assert.deepEqual(SCOPED_CONTENT_PAGES, [
     { locale: 'ko', path: '/ko/tapioca-market' },
     ...['procurement-guide', 'quality-guide', 'ethanol-guide'].map(slug => ({ locale: 'zh-CN', path: `/zh-cn/cassava-chips/${slug}` })),
+    ...['procurement-guide', 'quality-guide', 'ethanol-guide'].map(slug => ({ locale: 'ko', path: `/ko/tapioca-chips/${slug}` })),
   ]);
   assert.deepEqual(LOCALES, ['en', 'vi']);
   for (const { path } of SCOPED_CONTENT_PAGES) {
@@ -134,6 +135,7 @@ test('a standalone content page keeps its URL: no translation, `lang` dropped an
   assert.equal(legacyRedirect('/ko/tapioca-market', '?lang=vi&utm_source=naver'), '/ko/tapioca-market?utm_source=naver');
   // The Chinese guides sit under the Chinese supply page's URL, which keeps its translation group.
   assert.equal(legacyRedirect('/zh-cn/cassava-chips', '?lang=en'), '/products/dried-cassava-chips');
-  // The Korean supply page keeps its translation group.
+  // The Korean supply page keeps its translation group; its guides are Korean-only pages beneath it.
   assert.equal(legacyRedirect('/ko/tapioca-chips', '?lang=vi'), '/vi/san-pham/san-lat-kho');
+  assert.equal(legacyRedirect('/ko/tapioca-chips/quality-guide', '?lang=vi&utm_source=naver'), '/ko/tapioca-chips/quality-guide?utm_source=naver');
 });

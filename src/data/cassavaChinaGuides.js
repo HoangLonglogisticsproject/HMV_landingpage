@@ -17,6 +17,8 @@ export const cassavaChinaGuides = {
   copy: {
     navLabel: '页面导航',
     nav: { guide: '正文', 'market-data': '市场数据', buyers: '采购解读', 'commercial-support': '中文商务支持', related: '相关资料' },
+    // Between a date's label and the date.
+    colon: '：',
     // The header action and the link above the title: the procurement page.
     page: '越南木薯干片采购方案',
     published: '发布日期',

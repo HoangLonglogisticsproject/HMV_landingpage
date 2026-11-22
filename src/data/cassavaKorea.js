@@ -7,6 +7,7 @@
 // Claims are those of the EN/VI cassava page (data/productPages.js): its network figures, its Intertek sample results
 // and its qualifications, translated. No new figures, specifications, certifications, customers or prices. Its
 // supply-evidence photographs and their Korean captions: data/cassavaEvidence.js.
+import { cassavaKoreaGuides } from './cassavaKoreaGuides.js';
 import { cassavaDossier } from './productPages.js';
 
 const dossier = cassavaDossier('ko');
@@ -179,6 +180,13 @@ export const cassavaKorea = {
         a: 'HMV의 지역 공급 네트워크는 베트남과 캄보디아를 포함합니다. 적용 산지는 도착지, 용도, 품질 요구사항 및 구매 계획에 따라 공급 제안별로 확인합니다.',
       },
     ],
+  },
+  // The buyer guides (data/cassavaKoreaGuides.js), each with its own page, after the questions and before the market block.
+  guides: {
+    title: '구매 가이드',
+    text: '구매를 요청하기 전에 참고할 타피오카 칩 구매와 품질 확인 안내입니다.',
+    more: '가이드 읽기',
+    items: Object.entries(cassavaKoreaGuides.items).map(([slug, guide]) => ({ href: `/ko/tapioca-chips/${slug}`, title: guide.h1, text: guide.seo.description })),
   },
   // The Korean market intelligence page (views/tapioca-market), after the questions; no other page has one.
   market: {
