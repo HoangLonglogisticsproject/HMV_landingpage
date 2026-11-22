@@ -8,8 +8,8 @@ known: **ready for quotation**, routed to HMV Sales (**Request Quotation**). A b
 question after the product: routed to HMV Customer Service (**Discuss with HMV**). Contact details are asked last, in
 an inline card. Technical and logistics points (specifications, Incoterm, packaging, certification, transport) are
 never asked: they belong to the commercial discussion. The inquiry contract keeps `application`, `transport` and
-`requirements` for earlier inquiries; the desk sends them empty and fills nothing in. The CMS derives the route from
-what it stores (product, destination and volume: Sales · RFQ; otherwise Customer Service).
+`requirements` for earlier inquiries; the desk sends them empty and fills nothing in. The route (Sales · RFQ or
+Customer Service) follows from what the record holds: product, destination and volume, or not.
 
 ```
 Trade Desk (browser) ── POST /api/inquiry (same origin) ──► app/api/inquiry/route.ts
@@ -18,14 +18,19 @@ Trade Desk (browser) ── POST /api/inquiry (same origin) ──► app/api/in
                                             inquiry service (src/next/inquiry/service.js)
                                                             │ delivery adapter (src/next/inquiry/adapters.js)
                                                             ▼
-                         HMV CMS  POST /api/v1/integrations/trade-inquiries  (server to server, HMAC-signed)
-                                                            │
-                                         PostgreSQL TradeInquiry ──► CMS Sales Inbox + notification email
+Production   INQUIRY_DELIVERY=webhook ──► n8n production webhook (JSON record, HMAC-signed, idempotency-key header)
+                                                            │ n8n Switch, default branch
+                                                            ▼
+                                  Agricultural Trade workflow ──► Google Sheet `HMV Inbound Leads`
+                                                                  + the agricultural idempotency table
+
+Optional, future   INQUIRY_DELIVERY=cms ──► HMV CMS POST /api/v1/integrations/trade-inquiries (server to server,
+                                            HMAC-signed) ──► CMS Sales Inbox + notification email
 ```
 
-The browser only ever calls `/api/inquiry` on this site. The CMS address and secret are server-side variables; no
-CMS URL, secret or signing code is in any client chunk (checked by `tests/next/trade-desk.spec.js`). The CMS CORS
-list is not involved.
+The browser only ever calls `/api/inquiry` (and, for route assessments, `/api/route-assessment`) on this site. The
+webhook and CMS addresses and secrets are server-side variables, never `NEXT_PUBLIC_*`; no CMS URL, secret or signing
+header is in any client chunk (checked by `tests/next/trade-desk.local-build.spec.js`). No CORS list is involved.
 
 ## Delivery adapters
 
@@ -34,17 +39,44 @@ buyer sees the failure state (nothing is silently dropped).
 
 | `INQUIRY_DELIVERY` | Needs | Use |
 | --- | --- | --- |
-| `cms` | `CMS_INQUIRY_URL` (https; `http://localhost`/`127.0.0.1` allowed for local testing), `CMS_INQUIRY_SECRET` (≥ 32 characters) | Production: the CMS is the system of record |
-| `webhook` | `INQUIRY_WEBHOOK_URL` (https), optional `INQUIRY_WEBHOOK_SECRET` | Kept for an automation endpoint; not used in production |
+| `webhook` | `INQUIRY_WEBHOOK_URL` (https), optional `INQUIRY_WEBHOOK_SECRET` | **Production**: the n8n production webhook (below) |
+| `cms` | `CMS_INQUIRY_URL` (https; `http://localhost`/`127.0.0.1` allowed for local testing), `CMS_INQUIRY_SECRET` (≥ 32 characters) | Optional, future system of record; not used in Production |
 | `log` | not production | Local development: keeps inquiries in memory, logs the reference only |
 
 `CMS_INQUIRY_URL` is the full endpoint, e.g. `https://<cms-api-host>/api/v1/integrations/trade-inquiries`.
 `CMS_INQUIRY_SECRET` equals the CMS's `TRADE_INQUIRY_INGEST_SECRET` (generate with `openssl rand -hex 32`).
-Never prefix either with `NEXT_PUBLIC_`.
+Never prefix any of these variables with `NEXT_PUBLIC_`.
 
-## CMS protocol
+## Production: the n8n webhook
 
-Per request (8 s timeout):
+Production runs `INQUIRY_DELIVERY=webhook`; the webhook is the n8n production webhook. Per request (8 s timeout): a
+`POST` of the record as JSON, with
+
+| Header | Value |
+| --- | --- |
+| `idempotency-key` | The submission's key (a UUID; reused when the buyer retries the same submission). **Only here**: the JSON body has no idempotency key field. |
+| `x-hmv-signature` | `sha256=` + lower-case hex `HMAC-SHA256(INQUIRY_WEBHOOK_SECRET, <exact body>)`, when the secret is set |
+
+Any non-2xx answer or a timeout is a 502 for the buyer (retry and email draft); a 2xx is a 201 with the site's
+reference `HMV-YYYY-XXXXXX`, which is also the record's `reference`.
+
+Commodity inquiries (`/api/inquiry`) and Vietnam–Cambodia route assessments (`/api/route-assessment`) share **only
+this transport**: the same webhook URL, signature and idempotency header. n8n separates them after receipt, and each
+goes to its own sales pipeline and data store:
+
+| n8n Switch | Workflow | Leads | Deduplication |
+| --- | --- | --- | --- |
+| `body.service.id === "vietnam-cambodia-consolidation"` | Consol | Google Sheet `HMV - Consol VN Cambodia Leads` | n8n Data Table `HMV Consol Lead Keys` |
+| default / fallback | Agricultural Trade | Google Sheet `HMV Inbound Leads` | the agricultural idempotency table |
+
+A Trade Desk record has no `service` key, so a commodity inquiry always takes the default branch. The two sheets are
+separate pipelines: Consol leads never enter `HMV Inbound Leads`, and commodity inquiries never enter the Consol sheet.
+No other public webhook and no other Vercel variable exist for route assessments.
+
+## CMS protocol (optional, future destination)
+
+Not used in Production. Kept for the CMS as a future system of record, with `INQUIRY_DELIVERY=cms`. Per request
+(8 s timeout):
 
 | Header | Value |
 | --- | --- |
@@ -140,19 +172,25 @@ phone, company or free text. Nothing is sent automatically; there is no WhatsApp
 They name no privacy mailbox (requests go through the Contact page) and claim no legal certification. Business/legal
 review before launch.
 
-## Before production
+## Rate limiting
 
-Delivery is activated only when every item below is in place.
+**Edge rate limiting on both POST endpoints is required while delivery is on, whatever the adapter.** Without it, any
+caller can send valid requests with fresh idempotency keys, and each one is a write at the destination (a sheet row
+today; a CMS write and a notification email with the CMS). Keep a Vercel Firewall (WAF) rate-limit rule per client IP
+(for example a few requests per minute, then deny or challenge) covering `POST /api/inquiry` **and**
+`POST /api/route-assessment`, and verify it on a preview. The site has no in-memory limiter by design: serverless
+instances do not share memory, so one would not limit anything.
+
+## Before switching delivery to the CMS
+
+Production delivery stays on the webhook until every item below is in place:
 
 1. CMS deployed with HTTPS and `TRADE_INQUIRY_INGEST_ENABLED=true`.
 2. Vercel (Production): `INQUIRY_DELIVERY=cms`, `CMS_INQUIRY_URL`, `CMS_INQUIRY_SECRET` (server-only).
 3. Optional `NEXT_PUBLIC_HMV_*` channels (then redeploy: they are inlined at build).
 4. A test inquiry on a preview deployment, seen in the CMS Sales Inbox with the same reference the buyer saw.
-5. **Edge rate limiting for `POST /api/inquiry` is a prerequisite for turning delivery on.** Without it, any caller can
-   send valid inquiries with fresh idempotency keys, and each one is a CMS write and a notification email. Configure a
-   Vercel Firewall (WAF) rate-limit rule on `POST /api/inquiry` per client IP (for example a few requests per minute,
-   then deny or challenge) before setting `INQUIRY_DELIVERY=cms` in Production, and verify it on a preview. The site
-   has no in-memory limiter by design: serverless instances do not share memory, so one would not limit anything.
+5. Route assessments: the CMS contract supports logistics-service inquiries. Until then the CMS adapter refuses them
+   (503) and they must stay on the webhook path, so switching to `cms` would stop Vietnam–Cambodia leads.
 
 ## Route assessments (Vietnam–Cambodia consolidation)
 
@@ -162,17 +200,17 @@ handling, status codes and 20 000-byte limit as `/api/inquiry`: `src/next/inquir
 frequency and notes optional; the contact, consent, visit context, honeypot and idempotency key follow the Trade Desk's
 rules). The commodity Trade Desk and `/api/inquiry` are unchanged.
 
-Delivery goes through the adapter `INQUIRY_DELIVERY` configures, with no new variable:
+Delivery goes through the adapter `INQUIRY_DELIVERY` configures, with no new variable, secret or webhook:
 
 | `INQUIRY_DELIVERY` | Route assessment |
 | --- | --- |
-| `webhook` | Delivered: the record below, signed like a Trade Desk record, `idempotency-key` header included |
+| `webhook` (Production) | Delivered to the n8n production webhook like a Trade Desk record (signature, `idempotency-key` header); n8n routes it to the Consol pipeline by `service.id` ([Production: the n8n webhook](#production-the-n8n-webhook)) |
 | `log` | Kept in memory outside production, as for the Trade Desk |
-| `cms` | **Not accepted (503)**: the CMS ingestion contract takes commodity inquiries only; the form offers the email draft. Supporting it needs a logistics service in the CMS contract first. |
+| `cms` (optional, future) | **Not accepted (503)**: the CMS ingestion contract takes commodity inquiries only; the form offers the email draft. Route assessments stay on the webhook path until the CMS contract supports logistics-service inquiries. |
 | unset | 503, as for the Trade Desk |
 
-The record has every key of a Trade Desk record, so a destination that maps those keys (an automation flow writing a
-sheet row) takes it unchanged; the lead is identified by `product.name` (and `service.name`):
+The record keeps the keys of a Trade Desk record (one webhook format for both); `service` identifies it, and
+`service.id === "vietnam-cambodia-consolidation"` is n8n's routing rule. The body:
 
 ```json
 {
@@ -204,6 +242,25 @@ sheet row) takes it unchanged; the lead is identified by `product.name` (and `se
 ```
 
 Unlike a Trade Desk record, `origin`, `destination` and `volume` are the shipper's own text, and `source.cta` names the
-call to action (`en_route_assessment`, `vi_route_assessment`). The form shows "sent" and the reference only after a
+call to action (`en_route_assessment`, `vi_route_assessment`). The idempotency key is the `idempotency-key` header.
+
+Where the request carries each column of the Consol sheet, `HMV - Consol VN Cambodia Leads` (the mapping itself is
+the n8n Consol workflow's):
+
+| Column | In the request |
+| --- | --- |
+| Received At | `createdAt` (when the site accepted the request, ISO 8601 UTC) |
+| Reference | `reference` |
+| Language | `locale` (`en`, `vi`) |
+| Service | `service.name` (`service.id` routes it) |
+| Origin · Destination · Volume | `origin` · `destination` · `volume` |
+| Cargo · Frequency | `requirements[]` with `key` `cargo` · `frequency` (`frequency` absent when not given) |
+| Company · Contact Name · Business Email · WhatsApp / Phone | `contact.company` · `contact.name` · `contact.email` · `contact.phone` |
+| Source Page · CTA Source · Referrer | `source.page` · `source.cta` · `source.referrer` (an origin only) |
+| UTM Source · UTM Medium · UTM Campaign | `source.utm.source` · `source.utm.medium` · `source.utm.campaign` |
+| Idempotency Key | the `idempotency-key` request header |
+| Status · Owner · Notes | Pipeline columns kept in the sheet; the request's own `notes` field holds the shipper's optional notes |
+
+ The form shows "sent" and the reference only after a
 201; otherwise it keeps the answers and offers a retry (same idempotency key) and an email draft. An accepted request
 emits `generate_lead` with `product: vietnam-cambodia-consolidation`, `route: route_assessment`.
