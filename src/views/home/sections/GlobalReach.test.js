@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import { act, createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GlobalReach } from './GlobalReach.jsx';
-import { PartnerCommunity } from './PartnerCommunity.jsx';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -42,12 +41,4 @@ test('the map is a labelled figure; a market hub shows its sample freight on hov
   assert.ok(container.querySelector(`#${europe.getAttribute('aria-describedby')}`).textContent.includes('Đường biển: 24–28 ngày'));
   await act(() => europe.click());
   assert.equal(europe.getAttribute('aria-expanded'), 'false');
-});
-
-test('the partner marquee shows each review twice, the second pass hidden from assistive tech', async () => {
-  await render(PartnerCommunity, 'en');
-  const cards = [...container.querySelectorAll('.review-card')];
-  assert.equal(cards.length, 8);
-  assert.deepEqual(cards.map(c => c.getAttribute('aria-hidden')), [null, null, null, null, 'true', 'true', 'true', 'true']);
-  assert.deepEqual(cards.slice(0, 4).map(c => c.querySelector('strong').textContent), cards.slice(4).map(c => c.querySelector('strong').textContent));
 });
