@@ -153,6 +153,7 @@ test('"Need guidance?" opens the Trade Desk with the product, destination and vo
   await f.getByLabel('Product', { exact: true }).selectOption('dried-cassava-chips');
   await f.getByLabel('Destination', { exact: true }).fill('Busan, South Korea');
   await f.getByLabel('Estimated volume', { exact: true }).fill('500');
+  // Not before the buyer has started (the hero has the assisted lane); from the first answer on, with what was typed.
   await expect(rfq(page)).toContainText('Use HMV Trade Desk for sourcing, logistics or requirement support.');
   await rfq(page).getByRole('button', { name: 'Open HMV Trade Desk' }).click();
   await expect(desk(page)).toBeVisible();

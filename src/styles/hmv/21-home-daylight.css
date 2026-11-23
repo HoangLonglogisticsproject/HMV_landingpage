@@ -1,7 +1,7 @@
 /* Daylight pivot: bright farm-green and ocean-blue commerce aesthetic */
 .day-hero {
   background: var(--day-sky);
-  padding: 70px 0 90px;
+  padding: 36px 0 72px;
   overflow: hidden
 }
 
@@ -17,12 +17,12 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--farm-green);
-  margin-bottom: 22px
+  margin-bottom: 18px
 }
 
 .day-hero h1 {
   font-family: 'Plus Jakarta Sans', var(--font-sans);
-  font-size: clamp(44px, 6.2vw, 88px);
+  font-size: clamp(44px, 5.6vw, 80px);
   line-height: .98;
   font-weight: 800;
   color: var(--ink);
@@ -38,7 +38,7 @@
 .day-sub {
   font-size: 19px;
   color: var(--muted-foreground);
-  margin: 26px 0 34px;
+  margin: 20px 0 28px;
   max-width: 480px
 }
 
@@ -120,13 +120,13 @@
 .day-chip {
   position: absolute;
   top: 24px;
-  right: 24px;
+  left: 24px;
   border-radius: 10px;
   padding: 10px 18px;
   font-size: 13px;
   font-weight: 600;
   color: var(--ink);
-  display: flex;
+  display: none;
   gap: 10px
 }
 
@@ -150,10 +150,6 @@
 
 .global-reach .eyebrow {
   color: var(--farm-green)
-}
-
-.trust-list li {
-  border-top-color: var(--border)
 }
 
 .chain-nodes {
@@ -230,6 +226,11 @@
     height: 420px
   }
 
+  /* Over the photograph the form covers the chip's place: it shows where the photograph is below the form. */
+  .day-chip {
+    display: flex
+  }
+
   .day-ocean {
     left: 12px;
     bottom: -24px
@@ -287,77 +288,6 @@
 
 /* Editorial hero refinement */
 
-/* Partner community marquee */
-.partner-community {
-  background: var(--surface);
-  overflow: hidden
-}
-
-.partner-community h2 {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: clamp(30px, 3.6vw, 48px);
-  font-weight: 700;
-  color: var(--ink)
-}
-
-.sample-badge {
-  display: inline-block;
-  margin: 14px 0 44px;
-  font-size: 12px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px dashed var(--border);
-  color: var(--muted-foreground)
-}
-
-.marquee {
-  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)
-}
-
-.marquee-track {
-  display: flex;
-  gap: 22px;
-  width: max-content;
-  animation: marquee 40s linear infinite
-}
-
-.marquee:hover .marquee-track {
-  animation-play-state: paused
-}
-
-@keyframes marquee {
-  to {
-    transform: translateX(calc(-50% - 11px))
-  }
-}
-
-.review-card {
-  width: 380px;
-  margin: 0;
-  padding: 28px;
-  border-radius: 16px;
-  background: var(--background);
-  border: 1px solid var(--border);
-  box-shadow: 0 20px 40px -30px rgb(15 23 42 / .35);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 24px
-}
-
-.review-card blockquote {
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--ink)
-}
-
-.review-card figcaption {
-  display: flex;
-  gap: 12px;
-  align-items: center
-}
-
 .review-avatar {
   width: 40px;
   height: 40px;
@@ -367,36 +297,6 @@
   background: var(--cta-gradient);
   color: var(--primary-foreground);
   font-weight: 700
-}
-
-.review-card strong {
-  display: block;
-  font-size: 14px
-}
-
-.review-card em {
-  font-style: normal;
-  font-size: 12px;
-  color: var(--muted-foreground)
-}
-
-@media(max-width:900px) {
-
-  .review-card {
-    width: 300px
-  }
-}
-
-@media(prefers-reduced-motion:reduce) {
-  .marquee-track {
-    animation: none;
-    flex-wrap: wrap;
-    width: auto
-  }
-
-  .marquee {
-    mask-image: none
-  }
 }
 
 /* Initiate Trade RFQ */

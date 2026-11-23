@@ -16,6 +16,9 @@ const EVENTS = {
   quick_rfq_submit: ['product', 'locale', 'step'],
   quick_rfq_success: ['product', 'locale'],
   quick_rfq_error: ['product', 'locale', 'step', 'reason'],
+  // A homepage call to action that takes the buyer to the Quick RFQ (not a lead): `source` is 'hero', 'sticky' or 'final'.
+  // The calls to action that open the Trade Desk are counted by trade_desk_open.
+  home_supply_plan_click: ['source', 'locale'],
   // An accepted inquiry of either lane; `source` is set by the Quick RFQ.
   generate_lead: ['product', 'locale', 'route', 'source'],
 };

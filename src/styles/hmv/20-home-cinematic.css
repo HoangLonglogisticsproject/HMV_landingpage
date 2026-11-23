@@ -192,20 +192,6 @@
   max-width: 700px
 }
 
-.trust-list {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px
-}
-
-.trust-list li {
-  border-top: 1px solid rgb(255 255 255 / .25);
-  padding-top: 18px;
-  font-weight: 600
-}
-
 .reach-note {
   margin-top: 28px;
   font-size: 12px;
@@ -235,10 +221,6 @@
   .commodity.c-wide {
     grid-row: auto;
     grid-column: auto
-  }
-
-  .trust-list {
-    grid-template-columns: 1fr 1fr
   }
 }
 

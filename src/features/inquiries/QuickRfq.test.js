@@ -7,7 +7,8 @@ import { sendInquiry } from '@/lib/inquiry';
 import { OPEN_TRADE_DESK } from '@/features/trade-desk/open';
 import { createInquiryMailto } from './inquiry';
 import { QuickRfq } from './QuickRfq.jsx';
-import { TradeRfq } from './TradeRfq.jsx';
+import { HomeQuickRfq } from './HomeQuickRfq.jsx';
+import { FOCUS_QUICK_RFQ, focusQuickRfq } from './focus.js';
 import { quickRfqCopy } from './quickRfqCopy.js';
 
 // The inquiry port is the only I/O: each test decides what the API answers.
@@ -33,7 +34,7 @@ const events = () => (window.dataLayer ?? []).map(e => e.event);
 const assertFocus = el => assert.ok(el && document.activeElement === el, `focus is on ${document.activeElement?.outerHTML.slice(0, 120)}`);
 
 async function render(lang = 'en', props = {}) {
-  await act(async () => root.render(h(TradeRfq, { lang, ...props })));
+  await act(async () => root.render(h(HomeQuickRfq, { lang, ...props })));
 }
 /** Step 1 answered and continued: the contact step is on screen. */
 async function toContact({ product = 'dried-cassava-chips', destination = 'Busan, South Korea', amount = '500' } = {}) {
@@ -68,8 +69,8 @@ afterEach(async () => {
 test('step 1: the fast lane label, the three questions and one button; nothing of the contact step, no mailto flow', async () => {
   await render();
   const section = container.querySelector('section#initiate-trade');
-  assert.equal(section.getAttribute('aria-labelledby'), 'rfq-title');
-  assert.equal(container.querySelector('p.eyebrow').textContent, 'QUICK RFQ · FAST LANE');
+  assert.equal(section.getAttribute('aria-label'), 'Quick RFQ');
+  assert.equal(container.querySelector('form p').textContent, 'QUICK RFQ · FAST LANE');
   assert.equal(container.querySelector('h2#rfq-title').textContent, 'Tell us what you need');
   assert.ok(section.textContent.includes('Share the basics. HMV will review the sourcing requirement and follow up with you.'));
   assert.deepEqual([...fields().querySelectorAll('label')].map(l => l.textContent), ['Product', 'Destination', 'Estimated volume']);
@@ -466,7 +467,7 @@ test('analytics: opening the form counts nothing, a lead only once the API accep
 test('Vietnamese: every visible text of the form is Vietnamese, the inquiry carries the locale', async () => {
   sendInquiry.mockResolvedValue(ACCEPTED);
   await render('vi');
-  assert.equal(container.querySelector('p.eyebrow').textContent, 'QUICK RFQ · GỬI NHANH');
+  assert.equal(container.querySelector('form p').textContent, 'QUICK RFQ · GỬI NHANH');
   assert.equal(container.querySelector('h2#rfq-title').textContent, 'Cho HMV biết nhu cầu của bạn');
   assert.ok(container.textContent.includes('Chỉ cần cung cấp các thông tin chính. HMV sẽ xem xét nhu cầu và liên hệ lại với bạn.'));
   assert.deepEqual([...fields().querySelectorAll('label')].map(l => l.textContent), ['Sản phẩm', 'Điểm đến', 'Sản lượng dự kiến']);
@@ -494,13 +495,21 @@ test('English and Vietnamese copy have the same entries, none empty', () => {
   assert.ok(texts(shape(quickRfqCopy.vi)).every(Boolean));
 });
 
-test('the assisted lane: the Trade Desk opens with the product, destination and volume already given', async () => {
+test('the assisted lane on the homepage: no second Trade Desk call to action until the buyer has started; then it hands over what was typed', async () => {
   const opened = [];
   const onOpen = event => opened.push(event.detail);
   window.addEventListener(OPEN_TRADE_DESK, onOpen);
   await render();
-  await click(button('Open HMV Trade Desk'));
+  // Before anything is answered the hero's own link is the assisted lane: the form has no second one.
+  assert.ok(!button('Open HMV Trade Desk'));
+  assert.doesNotMatch(container.textContent, /Need guidance/);
+  assert.ok(!container.querySelector('aside'));
+
+  // The first answer, and the row is there, with the product.
   await choose(field('product'), 'dried-cassava-chips');
+  assert.ok(button('Open HMV Trade Desk'));
+  assert.ok(container.textContent.includes('Need guidance?'));
+  assert.ok(container.textContent.includes('Use HMV Trade Desk for sourcing, logistics or requirement support.'));
   await click(button('Open HMV Trade Desk'));
   await type(field('destination'), 'Busan, South Korea');
   await type(field('volume.amount'), '500');
@@ -509,22 +518,112 @@ test('the assisted lane: the Trade Desk opens with the product, destination and 
   await click(button('Open HMV Trade Desk'));
   window.removeEventListener(OPEN_TRADE_DESK, onOpen);
   assert.deepEqual(opened, [
-    { source: 'quick_rfq' },
     { source: 'quick_rfq', product: 'dried-cassava-chips' },
     { source: 'quick_rfq', product: 'dried-cassava-chips', destination: 'Busan, South Korea', volume: { amount: '500', unit: 'mt_month' } },
     { source: 'quick_rfq', product: 'dried-cassava-chips', destination: 'Busan, South Korea' },
   ]);
-  assert.ok(container.textContent.includes('Need guidance?'));
-  assert.ok(container.textContent.includes('Use HMV Trade Desk for sourcing, logistics or requirement support.'));
+  // It stays on the contact step, and goes with the received state; "another request" starts without it.
+  await type(field('volume.amount'), '500');
+  await click(submit());
+  assert.ok(button('Open HMV Trade Desk'));
+  sendInquiry.mockResolvedValue(ACCEPTED);
+  await fillContact();
+  await send();
+  assert.ok(!button('Open HMV Trade Desk'));
+  await click(button('Submit another request'));
+  assert.ok(!button('Open HMV Trade Desk'));
 });
 
-test('the leadership’s addresses are a quiet disclosure, closed by default, outside the form', async () => {
+test('a click on the page or an empty Continue does not count as starting', async () => {
   await render();
-  const direct = container.querySelector('details');
-  assert.equal(direct.open, false);
-  assert.equal(direct.querySelector('summary').textContent, 'Prefer to write to HMV directly?');
-  assert.equal(direct.querySelectorAll('a[href^="mailto:"]').length, 3);
-  assert.equal(fields().querySelector('a[href^="mailto:"]'), null);
+  await click(container.querySelector('form'));
+  await click(button('Continue'));
+  assert.ok(!button('Open HMV Trade Desk'));
+  await toContact();
+  assert.ok(button('Open HMV Trade Desk'));
+});
+
+test('a page that has no Trade Desk call to action of its own gets the row at once; one that does not want it never does', async () => {
+  // Each a form of its own (a key): the state of one is not the next one's.
+  await act(async () => root.render(h(QuickRfq, { key: 'always', lang: 'en' })));
+  assert.ok(button('Open HMV Trade Desk'));
+  await act(async () => root.render(h(QuickRfq, { key: 'never', lang: 'en', guidance: false })));
+  await choose(field('product'), 'bananas');
+  assert.ok(!button('Open HMV Trade Desk'));
+  await act(async () => root.render(h(QuickRfq, { key: 'started', lang: 'vi', guidance: 'started' })));
+  assert.ok(!button('Mở HMV Trade Desk'));
+  await choose(field('product'), 'bananas');
+  assert.ok(button('Mở HMV Trade Desk'));
+  assert.ok(container.textContent.includes('Cần HMV tư vấn thêm?'));
+});
+
+test('the page heading is the first step’s: the second has its own, so the card stays one screen on a phone', async () => {
+  await render();
+  assert.equal(container.querySelectorAll('h2#rfq-title').length, 1);
+  await toContact();
+  assert.equal(container.querySelector('h2#rfq-title'), null);
+  assert.equal(container.querySelector('h3').textContent, 'Where should HMV contact you?');
+  await click(button('Edit'));
+  assert.equal(container.querySelectorAll('h2#rfq-title').length, 1);
+});
+
+test('the homepage section is one landmark with one form and unique ids', async () => {
+  await render();
+  assert.equal(container.querySelectorAll('section#initiate-trade').length, 1);
+  assert.equal(container.querySelectorAll('form').length, 1);
+  const ids = [...container.querySelectorAll('[id]')].map(el => el.id);
+  assert.deepEqual(ids, [...new Set(ids)]);
+});
+
+test('a call to action elsewhere brings the buyer to the form: nothing moves on load, the typed values stay, the place is where they are', async () => {
+  sendInquiry.mockResolvedValue(ACCEPTED);
+  await render();
+  assert.notEqual(document.activeElement, field('product'));
+  await type(field('destination'), 'Busan, South Korea');
+  const typed = field('destination');
+  focusQuickRfq();
+  assertFocus(field('product'));
+  // The same element with what was typed in it: the form was not remounted.
+  assert.equal(field('destination'), typed);
+  assert.equal(typed.value, 'Busan, South Korea');
+
+  await choose(field('product'), 'dried-cassava-chips');
+  await type(field('volume.amount'), '500');
+  await click(submit());
+  document.activeElement.blur();
+  focusQuickRfq();
+  assertFocus(container.querySelector('h3'));
+  await fillContact();
+  await send();
+  document.activeElement.blur();
+  focusQuickRfq();
+  assertFocus(container.querySelector('section.rfq-form h3'));
+  assert.equal(container.querySelector('section.rfq-form h3').textContent, 'Request received');
+});
+
+test('the form scrolls into view only when the control the buyer is going to is not', async () => {
+  const scrollIntoView = vi.fn();
+  Element.prototype.scrollIntoView = scrollIntoView;
+  await render();
+  const at = (top, bottom) => { field('product').getBoundingClientRect = () => ({ top, bottom }); };
+  at(300, 350);
+  focusQuickRfq();
+  assert.equal(scrollIntoView.mock.calls.length, 0);
+  at(-80, -30);
+  focusQuickRfq();
+  assert.equal(scrollIntoView.mock.calls.length, 1);
+  assert.deepEqual(scrollIntoView.mock.calls[0][0], { block: 'start' });
+  at(window.innerHeight + 100, window.innerHeight + 150);
+  focusQuickRfq();
+  assert.equal(scrollIntoView.mock.calls.length, 2);
+  assertFocus(field('product'));
+  delete Element.prototype.scrollIntoView;
+});
+
+test('the listener goes with the form: no focus is taken after it unmounts', async () => {
+  await render();
+  await act(async () => root.render(h('div')));
+  assert.doesNotThrow(() => window.dispatchEvent(new CustomEvent(FOCUS_QUICK_RFQ)));
 });
 
 test('a product page: the product is fixed and not asked, the buyer gives only destination and volume', async () => {

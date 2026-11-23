@@ -56,7 +56,7 @@ migrate the styling to utilities and remove the legacy rule.
   holds a single class: the legacy element rules on `h1`–`h3` (weight; size and line height of `h2` and `h3`) are
   unlayered, so they beat any utility on a heading; the class sets those three properties to `revert-layer`, which
   hands them back to the heading's utilities. It goes once those element rules are migrated. The consolidation page
-  (`Consolidation.module.css`) and the Quick RFQ (`features/inquiries/QuickRfq.module.css`) each carry the same class.
+  (`Consolidation.module.css`), the Quick RFQ (`features/inquiries/QuickRfq.module.css`) and the homepage's trust strip and closing call to action (`views/home/sections/HomeSections.module.css`) each carry the same class.
 - Nothing new goes into `hmv.css` or the legacy modules.
 
 ## When authored CSS is right
@@ -101,7 +101,7 @@ The ranges were drawn at `main` b29652f. #30 then fixed 17 lines in place (below
 | `11-home-farm-art` | The full-bleed farm art hero, featured origins | 1831–2325 |
 | `12-home-commerce-motion` | Product card motion, QC reveal, origin inset, bento | 2327–2675 |
 | `20-home-cinematic` | Cinematic homepage: hero, journey split, commodities, global reach | 2677–3138 |
-| `21-home-daylight` | Daylight homepage, glass header, editorial hero, partner marquee, RFQ form | 3140–3755 |
+| `21-home-daylight` | Daylight homepage, glass header, editorial hero, RFQ form | 3140–3755 |
 | `22-mobile-insights-footer` | Phone polish, the phone drawer background, RFQ states, insights cards, premium footer | 3757–4081 |
 | `30-articles` | Article reading layout, CMS rich content | 4083–4301 |
 | `31-living-logistics` | The animated logistics map | 4303–4576 |

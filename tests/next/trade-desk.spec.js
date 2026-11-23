@@ -28,9 +28,9 @@ async function fillContact(page) {
   await d.getByLabel('HMV may contact me about this inquiry.').check();
 }
 
-test('home: "Request a Supply Plan" opens the desk at the product question; Escape closes it; focus stays inside', async ({ page }) => {
+test('home: the hero’s assisted lane opens the desk at the product question; Escape closes it; focus stays inside', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Request a Supply Plan' }).click();
+  await page.getByRole('button', { name: 'Need guidance? Ask HMV Trade Desk' }).click();
   await expect(desk(page)).toBeVisible();
   await expect(desk(page)).toContainText('B2B Agricultural Supply Desk');
   await expect(desk(page).getByRole('img', { name: 'HMV Global' })).toBeVisible();
@@ -44,13 +44,13 @@ test('home: "Request a Supply Plan" opens the desk at the product question; Esca
   expect(await desk(page).evaluate(el => el.contains(document.activeElement))).toBe(true);
   await page.keyboard.press('Escape');
   await expect(desk(page)).toBeHidden();
-  await page.getByRole('button', { name: 'Discuss Your Requirements' }).click();
+  await page.getByRole('button', { name: 'Need guidance? Ask HMV Trade Desk' }).click();
   await expect(desk(page)).toBeVisible();
 });
 
 test('Vietnamese home: the desk opens in Vietnamese; a typed product is recognized', async ({ page }) => {
   await page.goto('/vi');
-  await page.getByRole('button', { name: 'Nhận phương án cung ứng' }).click();
+  await page.getByRole('button', { name: 'Cần tư vấn? Trao đổi với HMV Trade Desk' }).click();
   await expect(desk(page)).toContainText('Trợ lý giao thương & cung ứng nông sản');
   await expect(desk(page)).toContainText('THÔNG TIN YÊU CẦU', { ignoreCase: true });
   await expect(desk(page).getByRole('button', { name: 'Chanh dây' })).toBeVisible();
@@ -258,7 +258,7 @@ test('lazy: no desk code on the homepage until the desk is opened', async ({ pag
   await page.goto('/');
   await page.waitForLoadState('networkidle');
   expect(loaded.desk).toBe(false);
-  await page.getByRole('button', { name: 'Request a Supply Plan' }).click();
+  await page.getByRole('button', { name: 'Need guidance? Ask HMV Trade Desk' }).click();
   await expect(desk(page)).toBeVisible();
   await expect.poll(() => loaded.desk).toBe(true);
 });

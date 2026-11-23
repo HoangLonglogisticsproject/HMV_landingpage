@@ -21,6 +21,15 @@ test('events reach the dataLayer with their allowed, categorical parameters only
   ]);
 });
 
+test('the homepage call to action to the Quick RFQ carries its place and language only', () => {
+  track('home_supply_plan_click', { source: 'sticky', locale: 'vi', destination: 'Busan, South Korea', email: 'buyer@example.com' });
+  track('home_supply_plan_click', { source: 'Hero section, top', locale: 'en' });
+  assert.deepEqual(window.dataLayer, [
+    { event: 'home_supply_plan_click', source: 'sticky', locale: 'vi' },
+    { event: 'home_supply_plan_click', locale: 'en' },
+  ]);
+});
+
 test('Quick RFQ events carry categorical values only; a destination, a volume or contact details are dropped', () => {
   track('quick_rfq_start', { product: 'dried-cassava-chips', locale: 'en', step: 'requirement', destination: 'Busan, South Korea' });
   track('quick_rfq_requirement_complete', { product: 'dried-cassava-chips', locale: 'en', step: 'requirement', volume: '500' });
