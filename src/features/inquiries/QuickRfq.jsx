@@ -9,6 +9,7 @@ import { isAccepted, withKey } from '@/features/trade-desk/submission';
 import { openTradeDesk } from '@/features/trade-desk/open';
 import { visitContext } from '@/features/trade-desk/visit';
 import { createInquiryMailto } from './inquiry';
+import { FOCUS_QUICK_RFQ } from './focus';
 import { quickRfqCopy } from './quickRfqCopy';
 import { ContactStep, Guidance, RequirementStep, SentState, Steps } from './QuickRfqParts';
 
@@ -55,8 +56,20 @@ function requirementErrors({ brief }) {
 /** Every field the values fail on by the client's rules, both steps. */
 const localErrors = (read, consent) => [...requirementErrors(read), ...contactErrors(read.contact, consent)];
 
-/** @param {{ lang: 'en' | 'vi', product?: string, source?: string }} props `source`: where the form is, for analytics and the Trade Desk it opens */
-export function QuickRfq({ lang, product, source = 'quick_rfq' }) {
+/** Where the buyer is in the form, as the id key of the control that stands for it. */
+function placeOf(step, status, locked) {
+  if (status === 'accepted') return 'sent';
+  if (step === 'contact') return 'heading';
+  return locked ? 'destination' : 'product';
+}
+
+/**
+ * @param {{ lang: 'en' | 'vi', product?: string, source?: string, intro?: import('react').ReactNode, guidance?: boolean }} props
+ * `source`: where the form is, for analytics and the Trade Desk it opens. `intro`: the page's own heading, shown at the
+ * top of the first step (not of the second, nor of the received state). `guidance`: the "Need guidance?" row below it, which opens the desk with
+ * what the buyer has typed (default on).
+ */
+export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance = true }) {
   const c = quickRfqCopy[lang];
   const uid = useId().replaceAll(':', '');
   const id = key => `${uid}-${key}`;
@@ -76,6 +89,7 @@ export function QuickRfq({ lang, product, source = 'quick_rfq' }) {
   // Counted once each, however often the buyer goes back and forth.
   const counted = useRef({ start: false, contact: false });
   const pendingFocus = useRef(/** @type {string | null} */ (null));
+  const rootRef = useRef(/** @type {HTMLDivElement | null} */ (null));
 
   const read = readValues(values, locked);
   const { brief, contact } = read;
@@ -88,6 +102,21 @@ export function QuickRfq({ lang, product, source = 'quick_rfq' }) {
     document.getElementById(id(pendingFocus.current))?.focus();
     pendingFocus.current = null;
   });
+
+  // A call to action elsewhere on the page (focus.js) brings the buyer here: the form into view unless the control they
+  // are going to is already, then focus on where they are in it. The scroll clears the header (the page's scroll padding).
+  useEffect(() => {
+    const toForm = () => {
+      const target = document.getElementById(`${uid}-${placeOf(step, status, locked)}`);
+      if (!target) return;
+      const clear = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      const { top, bottom } = target.getBoundingClientRect();
+      if (top < clear || bottom > window.innerHeight) rootRef.current?.scrollIntoView({ block: 'start' });
+      target.focus({ preventScroll: true });
+    };
+    window.addEventListener(FOCUS_QUICK_RFQ, toForm);
+    return () => window.removeEventListener(FOCUS_QUICK_RFQ, toForm);
+  }, [uid, step, status, locked]);
 
   /** Shows the errors for fields of this form, on the step that has them; false when none is one of its fields. */
   const showErrors = fields => {
@@ -234,14 +263,14 @@ export function QuickRfq({ lang, product, source = 'quick_rfq' }) {
   const announcement = { sending: c.sending }[status] ?? (copied ? c.copied : '');
 
   return (
-    <div className="grid gap-5">
+    <div ref={rootRef} className="grid gap-5">
       {/* Announces the send and the copy; the result is announced by the focus moving to it. */}
       <output className="sr-only">{announcement}</output>
       {status === 'accepted' ? (
         <SentState c={c} id={id} reference={reference} copied={copied} onCopy={copyReference} onAnother={another} />
       ) : (
         <>
-          <Steps c={c} step={step} onSubmit={step === 'requirement' ? goToContact : send}>
+          <Steps c={c} step={step} intro={intro} onSubmit={step === 'requirement' ? goToContact : send}>
             {step === 'requirement' ? (
               <RequirementStep c={c} lang={lang} id={id} error={error} values={values} unit={brief.volume.unit} locked={fixed} onChange={change} />
             ) : (
@@ -261,7 +290,7 @@ export function QuickRfq({ lang, product, source = 'quick_rfq' }) {
               />
             )}
           </Steps>
-          <Guidance c={c} id={id} onOpen={openDesk} />
+          {guidance && <Guidance c={c} id={id} onOpen={openDesk} />}
         </>
       )}
     </div>

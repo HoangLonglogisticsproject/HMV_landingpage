@@ -11,6 +11,8 @@ import styles from './QuickRfq.module.css';
 const CONTROL = 'block w-full min-h-12 rounded-[10px] border border-border bg-white/80 px-3.5 py-3 text-base font-normal text-ink placeholder:text-ink-muted/70 focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 focus-visible:outline-none aria-invalid:border-destructive disabled:opacity-60 motion-reduce:transition-none';
 const LABEL = 'text-[13px] font-semibold text-ink';
 const TEXT_BUTTON = 'inline-flex min-h-11 items-center gap-1.5 rounded-md px-1 text-sm font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring';
+// The card: as .glass (the site's frosted white) but nearly opaque, so the form reads over a photograph.
+const CARD = 'rfq-form border border-white/70 bg-white/95 shadow-[0_18px_40px_-20px_rgb(15_23_42/.3)] backdrop-blur-md';
 const TITLE = `${styles.heading} font-['Plus_Jakarta_Sans'] leading-snug font-extrabold text-navy outline-none`;
 
 /** The aria attributes of a control with an error message (below it, `${id}-error`). */
@@ -167,10 +169,11 @@ export function ContactStep({ c, lang, id, error, values, summary, more, status,
   );
 }
 
-/** The form: the progress and the step. */
-export function Steps({ c, step, onSubmit, children }) {
+/** The form: the page's own heading (`intro`, with the first step: the second has its own), the progress and the step. */
+export function Steps({ c, step, intro, onSubmit, children }) {
   return (
-    <form className="rfq-form glass" onSubmit={onSubmit} noValidate aria-label={c.form}>
+    <form className={CARD} onSubmit={onSubmit} noValidate aria-label={c.form}>
+      {step === 'requirement' && intro}
       <Progress c={c} step={step} />
       {children}
     </form>
@@ -180,7 +183,7 @@ export function Steps({ c, step, onSubmit, children }) {
 /** The accepted inquiry: its reference (copyable where the browser allows) and the way to send another. */
 export function SentState({ c, id, reference, copied, onCopy, onAnother }) {
   return (
-    <section className="rfq-form glass" aria-labelledby={id('sent')}>
+    <section className={CARD} aria-labelledby={id('sent')}>
       <span className="grid size-10 place-items-center rounded-full bg-(--farm-green-ink) text-white" aria-hidden="true"><Check size={22} /></span>
       <h3 id={id('sent')} tabIndex={-1} className={`${TITLE} text-2xl`}>{c.sentTitle}</h3>
       <p className="flex flex-wrap items-center gap-x-3 text-[15px] text-ink">
@@ -201,7 +204,7 @@ export function SentState({ c, id, reference, copied, onCopy, onAnother }) {
 /** The assisted lane: the HMV Trade Desk, for a buyer who needs guidance. */
 export function Guidance({ c, id, onOpen }) {
   return (
-    <aside aria-labelledby={id('assist')} className="flex flex-col gap-3 rounded-2xl border border-border bg-white/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <aside aria-labelledby={id('assist')} className="flex flex-col gap-3 rounded-2xl border border-border bg-white/95 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h3 id={id('assist')} className={`${styles.heading} text-sm leading-snug font-bold text-ink`}>{c.assistTitle}</h3>
         <p className="text-[13px] text-ink-muted">{c.assistText}</p>
