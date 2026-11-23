@@ -147,7 +147,7 @@ export function ContactStep({ c, lang, id, error, values, summary, more, status,
       <input className="desk-hp" type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" value={values.website} onChange={e => onChange('website', e.target.value)} />
       <div className="grid gap-1">
         <label htmlFor={id('consent.contact')} className="flex min-h-11 items-start gap-3 py-2 text-sm text-ink">
-          <input id={id('consent.contact')} type="checkbox" className="mt-0.5 size-5 shrink-0 accent-brand" checked={values.consent} onChange={e => onChange('consent', e.target.checked)} {...invalid(id('consent.contact'), error('consent.contact'))} />
+          <input id={id('consent.contact')} type="checkbox" required className="mt-0.5 size-5 shrink-0 accent-brand" checked={values.consent} onChange={e => onChange('consent', e.target.checked)} {...invalid(id('consent.contact'), error('consent.contact'))} />
           <span>{c.consent} <a className="font-semibold text-brand underline underline-offset-2" href={lang === 'vi' ? '/vi/privacy' : '/privacy'} target="_blank" rel="noopener">{c.privacy}</a></span>
         </label>
         {error('consent.contact') && <ErrorText id={id('consent.contact')}>{error('consent.contact')}</ErrorText>}

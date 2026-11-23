@@ -20,8 +20,8 @@ import { ContactStep, Guidance, RequirementStep, SentState, Steps } from './Quic
 
 // The form's values by the inquiry contract's field names (what the server's 400 names).
 const FIELD = { product: 'product', destination: 'destination', amount: 'volume.amount', company: 'contact.company', name: 'contact.name', email: 'contact.email', phone: 'contact.phone', consent: 'consent.contact', notes: 'notes' };
-const REQUIREMENT = ['product', 'destination', 'volume.amount'];
-const MORE = ['contact.name', 'contact.phone', 'notes'];
+const REQUIREMENT = new Set(['product', 'destination', 'volume.amount']);
+const MORE = new Set(['contact.name', 'contact.phone', 'notes']);
 // Fields in screen order: the first one with an error is focused.
 const ORDER = [...REQUIREMENT, 'contact.company', 'contact.email', ...MORE, 'consent.contact'];
 // `unit`: '' is the product's usual one.
@@ -94,8 +94,8 @@ export function QuickRfq({ lang, product, source = 'quick_rfq' }) {
     const own = ORDER.filter(f => fields.includes(f));
     if (!own.length) return false;
     setErrors(own);
-    if (own.some(f => MORE.includes(f))) setMore(true);
-    setStep(REQUIREMENT.includes(own[0]) ? 'requirement' : 'contact');
+    if (own.some(f => MORE.has(f))) setMore(true);
+    setStep(REQUIREMENT.has(own[0]) ? 'requirement' : 'contact');
     pendingFocus.current = own[0];
     return true;
   };
@@ -124,7 +124,7 @@ export function QuickRfq({ lang, product, source = 'quick_rfq' }) {
       pendingFocus.current = bad[0];
       return;
     }
-    setErrors(e => e.filter(f => !REQUIREMENT.includes(f)));
+    setErrors(e => e.filter(f => !REQUIREMENT.has(f)));
     setStep('contact');
     pendingFocus.current = 'heading';
     track('quick_rfq_requirement_complete', facts('requirement'));
@@ -194,10 +194,12 @@ export function QuickRfq({ lang, product, source = 'quick_rfq' }) {
     }
   }
 
-  // The fallback when the API cannot take the inquiry: the same requirement as an email draft.
+  // The fallback when the API cannot take the inquiry: the same requirement as an email draft. The helper has no phone
+  // line: it goes in as a requirement pair, as in the route assessment's draft (it leaves out empty values).
   const mailto = () => {
     const en = summarize(brief, 'en');
-    window.location.assign(createInquiryMailto({ ...contact, product: en.product, destination: en.destination, volume: en.volume, message: brief.notes }));
+    const { company, name, email, phone } = contact;
+    window.location.assign(createInquiryMailto({ company, name, email, product: en.product, destination: en.destination, volume: en.volume, requirements: [['WhatsApp / phone', phone]], message: brief.notes }));
   };
 
   // The assisted lane, with what the buyer has already told HMV so the desk does not ask it again.

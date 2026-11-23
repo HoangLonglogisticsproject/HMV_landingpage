@@ -151,6 +151,9 @@ test('step 2: company, work email and consent are required; name, phone and note
   assert.equal(more.getAttribute('aria-expanded'), 'false');
   assert.equal(document.getElementById(more.getAttribute('aria-controls')).hidden, true);
   assert.equal(field('consent.contact').checked, false);
+  // Required for assistive technology before any send; the form's own error messages, not the browser's, say what is missing.
+  assert.equal(field('consent.contact').required, true);
+  assert.equal(fields().noValidate, true);
 
   await click(button('Send Request'));
   assert.equal(sendInquiry.mock.calls.length, 0);
@@ -306,9 +309,26 @@ test('failed delivery: the details stay, nothing is claimed, "Try again" is the 
   vi.stubGlobal('location', { ...window.location, assign });
   await click(button('Send by email instead'));
   assert.deepEqual(createInquiryMailto.mock.calls, [[{
-    company: 'Example Foods B.V.', email: 'buyer@example.com', name: '', phone: '', product: 'Dried cassava chips', destination: 'Busan, South Korea', volume: '500 MT / month', message: '',
+    company: 'Example Foods B.V.', email: 'buyer@example.com', name: '', product: 'Dried cassava chips', destination: 'Busan, South Korea', volume: '500 MT / month', requirements: [['WhatsApp / phone', '']], message: '',
   }]]);
   assert.deepEqual(assign.mock.calls, [['#email-draft']]);
+  vi.unstubAllGlobals();
+});
+
+test('the email draft keeps the optional name, phone and notes the buyer gave', async () => {
+  sendInquiry.mockResolvedValue({ status: 503, body: {} });
+  await render();
+  await toContact();
+  await fillContact();
+  await click(button('Add more details'));
+  await type(field('contact.name'), 'Kim Min-jun');
+  await type(field('contact.phone'), '+82 10 1234 5678');
+  await type(field('notes'), 'Feed grade.');
+  await send();
+  vi.stubGlobal('location', { ...window.location, assign: vi.fn() });
+  await click(button('Send by email instead'));
+  const [draft] = createInquiryMailto.mock.calls[0];
+  assert.deepEqual([draft.name, draft.requirements, draft.message], ['Kim Min-jun', [['WhatsApp / phone', '+82 10 1234 5678']], 'Feed grade.']);
   vi.unstubAllGlobals();
 });
 
