@@ -28,7 +28,7 @@ export function CinematicHero({ lang, children }) {
         </div>
         {/* The form shares the photograph's grid cell from 901 px, above it; below that the order is the page's: copy, form, photograph. */}
         <div className="relative z-10 min-[901px]:col-start-2 min-[901px]:row-start-1 min-[901px]:w-[min(100%,460px)] min-[901px]:self-start min-[901px]:justify-self-end">{children}</div>
-        <div className="day-visual min-[901px]:col-start-2 min-[901px]:row-start-1">
+        <div className="day-visual min-[901px]:col-start-2 min-[901px]:row-start-1 min-[901px]:mt-10 min-[901px]:self-start">
           {/* The LCP image. Its phone size, 420px, is a measured trade-off (architecture §11): its box is 372 CSS px and
               its cover crop paints 481. 481 made the LCP request 1080w (Lighthouse mobile LCP 4.1 s), the box width
               under-delivers on sharp phones; 420 keeps 750w at DPR 1.75 (3.5 s) and the full 1280 px source at DPR

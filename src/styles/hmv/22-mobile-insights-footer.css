@@ -5,24 +5,28 @@
   }
 
   .day-hero {
-    padding: 24px 0 60px
+    padding: 16px 0 52px
   }
 
   .day-grid {
-    gap: 28px
+    gap: 20px
   }
 
   .day-hero h1 {
     font-size: 44px
   }
 
+  .day-kicker {
+    margin-bottom: 12px
+  }
+
   .day-sub {
     font-size: 16px;
-    margin: 14px 0 22px
+    margin: 12px 0 18px
   }
 
   .day-actions {
-    gap: 18px
+    gap: 8px
   }
 
   .day-cta {
@@ -59,15 +63,6 @@
 
   .rfq-submit {
     width: 100%
-  }
-
-  .review-card {
-    width: 270px;
-    padding: 22px
-  }
-
-  .marquee-track {
-    animation-duration: 30s
   }
 
   .chain-nodes em {
@@ -330,8 +325,5 @@
   }
   .insight-card em, .premium-footer nav a {
     transition: none
-  }
-  .marquee-track {
-    animation: none
   }
 }

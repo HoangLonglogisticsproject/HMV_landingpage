@@ -495,13 +495,21 @@ test('English and Vietnamese copy have the same entries, none empty', () => {
   assert.ok(texts(shape(quickRfqCopy.vi)).every(Boolean));
 });
 
-test('the assisted lane: the Trade Desk opens with the product, destination and volume already given', async () => {
+test('the assisted lane on the homepage: no second Trade Desk call to action until the buyer has started; then it hands over what was typed', async () => {
   const opened = [];
   const onOpen = event => opened.push(event.detail);
   window.addEventListener(OPEN_TRADE_DESK, onOpen);
   await render();
-  await click(button('Open HMV Trade Desk'));
+  // Before anything is answered the hero's own link is the assisted lane: the form has no second one.
+  assert.ok(!button('Open HMV Trade Desk'));
+  assert.doesNotMatch(container.textContent, /Need guidance/);
+  assert.ok(!container.querySelector('aside'));
+
+  // The first answer, and the row is there, with the product.
   await choose(field('product'), 'dried-cassava-chips');
+  assert.ok(button('Open HMV Trade Desk'));
+  assert.ok(container.textContent.includes('Need guidance?'));
+  assert.ok(container.textContent.includes('Use HMV Trade Desk for sourcing, logistics or requirement support.'));
   await click(button('Open HMV Trade Desk'));
   await type(field('destination'), 'Busan, South Korea');
   await type(field('volume.amount'), '500');
@@ -510,13 +518,43 @@ test('the assisted lane: the Trade Desk opens with the product, destination and 
   await click(button('Open HMV Trade Desk'));
   window.removeEventListener(OPEN_TRADE_DESK, onOpen);
   assert.deepEqual(opened, [
-    { source: 'quick_rfq' },
     { source: 'quick_rfq', product: 'dried-cassava-chips' },
     { source: 'quick_rfq', product: 'dried-cassava-chips', destination: 'Busan, South Korea', volume: { amount: '500', unit: 'mt_month' } },
     { source: 'quick_rfq', product: 'dried-cassava-chips', destination: 'Busan, South Korea' },
   ]);
-  assert.ok(container.textContent.includes('Need guidance?'));
-  assert.ok(container.textContent.includes('Use HMV Trade Desk for sourcing, logistics or requirement support.'));
+  // It stays on the contact step, and goes with the received state; "another request" starts without it.
+  await type(field('volume.amount'), '500');
+  await click(submit());
+  assert.ok(button('Open HMV Trade Desk'));
+  sendInquiry.mockResolvedValue(ACCEPTED);
+  await fillContact();
+  await send();
+  assert.ok(!button('Open HMV Trade Desk'));
+  await click(button('Submit another request'));
+  assert.ok(!button('Open HMV Trade Desk'));
+});
+
+test('a click on the page or an empty Continue does not count as starting', async () => {
+  await render();
+  await click(container.querySelector('form'));
+  await click(button('Continue'));
+  assert.ok(!button('Open HMV Trade Desk'));
+  await toContact();
+  assert.ok(button('Open HMV Trade Desk'));
+});
+
+test('a page that has no Trade Desk call to action of its own gets the row at once; one that does not want it never does', async () => {
+  // Each a form of its own (a key): the state of one is not the next one's.
+  await act(async () => root.render(h(QuickRfq, { key: 'always', lang: 'en' })));
+  assert.ok(button('Open HMV Trade Desk'));
+  await act(async () => root.render(h(QuickRfq, { key: 'never', lang: 'en', guidance: false })));
+  await choose(field('product'), 'bananas');
+  assert.ok(!button('Open HMV Trade Desk'));
+  await act(async () => root.render(h(QuickRfq, { key: 'started', lang: 'vi', guidance: 'started' })));
+  assert.ok(!button('Mở HMV Trade Desk'));
+  await choose(field('product'), 'bananas');
+  assert.ok(button('Mở HMV Trade Desk'));
+  assert.ok(container.textContent.includes('Cần HMV tư vấn thêm?'));
 });
 
 test('the page heading is the first step’s: the second has its own, so the card stays one screen on a phone', async () => {

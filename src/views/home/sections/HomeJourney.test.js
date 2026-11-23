@@ -226,8 +226,9 @@ test('sticky call to action: on a phone only, safe-area aware, no motion for red
   const { scrollTo } = pageWithForm();
   await render(StickySupplyCta);
   const bar = container.querySelector('[data-sticky-supply-cta]');
-  // From 901 px the single-column layout is gone, and so is the bar.
-  assert.match(bar.className, /min-\[901px\]:hidden/);
+  // On a phone only: from 601 px (a tablet) the bar is gone, and nothing keeps it for the single-column layout.
+  assert.match(bar.className, /min-\[601px\]:hidden/);
+  assert.doesNotMatch(bar.className, /min-\[901px\]/);
   assert.match(bar.className, /pb-\[calc\(12px\+env\(safe-area-inset-bottom/);
   assert.match(bar.className, /pointer-events-none/);
   // The animation is for those who have not asked for less motion.

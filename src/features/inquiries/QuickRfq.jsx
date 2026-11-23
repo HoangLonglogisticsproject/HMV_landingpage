@@ -64,10 +64,12 @@ function placeOf(step, status, locked) {
 }
 
 /**
- * @param {{ lang: 'en' | 'vi', product?: string, source?: string, intro?: import('react').ReactNode, guidance?: boolean }} props
+ * @param {{ lang: 'en' | 'vi', product?: string, source?: string, intro?: import('react').ReactNode, guidance?: boolean | 'started' }} props
  * `source`: where the form is, for analytics and the Trade Desk it opens. `intro`: the page's own heading, shown at the
- * top of the first step (not of the second, nor of the received state). `guidance`: the "Need guidance?" row below it, which opens the desk with
- * what the buyer has typed (default on).
+ * top of the first step (not of the second, nor of the received state). `guidance`: the "Need guidance?" row below the
+ * form, which opens the desk with what the buyer has typed: always (`true`, the default), never (`false`), or from the
+ * moment the buyer has started the requirement (`'started'`: for a page that already offers the desk elsewhere, so the
+ * row says "I started and now need help", not a second copy of the same call to action).
  */
 export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance = true }) {
   const c = quickRfqCopy[lang];
@@ -82,6 +84,8 @@ export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance 
   const [status, setStatus] = useState('idle'); // idle | sending | failed | accepted
   const [reference, setReference] = useState('');
   const [copied, setCopied] = useState(false);
+  // The buyer has begun answering (any field but the honeypot): until then there is nothing to hand over.
+  const [started, setStarted] = useState(false);
   // The last submission: its content fingerprint and idempotency key (an exact retry reuses the key, a changed inquiry
   // takes a new one); and whether one is in flight, which a second click must not start again.
   const last = useRef(/** @type {{ fingerprint: string, key: string } | null} */ (null));
@@ -139,7 +143,9 @@ export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance 
     if (errors.includes(field) && !localErrors(now, next.consent).includes(field)) {
       setErrors(e => e.filter(f => f !== field));
     }
-    if (key !== 'website' && !counted.current.start) {
+    if (key === 'website') return;
+    setStarted(true);
+    if (!counted.current.start) {
       counted.current.start = true;
       track('quick_rfq_start', { product: now.brief.product ?? undefined, locale: lang, step: 'requirement' });
     }
@@ -244,6 +250,7 @@ export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance 
     setStatus('idle');
     setReference('');
     setCopied(false);
+    setStarted(false);
     setStep('requirement');
     last.current = null;
     counted.current = { start: false, contact: false };
@@ -260,6 +267,7 @@ export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance 
   };
 
   const error = field => (errors.includes(field) ? c.errors[field] : null);
+  const showGuidance = guidance === 'started' ? started : guidance;
   const announcement = { sending: c.sending }[status] ?? (copied ? c.copied : '');
 
   return (
@@ -290,7 +298,7 @@ export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance 
               />
             )}
           </Steps>
-          {guidance && <Guidance c={c} id={id} onOpen={openDesk} />}
+          {showGuidance && <Guidance c={c} id={id} onOpen={openDesk} />}
         </>
       )}
     </div>
