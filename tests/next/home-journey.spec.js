@@ -21,7 +21,7 @@ test('the sections follow the buyer: hero with the form, products, proof, execut
   const order = await page.evaluate(() => {
     const top = sel => { const el = document.querySelector(sel); return el ? el.getBoundingClientRect().top + scrollY : null; };
     const sections = ['header.day-hero', '#initiate-trade', '#featured-products', '[aria-labelledby="trust-title"]', '#value-journey', '.in-action',
-      '.partner-community', '.global-reach', '.insights-home', '[data-final-cta]'];
+      '.global-reach', '.insights-home', '[data-final-cta]'];
     return sections.map(sel => [sel, top(sel)]);
   });
   expect(order.filter(([, y]) => y === null)).toEqual([]);
@@ -33,7 +33,21 @@ test('the sections follow the buyer: hero with the form, products, proof, execut
   await expect(page.locator('header.day-hero #initiate-trade')).toHaveCount(1);
 });
 
+// What HMV has not got: reviews. The people and companies below were placeholders (PartnerCommunity, removed): none of
+// them, nor the badge that said so, nor the card markup, may be on the page.
+const SAMPLE_REVIEWS = /John D\.|Sarah W\.|Marc L\.|Emma K\.|Agri-produce importer|Supermarket chain \(USA\)|Fruit distributor \(France\)|Food manufacturer \(Netherlands\)|Sample placeholder|Nội dung mẫu|PARTNER COMMUNITY|CỘNG ĐỒNG ĐỐI TÁC|Partner Community|Cộng đồng Đối tác|real partner reviews/;
+
 for (const lang of LANGS) {
+  test(`${lang.name}: no sample testimonials, in the browser or in the HTML`, async ({ page, request }) => {
+    const html = await (await request.get(lang.path)).text();
+    expect(html).not.toMatch(SAMPLE_REVIEWS);
+    expect(html).not.toMatch(/review-card|class="marquee|sample-badge|partner-community/);
+    await page.goto(lang.path, { waitUntil: 'networkidle' });
+    await expect(page.locator('.partner-community, .marquee, .review-card, .sample-badge')).toHaveCount(0);
+    expect(await page.locator('main').innerText()).not.toMatch(SAMPLE_REVIEWS);
+    await expect(page.locator('main blockquote')).toHaveCount(0);
+  });
+
   test(`${lang.name}: one h1, one Quick RFQ, one form, unique ids, the anchor in place`, async ({ page }) => {
     await page.goto(lang.path, { waitUntil: 'networkidle' });
     await expect(page.locator('h1')).toHaveCount(1);
@@ -71,6 +85,46 @@ for (const lang of LANGS) {
     expect(JSON.stringify(events)).not.toMatch(/Busan|@/);
   });
 }
+
+test('the form has no second Trade Desk call to action until the buyer has started; then it hands over what they typed', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const f = form(page);
+  const row = page.locator('#initiate-trade').getByRole('button', { name: 'Open HMV Trade Desk' });
+  // The hero's own link is the assisted lane from the start: the form has no second Trade Desk call to action.
+  await expect(page.locator('header.day-hero').getByRole('button', { name: 'Need guidance? Ask HMV Trade Desk' })).toBeVisible();
+  await expect(row).toHaveCount(0);
+  await expect(page.locator('#initiate-trade')).not.toContainText('Need guidance?');
+  // Focusing it, pressing Continue empty: still not started.
+  await f.getByLabel('Product', { exact: true }).focus();
+  await f.getByRole('button', { name: 'Continue' }).click();
+  await expect(row).toHaveCount(0);
+
+  // The first answer: the row is there and carries it.
+  await f.getByLabel('Product', { exact: true }).selectOption('dried-cassava-chips');
+  await expect(row).toBeVisible();
+  await f.getByLabel('Destination', { exact: true }).fill('Busan, South Korea');
+  await f.getByLabel('Estimated volume', { exact: true }).fill('500');
+  await row.click();
+  await expect(desk(page)).toBeVisible();
+  await expect(desk(page).getByRole('log').locator('.desk-msg')).toHaveText([
+    'HMVWhere would you like the goods delivered?',
+    'YouBusan, South Korea',
+    'HMVWhat volume are you planning to purchase?',
+    'You500 MT / month',
+    /^HMVThank you\. I have enough information to open a commercial inquiry/,
+  ]);
+  const events = await dataLayer(page);
+  expect(events.at(-2)).toEqual({ event: 'trade_desk_open', source: 'quick_rfq', product: 'dried-cassava-chips', locale: 'en' });
+  expect(JSON.stringify(events)).not.toMatch(/Busan|500/);
+});
+
+test('the hero\'s assisted lane still opens the desk empty, whatever the form holds', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await form(page).getByLabel('Destination', { exact: true }).fill('Busan, South Korea');
+  await page.locator('header.day-hero').getByRole('button', { name: 'Need guidance? Ask HMV Trade Desk' }).click();
+  await expect(desk(page)).toBeVisible();
+  await expect(desk(page).getByRole('log').locator('.desk-msg')).toHaveText(['HMVWhat product are you looking for?']);
+});
 
 test('what the buyer typed survives scrolling away, the closing call to action and the Trade Desk: one form, never remounted', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
@@ -149,6 +203,7 @@ test('server-rendered: the sections, the form and the calls to action are in the
     expect(html, text).toContain(text);
   }
   expect(html.match(/<h1[ >]/g)).toHaveLength(1);
+  expect(html).not.toMatch(SAMPLE_REVIEWS);
   expect(html.match(/id="initiate-trade"/g)).toHaveLength(1);
   // The order in the HTML is the buyer's.
   const at = ['Rooted in the land', 'id="initiate-trade"', 'id="featured-products"', 'Built around the buyer.', 'id="value-journey"', 'Ready to discuss'].map(t => html.indexOf(t));

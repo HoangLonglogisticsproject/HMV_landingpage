@@ -79,7 +79,7 @@ for (const width of [901, 1024, 1280, 1440, 1920]) {
   });
 }
 
-test('the single-column layout begins at 900px: copy, form, photograph in that order, and the bar is allowed', async ({ page }) => {
+test('the single-column layout begins at 900px: copy, form, photograph in that order; a tablet has no sticky bar', async ({ page }) => {
   await page.setViewportSize({ width: 900, height: 900 });
   await page.goto('/', { waitUntil: 'networkidle' });
   const copy = await box(page, '.day-copy');
@@ -88,4 +88,26 @@ test('the single-column layout begins at 900px: copy, form, photograph in that o
   expect(card.y).toBeGreaterThanOrEqual(copy.bottom);
   expect(stage.y).toBeGreaterThanOrEqual(card.bottom);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  // Past the form: the bar's state says "shown", the stylesheet says a tablet does not get it.
+  await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, 2600); });
+  const bar = page.locator('[data-sticky-supply-cta]');
+  await expect.poll(() => bar.evaluate(el => el.hidden)).toBe(false);
+  await expect(bar).toBeHidden();
+  expect(await bar.evaluate(el => getComputedStyle(el).display)).toBe('none');
+});
+
+test('desktop: the second Trade Desk row appears with the first answer, below the card, and the photograph does not move', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const row = page.locator('#initiate-trade').getByRole('button', { name: 'Open HMV Trade Desk' });
+  await expect(row).toHaveCount(0);
+  const before = { stage: await box(page, '.day-visual'), card: await box(page, '#initiate-trade form'), hero: await box(page, 'header.day-hero') };
+  await form(page).getByLabel('Product', { exact: true }).selectOption('bananas');
+  await expect(row).toBeVisible();
+  const after = { stage: await box(page, '.day-visual'), card: await box(page, '#initiate-trade form'), hero: await box(page, 'header.day-hero') };
+  // The photograph and the card stay where they were; the row is under the card; only what is below the hero moves.
+  expect(after.stage).toEqual(before.stage);
+  expect(after.card).toEqual(before.card);
+  const rowBox = await box(page, '#initiate-trade aside');
+  expect(rowBox.y).toBeGreaterThanOrEqual(after.card.bottom);
+  expect(after.hero.height).toBeGreaterThanOrEqual(before.hero.height);
 });
