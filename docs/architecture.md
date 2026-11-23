@@ -2,7 +2,7 @@
 
 React 19 + Vite 6 single-page app. Routing uses React Router 7 in declarative mode (`<BrowserRouter>`). Styling is Tailwind 4 plus the hand-written `src/styles/hmv.css`. Page head tags come from react-helmet-async, primitives are Radix via shadcn, and icons are lucide-react.
 
-There is no backend of its own. Content is static bilingual data in `src/data/`, and forms open a pre-filled email draft (mailto). The exceptions are EcoNews and the About page in CMS mode (`--mode cms`), which read the HMV CMS public API; see `docs/cms-integration.md`. The default build, production included, stays static.
+There is no backend of its own in this build. Content is static bilingual data in `src/data/`, and forms open a pre-filled email draft (mailto). The exceptions are the homepage Quick RFQ, the Trade Desk and the route assessment, which submit to the Next.js app's `POST /api/inquiry` (`/api/route-assessment`) through the `@/lib/inquiry` port (this Vite build has no server: the port answers 503 and they offer the email draft); EcoNews and the About page in CMS mode (`--mode cms`), which read the HMV CMS public API; see `docs/cms-integration.md`. The default build, production included, stays static.
 
 ## Folders
 
@@ -16,7 +16,7 @@ src/
   features/<name>/     business functionality used by more than one page or the shell
     articles/          EcoNews data access (bundled or CMS public API), ArticleGrid, Tiptap RichText (+ tests)
     pages/             usePage(key, lang): website page copy, bundled or from the CMS public pages API (+ tests)
-    inquiries/         Contact, TradeRfq, mailto builder, RFQ validation (+ tests)
+    inquiries/         Contact, TradeRfq (the homepage section) and QuickRfq (its form, the fast lane), mailto builder, RFQ validation (+ tests)
     regulations/       Regulations list (insights + regulations pages)
     trade-desk/        HMV Trade Desk: TradeDeskHost (in SiteShell, lazy-loads TradeDesk), openTradeDesk(), rules,
                        validation, follow-up channels (+ tests); delivery: docs/inbound/TRADE_DESK_DELIVERY.md
@@ -98,8 +98,10 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 | `components/common/PageMeta` | `<title>`, `<meta description>`, OG/Twitter tags, canonical `<link>` via Helmet |
 | `components/common/BrandLogo` | HMV logo image; used by Navigation and footer |
 | `components/ui/*` | Radix-based shadcn primitives (Button, Dialog, DropdownMenu) — business-agnostic |
-| `features/inquiries/inquiry.js` | Shared mailto builder; used by Contact and TradeRfq |
-| `features/inquiries/rfq.js` | RFQ field validation; used by TradeRfq |
+| `features/inquiries/inquiry.js` | Shared mailto builder; used by Contact, ProductRfq and, as the fallback after a failed send, QuickRfq |
+| `features/inquiries/rfq.js` | RFQ field validation of the mailto forms; used by ProductRfq |
+| `features/inquiries/QuickRfq` | The Quick RFQ: two steps (requirement: product, destination, volume; contact: company, work email, consent), submission to `POST /api/inquiry`, received state with the reference, retry and email fallback, and the "Need guidance?" handoff to the Trade Desk. `product` fixes the product for a product page. Copy: `quickRfqCopy.js` |
+| `features/trade-desk/submission` | What every sender of `POST /api/inquiry` shares (Trade Desk, Quick RFQ): the accepted response, the idempotency key and the rule that a key stands for one exact inquiry |
 | `features/articles/hooks` | `useArticleList` / `useArticle`: bundled articles, or the CMS public API in CMS mode, as one view shape |
 | `features/articles/ArticleGrid` | EcoNews cards plus loading/empty/error states; used by LatestInsights and InsightsPage |
 | `features/articles/RichText` | Whitelist renderer for CMS Tiptap JSON (no raw HTML); also renders the bundled articles |
@@ -116,7 +118,8 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 - **Scroll.** `SiteLayout` scrolls to the `#hash` target (on the next animation frame, instant) or to the top whenever the path or hash changes. `ArticlePage` forces the top and sets `history.scrollRestoration = 'manual'`.
 - **HMV Trade Desk.** The commercial interaction surface (the earlier simulated support chat is no longer part of the runtime UI). Calls to action open it with `openTradeDesk()`, a window event; there is no shared state. It submits real inquiries: `POST /api/inquiry` validates them and delivers them server to server through the configured adapter: in Production the n8n webhook (`INQUIRY_DELIVERY=webhook`), the CMS being an optional future system of record (docs/inbound/TRADE_DESK_DELIVERY.md). It shows "sent" and the reference only after the server accepted the inquiry; otherwise it offers a retry and an email draft.
 - **Route assessment.** The consolidation page's form posts to `POST /api/route-assessment` (Next.js) through the same inquiry port, inquiry service and delivery adapter as the Trade Desk (`src/next/inquiry/route-assessment.js`, validation in `features/route-assessment`), with its own validation and a record in the Trade Desk record's shape (`product`/`service`: `Vietnam–Cambodia Consolidation`, `source.cta`: `en_route_assessment`/`vi_route_assessment`), sent on the same webhook as commodity inquiries; n8n routes `service.id === "vietnam-cambodia-consolidation"` to the separate Consol pipeline (its own sheet and deduplication table), everything else to the Agricultural Trade pipeline. With the CMS adapter (optional, future) it answers 503 (the CMS contract takes commodity inquiries only) and the form offers the email draft. It says "sent" only after a 201.
-- **Legacy RFQ and contact forms.** These still send nothing themselves: they build a mailto draft (`features/inquiries/inquiry.js`) as the fallback channel, so their UI must say a draft was prepared, never that a request was sent.
+- **Quick RFQ (fast lane) and Trade Desk (assisted lane).** One lead pipeline, two ways in. The homepage `#initiate-trade` section is the Quick RFQ: for a buyer who knows what they need, three answers (product, destination, volume), then company, work email and consent. It builds the Trade Desk's inquiry (`toInquiry`), checks it with `validateInquiry`, keys it with `withKey` (an exact retry keeps the key, a changed inquiry takes a new one, a 409 drops it) and posts it with `sendInquiry`: the same endpoint, validation, delivery adapter and n8n webhook; no second backend. It says "received" with the reference only after a 201, and a failure keeps the details and offers "Try again" and, only then, the email draft. "Need guidance?" opens the Trade Desk with the product, destination and volume already typed (`openTradeDesk({ product, destination, volume })`; the desk starts a conversation with them as answers and asks only what is missing). Analytics: `quick_rfq_*` events and `generate_lead` with `source: 'quick_rfq'`, categorical values only. The Quick RFQ requires a work email because the inquiry contract does; email-or-WhatsApp-only would be a contract change.
+- **Mailto RFQ and contact forms.** The product-page RFQ and the contact form still send nothing themselves: they build a mailto draft (`features/inquiries/inquiry.js`) as the fallback channel, so their UI must say a draft was prepared, never that a request was sent.
 - **SEO.** `PageMeta` writes the title, description and OG/Twitter tags directly and the canonical link through Helmet. `index.html` holds the static fallback tags and the Organization JSON-LD.
 
 ## Adding things
@@ -175,4 +178,4 @@ These are **documented observations only**. They require product/business valida
 | **Inconsistent hotline numbers** | Different hotline numbers appear in different sections (Navigation, Footer, Contact page). Confirm the canonical number with the business before normalizing. |
 | **Unverified certification claims** | Pages reference certifications (e.g. ISO, export certificates). These claims have not been cross-referenced with current certificate validity. |
 | **Chat simulation** | `SupportChatWidget` replies are entirely client-side simulations. The UI does not disclose this. Consider adding "automated responses" disclosure. |
-| **RFQ/Contact: email-draft-only workflow** | Forms produce a `mailto:` draft in the visitor's email client. This is intentional per `AGENTS.md`, but the UX copy must clearly say "a draft has been prepared" — never "your request was sent". Audit copy across both EN and VI. |
+| **Contact and product-page RFQ: email-draft-only workflow** | These forms produce a `mailto:` draft in the visitor's email client (the homepage Quick RFQ and the Trade Desk submit for real). This is intentional per `AGENTS.md`, but the UX copy must clearly say "a draft has been prepared" — never "your request was sent". Audit copy across both EN and VI. |
