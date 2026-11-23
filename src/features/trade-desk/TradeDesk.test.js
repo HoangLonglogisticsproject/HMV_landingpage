@@ -622,6 +622,65 @@ test('reopening for the same conversation keeps it; another product starts a new
   assert.ok(dialog().querySelector('.desk-summary').textContent.includes('Dragon fruit'));
 });
 
+test('opened by the Quick RFQ with the requirement already given: the conversation continues at the next question, nothing is asked twice, nothing reaches analytics', async () => {
+  await render();
+  await open({ source: 'quick_rfq', product: 'dried-cassava-chips', destination: 'Busan, South Korea', volume: { amount: '500', unit: 'mt_month' } });
+  assert.deepEqual(thread(), [
+    'HMV: Where would you like the goods delivered?',
+    'You: Busan, South Korea',
+    'HMV: What volume are you planning to purchase?',
+    'You: 500 MT / month',
+    'HMV: Thank you. I have enough information to open a commercial inquiry for this requirement. HMV can now review the supply requirement and continue directly with our Sales team for quotation.',
+  ]);
+  assert.ok(panel().includes('Ready for quotation'));
+  assertFocus(dialog().querySelector('[id$="-decision"]'));
+  assert.deepEqual(window.dataLayer, [
+    { event: 'trade_desk_open', source: 'quick_rfq', product: 'dried-cassava-chips', locale: 'en' },
+    { event: 'trade_product_selected', product: 'dried-cassava-chips', source: 'preselected' },
+  ]);
+
+  // The same inquiry from here: the carried answers are the brief's, sent like any other.
+  await click(button('Request Quotation'));
+  await type(field('contact.company'), 'Example Foods B.V.');
+  await type(field('contact.email'), 'buyer@example.com');
+  await click(field('consent.contact'));
+  sendInquiry.mockResolvedValue({ status: 201, body: { reference: 'HMV-2026-7KQ4XM' } });
+  await send();
+  const [inquiry] = sendInquiry.mock.calls[0];
+  assert.deepEqual([inquiry.product, inquiry.destination, inquiry.volume], ['dried-cassava-chips', 'Busan, South Korea', { amount: '500', unit: 'mt_month' }]);
+});
+
+test('opened by the Quick RFQ with a refused amount, a new request or no product: only what the desk accepts is kept; a new request replaces the conversation', async () => {
+  await render();
+  await open({ source: 'quick_rfq', product: 'passion-fruit', destination: 'Rotterdam', volume: { amount: 'lots', unit: 'mt' } });
+  assert.deepEqual(thread(), ['HMV: Where would you like the goods delivered?', 'You: Rotterdam', 'HMV: What volume are you planning to purchase?']);
+  assertFocus(field('volume'));
+  const close = () => click(dialog().querySelector('button[aria-label="Close"]'));
+  await close();
+  // The same product again, now with a requirement of its own: the conversation is the Quick RFQ's, not the old one.
+  await open({ source: 'quick_rfq', product: 'passion-fruit', destination: 'Busan', volume: { amount: '4', unit: 'containers' } });
+  assert.equal(thread()[1], 'You: Busan');
+  assert.ok(thread().includes('You: 4 containers'));
+  await close();
+  // No product named: the opener's other answers cannot start anything; the conversation is as it was.
+  await open({ source: 'quick_rfq', destination: 'Hamburg' });
+  assert.equal(thread()[1], 'You: Busan');
+});
+
+test('a new inquiry after one sent from a Quick RFQ handoff starts empty, not with the handed-over answers', async () => {
+  await render();
+  await open({ source: 'quick_rfq', product: 'passion-fruit', destination: 'Busan', volume: { amount: '4', unit: 'containers' } });
+  await click(button('Request Quotation'));
+  await type(field('contact.company'), 'Example Foods B.V.');
+  await type(field('contact.email'), 'buyer@example.com');
+  await click(field('consent.contact'));
+  sendInquiry.mockResolvedValue({ status: 201, body: { reference: 'HMV-2026-7KQ4XM' } });
+  await send();
+  await click(button('Start a new inquiry'));
+  assert.deepEqual(thread(), ['HMV: Where would you like the goods delivered?']);
+  assert.ok(panel().includes('Not specified yet'));
+});
+
 test('a response for an earlier conversation never changes the current one', async () => {
   let accept;
   sendInquiry.mockReturnValueOnce(new Promise(resolve => { accept = resolve; }));

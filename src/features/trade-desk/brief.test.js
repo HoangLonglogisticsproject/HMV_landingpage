@@ -8,6 +8,18 @@ import { validateInquiry } from './validation.js';
 const cassava = (over = {}) => ({ ...emptyBrief({ product: 'dried-cassava-chips' }), ...over });
 const volume = { amount: '2,000', unit: 'mt_month' };
 
+test('an opener that already asked destination and volume (the Quick RFQ) starts the brief with them; what the desk would refuse is asked again', () => {
+  assert.deepEqual(emptyBrief({ product: 'dried-cassava-chips', destination: ' Busan, South Korea ', volume: { amount: ' 500 ', unit: 'mt' } }), {
+    product: 'dried-cassava-chips', destination: 'Busan, South Korea', volume: { amount: '500', unit: 'mt' }, notes: '',
+  });
+  // Without a unit, the product's usual one; an unknown unit, an amount the inquiry refuses or a destination over its limit are left out.
+  assert.deepEqual(emptyBrief({ product: 'dried-cassava-chips', volume: { amount: '500' } }).volume, { amount: '500', unit: 'mt_month' });
+  assert.deepEqual(emptyBrief({ product: 'bananas', volume: { amount: 'lots', unit: 'litres' } }).volume, { amount: '', unit: 'containers' });
+  assert.equal(emptyBrief({ product: 'bananas', destination: 'x'.repeat(121) }).destination, '');
+  assert.equal(emptyBrief({ product: 'bananas', destination: 42 }).destination, '');
+  assert.equal(isRfqReady(emptyBrief({ product: 'bananas', destination: 'Busan', volume: { amount: '4', unit: 'containers' } })), true);
+});
+
 test('readiness: product, destination and volume make a requirement ready for quotation; nothing else is needed', () => {
   assert.equal(isRfqReady(emptyBrief()), false);
   assert.equal(isRfqReady(cassava()), false);
