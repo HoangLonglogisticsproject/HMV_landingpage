@@ -171,6 +171,20 @@ product. Measured on `next build` (initial `<script>` chunks of the page):
 | `/products/passion-fruit` | 835.4 / 268.9 | 763.1 / 245.2 |
 | Trade Desk chunk (on first open) | in initial JS | 47.7 KB raw / 16.4 KB gzip |
 
+## The Quick RFQ (fast lane)
+
+The homepage `#initiate-trade` section is a second front end to this same pipeline, for a buyer who already knows what
+they need: step 1 product, destination, volume; step 2 company, work email and consent (name, phone and notes are
+optional, folded away). It posts the **same** inquiry to the **same** `POST /api/inquiry`: the same validation (so the
+work email stays required: WhatsApp-only submission would be an inquiry-contract change), the same idempotency key
+rules (`src/features/trade-desk/submission.js`), the same honeypot and visit context, the same adapter and webhook. A
+Quick RFQ record is the record of a ready Trade Desk inquiry (`origin`, `application`, `transport` and `requirements`
+empty, nothing inferred). The record does not say which lane it came from (both carry only the visit context); the lane
+is in analytics, the `generate_lead` event's `source: 'quick_rfq'`. Marking it in the sheet would be a contract change,
+left for a follow-up. It shows the reference only after a 201; on a failed send it
+keeps the details, offers "Try again" and, only then, the email draft. "Need guidance?" opens the Trade Desk with the
+product, destination and volume already given.
+
 ## After sending: optional follow-up
 
 The sent state can offer links for the buyer to continue, if configured at build time:

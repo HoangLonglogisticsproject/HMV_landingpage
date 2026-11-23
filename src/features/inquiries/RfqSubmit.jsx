@@ -1,7 +1,7 @@
 import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-// The end of an RFQ form (TradeRfq, ProductRfq): the submit button and its note, or, once the email draft is prepared,
+// The end of the product page's RFQ form (ProductRfq): the submit button and its note, or, once the email draft is prepared,
 // the draft-prepared message; and the validation message. `state`: 'idle' | 'done' | 'invalid'.
 export function RfqSubmit({ lang, state, onReset, invalidText }) {
   const L = (e, v) => (lang === 'vi' ? v : e);

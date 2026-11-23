@@ -2,17 +2,27 @@
 // route and the inquiry. The desk asks three things, product, destination and volume; nothing else is asked, inferred
 // or filled in. Pure functions only.
 import { VOLUME_UNITS, defaultUnit, productById } from './rules';
+import { LIMITS, isAmount } from './validation';
 
 /** DOM id of a desk control: shared by the conversation and the desk's focus handling. */
 export const fieldId = (uid, key) => `${uid}-${key}`;
 
 /**
- * @param {{ product?: string | null, notes?: string }} [start] `notes`: the buyer's own words naming the product, when
- * they typed them; they reach HMV as the inquiry's notes.
+ * @param {{ product?: string | null, notes?: string, destination?: string, volume?: { amount?: string, unit?: string } }} [start]
+ * `notes`: the buyer's own words naming the product, when they typed them; they reach HMV as the inquiry's notes.
+ * `destination` and `volume`: answers an opener already asked (the Quick RFQ); only what the desk's own answers would
+ * accept is kept, anything else is asked again.
  */
-export function emptyBrief({ product = null, notes = '' } = {}) {
+export function emptyBrief({ product = null, notes = '', destination = '', volume = undefined } = {}) {
   const known = productById(product) ? product : null;
-  return { product: known, destination: '', volume: { amount: '', unit: defaultUnit(known) }, notes };
+  const place = typeof destination === 'string' ? destination.trim() : '';
+  const amount = typeof volume?.amount === 'string' && isAmount(volume.amount) ? volume.amount.trim() : '';
+  return {
+    product: known,
+    destination: place.length <= LIMITS.destination ? place : '',
+    volume: { amount, unit: Object.hasOwn(VOLUME_UNITS, volume?.unit) ? volume.unit : defaultUnit(known) },
+    notes,
+  };
 }
 
 const filled = value => String(value ?? '').trim() !== '';

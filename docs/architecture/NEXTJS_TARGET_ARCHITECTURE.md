@@ -237,7 +237,7 @@ Caching rules (no Cache Components): "By default, `fetch` requests are not cache
 | Articles listing | SSG; ISR with the CMS on | Up to 100 items |
 | Article detail | Known slugs of both locales prerendered (`generateStaticParams` from the index); `dynamicParams = true`, so a new CMS article renders on its first request and is then cached (ISR) | Segment config must be a literal, so one setting serves both modes |
 | Sitemap (`app/sitemap.xml/route.ts`), robots (`app/robots.ts`) | Prerendered at build. The sitemap: static in bundled mode, ISR with the CMS on (measured in §9.4) | The sitemap is written by a route handler, not the `sitemap.ts` convention, which rewrites the root as `B/`: every URL comes from `absoluteUrl()`, the formatter of canonical, hreflang and `og:url`. A GET route handler is not cached by default, so it sets `dynamic = 'force-static'`; tests fail if it is ever computed per request |
-| Contact / RFQ | SSG shell plus client form island | No server data; `mailto:` only |
+| Contact / product-page RFQ | SSG shell plus client form island | No server data; `mailto:` only. The homepage Quick RFQ is a client island that posts to `POST /api/inquiry` |
 | Logistics, Packaging, Activities, Regulations | SSG | Bundled |
 
 SSR is not used: there is no personalization or authentication, and CMS drafts are not public. ISR trade-offs are in §9.

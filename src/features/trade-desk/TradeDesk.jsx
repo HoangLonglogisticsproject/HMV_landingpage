@@ -11,7 +11,7 @@ import { contactChannels, sendInquiry } from '@/lib/inquiry';
 import { createInquiryMailto } from '@/features/inquiries/inquiry';
 import { emptyBrief, fieldId, routeOf, stageOf, summarize, toInquiry } from './brief';
 import { contactErrors, validateInquiry } from './validation';
-import { inquiryFingerprint } from './fingerprint';
+import { isAccepted, withKey } from './submission';
 import { detectLanguage } from './language';
 import { deskCopy } from './copy';
 import { visitContext } from './visit';
@@ -29,13 +29,12 @@ import {
 // The contact card's fields in screen order: the first one with an error is focused.
 const CONTACT_ORDER = ['contact.company', 'contact.name', 'contact.email', 'contact.phone', 'consent.contact'];
 const LANGUAGES = [['en', 'EN', 'English'], ['vi', 'VI', 'Tiếng Việt']];
-/** POST /api/inquiry accepted the inquiry: 201 with the reference the CMS issued. */
-const isAccepted = ({ status, body }) => status === 201 && typeof body.reference === 'string';
-// randomUUID needs a secure context; getRandomValues does not (plain-http previews).
-const newKey = () => crypto.randomUUID?.() ?? Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
 const emptyContact = () => ({ company: '', email: '', name: '', phone: '' });
 
-/** @param {{ lang: 'en' | 'vi', request: { product?: string, source?: string } }} props `lang`: the site's language */
+/**
+ * @param {{ lang: 'en' | 'vi', request: { product?: string, destination?: string, volume?: { amount: string, unit: string }, source?: string } }} props
+ * `lang`: the site's language; `request`: the open request (open.js)
+ */
 export function TradeDesk({ lang: siteLang, request }) {
   const uid = useId().replaceAll(':', '');
   const [open, setOpen] = useState(false);
@@ -74,14 +73,16 @@ export function TradeDesk({ lang: siteLang, request }) {
 
   // A new conversation. Consent is given per inquiry, so it is asked again; after a sent inquiry the contact is
   // cleared too. The buyer's own language choice stays.
-  const startConversation = ({ product = null } = {}) => {
+  const startConversation = ({ product = null, destination, volume } = {}) => {
     if (reference) {
       setContact(emptyContact());
       setWebsite('');
     }
     setConsent(false);
     const known = productById(product) ? product : null;
-    setBrief(emptyBrief({ product: known }));
+    // Destination and volume come from an opener that already asked them (the Quick RFQ): they are answers, shown and
+    // editable like any other, and the conversation continues at the next question.
+    setBrief(emptyBrief({ product: known, destination, volume }));
     setPreselected(Boolean(known));
     setUnclear([]);
     setExploring(false);
@@ -96,13 +97,15 @@ export function TradeDesk({ lang: siteLang, request }) {
   };
 
   // Each open request (a new object from TradeDeskHost, which also counts it in analytics) opens the desk: a new
-  // conversation after a sent inquiry the buyer has seen, or when opened for another product; otherwise the
-  // conversation is kept. An acceptance the buyer has not seen yet (it arrived while the desk was closed) is shown.
+  // conversation after a sent inquiry the buyer has seen, when opened for another product, or when the opener carries
+  // a requirement of its own (destination or volume); otherwise the conversation is kept. An acceptance the buyer has
+  // not seen yet (it arrived while the desk was closed) is shown.
   if (request !== handled) {
     setHandled(request);
-    const { product = null } = request;
-    const fresh = reference ? acknowledged : Boolean(productById(product)) && product !== brief.product;
-    if (fresh) startConversation({ product });
+    const { product = null, destination, volume } = request;
+    const carried = Boolean(destination || volume);
+    const fresh = reference ? acknowledged : Boolean(productById(product)) && (carried || product !== brief.product);
+    if (fresh) startConversation({ product, destination, volume });
     setOpen(true);
   }
   const openChange = next => {
@@ -227,12 +230,7 @@ export function TradeDesk({ lang: siteLang, request }) {
   };
 
   /** The inquiry as it would be sent now and its fingerprint: an exact retry keeps the key, any change takes a new one. */
-  const prepare = () => {
-    const draft = toInquiry(brief, { contact, consent, locale: lang, context: visitContext(), website });
-    const fingerprint = inquiryFingerprint(draft);
-    const key = submission?.fingerprint === fingerprint ? submission.key : newKey();
-    return { inquiry: { ...draft, idempotencyKey: key }, fingerprint };
-  };
+  const prepare = () => withKey(toInquiry(brief, { contact, consent, locale: lang, context: visitContext(), website }), submission);
 
   /** A response for the conversation still on screen: its reference, the field errors to correct, or the failure. */
   const settle = (response, accepted) => {
@@ -344,7 +342,7 @@ export function TradeDesk({ lang: siteLang, request }) {
                     <Dialog.Close asChild>
                       <Button type="button" size="lg" className="day-cta">{t.done}</Button>
                     </Dialog.Close>
-                    <button type="button" className="text-link" onClick={() => startConversation(handled ?? {})}>{t.newInquiry}</button>
+                    <button type="button" className="text-link" onClick={() => startConversation({ product: handled?.product })}>{t.newInquiry}</button>
                   </div>
                 </SentCard>
               ) : (
