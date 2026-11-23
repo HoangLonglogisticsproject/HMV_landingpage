@@ -58,13 +58,13 @@ test('deep link /#initiate-trade reaches the RFQ section', async ({ page }) => {
   // The section has id="initiate-trade" and aria-labelledby="rfq-title"
   const rfqSection = page.locator('section#initiate-trade');
   await expect(rfqSection).toBeVisible({ timeout: 8000 });
-  // The RFQ form must be present inside it
+  // The Quick RFQ form must be present inside it
   const rfqForm = rfqSection.locator('form.rfq-form');
   await expect(rfqForm).toBeVisible();
   // The section must contain the RFQ heading
   const rfqHeading = rfqSection.locator('h2#rfq-title');
   await expect(rfqHeading).toBeVisible();
-  await expect(rfqHeading).toContainText(/discuss your sourcing requirements|trao đổi nhu cầu thu mua/i);
+  await expect(rfqHeading).toContainText(/tell us what you need|cho hmv biết nhu cầu của bạn/i);
 });
 
 test('deep link /supply-chain#commodities scrolls to commodities section', async ({ page }) => {

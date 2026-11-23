@@ -85,7 +85,7 @@ test('articles carry Article structured data in their language', async ({ reques
 test('the home page HTML contains every section, client components included', async ({ request }) => {
   const html = await (await request.get('/')).text();
   for (const heading of ['THE VALUE JOURNEY', 'CORE COMMODITIES', 'PARTNER COMMUNITY', 'HMV GLOBAL IN ACTION',
-    'GLOBAL REACH', 'HMV ECONEWS', 'Discuss Your Sourcing Requirements']) {
+    'GLOBAL REACH', 'HMV ECONEWS', 'Tell us what you need']) {
     expect(html, heading).toContain(heading);
   }
   // The EcoNews section, a client component, lists the three latest articles.

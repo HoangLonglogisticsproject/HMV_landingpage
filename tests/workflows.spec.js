@@ -9,10 +9,10 @@ import { test, expect } from '@playwright/test';
  *    - <select name="product" defaultValue={params.get('product') || ''}>
  *    - Option values are p.en strings: "Passion fruit", "Cavendish bananas", etc.
  *    - passion-fruit → option value "Passion fruit" (from products[0].en)
- *  - RFQ section: <section id="initiate-trade" class="rfq-section">
- *    - <form class="rfq-form glass">
+ *  - Quick RFQ section: <section id="initiate-trade" class="rfq-section">
+ *    - <form class="rfq-form glass">, two steps (requirement, contact), submitted to the inquiry port
  *  - Navigation "HMV Trade Desk" button (.nav-support-btn) opens the HMV Trade Desk dialog; there is no support chat
- *  - Forms build mailto drafts; UI must never claim a message was "sent"
+ *  - The contact form and the product-page RFQ build mailto drafts; UI must never claim a message was "sent"
  */
 
 // ─── Contact page ────────────────────────────────────────────────────
@@ -100,26 +100,35 @@ test('ProductDetailPage inquiry button for bananas preselects "Cavendish bananas
   expect(selectedValue).toBe('Cavendish bananas');
 });
 
-// ─── RFQ form on home page ───────────────────────────────────────────
+// ─── Quick RFQ on home page ──────────────────────────────────────────
 
-test('home page RFQ form is present and has required fields', async ({ page }) => {
+test('home page Quick RFQ asks the requirement first, then the contact', async ({ page }) => {
   await page.goto('/#initiate-trade');
 
   const section = page.locator('section#initiate-trade');
   await expect(section).toBeVisible({ timeout: 8000 });
 
-  // The RFQ form must have class "rfq-form glass"
+  // The form keeps its class "rfq-form glass"; step 1 is the requirement only
   const rfqForm = section.locator('form.rfq-form');
   await expect(rfqForm).toBeVisible();
+  await expect(rfqForm.getByLabel('Product', { exact: true })).toBeAttached();
+  await expect(rfqForm.getByLabel('Destination', { exact: true })).toBeAttached();
+  await expect(rfqForm.getByLabel('Estimated volume', { exact: true })).toBeAttached();
+  await expect(rfqForm.getByLabel('Company', { exact: true })).toHaveCount(0);
+  await expect(rfqForm.locator('textarea')).toHaveCount(0);
 
-  // Required inputs
-  await expect(rfqForm.locator('input[name="company"]')).toBeAttached();
-  await expect(rfqForm.locator('input[name="email"]')).toBeAttached();
-  await expect(rfqForm.locator('select[name="product"]')).toBeAttached();
-  await expect(rfqForm.locator('textarea[name="message"]')).toBeAttached();
+  await rfqForm.getByLabel('Product', { exact: true }).selectOption('dried-cassava-chips');
+  await rfqForm.getByLabel('Destination', { exact: true }).fill('Busan, South Korea');
+  await rfqForm.getByLabel('Estimated volume', { exact: true }).fill('500');
+  await rfqForm.getByRole('button', { name: 'Continue' }).click();
 
-  // Submit button must be present
-  await expect(rfqForm.locator('button[type="submit"]')).toBeVisible();
+  // Step 2: company, work email, consent; the page stays where it is
+  await expect(rfqForm.getByRole('heading', { name: 'Where should HMV contact you?' })).toBeFocused();
+  await expect(rfqForm.getByLabel('Company', { exact: true })).toBeVisible();
+  await expect(rfqForm.getByLabel('Work email', { exact: true })).toBeVisible();
+  await expect(rfqForm.getByLabel('HMV may contact me about this inquiry.')).not.toBeChecked();
+  await expect(rfqForm.getByRole('button', { name: 'Send Request' })).toBeVisible();
+  expect(new URL(page.url()).pathname).toBe('/');
 });
 
 // ─── HMV Trade Desk (replaces the support chat) ─────────────────────
@@ -151,14 +160,27 @@ test('contact form copy says "draft prepared", never "sent"', async ({ page }) =
   expect(pageText).not.toMatch(/(successfully|thank you).{0,40}sent/);
 });
 
-test('RFQ form note on home page mentions email draft, not delivery', async ({ page }) => {
+test('home page Quick RFQ never claims a request was received unless the server accepted it', async ({ page }) => {
+  // The Vite build has no endpoint (the inquiry port answers 503): the form says it could not send, and only then
+  // offers the email draft.
   await page.goto('/#initiate-trade');
   const rfqSection = page.locator('section#initiate-trade');
   await expect(rfqSection).toBeVisible({ timeout: 8000 });
+  await expect(rfqSection.getByRole('button', { name: 'Send by email instead' })).toHaveCount(0);
 
-  // The section must not promise delivery — RFQ uses mailto (drafts only).
-  // The note "your request is not sent until you send that email" is CORRECT behavior.
-  // Only reject claims that the request WAS ALREADY sent/delivered/received.
+  const form = rfqSection.locator('form.rfq-form');
+  await form.getByLabel('Product', { exact: true }).selectOption('passion-fruit');
+  await form.getByLabel('Destination', { exact: true }).fill('Rotterdam, Netherlands');
+  await form.getByLabel('Estimated volume', { exact: true }).fill('2');
+  await form.getByRole('button', { name: 'Continue' }).click();
+  await form.getByLabel('Company', { exact: true }).fill('Example Foods B.V.');
+  await form.getByLabel('Work email', { exact: true }).fill('buyer@example.com');
+  await form.getByLabel('HMV may contact me about this inquiry.').check();
+  await form.getByRole('button', { name: 'Send Request' }).click();
+
+  await expect(form.getByRole('alert')).toContainText('We could not send your request');
+  await expect(form.getByRole('button', { name: 'Try again' })).toBeVisible();
+  await expect(form.getByRole('button', { name: 'Send by email instead' })).toBeVisible();
   const sectionText = (await rfqSection.textContent() ?? '').toLowerCase();
-  expect(sectionText).not.toMatch(/your (request|message|inquiry) (has been|was) (sent|delivered|received)/);
+  expect(sectionText).not.toMatch(/request received|your (request|message|inquiry) (has been|was) (sent|delivered|received)/);
 });
