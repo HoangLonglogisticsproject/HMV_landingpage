@@ -101,7 +101,7 @@ The ranges were drawn at `main` b29652f. #30 then fixed 17 lines in place (below
 | `11-home-farm-art` | The full-bleed farm art hero, featured origins | 1831–2325 |
 | `12-home-commerce-motion` | Product card motion, QC reveal, origin inset, bento | 2327–2675 |
 | `20-home-cinematic` | Cinematic homepage: hero, journey split, commodities, global reach | 2677–3138 |
-| `21-home-daylight` | Daylight homepage, glass header, editorial hero, partner marquee, RFQ form | 3140–3755 |
+| `21-home-daylight` | Daylight homepage, glass header, editorial hero, RFQ form | 3140–3755 |
 | `22-mobile-insights-footer` | Phone polish, the phone drawer background, RFQ states, insights cards, premium footer | 3757–4081 |
 | `30-articles` | Article reading layout, CMS rich content | 4083–4301 |
 | `31-living-logistics` | The animated logistics map | 4303–4576 |
