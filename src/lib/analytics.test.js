@@ -21,6 +21,28 @@ test('events reach the dataLayer with their allowed, categorical parameters only
   ]);
 });
 
+test('Quick RFQ events carry categorical values only; a destination, a volume or contact details are dropped', () => {
+  track('quick_rfq_start', { product: 'dried-cassava-chips', locale: 'en', step: 'requirement', destination: 'Busan, South Korea' });
+  track('quick_rfq_requirement_complete', { product: 'dried-cassava-chips', locale: 'en', step: 'requirement', volume: '500' });
+  track('quick_rfq_contact_start', { locale: 'vi', step: 'contact' });
+  track('quick_rfq_submit', { product: 'bananas', locale: 'en', step: 'contact', email: 'buyer@example.com', company: 'Acme' });
+  track('quick_rfq_error', { product: 'bananas', locale: 'en', step: 'contact', reason: 'unavailable', message: 'Could not send' });
+  track('quick_rfq_success', { product: 'bananas', locale: 'en', reference: 'HMV-2026-ABC123' });
+  track('generate_lead', { product: 'bananas', locale: 'en', route: 'rfq', source: 'quick_rfq', name: 'Kim' });
+  // A free-text value in an allowed parameter is dropped too: only slugs pass.
+  track('quick_rfq_error', { product: 'Busan, South Korea', locale: 'en', reason: 'Could not send' });
+  assert.deepEqual(window.dataLayer, [
+    { event: 'quick_rfq_start', product: 'dried-cassava-chips', locale: 'en', step: 'requirement' },
+    { event: 'quick_rfq_requirement_complete', product: 'dried-cassava-chips', locale: 'en', step: 'requirement' },
+    { event: 'quick_rfq_contact_start', locale: 'vi', step: 'contact' },
+    { event: 'quick_rfq_submit', product: 'bananas', locale: 'en', step: 'contact' },
+    { event: 'quick_rfq_error', product: 'bananas', locale: 'en', step: 'contact', reason: 'unavailable' },
+    { event: 'quick_rfq_success', product: 'bananas', locale: 'en' },
+    { event: 'generate_lead', product: 'bananas', locale: 'en', route: 'rfq', source: 'quick_rfq' },
+    { event: 'quick_rfq_error', locale: 'en' },
+  ]);
+});
+
 test('no personal data can pass: unknown keys, free text and contact details are dropped, unknown events ignored', () => {
   track('generate_lead', { goal: 'sourcing', product: 'Buyer@Example.com', locale: 'en', email: 'buyer@example.com', company: 'Acme', phone: '+84 909', message: 'hi' });
   track('trade_goal_selected', { goal: 'Product sourcing for ACME Ltd' });

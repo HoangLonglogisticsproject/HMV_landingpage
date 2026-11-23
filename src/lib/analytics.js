@@ -9,7 +9,15 @@ const EVENTS = {
   trade_route_rfq: ['product'],
   trade_route_discovery: ['product'],
   trade_contact_start: ['product', 'route'],
-  generate_lead: ['product', 'locale', 'route'],
+  // The Quick RFQ (features/inquiries/QuickRfq.jsx): `step` is 'requirement' | 'contact'; `reason` the kind of failure.
+  quick_rfq_start: ['product', 'locale', 'step'],
+  quick_rfq_requirement_complete: ['product', 'locale', 'step'],
+  quick_rfq_contact_start: ['product', 'locale', 'step'],
+  quick_rfq_submit: ['product', 'locale', 'step'],
+  quick_rfq_success: ['product', 'locale'],
+  quick_rfq_error: ['product', 'locale', 'step', 'reason'],
+  // An accepted inquiry of either lane; `source` is set by the Quick RFQ.
+  generate_lead: ['product', 'locale', 'route', 'source'],
 };
 const CATEGORY = /^[a-z0-9_-]{1,40}$/;
 

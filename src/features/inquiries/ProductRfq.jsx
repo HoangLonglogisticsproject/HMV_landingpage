@@ -7,7 +7,7 @@ import { RfqSubmit } from './RfqSubmit';
 const INCOTERMS = ['EXW', 'FCA', 'FOB', 'CFR', 'CIF', 'DAP', 'DDP'];
 
 // The RFQ of a product page: fixed to the page's product (not selectable), with its requirement fields (`fields`, from
-// data/productPages.js) after the shared ones. Same validation and email hand-off as the home RFQ (TradeRfq): a draft is prepared, never sent.
+// data/productPages.js) after the shared ones. RFQ validation and an email hand-off, unlike the home Quick RFQ (QuickRfq, which submits to the Trade Desk's pipeline): a draft is prepared, never sent.
 export function ProductRfq({ lang, product, text, fields }) {
   const vi = lang === 'vi';
   const L = (e, v) => (vi ? v : e);
