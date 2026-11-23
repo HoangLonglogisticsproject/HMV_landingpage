@@ -73,6 +73,19 @@ test('sticky: absent at the top, there once the form is behind the buyer, gone w
   await expect(sticky(page)).toBeVisible();
 });
 
+test('sticky: a jump past a form that started below the fold (a landscape phone) still shows it', async ({ page }) => {
+  await page.setViewportSize({ width: 667, height: 375 });
+  await page.goto('/', { waitUntil: 'networkidle' });
+  // The form is below the fold here: it is never in view before or after the jump.
+  expect(await page.evaluate(() => document.querySelector('#initiate-trade')?.getBoundingClientRect().top)).toBeGreaterThan(375);
+  await expect(sticky(page)).toBeHidden();
+  await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, 3500); });
+  await expect(sticky(page)).toBeVisible();
+  await stickyButton(page).click();
+  await expect(form(page).getByLabel('Product', { exact: true })).toBeFocused();
+  await expect(sticky(page)).toBeHidden();
+});
+
 test('sticky: it takes the buyer back to the same form, with what they typed, focused; no popup, no history entry', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
   const f = form(page);

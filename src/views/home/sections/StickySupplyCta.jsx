@@ -7,8 +7,11 @@ import { track } from '@/lib/analytics';
 
 // A quiet way back to the Quick RFQ on a phone: a button at the bottom edge once the buyer has scrolled past the form
 // (it is at the top of the page), gone while the form is in view and from the closing call to action on, which says the
-// same. One IntersectionObserver, no popup, no layout of its own (fixed), the form is never remounted: the buyer returns
-// to what they typed. Shown from the single-column layout (≤ 900 px) only; absent from the HTML until then (`hidden`).
+// same. No popup, no layout of its own (fixed), and the form is never remounted: the buyer returns to what they typed.
+// Shown from the single-column layout (≤ 900 px) only; closed in the HTML (`hidden`) until the browser decides.
+// The position of the form is read from its geometry, at most once a frame while the page scrolls (passive listener, no
+// polling): an IntersectionObserver reports only edges, so a jump past the form that never intersects it (a landscape
+// phone, End, an anchor) would leave it stale.
 const MEANINGFULLY_VISIBLE = 0.15;
 
 export function StickySupplyCta({ lang }) {
@@ -17,21 +20,25 @@ export function StickySupplyCta({ lang }) {
     const form = document.getElementById('initiate-trade');
     const end = document.querySelector('[data-final-cta]');
     if (!form || !end) return undefined;
-    const at = { formInView: false, formAbove: false, endReached: false };
-    const io = new IntersectionObserver(entries => {
-      for (const entry of entries) {
-        if (entry.target === form) {
-          at.formInView = entry.intersectionRatio >= MEANINGFULLY_VISIBLE;
-          at.formAbove = entry.boundingClientRect.top < 0;
-        } else {
-          at.endReached = entry.isIntersecting || entry.boundingClientRect.top < 0;
-        }
-      }
-      setShown(at.formAbove && !at.formInView && !at.endReached);
-    }, { threshold: [0, MEANINGFULLY_VISIBLE] });
-    io.observe(form);
-    io.observe(end);
-    return () => io.disconnect();
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const { top, bottom, height } = form.getBoundingClientRect();
+      const inView = Math.min(bottom, window.innerHeight) - Math.max(top, 0) >= MEANINGFULLY_VISIBLE * height;
+      const reachedEnd = end.getBoundingClientRect().top < window.innerHeight;
+      setShown(top < 0 && !inView && !reachedEnd);
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    schedule();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    return () => {
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      cancelAnimationFrame(frame);
+    };
   }, []);
 
   return (

@@ -122,75 +122,108 @@ test('proof strip: the site’s own heading and four commitments, a way to the r
   assert.equal(container.querySelectorAll('li').length, 4);
 });
 
-// The observer: a stand-in that holds its callback and the elements it was given, so a test can say what the browser
-// would report.
-class FakeObserver {
-  static all = [];
-  constructor(callback) {
-    this.callback = callback;
-    this.targets = [];
-    this.disconnected = false;
-    FakeObserver.all.push(this);
-  }
-  observe(el) { this.targets.push(el); }
-  disconnect() { this.disconnected = true; }
-}
-const report = (observer, target, { ratio = 0, top = 0, intersecting = ratio > 0 }) =>
-  act(async () => observer.callback([{ target, intersectionRatio: ratio, isIntersecting: intersecting, boundingClientRect: { top } }]));
-
-/** The page the sticky button watches: the Quick RFQ (#initiate-trade) and the closing call to action. */
+// The page the sticky button reads: the Quick RFQ (#initiate-trade) and the closing call to action, whose positions a test
+// sets by hand (jsdom has no layout), and the scroll that tells the button to look.
+const VIEWPORT = 800;
 function pageWithForm() {
   const form = Object.assign(document.createElement('section'), { id: 'initiate-trade' });
-  const end = Object.assign(document.createElement('section'), {});
+  const end = document.createElement('section');
   end.setAttribute('data-final-cta', '');
   document.body.append(form, end);
-  return { form, end };
+  const place = (el, top, height) => { el.getBoundingClientRect = () => ({ top, bottom: top + height, height }); };
+  const scrollTo = async ({ form: formTop, end: endTop }) => {
+    place(form, formTop, 700);
+    place(end, endTop, 400);
+    await act(async () => window.dispatchEvent(new Event('scroll')));
+  };
+  return { form, end, scrollTo };
 }
+const stubFrames = () => {
+  // A frame comes after the current task, as in a browser (a callback run inside requestAnimationFrame() would see its
+  // own frame id unset).
+  vi.stubGlobal('requestAnimationFrame', callback => { queueMicrotask(callback); return 1; });
+  vi.stubGlobal('cancelAnimationFrame', () => {});
+  vi.stubGlobal('innerHeight', VIEWPORT);
+};
 
 test('sticky call to action: hidden until the buyer has scrolled past the form; gone while the form is in view and at the end', async () => {
-  vi.stubGlobal('IntersectionObserver', FakeObserver);
-  FakeObserver.all = [];
-  const { form, end } = pageWithForm();
+  stubFrames();
+  const { scrollTo } = pageWithForm();
   await render(StickySupplyCta);
   const bar = container.querySelector('[data-sticky-supply-cta]');
-  const [observer] = FakeObserver.all;
-  assert.deepEqual(observer.targets, [form, end]);
   // At the top of the page the form is in view or below: nothing shows (and it is not in the HTML flow: `hidden`).
   assert.equal(bar.hidden, true);
-  await report(observer, form, { ratio: 0.6, top: 400 });
+  await scrollTo({ form: 560, end: 9000 });
   assert.equal(bar.hidden, true);
-  await report(observer, form, { ratio: 0, top: 900, intersecting: false });
+  await scrollTo({ form: 900, end: 9000 });
   assert.equal(bar.hidden, true);
 
   // Scrolled past it: the form is above the viewport.
-  await report(observer, form, { ratio: 0, top: -700, intersecting: false });
+  await scrollTo({ form: -900, end: 7000 });
   assert.equal(bar.hidden, false);
-  // A sliver at the top edge is not "meaningfully visible".
-  await report(observer, form, { ratio: 0.05, top: -600 });
+  // A sliver at the top edge is not "meaningfully visible" (15 % of 700 px is 105 px).
+  await scrollTo({ form: -640, end: 7000 });
   assert.equal(bar.hidden, false);
-  // Scrolling back up: the form comes into view and the bar goes.
-  await report(observer, form, { ratio: 0.4, top: -200 });
+  // Scrolling back up: 200 px of the form is in view and the bar goes.
+  await scrollTo({ form: -500, end: 7000 });
   assert.equal(bar.hidden, true);
-  await report(observer, form, { ratio: 0, top: -700, intersecting: false });
+  await scrollTo({ form: -1200, end: 6000 });
   assert.equal(bar.hidden, false);
-  // The closing call to action says the same: from there on, no bar; and none below it either.
-  await report(observer, end, { ratio: 0.2, top: 500 });
+  // The closing call to action says the same: once it enters the viewport, no bar, and none below it either.
+  await scrollTo({ form: -5000, end: 600 });
   assert.equal(bar.hidden, true);
-  await report(observer, end, { ratio: 0, top: -300, intersecting: false });
+  await scrollTo({ form: -6000, end: -300 });
   assert.equal(bar.hidden, true);
   // Back above the closing call to action: it shows again.
-  await report(observer, end, { ratio: 0, top: 1200, intersecting: false });
+  await scrollTo({ form: -2000, end: 4000 });
   assert.equal(bar.hidden, false);
+  vi.unstubAllGlobals();
+});
+
+test('sticky call to action: a jump past the form that never intersects it (a landscape phone, End, an anchor) still shows it', async () => {
+  stubFrames();
+  const { scrollTo } = pageWithForm();
+  await render(StickySupplyCta);
+  const bar = container.querySelector('[data-sticky-supply-cta]');
+  // The form starts below the fold and the next sample has it above the viewport: no frame ever has it in view.
+  await scrollTo({ form: 1200, end: 9000 });
+  assert.equal(bar.hidden, true);
+  await scrollTo({ form: -3000, end: 6000 });
+  assert.equal(bar.hidden, false);
+  vi.unstubAllGlobals();
+});
+
+test('sticky call to action: one look per frame while scrolling, passive listeners that go with the button', async () => {
+  const frames = [];
+  vi.stubGlobal('requestAnimationFrame', callback => { frames.push(callback); return frames.length; });
+  vi.stubGlobal('cancelAnimationFrame', () => {});
+  vi.stubGlobal('innerHeight', VIEWPORT);
+  const { form } = pageWithForm();
+  const spy = vi.spyOn(form, 'getBoundingClientRect');
+  const add = vi.spyOn(window, 'addEventListener');
+  const remove = vi.spyOn(window, 'removeEventListener');
+  await render(StickySupplyCta);
+  assert.deepEqual(add.mock.calls.filter(([type]) => type === 'scroll' || type === 'resize').map(([type, , options]) => [type, options]),
+    [['scroll', { passive: true }], ['resize', undefined]]);
+  // The first look is a frame of its own; a burst of scroll events within one frame asks for no more than that.
+  assert.equal(frames.length, 1);
+  for (let i = 0; i < 20; i++) window.dispatchEvent(new Event('scroll'));
+  assert.equal(frames.length, 1);
+  await act(async () => frames.shift()());
+  assert.equal(spy.mock.calls.length, 1);
+  window.dispatchEvent(new Event('scroll'));
+  assert.equal(frames.length, 1);
 
   await act(async () => root.render(h('div')));
-  assert.equal(observer.disconnected, true);
+  assert.deepEqual(remove.mock.calls.filter(([type]) => type === 'scroll' || type === 'resize').map(([type]) => type), ['scroll', 'resize']);
+  add.mockRestore();
+  remove.mockRestore();
   vi.unstubAllGlobals();
 });
 
 test('sticky call to action: on a phone only, safe-area aware, no motion for reduced-motion users; it returns the buyer to the form', async () => {
-  vi.stubGlobal('IntersectionObserver', FakeObserver);
-  FakeObserver.all = [];
-  const { form } = pageWithForm();
+  stubFrames();
+  const { scrollTo } = pageWithForm();
   await render(StickySupplyCta);
   const bar = container.querySelector('[data-sticky-supply-cta]');
   // From 901 px the single-column layout is gone, and so is the bar.
@@ -201,7 +234,8 @@ test('sticky call to action: on a phone only, safe-area aware, no motion for red
   const motion = bar.className.split(' ').filter(c => /animate|slide-in|fade-in/.test(c));
   assert.ok(motion.length > 0 && motion.every(c => c.startsWith('motion-safe:')), motion.join(' '));
 
-  await report(FakeObserver.all[0], form, { ratio: 0, top: -900, intersecting: false });
+  await scrollTo({ form: -900, end: 7000 });
+  assert.equal(bar.hidden, false);
   await click(button('Get Supply Proposal'));
   assert.equal(focusEvents.length, 1);
   assert.deepEqual(events(), [{ event: 'home_supply_plan_click', source: 'sticky', locale: 'en' }]);
@@ -210,11 +244,11 @@ test('sticky call to action: on a phone only, safe-area aware, no motion for red
   vi.unstubAllGlobals();
 });
 
-test('sticky call to action: without the form or the closing call to action on the page it never shows and observes nothing', async () => {
-  vi.stubGlobal('IntersectionObserver', FakeObserver);
-  FakeObserver.all = [];
+test('sticky call to action: without the form or the closing call to action on the page it never shows and listens to nothing', async () => {
+  const add = vi.spyOn(window, 'addEventListener');
   await render(StickySupplyCta, 'vi');
-  assert.equal(FakeObserver.all.length, 0);
+  assert.equal(add.mock.calls.filter(([type]) => type === 'scroll').length, 0);
+  add.mockRestore();
   assert.equal(container.querySelector('[data-sticky-supply-cta]').hidden, true);
   assert.ok(button('Nhận phương án cung ứng'));
   vi.unstubAllGlobals();
