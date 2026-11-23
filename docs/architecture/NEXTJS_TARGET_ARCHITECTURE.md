@@ -159,7 +159,7 @@ No page or layout is a client component. `'use client'` is set only on these mod
 | Kind | Modules | Why client |
 |---|---|---|
 | Islands created for the migration | `components/common/Lightbox.jsx` (`Lightbox`, `ZoomTrigger`, `LightboxPreview`), `views/logistics/ImagePreview.jsx`, `views/packaging-logistics/ImagePreview.jsx`, `views/article/BackButton.jsx`, `features/inquiries/ContactForm.jsx` | Photo preview state, history navigation, `useSearchParams`. The Logistics and Packaging pages used to hold the preview state at page level; they are now server components. |
-| Interactive sections | `views/activities/Activities.jsx` (carousel), `views/supply-chain/Operations.jsx` (tabs), `views/home/sections/ValueJourney.jsx`, `LivingLogistics.jsx`, `features/inquiries/TradeRfq.jsx` | Local state and effects of the section itself |
+| Interactive sections | `views/activities/Activities.jsx` (carousel), `views/supply-chain/Operations.jsx` (tabs), `views/home/sections/ValueJourney.jsx`, `LivingLogistics.jsx`, `features/inquiries/QuickRfq.jsx`, `views/home/sections/StickySupplyCta.jsx` | Local state and effects of the section itself |
 | Chrome | `Navigation`, `LanguageSwitcher`, `SupportChatWidget` | Menu state, dropdown, chat |
 | Port | `src/next/navigation.jsx` | `usePathname`, `useRouter` |
 

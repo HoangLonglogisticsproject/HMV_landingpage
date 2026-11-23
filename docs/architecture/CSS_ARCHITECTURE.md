@@ -56,7 +56,7 @@ migrate the styling to utilities and remove the legacy rule.
   holds a single class: the legacy element rules on `h1`–`h3` (weight; size and line height of `h2` and `h3`) are
   unlayered, so they beat any utility on a heading; the class sets those three properties to `revert-layer`, which
   hands them back to the heading's utilities. It goes once those element rules are migrated. The consolidation page
-  (`Consolidation.module.css`) and the Quick RFQ (`features/inquiries/QuickRfq.module.css`) each carry the same class.
+  (`Consolidation.module.css`), the Quick RFQ (`features/inquiries/QuickRfq.module.css`) and the homepage's trust strip and closing call to action (`views/home/sections/HomeSections.module.css`) each carry the same class.
 - Nothing new goes into `hmv.css` or the legacy modules.
 
 ## When authored CSS is right
