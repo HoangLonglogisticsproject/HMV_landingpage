@@ -45,8 +45,8 @@ test('hero: one h1; the primary lane takes the buyer to the Quick RFQ and opens 
   await render(CinematicHero);
   assert.equal(container.querySelectorAll('h1').length, 1);
   assert.equal(container.querySelector('h1').textContent, 'Rooted in the land.Connecting the world.');
-  // The form is the hero's child, placed once.
-  assert.equal(container.querySelectorAll('#slot').length, 1);
+  // The hero holds no form, and takes none (a child it is given is not rendered): the Quick RFQ is the section below it.
+  assert.equal(container.querySelectorAll('#slot, form, input, select, textarea, #initiate-trade').length, 0);
 
   const primary = button('Get Supply Proposal');
   const secondary = button('Need guidance? Ask HMV Trade Desk');
@@ -66,6 +66,17 @@ test('hero: one h1; the primary lane takes the buyer to the Quick RFQ and opens 
   assert.deepEqual(deskEvents, [{ source: 'home_hero_assisted' }]);
   // The desk's own opening is counted by the desk's host, never twice here.
   assert.equal(events().length, 1);
+});
+
+test('hero: the photograph, the ship and the chip are all there for the form to stay clear of', async () => {
+  await render(CinematicHero);
+  const hero = container.querySelector('header.day-hero');
+  assert.equal(hero.querySelectorAll('.day-visual img').length, 2);
+  assert.ok(hero.querySelector('.day-visual .day-ocean'));
+  assert.ok(hero.querySelector('.day-visual .day-chip'));
+  // Nothing in the hero is placed into the photograph's cell: the stage is the grid's own second cell.
+  assert.doesNotMatch(hero.querySelector('.day-visual').className, /col-start|row-start|self-start|mt-/);
+  assert.equal(hero.querySelector('.day-copy').className, 'day-copy');
 });
 
 test('hero: Vietnamese copy; the lane is the same', async () => {

@@ -16,7 +16,7 @@ const dataLayer = page => page.evaluate(() => /** @type {any} */ (window).dataLa
 const desk = page => page.getByRole('dialog', { name: 'HMV Trade Desk' });
 const form = page => page.locator('#initiate-trade form');
 
-test('the sections follow the buyer: hero with the form, products, proof, execution, the real work, reach, insights, the closing call', async ({ page }) => {
+test('the sections follow the buyer: hero, the Quick RFQ strip, products, proof, execution, the real work, reach, insights, the closing call', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
   const order = await page.evaluate(() => {
     const top = sel => { const el = document.querySelector(sel); return el ? el.getBoundingClientRect().top + scrollY : null; };
@@ -26,11 +26,15 @@ test('the sections follow the buyer: hero with the form, products, proof, execut
   });
   expect(order.filter(([, y]) => y === null)).toEqual([]);
   const ys = order.map(([, y]) => /** @type {number} */ (y));
-  // The form is in the hero (inside it, so not below its top); every other section follows the previous one.
-  expect(ys[1]).toBeGreaterThanOrEqual(ys[0]);
-  expect(ys[1]).toBeLessThan(ys[2]);
-  for (let i = 2; i < ys.length; i++) expect(ys[i], `${order[i][0]} after ${order[i - 1][0]}`).toBeGreaterThan(ys[i - 1]);
-  await expect(page.locator('header.day-hero #initiate-trade')).toHaveCount(1);
+  // The Quick RFQ is attached to the hero's bottom edge (a few pixels over its padding) and every section follows the previous one.
+  for (let i = 1; i < ys.length; i++) expect(ys[i], `${order[i][0]} after ${order[i - 1][0]}`).toBeGreaterThan(ys[i - 1]);
+  // In the DOM the Quick RFQ is the hero's next sibling and the products' previous one; the hero holds no form.
+  const siblings = await page.evaluate(() => ({
+    next: document.querySelector('header.day-hero')?.nextElementSibling?.id,
+    products: document.querySelector('#initiate-trade')?.nextElementSibling?.id,
+    inHero: document.querySelectorAll('header.day-hero form, header.day-hero #initiate-trade').length,
+  }));
+  expect(siblings).toEqual({ next: 'initiate-trade', products: 'featured-products', inHero: 0 });
 });
 
 // What HMV has not got: reviews. The people and companies below were placeholders (PartnerCommunity, removed): none of
@@ -85,6 +89,26 @@ for (const lang of LANGS) {
     expect(JSON.stringify(events)).not.toMatch(/Busan|@/);
   });
 }
+
+test('exactly one Quick RFQ: one instance, one anchor, one set of ids, the same after a resize', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const count = () => page.evaluate(() => ({
+    anchors: document.querySelectorAll('#initiate-trade').length,
+    forms: document.querySelectorAll('form').length,
+    products: document.querySelectorAll('#initiate-trade select[id$="-product"]').length,
+    h2: document.querySelectorAll('h2#rfq-title').length,
+  }));
+  expect(await count()).toEqual({ anchors: 1, forms: 1, products: 1, h2: 1 });
+  await form(page).getByLabel('Destination', { exact: true }).fill('Busan, South Korea');
+  await page.evaluate(() => { document.querySelector('#initiate-trade form')?.setAttribute('data-mounted-once', 'yes'); });
+  // Phone, tablet, desktop: the layout changes, the instance and what was typed in it do not.
+  for (const [width, height] of [[390, 844], [768, 1024], [1280, 720], [1920, 1080]]) {
+    await page.setViewportSize({ width, height });
+    expect(await count(), `at ${width}`).toEqual({ anchors: 1, forms: 1, products: 1, h2: 1 });
+    await expect(form(page)).toHaveAttribute('data-mounted-once', 'yes');
+    await expect(form(page).getByLabel('Destination', { exact: true })).toHaveValue('Busan, South Korea');
+  }
+});
 
 test('the form has no second Trade Desk call to action until the buyer has started; then it hands over what they typed', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
