@@ -8,3 +8,25 @@
   line-height: revert-layer;
   font-weight: revert-layer;
 }
+
+/* The Quick RFQ card: white, a soft shadow, a modest radius. The legacy `.rfq-form` rule gives it a padding and a gap
+   (unlayered, so no utility outranks them): the doubled class does, as `.site-nav.site-nav` does in styles/index.css. */
+.card.card {
+  padding: 20px;
+  gap: 16px;
+  border-radius: 16px;
+}
+
+@media (min-width: 641px) {
+  .card.card {
+    padding: 24px 28px;
+    gap: 16px 20px;
+  }
+}
+
+@media (min-width: 1240px) {
+  .card.card {
+    padding: 22px 24px;
+    gap: 16px;
+  }
+}

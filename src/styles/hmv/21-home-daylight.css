@@ -1,7 +1,7 @@
 /* Daylight pivot: bright farm-green and ocean-blue commerce aesthetic */
 .day-hero {
   background: var(--day-sky);
-  padding: 36px 0 72px;
+  padding: 36px 0 76px;
   overflow: hidden
 }
 
@@ -10,7 +10,7 @@
   grid-template-columns: 1fr 1.1fr;
   gap: 60px;
   align-items: center;
-  min-height: calc(100svh - 240px)
+  min-height: min(calc(100svh - 240px), 520px)
 }
 
 .day-kicker {
@@ -120,13 +120,13 @@
 .day-chip {
   position: absolute;
   top: 24px;
-  left: 24px;
+  right: 24px;
   border-radius: 10px;
   padding: 10px 18px;
   font-size: 13px;
   font-weight: 600;
   color: var(--ink);
-  display: none;
+  display: flex;
   gap: 10px
 }
 
@@ -224,11 +224,6 @@
 
   .day-visual {
     height: 420px
-  }
-
-  /* Over the photograph the form covers the chip's place: it shows where the photograph is below the form. */
-  .day-chip {
-    display: flex
   }
 
   .day-ocean {

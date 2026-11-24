@@ -8,3 +8,16 @@
   line-height: revert-layer;
   font-weight: revert-layer;
 }
+
+/* The section right below the Quick RFQ strip (Core Commodities): less space above its heading than between two
+   sections, since the strip and the products are one step of the journey. The legacy `.section-pad` padding (and its
+   phone variants) is unlayered: the doubled class outranks it (as `.site-nav.site-nav` does in styles/index.css). */
+.afterStrip.afterStrip {
+  padding-top: 64px;
+}
+
+@media (max-width: 900px) {
+  .afterStrip.afterStrip {
+    padding-top: 48px;
+  }
+}
