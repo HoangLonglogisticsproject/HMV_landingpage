@@ -173,7 +173,7 @@ product. Measured on `next build` (initial `<script>` chunks of the page):
 
 ## The Quick RFQ (fast lane)
 
-The homepage `#initiate-trade` section (the Quick RFQ, in the hero) is a second front end to this same pipeline, for a buyer who already knows what
+The homepage `#initiate-trade` section (the Quick RFQ, a strip directly below the hero) is a second front end to this same pipeline, for a buyer who already knows what
 they need: step 1 product, destination, volume; step 2 company, work email and consent (name, phone and notes are
 optional, folded away). It posts the **same** inquiry to the **same** `POST /api/inquiry`: the same validation (so the
 work email stays required: WhatsApp-only submission would be an inquiry-contract change), the same idempotency key
