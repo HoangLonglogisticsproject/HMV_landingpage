@@ -150,7 +150,7 @@ test('desktop: the LCP image is the same request as before: eager, high priority
   const farm = hero.locator('img.day-farm');
   await expect(farm).toHaveAttribute('loading', 'eager');
   await expect(farm).toHaveAttribute('fetchpriority', 'high');
-  await expect(farm).toHaveAttribute('sizes', '(max-width: 540px) 420px, (max-width: 900px) calc(100vw - 40px), 820px');
+  await expect(farm).toHaveAttribute('sizes', '(max-width: 430px) 365px, (max-width: 900px) calc(100vw - 40px), 820px');
   await expect(hero.locator('img[loading="eager"]')).toHaveCount(1);
   // The page asks for one hero photograph, once (React preloads the eager one; no second request for it).
   expect(await page.evaluate(() => performance.getEntriesByType('resource').filter(e => /fruitFarm|fruit-farm/i.test(e.name) || /url=%2F_next%2Fstatic%2Fmedia%2FfruitFarm/.test(e.name)).length)).toBeLessThanOrEqual(2);
@@ -160,6 +160,27 @@ test('desktop: the LCP image is the same request as before: eager, high priority
   }));
   expect(String(lcp)).toContain('day-farm');
 });
+
+// The candidate each kind of phone downloads for the hero photograph. 412 at DPR 1.75 is Lighthouse's phone: 640w (67 kB)
+// instead of 750w (78 kB) is the difference between a lab LCP of 2.3 s and 2.7 s, for 2% fewer pixels than painted; every
+// sharper phone gets at least the pixels it paints (the fidelity bar of images.desktop.spec.js is 95%), and none gets the
+// 1920w the old 420px slot gave a DPR 3 phone.
+for (const [width, height, dpr, expected] of [[412, 823, 1.75, 640], [360, 640, 2, 750], [375, 667, 2, 750], [390, 844, 3, 1200], [430, 932, 2.6, 1080]]) {
+  test(`phone ${width}×${height} at DPR ${dpr}: the hero photograph is the ${expected}w candidate and has the pixels it paints`, async ({ browser, baseURL }) => {
+    const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: dpr, baseURL });
+    await page.goto('/', { waitUntil: 'networkidle' });
+    const farm = await page.locator('img.day-farm').evaluate(img => {
+      const el = /** @type {HTMLImageElement} */ (img);
+      const b = el.getBoundingClientRect();
+      return { w: Number(new URL(el.currentSrc).searchParams.get('w')), boxW: b.width, boxH: b.height };
+    });
+    expect(farm.w).toBe(expected);
+    // The cover crop of the 4:3 source paints its larger side.
+    const painted = Math.max(farm.boxW, farm.boxH * (1280 / 960));
+    expect(farm.w).toBeGreaterThanOrEqual(Math.ceil(painted * dpr * 0.95));
+    await page.close();
+  });
+}
 
 test('desktop: no phone button, however far the buyer scrolls', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });

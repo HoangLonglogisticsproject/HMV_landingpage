@@ -31,12 +31,12 @@
   }
 
   .day-visual {
-    height: 360px;
+    height: 280px;
     min-height: 0
   }
 
   .day-ocean {
-    width: 52%;
+    width: 46%;
     left: 10px;
     bottom: -28px;
     padding: 8px
