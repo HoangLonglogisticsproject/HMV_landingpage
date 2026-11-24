@@ -16,7 +16,7 @@ export function CinematicHero({ lang }) {
   return (
     <header className="day-hero">
       <div className="content-width day-grid">
-        <div className="day-copy">
+        <div className="day-copy min-[901px]:self-start">
           <p className="day-kicker">HMV GLOBAL · VIETNAM → EUROPE & USA</p>
           {vi ? <h1>Bám rễ từ đất lành.<span>Vươn tầm ra thế giới.</span></h1> : <h1>Rooted in the land.<span>Connecting the world.</span></h1>}
           <p className="day-sub">{vi ? 'Nông sản cao cấp. Chuỗi cung ứng tích hợp liền mạch.' : 'Premium Agri-Commodities. Seamless Integrated Supply Chain.'}</p>

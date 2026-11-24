@@ -76,7 +76,8 @@ test('hero: the photograph, the ship and the chip are all there for the form to 
   assert.ok(hero.querySelector('.day-visual .day-chip'));
   // Nothing in the hero is placed into the photograph's cell: the stage is the grid's own second cell.
   assert.doesNotMatch(hero.querySelector('.day-visual').className, /col-start|row-start|self-start|mt-/);
-  assert.equal(hero.querySelector('.day-copy').className, 'day-copy');
+  // The copy is top-aligned from 901 px: centred, it moves as a whole when the web fonts swap in (CLS 0.067 against 0.026).
+  assert.equal(hero.querySelector('.day-copy').className, 'day-copy min-[901px]:self-start');
 });
 
 test('hero: Vietnamese copy; the lane is the same', async () => {
