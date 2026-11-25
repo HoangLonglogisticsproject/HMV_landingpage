@@ -2,6 +2,7 @@ import { Link } from '@/lib/navigation';
 import { ArrowUpRight } from 'lucide-react';
 import { productPhotos } from '@/data/productPhotos';
 import Image from '@/lib/image';
+import styles from './HomeSections.module.css';
 
 const commodities = [
   { id: 'passion-fruit', en: 'Passion Fruit', vi: 'Chanh dây', size: 'c-tall' },
@@ -12,7 +13,7 @@ const commodities = [
 
 export function CoreCommodities({ lang }) {
   return (
-    <section className="section-pad commodities" id="featured-products">
+    <section className={`section-pad commodities ${styles.afterStrip}`} id="featured-products">
       <div className="content-width">
         <div className="section-heading">
           <div><p className="eyebrow">{lang === 'vi' ? 'NÔNG SẢN CHỦ LỰC' : 'CORE COMMODITIES'}</p><h2>{lang === 'vi' ? 'Ít hơn. Nhưng đúng.' : 'Fewer products. Done right.'}</h2></div>

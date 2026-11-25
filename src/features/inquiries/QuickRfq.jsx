@@ -64,14 +64,15 @@ function placeOf(step, status, locked) {
 }
 
 /**
- * @param {{ lang: 'en' | 'vi', product?: string, source?: string, intro?: import('react').ReactNode, guidance?: boolean | 'started' }} props
+ * @param {{ lang: 'en' | 'vi', product?: string, source?: string, intro?: import('react').ReactNode, guidance?: boolean | 'started', strip?: boolean }} props
  * `source`: where the form is, for analytics and the Trade Desk it opens. `intro`: the page's own heading, shown at the
  * top of the first step (not of the second, nor of the received state). `guidance`: the "Need guidance?" row below the
  * form, which opens the desk with what the buyer has typed: always (`true`, the default), never (`false`), or from the
  * moment the buyer has started the requirement (`'started'`: for a page that already offers the desk elsewhere, so the
- * row says "I started and now need help", not a second copy of the same call to action).
+ * row says "I started and now need help", not a second copy of the same call to action). `strip`: a compact horizontal
+ * layout of the same elements for a wide page (a band under the hero); one column on a phone.
  */
-export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance = true }) {
+export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance = true, strip = false }) {
   const c = quickRfqCopy[lang];
   const uid = useId().replaceAll(':', '');
   const id = key => `${uid}-${key}`;
@@ -115,7 +116,11 @@ export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance 
       if (!target) return;
       const clear = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
       const { top, bottom } = target.getBoundingClientRect();
-      if (top < clear || bottom > window.innerHeight) rootRef.current?.scrollIntoView({ block: 'start' });
+      if (top < clear || bottom > window.innerHeight) {
+        // A form that fits the screen is centred (a strip under the hero, the hero above it); a tall one starts at the top.
+        const fits = (rootRef.current?.getBoundingClientRect().height ?? 0) <= window.innerHeight - 2 * clear;
+        rootRef.current?.scrollIntoView({ block: fits ? 'center' : 'start' });
+      }
       target.focus({ preventScroll: true });
     };
     window.addEventListener(FOCUS_QUICK_RFQ, toForm);
@@ -275,12 +280,12 @@ export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance 
       {/* Announces the send and the copy; the result is announced by the focus moving to it. */}
       <output className="sr-only">{announcement}</output>
       {status === 'accepted' ? (
-        <SentState c={c} id={id} reference={reference} copied={copied} onCopy={copyReference} onAnother={another} />
+        <SentState c={c} id={id} reference={reference} copied={copied} strip={strip} onCopy={copyReference} onAnother={another} />
       ) : (
         <>
-          <Steps c={c} step={step} intro={intro} onSubmit={step === 'requirement' ? goToContact : send}>
+          <Steps c={c} step={step} intro={intro} strip={strip} onSubmit={step === 'requirement' ? goToContact : send}>
             {step === 'requirement' ? (
-              <RequirementStep c={c} lang={lang} id={id} error={error} values={values} unit={brief.volume.unit} locked={fixed} onChange={change} />
+              <RequirementStep c={c} lang={lang} id={id} error={error} values={values} unit={brief.volume.unit} locked={fixed} strip={strip} onChange={change} />
             ) : (
               <ContactStep
                 c={c}
@@ -291,6 +296,7 @@ export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance 
                 summary={summarize(brief, lang)}
                 more={more}
                 status={status}
+                strip={strip}
                 onChange={change}
                 onToggleMore={() => setMore(m => !m)}
                 onEdit={edit}

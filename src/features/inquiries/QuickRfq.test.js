@@ -601,23 +601,53 @@ test('a call to action elsewhere brings the buyer to the form: nothing moves on 
   assert.equal(container.querySelector('section.rfq-form h3').textContent, 'Request received');
 });
 
-test('the form scrolls into view only when the control the buyer is going to is not', async () => {
+test('the form scrolls into view only when the control the buyer is going to is not: centred if it fits the screen, at the top if not', async () => {
   const scrollIntoView = vi.fn();
   Element.prototype.scrollIntoView = scrollIntoView;
   await render();
   const at = (top, bottom) => { field('product').getBoundingClientRect = () => ({ top, bottom }); };
+  const height = value => { container.querySelector('.content-width > div').getBoundingClientRect = () => ({ height: value }); };
+  height(134);
   at(300, 350);
   focusQuickRfq();
   assert.equal(scrollIntoView.mock.calls.length, 0);
+  // A strip under the hero, short: centred, so the hero stays in sight above it.
   at(-80, -30);
   focusQuickRfq();
   assert.equal(scrollIntoView.mock.calls.length, 1);
-  assert.deepEqual(scrollIntoView.mock.calls[0][0], { block: 'start' });
+  assert.deepEqual(scrollIntoView.mock.calls[0][0], { block: 'center' });
+  // A card taller than the screen (the second step on a phone): its top at the top.
+  height(window.innerHeight + 200);
   at(window.innerHeight + 100, window.innerHeight + 150);
   focusQuickRfq();
   assert.equal(scrollIntoView.mock.calls.length, 2);
+  assert.deepEqual(scrollIntoView.mock.calls[1][0], { block: 'start' });
   assertFocus(field('product'));
   delete Element.prototype.scrollIntoView;
+});
+
+test('the strip is the same form placed differently: the same labels, controls and ids, one form', async () => {
+  const shape = () => ({
+    labels: [...container.querySelectorAll('label')].map(l => l.textContent),
+    controls: [...container.querySelectorAll('input, select, textarea, button')].map(el => `${el.tagName}:${el.getAttribute('type') ?? ''}`),
+    forms: container.querySelectorAll('form').length,
+  });
+  await act(async () => root.render(h(QuickRfq, { key: 'stack', lang: 'en' })));
+  const stacked = shape();
+  await act(async () => root.render(h(QuickRfq, { key: 'strip', lang: 'en', strip: true })));
+  assert.deepEqual(shape(), stacked);
+  // And on every step: the contact step's controls too.
+  await choose(field('product'), 'bananas');
+  await type(field('destination'), 'Busan, South Korea');
+  await type(field('volume.amount'), '5');
+  await click(submit());
+  const contactStrip = shape();
+  await act(async () => root.render(h(QuickRfq, { key: 'stack2', lang: 'en' })));
+  await choose(field('product'), 'bananas');
+  await type(field('destination'), 'Busan, South Korea');
+  await type(field('volume.amount'), '5');
+  await click(submit());
+  assert.deepEqual(contactStrip, shape());
 });
 
 test('the listener goes with the form: no focus is taken after it unmounts', async () => {

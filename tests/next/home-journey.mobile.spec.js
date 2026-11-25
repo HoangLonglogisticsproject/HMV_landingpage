@@ -17,44 +17,69 @@ const scrollTo = (page, selector, offset = 0) => page.evaluate(([sel, off]) => {
   scrollTo(0, /** @type {HTMLElement} */ (document.querySelector(sel)).getBoundingClientRect().top + scrollY - off);
 }, [selector, offset]);
 
-test('mobile first screen: the proposition, the primary lane, the assisted link and the start of the form; the photograph is after the form', async ({ page }) => {
+/** The hero, its photograph and the Quick RFQ card, from the top of the page. */
+const stack = page => page.evaluate(() => {
+  const r = sel => { const b = document.querySelector(sel)?.getBoundingClientRect(); return b ? { top: Math.round(b.top + scrollY), bottom: Math.round(b.bottom + scrollY), left: Math.round(b.left), right: Math.round(b.right) } : null; };
+  const first = document.querySelector('#initiate-trade select');
+  return { copy: r('.day-copy'), actions: r('.day-actions'), stage: r('.day-visual'), ocean: r('.day-ocean'), hero: r('header.day-hero'), card: r('#initiate-trade form'), first: first ? Math.round(first.getBoundingClientRect().top + scrollY) : null, vw: innerWidth };
+});
+
+test('mobile first screen: the hero\'s proposition, its two lanes and its photograph; the Quick RFQ is its own card right after the photograph', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
   const hero = page.locator('header.day-hero');
   await expect(hero.locator('h1')).toBeInViewport();
   await expect(hero.getByRole('button', { name: 'Get Supply Proposal' })).toBeInViewport({ ratio: 1 });
   await expect(hero.getByRole('button', { name: 'Need guidance? Ask HMV Trade Desk' })).toBeInViewport({ ratio: 1 });
-  // The form begins with its first question, right after the hero: no repeated heading in between (it stays for assistive
-  // technology), and the first control starts within 640 px of the top of the page.
-  const first = form(page).getByLabel('Product', { exact: true });
-  await expect(first).toBeInViewport();
-  expect(await first.evaluate(el => Math.round(el.getBoundingClientRect().top + scrollY))).toBeLessThanOrEqual(640);
-  await expect(page.getByRole('heading', { level: 2, name: 'Tell us what you need' })).toBeAttached();
-  expect(await page.locator('h2#rfq-title').evaluate(el => el.getBoundingClientRect().width)).toBeLessThanOrEqual(1);
+  // The photograph begins on the first screen: the buyer sees the company, not a form over it.
+  await expect(hero.locator('img.day-farm')).toBeInViewport();
   expect(await noSidewaysScroll(page)).toBe(true);
   await expect(sticky(page)).toBeHidden();
 
-  // Nothing large sits between the hero's calls to action and the form; the photograph follows the form.
-  const boxes = await page.evaluate(() => {
-    const r = sel => { const b = document.querySelector(sel)?.getBoundingClientRect(); return b ? { top: b.top + scrollY, bottom: b.bottom + scrollY } : null; };
-    return { actions: r('.day-actions'), form: r('#initiate-trade'), visual: r('.day-visual') };
-  });
-  expect(boxes.form.top - boxes.actions.bottom).toBeLessThan(60);
-  expect(boxes.visual.top).toBeGreaterThanOrEqual(boxes.form.bottom);
+  // Hero copy, its lanes, the photograph, then the card: in that order, the card clear of the photograph and of the ship
+  // that overhangs it, a small step below it, and the first control directly under the card's heading.
+  const s = await stack(page);
+  expect(s.actions.bottom).toBeLessThanOrEqual(s.stage.top);
+  expect(s.card.top).toBeGreaterThanOrEqual(s.stage.bottom);
+  expect(s.card.top).toBeGreaterThanOrEqual(s.ocean.bottom);
+  expect(s.card.top - s.stage.bottom).toBeLessThanOrEqual(80);
+  expect(s.card.top).toBeGreaterThanOrEqual(s.hero.bottom - 24);
+  expect(s.first - s.card.top).toBeLessThanOrEqual(240);
+  // The card is a card: inside the page's width, with its heading shown (it is not over a picture to hide behind).
+  expect(s.card.left).toBeGreaterThanOrEqual(0);
+  expect(s.card.right).toBeLessThanOrEqual(s.vw);
+  await expect(page.locator('h2#rfq-title')).toBeVisible();
+  expect(await page.locator('h2#rfq-title').evaluate(el => el.getBoundingClientRect().width)).toBeGreaterThan(100);
 });
 
-test('mobile, a taller phone: the first two questions of the form are on the first screen too', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/', { waitUntil: 'networkidle' });
-  await expect(form(page).getByLabel('Product', { exact: true })).toBeInViewport({ ratio: 1 });
-  await expect(form(page).getByLabel('Destination', { exact: true })).toBeInViewport({ ratio: 1 });
+test('mobile, other phones: 360, 390 and 430 wide: no overflow, the card follows the photograph, nothing over it', async ({ page }) => {
+  for (const [width, height] of [[360, 640], [390, 844], [430, 932]]) {
+    await page.setViewportSize({ width, height });
+    await page.goto('/', { waitUntil: 'networkidle' });
+    const s = await stack(page);
+    expect(await noSidewaysScroll(page), `no overflow at ${width}`).toBe(true);
+    expect(s.card.top, `card after the photograph at ${width}`).toBeGreaterThanOrEqual(s.stage.bottom);
+    expect(s.card.top, `card after the ship at ${width}`).toBeGreaterThanOrEqual(s.ocean.bottom);
+    expect(s.card.right).toBeLessThanOrEqual(width);
+    await expect(page.locator('header.day-hero').getByRole('button', { name: 'Get Supply Proposal' })).toBeInViewport({ ratio: 1 });
+  }
+});
+
+test('mobile, Vietnamese: the same order, the card right after the photograph', async ({ page }) => {
+  await page.goto('/vi', { waitUntil: 'networkidle' });
+  const s = await stack(page);
+  expect(s.card.top).toBeGreaterThanOrEqual(s.stage.bottom);
+  expect(s.card.top - s.stage.bottom).toBeLessThanOrEqual(80);
+  expect(s.first - s.card.top).toBeLessThanOrEqual(280);
+  await expect(page.getByRole('heading', { level: 2, name: 'Cho HMV biết nhu cầu của bạn' })).toBeVisible();
   expect(await noSidewaysScroll(page)).toBe(true);
 });
 
-test('mobile, Vietnamese: the first question starts on the first screen', async ({ page }) => {
-  await page.goto('/vi', { waitUntil: 'networkidle' });
-  const first = form(page).getByLabel('Sản phẩm', { exact: true });
-  await expect(first).toBeInViewport();
-  expect(await first.evaluate(el => Math.round(el.getBoundingClientRect().top + scrollY))).toBeLessThanOrEqual(660);
+test('mobile: Get Supply Proposal takes the buyer down to the card: the first question is on screen and focused', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await page.locator('header.day-hero').getByRole('button', { name: 'Get Supply Proposal' }).click();
+  const first = form(page).getByLabel('Product', { exact: true });
+  await expect(first).toBeFocused();
+  await expect(first).toBeInViewport({ ratio: 1 });
   expect(await noSidewaysScroll(page)).toBe(true);
 });
 
@@ -81,7 +106,7 @@ test('sticky: absent at the top, there once the form is behind the buyer, gone w
   await expect(sticky(page)).toBeHidden();
 
   // Past the form (the products): the button shows, at the bottom edge, a real touch target, clear of the screen's edge.
-  await scrollTo(page, '#featured-products', 100);
+  await scrollTo(page, '#featured-products', 0);
   await expect(sticky(page)).toBeVisible();
   // Measured at rest: with normal motion it eases in over a few hundred milliseconds.
   await sticky(page).evaluate(el => Promise.all(el.getAnimations({ subtree: true }).map(a => a.finished)));
@@ -119,7 +144,7 @@ test('sticky: on a phone only: at 600 px it shows, from 601 px (a tablet) never,
   for (const [width, phone] of [[600, true], [601, false], [768, false], [900, false]]) {
     await page.setViewportSize({ width, height: 800 });
     await page.goto('/', { waitUntil: 'networkidle' });
-    await scrollTo(page, '#featured-products', 100);
+    await scrollTo(page, '#featured-products', 0);
     // Past the form and short of the closing call to action: the button's state is "shown" at every width...
     await expect.poll(() => sticky(page).evaluate(el => el.hidden), { message: `state at ${width}px` }).toBe(false);
     // ...and the stylesheet decides whether a phone sees it.
@@ -183,14 +208,14 @@ test('sticky: gone from the closing call to action on, so it never covers the en
 
 test('sticky, normal motion: it eases in; with reduced motion it does not animate', async ({ page, browser, baseURL }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
-  await scrollTo(page, '#featured-products', 100);
+  await scrollTo(page, '#featured-products', 0);
   await expect(sticky(page)).toBeVisible();
   expect(await sticky(page).evaluate(el => getComputedStyle(el).animationName)).not.toBe('none');
 
   const context = await browser.newContext({ reducedMotion: 'reduce', baseURL, viewport: { width: 375, height: 667 } });
   const calm = await context.newPage();
   await calm.goto('/', { waitUntil: 'networkidle' });
-  await scrollTo(calm, '#featured-products', 100);
+  await scrollTo(calm, '#featured-products', 0);
   await expect(sticky(calm)).toBeVisible();
   expect(await sticky(calm).evaluate(el => getComputedStyle(el).animationName)).toBe('none');
   await context.close();
@@ -198,7 +223,7 @@ test('sticky, normal motion: it eases in; with reduced motion it does not animat
 
 test('the Trade Desk is not blocked by the bar: it opens over it and closes back to the page', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
-  await scrollTo(page, '#featured-products', 100);
+  await scrollTo(page, '#featured-products', 0);
   await expect(sticky(page)).toBeVisible();
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-hmv-trade-desk', { detail: { source: 'test' } })));
   const desk = page.getByRole('dialog', { name: 'HMV Trade Desk' });
