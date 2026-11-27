@@ -51,7 +51,7 @@ test('browser back/forward preserves correct page identity', async ({ page }) =>
 // ─── Product navigation ──────────────────────────────────────────────
 
 test('navigating between product pages shows distinct h1 titles', async ({ page }) => {
-  // passion-fruit: buyer page h1 = "Fresh Passion Fruit from Vietnam" (en)
+  // passion-fruit: buyer page h1 = "Vietnam Golden Passion Fruit Supplier" (en)
   await page.goto('/products/passion-fruit');
   const h1PF = page.locator('h1').first();
   await expect(h1PF).toHaveText(/passion fruit|chanh dây/i, { timeout: 6000 });

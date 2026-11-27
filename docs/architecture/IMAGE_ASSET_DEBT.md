@@ -5,7 +5,7 @@
 | Status | 2026-11-09, branch `feat/nextjs-foundation` (architecture §11). For the content owner: photographs to replace with larger originals. |
 | Related | [Architecture §11](NEXTJS_TARGET_ARCHITECTURE.md#11-images-fonts-and-css) · `tests/next/images.spec.js` (`ORIGINAL_LIMITED`) · `scripts/image-fidelity.mjs` |
 
-These 27 sources are the photographs HMV supplied, at their full resolution: the export kept every pixel. They are smaller than the size the site paints them at on a sharp screen, so they look softer there than the layout allows. The fix is a larger original of the same photograph; the code never enlarges an image.
+These 27 sources (and the thirteen golden passion fruit derivatives below) are the photographs HMV supplied, at their full resolution: the export kept every pixel. They are smaller than the size the site paints them at on a sharp screen, so they look softer there than the layout allows. The fix is a larger original of the same photograph; the code never enlarges an image.
 
 How the numbers were measured (Chromium, `next start`, every page and every lightbox, `object-fit` included: a cover crop paints the whole image wider than its box):
 
@@ -39,9 +39,24 @@ How the numbers were measured (Chromium, `next start`, every page and every ligh
 | `mijack2` | 1280×960 | 960×720 (/logistics lightbox, 1920 px wide) | 1920×1440 | 342×257 (/logistics lightbox) | 1026×770 | Original source insufficient: desktop DPR 2 |
 | `mijack3` | 1280×960 | 960×720 (/logistics lightbox, 1920 px wide) | 1920×1440 | 342×257 (/logistics lightbox) | 1026×770 | Original source insufficient: desktop DPR 2 |
 | `passion-fruit-cut` | 960×1280 | 530×707 (/products/passion-fruit, 1280 px wide) | 1060×1414 | 350×467 (/) | 1050×1400 | Original source insufficient: desktop DPR 2 and phone DPR 3 |
+| `golden-fruit-scene` (passion-fruit/) | 1254×1254 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
+| `golden-fruit-display` (passion-fruit/) | 1120×714 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
+| `golden-fruit-on-tree` (passion-fruit/) | 1254×560 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
+| `golden-fruit-pile` (passion-fruit/) | 640×374 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
+| `golden-fruit-cluster` (passion-fruit/) | 640×634 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
+| `golden-fruit-halved` (passion-fruit/) | 540×260 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
+| `fruit-protective-nets` (passion-fruit/) | 600×600 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
+| `carton-twelve-compartments` (passion-fruit/) | 1086×1448 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
+| `neutral-packaging-cartons` (passion-fruit/) | 1448×1086 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
+| `neutral-carton-fruit` (passion-fruit/) | 808×570 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
+| `vine-green-fruit` (passion-fruit/) | 960×1280 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
+| `manual-sorting` (passion-fruit/) | 720×390 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
+| `orchard-trellis` (passion-fruit/) | 1280×960 | by layout: up to the frame's painted width (a cover crop paints a wide image wider than its frame) | see note | | | Original source insufficient where a frame is painted wider than the source at DPR 2 or 3 |
 | `tapioca-starch-reference` | 830×558 | 591×398 (/products/tapioca-starch, 1280 px wide) | 1183×795 | 416×280 (/) | 1250×840 | Original source insufficient: desktop DPR 2 and phone DPR 3 |
 | `team-gathering` | 1600×1200 | 887×665 (/activities lightbox, 1920 px wide) | 1774×1331 | 493×370 (/activities) | 1480×1110 | Original source insufficient: desktop DPR 2 |
 | `vietnam-bananas` | 1400×1050 | 767×575 (/, 1280 px wide) | 1534×1151 | 373×280 (/) | 1120×840 | Original source insufficient: desktop DPR 2 |
 | `visitfactory` | 838×739 | 955×842 (/, 1920 px wide) | 1911×1685 | 574×506 (/) | 1723×1520 | Original source insufficient: desktop DPR 2 and phone DPR 3 |
+
+The thirteen `passion-fruit/` rows give the derivative's size (the source of the site's copy, never enlarged: the edited product images are 1086 to 1448 px wide, the photographs 960 to 1280 px) and are not measured with the run above; their painted sizes are what `tests/next/images.desktop.spec.js` checks, and they are on its `ORIGINAL_LIMITED` list. A larger original of the same photograph is the fix, not a code change.
 
 When an asset is replaced: export it like the others (WebP, quality 80, never enlarged), review it with `node scripts/image-fidelity.mjs <commit with the new original>`, remove it from `ORIGINAL_LIMITED` in `tests/next/images.spec.js` (the test then requires the ideal size), and remove its row here.

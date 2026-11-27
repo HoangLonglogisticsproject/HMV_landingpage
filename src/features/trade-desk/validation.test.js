@@ -48,13 +48,13 @@ test('an unknown option of a choice requirement is refused for a valid product',
   assert.deepEqual(result.errors, ['requirements.incoterm']);
 });
 
-test('unknown fields and requirement keys are dropped; enums fall back', () => {
+test('unknown fields and requirement keys are dropped; the other enums fall back; no unit is the default one', () => {
   const result = validateInquiry(valid({
     product: 'passion-fruit',
     origin: 'vietnam',
     application: 'feed',
     transport: 'teleport',
-    volume: { amount: '2', unit: 'barrels' },
+    volume: { amount: '2' },
     requirements: { brix: '14+', starch: '70', admin: true },
     extra: 'ignored',
   }));

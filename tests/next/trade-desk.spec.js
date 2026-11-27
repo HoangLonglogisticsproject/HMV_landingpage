@@ -104,7 +104,7 @@ test('edit: a mistyped destination is corrected from the requirement panel, by k
 
 test('a new product while the desk is open starts a new conversation: no unsent draft, its question focused', async ({ page }) => {
   await page.goto('/products/passion-fruit');
-  await page.getByRole('button', { name: 'Discuss Your Passion Fruit Requirements' }).click();
+  await page.getByRole('button', { name: 'Ask HMV Trade Desk' }).click();
   await desk(page).getByLabel('Delivery destination', { exact: true }).fill('Rotterdam (not sent)');
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-hmv-trade-desk', { detail: { product: 'bananas', source: 'test' } })));
   await expect(desk(page).locator('.desk-summary')).toContainText('Cavendish bananas');
@@ -121,7 +121,7 @@ test('RFQ accepted: contact last, reference and the commercial process, generate
     await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ reference: 'HMV-2026-7KQ4XM' }) });
   });
   await page.goto('/products/passion-fruit?utm_source=linkedin&utm_medium=social');
-  await page.getByRole('button', { name: 'Discuss Your Passion Fruit Requirements' }).click();
+  await page.getByRole('button', { name: 'Ask HMV Trade Desk' }).click();
   await say(page, 'Delivery destination', 'Rotterdam, Netherlands');
   await say(page, 'Expected volume', '2');
   await desk(page).getByRole('button', { name: 'Request Quotation' }).click();
@@ -193,7 +193,7 @@ test('language: an English sentence on the Vietnamese site continues in English;
 test('inquiry not delivered: error with the email fallback, answers kept, no lead counted', async ({ page }) => {
   await page.route('**/api/inquiry', route => route.fulfill({ status: 502, contentType: 'application/json', body: '{"error":"failed"}' }));
   await page.goto('/products/passion-fruit');
-  await page.getByRole('button', { name: 'Discuss Your Passion Fruit Requirements' }).click();
+  await page.getByRole('button', { name: 'Ask HMV Trade Desk' }).click();
   await say(page, 'Delivery destination', 'Rotterdam, Netherlands');
   await say(page, 'Expected volume', '2');
   await desk(page).getByRole('button', { name: 'Request Quotation' }).click();
@@ -237,8 +237,10 @@ test('POST /api/inquiry: validates, and without a delivery adapter refuses with 
 test('the existing RFQs remain as the fallback, except on the cassava procurement page', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('section#initiate-trade form.rfq-form')).toBeAttached();
+  // Passion fruit has the production Quick RFQ, fixed to its product, instead of an email-draft form.
   await page.goto('/products/passion-fruit');
-  await expect(page.locator('section#rfq input[type="hidden"][name="product"]')).toHaveValue('Passion fruit');
+  await expect(page.locator('section#rfq form')).toBeAttached();
+  await expect(page.locator('section#rfq input[name="product"]')).toHaveCount(0);
   await page.goto('/products/dried-cassava-chips');
   await expect(page.locator('section#rfq')).toBeAttached();
   await expect(page.locator('section#rfq form, input[name="product"]')).toHaveCount(0);

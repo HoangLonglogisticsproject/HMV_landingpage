@@ -8,6 +8,8 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LanguageProvider } from '../../i18n/LanguageContext.jsx';
 import { copy, products } from '../../data/hmv.js';
 import { productPages } from '../../data/productPages.js';
+import { SEGMENTS, passionFruitPages, segmentPath } from '../../data/passionFruitPages.js';
+import { claimsIn } from '../../data/unsupportedClaims.js';
 import { createInquiryMailto } from '../../features/inquiries/inquiry.js';
 import { productMeta } from '../meta.js';
 import { ProductDetailPage } from './ProductDetailPage.jsx';
@@ -29,11 +31,14 @@ afterEach(async () => {
   localStorage.clear();
 });
 
-async function renderProduct(lang, id) {
+async function renderProduct(lang, id, segment) {
   localStorage.setItem('hmv_lang', lang);
-  const page = h(Routes, null, h(Route, { path: '/products/:id', element: h(ProductDetailPage) }));
+  const page = h(Routes, null,
+    h(Route, { path: '/products/:id', element: h(ProductDetailPage) }),
+    h(Route, { path: '/products/:id/:segment', element: h(ProductDetailPage) }));
+  const path = segment ? `/products/${id}/${segment}` : `/products/${id}`;
   await act(() =>
-    root.render(h(HelmetProvider, null, h(LanguageProvider, null, h(MemoryRouter, { initialEntries: [`/products/${id}`] }, page)))),
+    root.render(h(HelmetProvider, null, h(LanguageProvider, null, h(MemoryRouter, { initialEntries: [path] }, page)))),
   );
 }
 
@@ -47,42 +52,71 @@ for (const lang of ['en', 'vi']) {
   });
 }
 
-// Buyer pages (ProductLanding; dried cassava chips has the procurement page, below): their own heading and title, and an
-// RFQ with the page's product preselected.
-for (const id of Object.keys(productPages).filter(id => !productPages[id].procurement)) {
-  for (const lang of ['en', 'vi']) {
-    test(`${lang} ${id} buyer page: heading, title and an RFQ fixed to the product`, async () => {
-      const product = products.find(p => p.id === id);
-      await renderProduct(lang, id);
-      assert.equal(container.querySelector('h1').textContent, productPages[id][lang].h1);
-      assert.equal(document.title, `${productPages[id].seo[lang].title} | HMV Global`);
-      assert.equal(container.querySelector('#rfq input[name="product"]').value, product.en);
-      assert.equal(container.querySelector('#rfq input[readonly]').value, product[lang]);
-      // The hero call to action opens the HMV Trade Desk with this product; the RFQ above stays as the fallback.
-      const cta = container.querySelector('.money-actions button');
-      assert.equal(cta.textContent, productPages[id][lang].rfq.title);
-      const opened = new Promise(resolve => window.addEventListener('open-hmv-trade-desk', e => resolve(e.detail), { once: true }));
-      cta.click();
-      assert.deepEqual(await opened, { product: id, source: 'product_hero' });
-      // The hero's second link jumps to a section of the same page.
-      const { target } = productPages[id][lang].hero.secondary;
-      assert.ok(container.querySelector(`a[href="#${target}"]`) && container.querySelector(`section#${target}`), target);
-      // The cassava supply evidence is the procurement page's only.
-      assert.equal(container.querySelector('#supply-evidence'), null);
+// Golden passion fruit: one page per buyer segment, each at its own URL with its own heading, title and call to action.
+const headingOf = (lang, segment) => {
+  const { title } = passionFruitPages[lang][segment].hero;
+  return Array.isArray(title) ? title.join(' ') : title;
+};
+const opened = () => new Promise(resolve => window.addEventListener('open-hmv-trade-desk', e => resolve(e.detail), { once: true }));
+// The rendered text and the image descriptions make none of the claims HMV cannot document (data/unsupportedClaims.js).
+
+for (const lang of ['en', 'vi']) {
+  for (const segment of SEGMENTS) {
+    test(`${lang} passion fruit ${segment}: its own heading and title, the segment navigation, no unsupported claims`, async () => {
+      await renderProduct(lang, 'passion-fruit', segment === 'export' ? undefined : segment);
+      const headings = [...container.querySelectorAll('h1')].map(e => e.textContent.replaceAll(/\s+/g, ' ').trim());
+      assert.deepEqual(headings, [headingOf(lang, segment)]);
+      assert.equal(document.title, `${passionFruitPages[lang][segment].seo.title} | HMV Global`);
+      assert.deepEqual(
+        [...container.querySelectorAll('nav li a')].map(a => [a.textContent, a.getAttribute('href'), a.getAttribute('aria-current')]),
+        SEGMENTS.map(s => [passionFruitPages[lang].nav.items[s], segmentPath(s), s === segment ? 'page' : null]),
+      );
+      const described = [...container.querySelectorAll('img')].map(img => img.alt).join(' ');
+      assert.deepEqual(claimsIn(`${container.textContent} ${described}`), []);
+      // Every photograph has a description and a size, so nothing shifts when it loads.
+      for (const img of container.querySelectorAll('img')) {
+        assert.ok(img.alt || img.closest('[aria-hidden="true"]'), img.src);
+        assert.ok(img.getAttribute('width') && img.getAttribute('height'), img.src);
+      }
+    });
+  }
+
+  test(`${lang} passion fruit export: the Trade Desk opens with the product; the Quick RFQ is the one form, fixed to it`, async () => {
+    await renderProduct(lang, 'passion-fruit');
+    const { hero } = passionFruitPages[lang].export;
+    const desk = [...container.querySelectorAll('header button')].find(b => b.textContent === hero.secondary);
+    const detail = opened();
+    desk.click();
+    assert.deepEqual(await detail, { product: 'passion-fruit', segment: 'export', source: 'pf_export_hero' });
+    assert.equal(container.querySelectorAll('form').length, 1);
+    assert.ok(container.querySelector('section#rfq form'));
+    // The product is the page's: the form does not ask for it.
+    assert.ok(!container.querySelector('section#rfq [id$="-product"]'));
+  });
+
+  for (const segment of ['foodservice', 'retail']) {
+    test(`${lang} passion fruit ${segment}: the calls to action open the Trade Desk with the product; no form`, async () => {
+      await renderProduct(lang, 'passion-fruit', segment);
+      const page = passionFruitPages[lang][segment];
+      const [first, last] = [page.hero.primary, page.cta.button].map(label => [...container.querySelectorAll('button')].find(b => b.textContent === label));
+      for (const [button, source] of [[first, `pf_${segment}_hero`], [last, `pf_${segment}_cta`]]) {
+        const detail = opened();
+        button.click();
+        assert.deepEqual(await detail, { product: 'passion-fruit', segment, source });
+      }
+      assert.ok(!container.querySelector('form, input, select'));
     });
   }
 }
 
-// The requirement fields belong to the page's product, so its RFQ offers no product choice.
-test('a product-page RFQ cannot switch product, and the draft carries the page product', async () => {
-  await renderProduct('en', 'passion-fruit');
-  const form = container.querySelector('#rfq form');
-  assert.equal(form.querySelectorAll('select[name="product"], input[name="product"]:not([type="hidden"])').length, 0);
-  assert.ok(![...form.querySelectorAll('select option')].some(o => products.some(p => p.en === o.value)));
-  form.elements.namedItem('company').value = 'Fruit Co';
-  form.elements.namedItem('email').value = 'buyer@example.com';
-  await act(() => form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
-  assert.equal(createInquiryMailto.mock.calls.at(-1)[0].product, 'Passion fruit');
+test('an unknown passion fruit segment, or a segment of another product, renders the not-found heading', async () => {
+  for (const [id, segment] of [['passion-fruit', 'wholesale'], ['bananas', 'retail']]) {
+    // A new router per case: the memory router reads its first entry only when it is created.
+    await act(() => root.unmount());
+    root = createRoot(container);
+    await renderProduct('en', id, segment);
+    assert.equal(container.querySelector('h1').textContent, copy.en.notfound, `${id}/${segment}`);
+  }
 });
 
 // Dried cassava chips: the procurement page (views/products/CassavaProcurement) through the product route, in the site's
@@ -133,22 +167,6 @@ test('cassava page: the Intertek results, report and capacity figures exactly, w
     await act(() => root.unmount());
     root = createRoot(container);
   }
-});
-
-test('the RFQ hands the product, the page requirements and the Incoterm to the email draft', async () => {
-  await renderProduct('en', 'passion-fruit');
-  const form = container.querySelector('#rfq form');
-  const set = (name, value) => { form.elements.namedItem(name).value = value; };
-  set('company', 'Buyer GmbH');
-  set('email', 'buyer@example.com');
-  set('grade', 'Brix 14');
-  set('incoterm', 'CIF');
-  await act(() => form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
-  const [data] = createInquiryMailto.mock.calls.at(-1);
-  assert.equal(data.product, 'Passion fruit');
-  assert.equal(data.incoterm, 'CIF');
-  assert.deepEqual(data.requirements.find(([label]) => label === 'Brix / grade requirement'), ['Brix / grade requirement', 'Brix 14']);
-  assert.ok(container.querySelector('#rfq output.rfq-success-message'));
 });
 
 // A generic product page links the product it is told apart from; without a see-also there is no such link.

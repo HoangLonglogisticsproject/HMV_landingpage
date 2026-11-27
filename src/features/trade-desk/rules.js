@@ -19,8 +19,30 @@ export const VOLUME_UNITS = {
   containers_month: t('containers / month', 'container / tháng'),
   mt: t('MT', 'tấn'),
   mt_month: t('MT / month', 'tấn / tháng'),
+  kg: t('kg', 'kg'),
+  kg_week: t('kg / week', 'kg / tuần'),
+  kg_month: t('kg / month', 'kg / tháng'),
 };
-export const defaultUnit = productId => (productId === 'dried-cassava-chips' ? 'mt_month' : 'containers');
+// The units of every product but golden passion fruit, as before. A unit names its purchasing frequency where it has
+// one (containers / month, kg / week): the contract has no field for it.
+const TRADE_UNITS = ['containers', 'containers_month', 'mt', 'mt_month'];
+// Hospitality and retail businesses buy by the kilogram. Only golden passion fruit offers kilograms: no other product's
+// unit list, default or validation changes (a kilogram unit for another product is refused, never read as containers).
+const KILOGRAM_UNITS = new Set(['kg', 'kg_week', 'kg_month']);
+const PASSION_FRUIT_UNITS = {
+  export: [...TRADE_UNITS, 'kg'],
+  foodservice: ['kg', 'kg_week', 'kg_month', 'mt', 'mt_month'],
+  retail: ['kg', 'kg_week', 'kg_month', 'mt', 'mt_month'],
+};
+/** The units offered for a product, and for the buyer segment of the page it is asked on (golden passion fruit only). */
+export const unitsFor = (productId, segment) => (productId === 'passion-fruit' && PASSION_FRUIT_UNITS[segment]) || TRADE_UNITS;
+/** The unit the volume starts with: the first of the units offered (the product's usual one for the others). */
+export const defaultUnit = (productId, segment) => {
+  if (productId === 'dried-cassava-chips') return 'mt_month';
+  return unitsFor(productId, segment)[0];
+};
+/** Whether a unit the contract knows may be sent for this product. */
+export const unitAllowed = (productId, unit) => Object.hasOwn(VOLUME_UNITS, unit) && (productId === 'passion-fruit' || !KILOGRAM_UNITS.has(unit));
 
 export const TRANSPORT = {
   sea_fcl: t('Sea freight (FCL)', 'Đường biển (FCL)'),
@@ -105,3 +127,26 @@ export function recognizeProduct(text) {
   const named = PRODUCT_NAMES.filter(([, names]) => names.some(({ pattern, accented }) => pattern.test(accented ? lower : bare)));
   return named.length === 1 ? named[0][0] : null;
 }
+
+// HMV Global is the one commercial point of contact between its supply network and its buyers. When a buyer asks the desk
+// for who grows or supplies the product, or for a grower's, farm's or factory's contact or address, the desk answers as
+// HMV's representative (copy.js `supplierContact`) and never names or locates anyone; a request for traceability or
+// compliance documents is answered with how HMV provides them (`traceability`), never with a refusal or a false answer.
+// Controlled word lists, matched as whole words on the accent-free text: nothing is inferred beyond them.
+const WHOLE = words => new Set(words.map(word => ` ${word} `));
+const has = (text, words) => {
+  const padded = ` ${plain(String(text ?? '').normalize('NFC').toLowerCase()).replace(/[^a-z0-9]+/g, ' ')} `;
+  return [...words].some(word => padded.includes(word));
+};
+const PARTY = WHOLE(['supplier', 'suppliers', 'grower', 'growers', 'farmer', 'farmers', 'farm', 'farm owner', 'factory', 'manufacturer', 'plantation', 'orchard',
+  'nha cung cap', 'chu vuon', 'chu trang trai', 'nong dan', 'nha vuon', 'nha may', 'vung trong']);
+const DETAIL = WHOLE(['contact', 'phone', 'number', 'email', 'address', 'website', 'name', 'names', 'where exactly', 'location', 'gps', 'whatsapp', 'zalo',
+  'lien he', 'so dien thoai', 'dien thoai', 'dia chi', 'ten', 'vi tri']);
+const WHO = WHOLE(['who grows', 'who supplies', 'who produces', 'who is your supplier', 'who are your suppliers', 'ai trong', 'ai cung cap', 'nha cung cap la ai']);
+const TRACE = WHOLE(['traceability', 'traceable', 'certificate', 'certificates', 'certification', 'documentation', 'documents', 'customs', 'audit', 'due diligence',
+  'truy xuat', 'chung nhan', 'chung tu', 'kiem toan', 'ho so']);
+
+/** The buyer asks who the supplier is, or for a supplier's contact or location. */
+export const asksForSupplier = text => has(text, WHO) || (has(text, PARTY) && has(text, DETAIL));
+/** The buyer asks for traceability or compliance documents (and not for a supplier's identity: that is answered first). */
+export const asksForTraceability = text => !asksForSupplier(text) && has(text, TRACE);

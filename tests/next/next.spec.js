@@ -1,7 +1,7 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 import { articles } from '../../src/data/articles.js';
-import { LOCALES, PAGES, PAGE_LOCALES, PRODUCT_SLUG_VI, SCOPED_CONTENT_PAGES, localizePath, pageLocales } from '../../src/i18n/routes.js';
+import { LOCALES, PAGES, PAGE_LOCALES, PRODUCT_PATHS, SCOPED_CONTENT_PAGES, localizePath, pageLocales } from '../../src/i18n/routes.js';
 import { abs, head, tags } from './html.js';
 
 /**
@@ -12,7 +12,7 @@ import { abs, head, tags } from './html.js';
 
 // Every indexable URL, from the route contract: each page, product and article in each language, each page in its
 // page-scoped locales, and each standalone content page (its key is its own URL).
-const KEYS = [...PAGES, ...Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`), ...articles.map(a => `/blog/${a.slug.en}`)];
+const KEYS = [...PAGES, ...PRODUCT_PATHS, ...articles.map(a => `/blog/${a.slug.en}`)];
 const SCOPED = Object.entries(PAGE_LOCALES).flatMap(([key, urls]) => Object.entries(urls).map(([lang, path]) => ({ key, lang, path })));
 const CONTENT = SCOPED_CONTENT_PAGES.map(({ locale, path }) => ({ key: path, lang: locale, path }));
 const URLS = [...LOCALES.flatMap(lang => KEYS.map(key => ({ key, lang, path: localizePath(key, lang) }))), ...SCOPED, ...CONTENT];
@@ -56,8 +56,12 @@ const COPY = [
   { path: '/vi/supply-chain', h1: 'Chuỗi cung ứng', title: 'Thực thi chuỗi cung ứng nông sản từ Việt Nam | HMV Global' },
   { path: '/vi/san-pham/hat-dieu', h1: 'Hạt điều', title: 'Hạt điều Việt Nam cho nhu cầu thu mua B2B | HMV Global' },
   { path: '/products/nuts', h1: 'Cashew nuts', title: 'Vietnam Cashew Nuts Sourcing for Wholesale Buyers | HMV Global' },
-  { path: '/products/passion-fruit', h1: 'Fresh Passion Fruit from Vietnam', title: 'Vietnam Passion Fruit Supplier for Wholesale Buyers | HMV Global' },
-  { path: '/vi/san-pham/chanh-day', h1: 'Chanh dây tươi từ Việt Nam', title: 'Nguồn chanh dây Việt Nam cho nhà nhập khẩu & B2B | HMV Global' },
+  { path: '/products/passion-fruit', h1: 'Vietnam Golden Passion Fruit Supplier', title: 'Golden Passion Fruit Supplier from Vietnam | HMV Global' },
+  { path: '/vi/san-pham/chanh-day', h1: 'Nhà cung ứng chanh dây vàng Việt Nam', title: 'Nhà cung ứng chanh dây vàng Việt Nam | HMV Global' },
+  { path: '/products/passion-fruit/foodservice', h1: 'An Exceptional Ingredient. A Memorable Experience.', title: 'Golden Passion Fruit for Hotels & Foodservice | HMV Global' },
+  { path: '/vi/san-pham/chanh-day/khach-san-nha-hang', h1: 'Nguyên liệu khác biệt. Trải nghiệm đáng nhớ.', title: 'Chanh dây vàng cho khách sạn, nhà hàng & F&B | HMV Global' },
+  { path: '/products/passion-fruit/retail', h1: 'Distinctive Fruit. Distinguished Shelves.', title: 'Golden Passion Fruit for Retail Businesses | HMV Global' },
+  { path: '/vi/san-pham/chanh-day/doi-tac-ban-le', h1: 'Trái cây khác biệt. Giá trị tại điểm bán.', title: 'Chanh dây vàng cho đối tác bán lẻ | HMV Global' },
   { path: '/products/dried-cassava-chips', h1: 'Bulk Dried Cassava Chips Supply Managed by HMV Global', title: 'Dried Cassava Chips Supplier in Vietnam | HMV Global' },
   { path: '/vi/san-pham/san-lat-kho', h1: 'Nguồn cung sắn lát khô số lượng lớn do HMV Global điều phối', title: 'Nhà cung cấp sắn lát khô B2B tại Việt Nam | HMV Global' },
   { path: '/vi/tin-tuc/xuat-khau-chanh-day-eu', title: 'Xuất khẩu Chanh dây sang Châu Âu: Tiêu chuẩn GlobalGAP và câu chuyện của HMV Global. | HMV Global' },
@@ -106,7 +110,7 @@ test('internal links in Vietnamese pages point to Vietnamese URLs', async ({ req
 
 // Unknown URLs: a real 404 (not the SPA's 200), noindex, and the same chrome-less English 404 page as the Vite site,
 // server-rendered (app/global-not-found.tsx). Unknown products and articles are not generated (dynamicParams = false).
-const NOT_FOUND = ['/this-page-does-not-exist', '/vi/trang-khong-ton-tai', '/about/extra', '/products/unknown',
+const NOT_FOUND = ['/this-page-does-not-exist', '/vi/trang-khong-ton-tai', '/about/extra', '/products/unknown', '/products/passion-fruit/wholesale', '/products/bananas/retail', '/vi/san-pham/chanh-day/foodservice', '/vi/san-pham/chuoi-cavendish/doi-tac-ban-le',
   '/vi/san-pham/unknown'];
 for (const path of NOT_FOUND) {
   test(`404 ${path}`, async ({ request }) => {
@@ -173,6 +177,8 @@ const CHAINS = [
   ['/products', ['/trade-solutions']],
   ['/vi/san-pham', ['/vi/trade-solutions']],
   ['/vi/products/passion-fruit', ['/vi/san-pham/chanh-day']],
+  ['/vi/products/passion-fruit/retail', ['/vi/san-pham/chanh-day/doi-tac-ban-le']],
+  ['/products/passion-fruit/foodservice?lang=vi', ['/vi/san-pham/chanh-day/khach-san-nha-hang']],
   ['/products/nuts?lang=vi', ['/vi/san-pham/hat-dieu']],
   ['/blog/exporting-passion-fruit-eu?lang=vi', ['/vi/tin-tuc/xuat-khau-chanh-day-eu']],
   ['/vi/blog/exporting-passion-fruit-eu', ['/vi/tin-tuc/xuat-khau-chanh-day-eu']],
@@ -250,9 +256,11 @@ test('zh-CN and ko appear only on the four cassava pages: no other page and no o
 // The money pages (dried cassava chips and passion fruit, EN and VI). Their hreflang pairs and sitemap entries are
 // checked with every URL above; here, what a search result or a link preview reads, and the crawl path to them.
 const MONEY = ['/products/dried-cassava-chips', '/products/passion-fruit'];
+// The golden passion fruit's buyer-segment pages are money pages too, reached from its own segment navigation.
+const MONEY_PAGES = [...MONEY, '/products/passion-fruit/foodservice', '/products/passion-fruit/retail'];
 
 test('money pages: unique title and description, self canonical, OG and Twitter tags in the server HTML', async ({ request }) => {
-  const paths = LOCALES.flatMap(lang => MONEY.map(key => localizePath(key, lang)));
+  const paths = LOCALES.flatMap(lang => MONEY_PAGES.map(key => localizePath(key, lang)));
   const heads = await Promise.all(paths.map(async path => head(await (await request.get(path)).text())));
   heads.forEach((h, i) => {
     expect(h.canonical, paths[i]).toBe(abs(paths[i]));

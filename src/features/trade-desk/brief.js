@@ -1,8 +1,20 @@
 // The buyer's requirement: the state the Trade Desk conversation fills, and the source of truth for the summary, the
 // route and the inquiry. The desk asks three things, product, destination and volume; nothing else is asked, inferred
 // or filled in. Pure functions only.
-import { VOLUME_UNITS, defaultUnit, productById } from './rules';
+import { VOLUME_UNITS, defaultUnit, productById, unitsFor } from './rules';
 import { LIMITS, isAmount } from './validation';
+
+/**
+ * The volume an opener carries: its amount and its unit are one answer, kept together or not at all. A unit this product and
+ * page offer keeps its amount ("50 kg / week" stays 50 kg / week); any other unit, or none, cannot carry the amount to
+ * another one: the amount is dropped, the page's own unit is selected and the buyer is asked again. A quantity is never
+ * converted and never read in another unit ("50 kg / week" is never 50 containers).
+ */
+function carriedVolume(volume, product, segment) {
+  const amount = typeof volume?.amount === 'string' && isAmount(volume.amount) ? volume.amount.trim() : '';
+  if (amount && unitsFor(product, segment).includes(volume?.unit)) return { amount, unit: volume.unit };
+  return { amount: '', unit: defaultUnit(product, segment) };
+}
 
 /** DOM id of a desk control: shared by the conversation and the desk's focus handling. */
 export const fieldId = (uid, key) => `${uid}-${key}`;
@@ -11,16 +23,16 @@ export const fieldId = (uid, key) => `${uid}-${key}`;
  * @param {{ product?: string | null, notes?: string, destination?: string, volume?: { amount?: string, unit?: string } }} [start]
  * `notes`: the buyer's own words naming the product, when they typed them; they reach HMV as the inquiry's notes.
  * `destination` and `volume`: answers an opener already asked (the Quick RFQ); only what the desk's own answers would
- * accept is kept, anything else is asked again.
+ * accept is kept, anything else is asked again. `segment`: the buyer segment of the page the desk was opened on (golden
+ * passion fruit's), which chooses the unit the volume starts with.
  */
-export function emptyBrief({ product = null, notes = '', destination = '', volume = undefined } = {}) {
+export function emptyBrief({ product = null, notes = '', destination = '', volume = undefined, segment = undefined } = {}) {
   const known = productById(product) ? product : null;
   const place = typeof destination === 'string' ? destination.trim() : '';
-  const amount = typeof volume?.amount === 'string' && isAmount(volume.amount) ? volume.amount.trim() : '';
   return {
     product: known,
     destination: place.length <= LIMITS.destination ? place : '',
-    volume: { amount, unit: Object.hasOwn(VOLUME_UNITS, volume?.unit) ? volume.unit : defaultUnit(known) },
+    volume: carriedVolume(volume, known, segment),
     notes,
   };
 }

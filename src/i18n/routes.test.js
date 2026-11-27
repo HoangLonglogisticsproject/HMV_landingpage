@@ -1,12 +1,12 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
-  LOCALES, PAGES, PAGE_LOCALES, PRODUCT_SLUG_VI, SCOPED_CONTENT_PAGES, canonicalUrl, delocalizePath, legacyRedirect, localizePath, pageLocales,
+  LOCALES, PAGES, PAGE_LOCALES, PRODUCT_PATHS, PRODUCT_SEGMENTS, PRODUCT_SLUG_VI, SCOPED_CONTENT_PAGES, canonicalUrl, delocalizePath, legacyRedirect, localizePath, pageLocales,
   switchHref,
 } from './routes.js';
 
 test('every page and product round-trips between locales', () => {
-  const keys = [...PAGES, ...Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`), '/blog/exporting-passion-fruit-eu'];
+  const keys = [...PAGES, ...PRODUCT_PATHS, '/blog/exporting-passion-fruit-eu'];
   for (const key of keys) {
     assert.equal(localizePath(key, 'en'), key);
     const back = delocalizePath(localizePath(key, 'vi'));
@@ -138,4 +138,33 @@ test('a standalone content page keeps its URL: no translation, `lang` dropped an
   // The Korean supply page keeps its translation group; its guides are Korean-only pages beneath it.
   assert.equal(legacyRedirect('/ko/tapioca-chips', '?lang=vi'), '/vi/san-pham/san-lat-kho');
   assert.equal(legacyRedirect('/ko/tapioca-chips/quality-guide', '?lang=vi&utm_source=naver'), '/ko/tapioca-chips/quality-guide?utm_source=naver');
+});
+
+test('golden passion fruit has one URL per buyer segment, in both languages', () => {
+  const urls = [
+    ['/products/passion-fruit', '/vi/san-pham/chanh-day'],
+    ['/products/passion-fruit/foodservice', '/vi/san-pham/chanh-day/khach-san-nha-hang'],
+    ['/products/passion-fruit/retail', '/vi/san-pham/chanh-day/doi-tac-ban-le'],
+  ];
+  for (const [en, vi] of urls) {
+    assert.equal(localizePath(en, 'vi'), vi);
+    assert.deepEqual(delocalizePath(vi), { path: en, locale: 'vi' });
+    // Switching language keeps the segment, and the query.
+    assert.equal(switchHref(vi, '?utm_source=li', 'en'), `${en}?utm_source=li`);
+    assert.equal(switchHref(en, '', 'vi'), vi);
+    assert.equal(legacyRedirect(en), null);
+    assert.equal(legacyRedirect(vi), null);
+  }
+  // The legacy forms and `lang` resolve to the segment's final URL in one step.
+  assert.equal(legacyRedirect('/vi/products/passion-fruit/retail'), '/vi/san-pham/chanh-day/doi-tac-ban-le');
+  assert.equal(legacyRedirect('/products/passion-fruit/foodservice', '?lang=vi'), '/vi/san-pham/chanh-day/khach-san-nha-hang');
+  // A segment named in the wrong form is no page and is not redirected to one: not an English key under /vi/san-pham, not a
+  // Vietnamese slug under the English path, not a segment of a product that has none.
+  for (const url of ['/vi/san-pham/chanh-day/foodservice', '/vi/san-pham/chanh-day/retail', '/vi/san-pham/chuoi-cavendish/doi-tac-ban-le']) {
+    // `lang` is dropped as on every URL, but the path stays what it was: it ends in the 404.
+    assert.equal(legacyRedirect(url, '?lang=vi'), url, url);
+    assert.equal(legacyRedirect(url), null, url);
+  }
+  assert.deepEqual(Object.keys(PRODUCT_SEGMENTS), ['passion-fruit']);
+  assert.deepEqual(PRODUCT_PATHS.filter(p => p.includes('passion-fruit')), urls.map(([en]) => en));
 });

@@ -1,11 +1,9 @@
-// Content of the product pages that go beyond the generic product page: buyer-facing sections, SEO and the RFQ fields.
-// Claims are limited to verified evidence. Passion fruit: fresh whole fruit, HMV-supplied photographs of a growing area,
-// cut-fruit samples and field sample inspection; Brix, capacity, certification, farm or factory ownership and lab results
-// are not asserted. Dried cassava chips: the HMV cassava dossier (network capacity, one Intertek-analysed sample) and
+// Content of the product pages that go beyond the generic product page: buyer-facing sections and SEO. Golden passion
+// fruit has its own pages, one per buyer segment (data/passionFruitPages.js).
+// Claims are limited to verified evidence. Dried cassava chips: the HMV cassava dossier (network capacity, one Intertek-analysed sample) and
 // HMV-supplied photographs of the product, stock and container loading (data/cassavaEvidence.js), whose location,
 // facilities and lots are not asserted.
-// Rendered by views/products/ProductLanding.jsx, dried cassava chips by the cassava procurement page
-// (views/products/CassavaProcurement, `procurement`); titles and descriptions by productMeta() in views/meta.js.
+// Rendered by the cassava procurement page (views/products/CassavaProcurement, `procurement`); titles and descriptions by productMeta() in views/meta.js.
 //
 // One content tree per product. Only text leaves are localized, `t(en, vi)`; figures, sample results and the report are
 // written once and formatted per language. definePage() resolves the tree into `seo.en`, `seo.vi`, `en` and `vi`.
@@ -13,7 +11,7 @@
 // page-scoped pages (data/cassavaChina.js, data/cassavaKorea.js), which show the same evidence.
 import { localizePath } from '../i18n/routes.js';
 import { articles } from './articles.js';
-import { photos, photoCopy } from './hmv.js';
+import { resolve } from './localized.js';
 
 const LOCALES = { en: 'en-US', vi: 'vi-VN', zh: 'zh-CN', ko: 'ko-KR' };
 
@@ -23,39 +21,15 @@ const t = (en, vi, zh, ko) => lang => ({ en, vi, zh, ko })[lang];
 /** A card or step: [title, text] in each language; `key` names what it is where its icon depends on it. */
 const card = (en, vi, key) => ({ key, title: t(en[0], vi[0]), text: t(en[1], vi[1]) });
 
-// RFQ requirement fields (features/inquiries/ProductRfq.jsx), as [en, vi] pairs. The English label is the one written
-// into the email draft, like the other inquiry fields.
-const pair = ([en, vi]) => ({ en, vi });
-const field = (name, label, placeholder) => ({ name, label: pair(label), placeholder: pair(placeholder) });
-
-// Fact labels shared by the product pages.
-const FACT = { product: t('Product', 'Sản phẩm'), origin: t('Origin', 'Xuất xứ') };
-
 /** A number written once, formatted per language (50000 → "50,000" / "50.000"), with a prefix and a unit. */
 const quantity = (n, unit, prefix = '') => lang =>
   `${prefix}${n.toLocaleString(LOCALES[lang])}${typeof unit === 'function' ? unit(lang) : unit}`;
-
-/** Resolves the localized leaves of a content tree; everything else is shared as is. */
-const resolve = (node, lang) => {
-  if (typeof node === 'function') return node(lang);
-  if (Array.isArray(node)) return node.map(n => resolve(n, lang));
-  if (node && typeof node === 'object') return Object.fromEntries(Object.entries(node).map(([k, v]) => [k, resolve(v, lang)]));
-  return node;
-};
 
 const definePage = ({ seo, content, ...shared }) => ({
   ...shared,
   seo: { en: resolve(seo, 'en'), vi: resolve(seo, 'vi') },
   en: resolve(content, 'en'),
   vi: resolve(content, 'vi'),
-});
-
-// An HMV photograph from data/hmv.js with its real size and its existing caption.
-const photo = (src, width, height, caption) => ({
-  src,
-  width,
-  height,
-  caption: { en: photoCopy.en[caption], vi: photoCopy.vi[caption] },
 });
 
 // Dried cassava chips facts from the HMV cassava dossier.
@@ -109,129 +83,10 @@ const CASSAVA_HIGHLIGHTS = [0, 1, 2, 4].map(i => CASSAVA_RESULTS[i]).map(([name,
 }));
 
 export const productPages = {
-  'passion-fruit': definePage({
-    seo: {
-      title: t('Vietnam Passion Fruit Supplier for Wholesale Buyers', 'Nguồn chanh dây Việt Nam cho nhà nhập khẩu & B2B'),
-      description: t(
-        'Fresh passion fruit from Vietnam for importers, distributors and wholesale buyers. Variety, size, Brix, packaging and season agreed for your destination.',
-        'Nhà cung cấp chanh dây tươi Việt Nam cho nhà nhập khẩu, nhà phân phối và khách hàng B2B. Giống, kích cỡ, Brix, đóng gói và mùa vụ theo thị trường đích.',
-      ),
-    },
-    // The growing area leads the hero, with the cut-fruit product photo (data/productPhotos.js) as its detail.
-    heroPhoto: photo(photos.farm, 1280, 960, 'farm'),
-    evidencePhoto: photo(photos.fruitWeighing, 960, 1280, 'weighing'),
-    gallery: [
-      photo(photos.grower, 960, 1280, 'grower'),
-      photo(photos.farmTeam, 1308, 1600, 'farmTeam'),
-    ],
-    content: {
-      h1: t('Fresh Passion Fruit from Vietnam', 'Chanh dây tươi từ Việt Nam'),
-      lead: t(
-        'HMV Global is a passion fruit supplier in Vietnam for importers, distributors and wholesale buyers, coordinating fresh-fruit sourcing, field sample inspection and delivery planning for your destination.',
-        'HMV Global cung cấp nguồn chanh dây tươi Việt Nam cho nhà nhập khẩu, nhà phân phối và khách hàng B2B, điều phối nguồn hàng, kiểm tra mẫu tại vườn và kế hoạch giao hàng đến thị trường đích.',
-      ),
-      hero: {
-        eyebrow: t('VIETNAM PASSION FRUIT · B2B SOURCING', 'CHANH DÂY VIỆT NAM · NGUỒN HÀNG B2B'),
-        secondary: { target: 'requirements', label: t('View Product Requirements', 'Xem yêu cầu sản phẩm') },
-        trust: [
-          t('Fresh whole fruit', 'Trái tươi nguyên quả'),
-          t('Vietnam origin', 'Xuất xứ Việt Nam'),
-          t('Field sample inspection', 'Kiểm tra mẫu tại vườn'),
-          t('Buyer-defined specification', 'Quy cách theo yêu cầu người mua'),
-        ],
-      },
-      facts: [
-        [FACT.product, t('Fresh whole passion fruit', 'Chanh dây tươi nguyên quả')],
-        [FACT.origin, t('Vietnam', 'Việt Nam')],
-        [t('Quality model', 'Mô hình chất lượng'), t('Buyer-defined specification', 'Quy cách theo yêu cầu người mua')],
-        [t('Requirements', 'Yêu cầu'), t('Variety · Size · Brix · Packaging · Season', 'Giống · Kích cỡ · Brix · Đóng gói · Mùa vụ')],
-      ],
-      audience: {
-        eyebrow: t('FOR WHOLESALE BUYERS', 'DÀNH CHO KHÁCH HÀNG B2B'),
-        title: t('Built around your buyer brief', 'Xây dựng theo nhu cầu thu mua của bạn'),
-        text: t(
-          'For importers, distributors, wholesale buyers and procurement teams sourcing fresh passion fruit from Vietnam.',
-          'Dành cho nhà nhập khẩu, nhà phân phối, khách hàng mua số lượng lớn và bộ phận thu mua tìm nguồn chanh dây xuất khẩu từ Việt Nam.',
-        ),
-        items: [
-          card(['Sourcing coordination', 'Growing areas and sourcing partners are matched to the variety, season and volume in your brief.'],
-            ['Điều phối nguồn hàng', 'Vùng trồng và đối tác nguồn hàng được kết nối theo giống, mùa vụ và sản lượng bạn yêu cầu.']),
-          card(['Field sample inspection', 'Fruit samples are inspected in the field against the requirements you define.'],
-            ['Kiểm tra mẫu tại vườn', 'Mẫu trái được kiểm tra tại vùng trồng theo các yêu cầu bạn đưa ra.']),
-          card(['Trade & delivery planning', 'Quotation terms, documentation and delivery planning follow your agreed requirements and destination.'],
-            ['Thương mại & kế hoạch giao hàng', 'Điều kiện báo giá, chứng từ và kế hoạch giao hàng theo yêu cầu và thị trường đích đã thống nhất.']),
-        ],
-      },
-      evidence: {
-        eyebrow: t('PRODUCT & FIELD EVIDENCE', 'BẰNG CHỨNG SẢN PHẨM & HIỆN TRƯỜNG'),
-        title: t('What we can show today', 'Những gì chúng tôi có thể cho bạn thấy'),
-        items: [
-          t('Fresh whole passion fruit', 'Chanh dây tươi nguyên quả'),
-          t('Photographs of a real growing area', 'Hình ảnh thực tế tại vùng trồng'),
-          t('Cut-fruit samples showing pulp and seeds', 'Mẫu trái bổ đôi thấy rõ ruột và hạt'),
-          t('Field sample inspection', 'Kiểm tra mẫu tại vườn'),
-        ],
-        note: t(
-          'Photographs supplied by HMV. Farm ownership, certifications and laboratory results are not asserted here; where they apply, they are confirmed for each proposal.',
-          'Ảnh do HMV cung cấp. Trang này không khẳng định quyền sở hữu vùng trồng, chứng nhận hay kết quả kiểm nghiệm; khi cần, các nội dung này được xác nhận cho từng đề xuất.',
-        ),
-      },
-      requirements: {
-        eyebrow: t('REQUIREMENTS TO DEFINE', 'YÊU CẦU CẦN THỐNG NHẤT'),
-        title: t('What we agree with you', 'Những gì chúng tôi thống nhất với bạn'),
-        items: [
-          card(['Variety', 'The variety your market and customers expect.'], ['Giống', 'Giống chanh dây phù hợp với thị trường và khách hàng của bạn.']),
-          card(['Size / weight', 'Fruit size or weight bands for your grading.'], ['Kích cỡ / khối lượng', 'Khoảng kích cỡ hoặc khối lượng trái theo cách phân loại của bạn.']),
-          card(['Brix', 'Your Brix requirement, agreed before quotation. No fixed Brix is promised.'], ['Brix', 'Yêu cầu Brix của bạn, thống nhất trước khi báo giá. Không cam kết một mức Brix cố định.']),
-          card(['Packaging', 'Carton type, net weight and labelling for your channel.'], ['Đóng gói', 'Loại thùng, khối lượng tịnh và nhãn mác theo kênh phân phối.']),
-          card(['Season', 'A shipment window aligned with the harvest season.'], ['Mùa vụ', 'Thời điểm giao hàng phù hợp với mùa thu hoạch.']),
-          card(['Destination requirements', 'The import, plant-health and documentation requirements of your market.'], ['Yêu cầu thị trường đích', 'Yêu cầu nhập khẩu, kiểm dịch thực vật và chứng từ của thị trường bạn.']),
-        ],
-        note: t(
-          'Specifications are agreed in the commercial proposal and the contract, not fixed on this page.',
-          'Thông số được thống nhất trong đề xuất thương mại và hợp đồng, không cố định trên trang này.',
-        ),
-      },
-      workflow: {
-        eyebrow: t('ORIGIN TO MARKET', 'TỪ VÙNG TRỒNG ĐẾN THỊ TRƯỜNG'),
-        title: t('From your brief to delivery', 'Từ yêu cầu của bạn đến khi giao hàng'),
-        steps: [
-          card(['Buyer brief', 'Volume, destination and requirements.'], ['Yêu cầu thu mua', 'Sản lượng, thị trường đích và các yêu cầu.']),
-          card(['Origin & season', 'Growing areas and timing matched to the brief.'], ['Vùng trồng & mùa vụ', 'Vùng trồng và thời điểm phù hợp với yêu cầu.']),
-          card(['Field sample inspection', 'Samples checked against your requirements.'], ['Kiểm tra mẫu tại vườn', 'Mẫu được kiểm tra theo yêu cầu của bạn.']),
-          card(['Requirement confirmation', 'Variety, size, Brix and packaging agreed.'], ['Xác nhận yêu cầu', 'Thống nhất giống, kích cỡ, Brix và đóng gói.']),
-          card(['Packaging & documents', 'Packing and trade documents coordinated.'], ['Đóng gói & chứng từ', 'Điều phối đóng gói và chứng từ thương mại.']),
-          card(['Delivery planning', 'Shipment to the agreed destination and terms.'], ['Kế hoạch giao hàng', 'Giao đến điểm đến và theo điều kiện đã thống nhất.']),
-        ],
-      },
-      gallery: {
-        eyebrow: t('FROM THE FIELD', 'TỪ VÙNG TRỒNG'),
-        title: t('Real images from the growing area', 'Hình ảnh thực tế tại vùng trồng'),
-        note: t('Photos supplied by HMV.', 'Ảnh do HMV cung cấp.'),
-      },
-      rfq: {
-        eyebrow: t('RFQ · PASSION FRUIT', 'RFQ · CHANH DÂY'),
-        title: t('Discuss Your Passion Fruit Requirements', 'Trao đổi yêu cầu chanh dây'),
-        lead: t(
-          'Share your volume, destination and requirements so HMV Global can review the sourcing and trade brief.',
-          'Chia sẻ sản lượng, thị trường đích và các yêu cầu để HMV Global xem xét nhu cầu nguồn hàng và giao thương.',
-        ),
-        volume: t('Estimated volume', 'Sản lượng dự kiến'),
-        volumePlaceholder: t('e.g. containers per month', 'VD: số container mỗi tháng'),
-      },
-    },
-    rfqFields: [
-      field('form', ['Product form', 'Dạng hàng'], ['e.g. fresh whole fruit', 'VD: trái tươi nguyên quả']),
-      field('grade', ['Brix / grade requirement', 'Yêu cầu Brix / phân hạng'], ['Your minimum Brix or size grade', 'Brix tối thiểu hoặc phân hạng kích cỡ']),
-      field('packaging', ['Packaging', 'Quy cách đóng gói'], ['e.g. carton type and net weight', 'VD: loại thùng và khối lượng tịnh']),
-      field('certification', ['Certification requirement', 'Yêu cầu chứng nhận'], ['Certificates your market requires', 'Chứng nhận thị trường của bạn yêu cầu']),
-    ],
-  }),
-
   // The EN/VI dried cassava chips page: the cassava procurement page (views/products/CassavaProcurement) in the site's
   // chrome, in the content shape of the Chinese and Korean copy (data/cassavaChina.js, data/cassavaKorea.js).
   'dried-cassava-chips': definePage({
-    // The procurement page instead of ProductLanding (views/products/ProductView); its closing call to action is the
+    // The procurement page (views/products/ProductView); its closing call to action is the
     // HMV Trade Desk, not the product RFQ.
     procurement: true,
     seo: {

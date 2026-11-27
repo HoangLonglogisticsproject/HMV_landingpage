@@ -66,7 +66,7 @@ function Progress({ c, step }) {
 }
 
 /** Step 1: product (unless a product page fixes it), destination, volume and its unit. */
-export function RequirementStep({ c, lang, id, error, values, unit, locked, strip, onChange }) {
+export function RequirementStep({ c, lang, id, error, values, unit, units, locked, strip, onChange }) {
   return (
     <>
       {locked ? (
@@ -91,7 +91,7 @@ export function RequirementStep({ c, lang, id, error, values, unit, locked, stri
           <div className={`grid gap-2 ${strip ? 'sm:grid-cols-[minmax(0,1fr)_minmax(0,9rem)]' : 'sm:grid-cols-[minmax(0,1fr)_minmax(0,13rem)]'}`}>
             <input id={id('volume.amount')} className={CONTROL} required inputMode="decimal" autoComplete="off" maxLength={LIMITS['volume.amount']} placeholder={c.amountPlaceholder} value={values.amount} onChange={e => onChange('amount', e.target.value)} {...aria} />
             <select className={CONTROL} aria-label={c.unit} value={unit} onChange={e => onChange('unit', e.target.value)}>
-              {Object.entries(VOLUME_UNITS).map(([name, label]) => <option key={name} value={name}>{label[lang]}</option>)}
+              {units.map(name => <option key={name} value={name}>{VOLUME_UNITS[name][lang]}</option>)}
             </select>
           </div>
         )}

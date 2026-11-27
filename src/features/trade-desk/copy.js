@@ -19,10 +19,27 @@ const COPY = {
     'Which HMV product is closest to your requirement?',
     'Sản phẩm nào của HMV gần nhất với nhu cầu của anh/chị?',
   ),
+  // HMV is the one commercial point of contact: a question about who supplies the product, or for a supplier's contact or
+  // location, is answered like this (rules.js asksForSupplier); a request for traceability or compliance documents is
+  // answered with how HMV provides them (asksForTraceability). Nothing names or locates anyone.
+  supplierContact: t(
+    'HMV Global coordinates sourcing and commercial communication through our supply network. Please share your requirements, and our team will assist with the relevant product information and supply arrangements.',
+    'HMV Global điều phối nguồn hàng và trao đổi thương mại thông qua mạng lưới cung ứng của chúng tôi. Anh/chị vui lòng chia sẻ nhu cầu, đội ngũ HMV sẽ hỗ trợ thông tin sản phẩm và phương án cung ứng phù hợp.',
+  ),
+  traceability: t(
+    'The HMV commercial team provides traceability and compliance documentation through the quotation process. Please share your requirements, and the team will confirm what applies to your order.',
+    'Đội ngũ thương mại của HMV cung cấp tài liệu truy xuất nguồn gốc và tuân thủ trong quy trình báo giá. Anh/chị vui lòng chia sẻ nhu cầu, đội ngũ sẽ xác nhận những gì áp dụng cho đơn hàng của anh/chị.',
+  ),
   askDestination: t('Where would you like the goods delivered?', 'Anh/chị cần giao hàng đến đâu?'),
   destinationInput: t('Delivery destination', 'Nơi giao hàng'),
   destinationPlaceholder: t('City, country or port', 'Thành phố, quốc gia hoặc cảng'),
   askVolume: t('What volume are you planning to purchase?', 'Anh/chị dự kiến mua với sản lượng bao nhiêu?'),
+  // The volume question of each buyer segment of the golden passion fruit pages.
+  askVolumeFor: {
+    export: t('What quantity of golden passion fruit are you planning to import?', 'Anh/chị dự kiến nhập khẩu bao nhiêu chanh dây vàng?'),
+    foodservice: t('What quantity of golden passion fruit does your hospitality or beverage business require?', 'Doanh nghiệp khách sạn, nhà hàng hoặc đồ uống của anh/chị cần bao nhiêu chanh dây vàng?'),
+    retail: t('What quantity of golden passion fruit are you planning to distribute?', 'Anh/chị dự kiến phân phối bao nhiêu chanh dây vàng?'),
+  },
   volumeInput: t('Expected volume', 'Sản lượng dự kiến'),
   volumePlaceholder: t('e.g. 2,000', 'VD: 2.000'),
   unit: t('Unit', 'Đơn vị'),

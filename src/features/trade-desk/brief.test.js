@@ -12,8 +12,9 @@ test('an opener that already asked destination and volume (the Quick RFQ) starts
   assert.deepEqual(emptyBrief({ product: 'dried-cassava-chips', destination: ' Busan, South Korea ', volume: { amount: ' 500 ', unit: 'mt' } }), {
     product: 'dried-cassava-chips', destination: 'Busan, South Korea', volume: { amount: '500', unit: 'mt' }, notes: '',
   });
-  // Without a unit, the product's usual one; an unknown unit, an amount the inquiry refuses or a destination over its limit are left out.
-  assert.deepEqual(emptyBrief({ product: 'dried-cassava-chips', volume: { amount: '500' } }).volume, { amount: '500', unit: 'mt_month' });
+  // An amount with no unit, an unknown unit, an amount the inquiry refuses or a destination over its limit are left out: the amount
+  // never takes another unit's meaning, and the unit selected is the product's usual one.
+  assert.deepEqual(emptyBrief({ product: 'dried-cassava-chips', volume: { amount: '500' } }).volume, { amount: '', unit: 'mt_month' });
   assert.deepEqual(emptyBrief({ product: 'bananas', volume: { amount: 'lots', unit: 'litres' } }).volume, { amount: '', unit: 'containers' });
   assert.equal(emptyBrief({ product: 'bananas', destination: 'x'.repeat(121) }).destination, '');
   assert.equal(emptyBrief({ product: 'bananas', destination: 42 }).destination, '');

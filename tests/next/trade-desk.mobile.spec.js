@@ -10,7 +10,7 @@ const desk = page => page.getByRole('dialog', { name: 'HMV Trade Desk' });
 
 test('mobile: a full-screen sheet, chat first, one scroll, the requirement folded and the next step near the conversation', async ({ page }) => {
   await page.goto('/products/passion-fruit');
-  await page.getByRole('button', { name: 'Discuss Your Passion Fruit Requirements' }).click();
+  await page.getByRole('button', { name: 'Ask HMV Trade Desk' }).click();
   const box = await desk(page).boundingBox();
   const viewport = page.viewportSize();
   expect(box).toMatchObject({ x: 0, y: 0, width: viewport?.width, height: viewport?.height });

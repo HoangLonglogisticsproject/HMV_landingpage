@@ -1,4 +1,4 @@
-import { LOCALES, PAGES, PRODUCT_SLUG_VI, SCOPED_CONTENT_PAGES } from '@/i18n/routes';
+import { LOCALES, PAGES, PRODUCT_PATHS, SCOPED_CONTENT_PAGES } from '@/i18n/routes';
 import { loadArticleIndex, sitePagePaths } from '@/next/content';
 import { absoluteUrl, alternateUrls, scopedLocales, type Lang, type LocalePaths, type PageLang } from '@/next/seo';
 
@@ -13,8 +13,7 @@ export const dynamic = 'force-static';
 const escapeXml = (s: string) => s.replaceAll(/[&<>"']/g, c => `&#${c.codePointAt(0)};`);
 
 export async function GET() {
-  const products = Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`);
-  const pages: LocalePaths[] = [...(await Promise.all(PAGES.map(sitePagePaths))), ...products.map(path => ({ en: path, vi: path }))];
+  const pages: LocalePaths[] = [...(await Promise.all(PAGES.map(sitePagePaths))), ...PRODUCT_PATHS.map(path => ({ en: path, vi: path }))];
   const articles: LocalePaths[] = (await loadArticleIndex()).map(slugs =>
     Object.fromEntries(Object.entries(slugs).map(([lang, slug]) => [lang, `/blog/${slug}`])));
   const urls = [...pages, ...articles].flatMap(paths => {

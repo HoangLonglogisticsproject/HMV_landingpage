@@ -1,7 +1,7 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 import { articles } from '../../src/data/articles.js';
-import { PAGES, PRODUCT_SLUG_VI } from '../../src/i18n/routes.js';
+import { PAGES, PRODUCT_PATHS } from '../../src/i18n/routes.js';
 
 /**
  * Image fidelity (architecture §11): on every page and in every lightbox, at a desktop DPR 2 and a phone DPR 3, each
@@ -12,7 +12,7 @@ const TARGETS = [
   { name: 'desktop', viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2 },
   { name: 'phone', viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 },
 ];
-const KEYS = [...PAGES, ...Object.keys(PRODUCT_SLUG_VI).map(id => `/products/${id}`), ...articles.map(a => `/blog/${a.slug.en}`)];
+const KEYS = [...PAGES, ...PRODUCT_PATHS, ...articles.map(a => `/blog/${a.slug.en}`)];
 const LIGHTBOXES = [
   { path: '/activities', triggers: '.activity-grid .activity-photo', img: '.photo-dialog img', close: 'Escape' },
   { path: '/logistics', triggers: '.dg-img-thumb, .cb-img-card', img: '.pack-lightbox img', close: '.pack-lightbox-close' },
@@ -27,7 +27,12 @@ const ORIGINAL_LIMITED = new Set(['car.webp', 'cassava-bulk-stock.webp', 'cassav
   'dried-cassava-chips.webp', 'dried-cassava-chips-detail.webp', 'factory-visit.webp', 'farm-team.webp',
   'forest-team.webp', 'fruitFarm.webp', 'fruitWeighing.webp', 'grower-visit.webp', 'material-discussion.webp',
   'mijack.webp', 'mijack2.webp', 'mijack3.webp', 'passion-fruit-cut.webp', 'tapioca-starch-reference.webp',
-  'team-gathering.webp', 'vietnam-bananas.webp', 'visitfactory.webp']);
+  'team-gathering.webp', 'vietnam-bananas.webp', 'visitfactory.webp',
+  // The golden passion fruit images (src/assets/passion-fruit/, derived by scripts/passion-fruit-images.mjs): the sources
+  // are 1086 to 1448 px wide edited images and 960 to 1280 px photographs, the crops smaller still.
+  'golden-fruit-scene.webp', 'golden-fruit-display.webp', 'golden-fruit-on-tree.webp', 'golden-fruit-pile.webp',
+  'golden-fruit-halved.webp', 'golden-fruit-cluster.webp', 'fruit-protective-nets.webp', 'carton-twelve-compartments.webp',
+  'neutral-packaging-cartons.webp', 'neutral-carton-fruit.webp', 'vine-green-fruit.webp', 'manual-sorting.webp', 'orchard-trellis.webp']);
 
 /** @param {import('@playwright/test').Locator} images */
 async function measure(images) {

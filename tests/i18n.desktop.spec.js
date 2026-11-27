@@ -38,7 +38,7 @@ test('language switcher changes the active locale', async ({ page }) => {
 
 for (const { path, vi, en } of [
   { path: '/about?lang=vi', vi: 'Về HMV', en: 'About HMV' },
-  { path: '/products/passion-fruit?lang=vi', vi: 'Chanh dây tươi từ Việt Nam', en: 'Fresh Passion Fruit from Vietnam' },
+  { path: '/products/passion-fruit?lang=vi', vi: 'Nhà cung ứng chanh dây vàng Việt Nam', en: 'Vietnam Golden Passion Fruit Supplier' },
   { path: '/products/dried-cassava-chips?lang=vi', vi: 'Nguồn cung sắn lát khô số lượng lớn do HMV Global điều phối', en: 'Bulk Dried Cassava Chips Supply Managed by HMV Global' },
   { path: '/blog/exporting-passion-fruit-eu?lang=vi', vi: /^Xuất khẩu Chanh dây/, en: /^Exporting Passion Fruit/ },
   { path: '/contact?product=Passion%20fruit&lang=vi', vi: 'Kết nối hợp tác', en: 'Partner with us' },
