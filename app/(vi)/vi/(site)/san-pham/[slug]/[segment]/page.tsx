@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { products } from '@/data/hmv';
+import { own } from '@/lib/own';
 import { PRODUCT_SEGMENTS, PRODUCT_SLUG_VI, SEGMENT_ID } from '@/i18n/routes';
 import { pageMetadata } from '@/next/seo';
 import { ProductView } from '@/views/products/ProductView';
@@ -16,7 +17,7 @@ export const generateStaticParams = () =>
 const pageAt = async ({ params }: Props) => {
   const { slug, segment: viSegment } = await params;
   const product = products.find(p => PRODUCT_SLUG_VI[p.id] === slug);
-  const segment = product && SEGMENT_ID[product.id]?.[viSegment];
+  const segment = product && own(own(SEGMENT_ID, product.id), viSegment);
   return product && segment ? { product, segment } : notFound();
 };
 

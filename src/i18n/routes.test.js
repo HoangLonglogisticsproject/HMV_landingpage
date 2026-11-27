@@ -2,7 +2,7 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   LOCALES, PAGES, PAGE_LOCALES, PRODUCT_PATHS, PRODUCT_SEGMENTS, PRODUCT_SLUG_VI, SCOPED_CONTENT_PAGES, canonicalUrl, delocalizePath, legacyRedirect, localizePath, pageLocales,
-  switchHref,
+  isProductSegment, segmentOfPage, switchHref,
 } from './routes.js';
 
 test('every page and product round-trips between locales', () => {
@@ -167,4 +167,64 @@ test('golden passion fruit has one URL per buyer segment, in both languages', ()
   }
   assert.deepEqual(Object.keys(PRODUCT_SEGMENTS), ['passion-fruit']);
   assert.deepEqual(PRODUCT_PATHS.filter(p => p.includes('passion-fruit')), urls.map(([en]) => en));
+});
+
+// Names every object inherits are not products, segments or pages: a lookup finds only what the contract declares, so such
+// a URL stays what it is (the 404) and never becomes "function Object() …" in a link, a redirect or a canonical.
+const INHERITED = ['constructor', 'toString', 'valueOf', 'hasOwnProperty', '__proto__', 'prototype', 'isPrototypeOf', 'propertyIsEnumerable'];
+
+test('inherited names are not products or segments in any direction: no redirect, no rewritten URL, no exception', () => {
+  for (const name of INHERITED) {
+    for (const url of [
+      `/products/${name}`, `/products/${name}/foodservice`, `/products/passion-fruit/${name}`, `/vi/san-pham/${name}`, `/vi/san-pham/${name}/doi-tac-ban-le`,
+      `/vi/san-pham/chanh-day/${name}`, `/vi/products/${name}`, `/vi/products/passion-fruit/${name}`, `/${name}`, `/vi/${name}`, `/blog/${name}`, `/vi/tin-tuc/${name}`,
+    ]) {
+      assert.doesNotThrow(() => canonicalUrl(url), url);
+      // The legacy /vi/products form redirects to its final form for any slug, as before; no URL is ever built from what the name inherits.
+      if (!url.startsWith('/vi/products/')) assert.equal(legacyRedirect(url), null, url);
+      for (const made of [legacyRedirect(url) ?? '', canonicalUrl(url, '?lang=vi'), switchHref(url, '', 'vi')]) assert.ok(!made.includes('function') && !made.includes('[object'), url);
+    }
+    assert.equal(localizePath(`/products/${name}`, 'vi'), `/vi/san-pham/${name}`);
+    assert.equal(localizePath(`/products/passion-fruit/${name}`, 'vi'), `/vi/san-pham/chanh-day/${name}`);
+    assert.equal(localizePath(`/products/${name}/retail`, 'vi'), `/vi/san-pham/${name}/retail`);
+    assert.equal(delocalizePath(`/vi/san-pham/${name}`).path, `/products/${name}`);
+    assert.equal(delocalizePath(`/vi/san-pham/chanh-day/${name}`).path, `/san-pham/chanh-day/${name}`);
+    assert.equal(isProductSegment('passion-fruit', name), false, name);
+    assert.equal(isProductSegment(name, 'retail'), false, name);
+    assert.deepEqual(pageLocales(name), []);
+  }
+  assert.equal(isProductSegment('passion-fruit', 'retail'), true);
+  assert.equal(isProductSegment('passion-fruit', 'export'), false);
+  assert.equal(isProductSegment('bananas', 'retail'), false);
+  assert.equal(isProductSegment('passion-fruit', ['retail']), false);
+  assert.equal(isProductSegment('passion-fruit', undefined), false);
+});
+
+test('unknown products and segments, wrong-form segments and ?lang= keep their URL; the known pages and page-scoped locales are unchanged', () => {
+  for (const url of ['/products/no-such-product', '/products/no-such-product/retail', '/vi/san-pham/khong-co', '/vi/san-pham/chanh-day/khong-co', '/products/passion-fruit/export', '/products/passion-fruit/khach-san-nha-hang', '/vi/san-pham/chanh-day/retail']) {
+    assert.equal(legacyRedirect(url), null, url);
+  }
+  // `lang` is dropped and chooses the language, but a segment named in the wrong form stays no page.
+  assert.equal(legacyRedirect('/vi/san-pham/chanh-day/retail', '?lang=vi'), '/vi/san-pham/chanh-day/retail');
+  assert.equal(legacyRedirect('/products/passion-fruit/khach-san-nha-hang', '?lang=en'), '/products/passion-fruit/khach-san-nha-hang');
+  assert.equal(canonicalUrl('/products/passion-fruit/retail', '?lang=vi'), '/vi/san-pham/chanh-day/doi-tac-ban-le');
+  assert.equal(canonicalUrl('/vi/san-pham/chanh-day/doi-tac-ban-le', '?lang=en'), '/products/passion-fruit/retail');
+  assert.deepEqual(pageLocales('/products/dried-cassava-chips'), ['zh-CN', 'ko']);
+  assert.equal(localizePath('/products/dried-cassava-chips', 'zh-CN'), '/zh-cn/cassava-chips');
+  assert.equal(delocalizePath('/ko/tapioca-chips').path, '/products/dried-cassava-chips');
+  assert.equal(legacyRedirect('/products'), '/trade-solutions');
+});
+
+test('the segment of a page: the product’s own URL is export, a segment page its segment, in both languages; nothing else has one', () => {
+  for (const [url, segment] of [
+    ['/products/passion-fruit', 'export'], ['/products/passion-fruit/', 'export'], ['/vi/san-pham/chanh-day', 'export'], ['/vi/san-pham/chanh-day/', 'export'],
+    ['/products/passion-fruit/foodservice', 'foodservice'], ['/vi/san-pham/chanh-day/khach-san-nha-hang', 'foodservice'],
+    ['/products/passion-fruit/retail', 'retail'], ['/vi/san-pham/chanh-day/doi-tac-ban-le', 'retail'], ['/vi/products/passion-fruit/retail', 'retail'],
+  ]) assert.equal(segmentOfPage(url), segment, url);
+  for (const url of [
+    '/', '/about', '/products', '/products/bananas', '/products/dried-cassava-chips', '/vi/san-pham/chuoi-cavendish', '/products/passion-fruit/export', '/products/passion-fruit/wholesale',
+    '/vi/san-pham/chanh-day/retail', '/products/passion-fruit/retail/extra', '/blog/exporting-passion-fruit-eu', '/products/constructor', '/products/passion-fruit/constructor', '/products/passion-fruit/__proto__',
+  ]) assert.equal(segmentOfPage(url), undefined, url);
+  assert.equal(segmentOfPage('/products/bananas', 'bananas'), undefined);
+  assert.equal(segmentOfPage('/products/passion-fruit', 'constructor'), undefined);
 });

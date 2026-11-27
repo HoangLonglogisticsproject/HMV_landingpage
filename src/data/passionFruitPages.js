@@ -9,7 +9,8 @@
 // the fresh fruit, not products HMV makes or customers it serves. Missing facts are requested in the proposal.
 //
 // One content tree per segment. Only text leaves are localized, `t(en, vi)`; resolved into `passionFruitPages.en` and `.vi`.
-import { PRODUCT_SEGMENTS } from '../i18n/routes.js';
+import { isProductSegment } from '../i18n/routes.js';
+import { own } from '../lib/own.js';
 import { resolve } from './localized.js';
 
 /** A localized leaf: resolved to its text in the page language. */
@@ -23,7 +24,7 @@ export const SEGMENTS = ['export', 'foodservice', 'retail'];
 /** English key path of a segment's page. */
 export const segmentPath = segment => (segment === 'export' ? `/products/${PRODUCT_ID}` : `/products/${PRODUCT_ID}/${segment}`);
 /** The segment a URL's last path part names; the product's own URL has none. */
-export const isSegmentSlug = slug => Object.hasOwn(PRODUCT_SEGMENTS[PRODUCT_ID], slug);
+export const isSegmentSlug = slug => isProductSegment(PRODUCT_ID, slug);
 
 const content = {
   nav: {
@@ -402,4 +403,4 @@ const content = {
 export const passionFruitPages = { en: resolve(content, 'en'), vi: resolve(content, 'vi') };
 
 /** Title and description of a segment's page, without the " | HMV Global" suffix both builds add. */
-export const passionFruitMeta = (lang, segment = 'export') => passionFruitPages[lang][segment].seo;
+export const passionFruitMeta = (lang, segment = 'export') => (own(passionFruitPages[lang], segment) ?? passionFruitPages[lang].export).seo;

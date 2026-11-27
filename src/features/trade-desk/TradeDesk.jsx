@@ -5,7 +5,8 @@ import { X } from 'lucide-react';
 import logo from '@/assets/logohmv.webp';
 import Image from '@/lib/image';
 import { Button } from '@/components/ui/button';
-import { productById, recognizeProduct, unitsFor } from './rules';
+import { segmentOfPage } from '@/i18n/routes';
+import { productById, recognizeProduct, segmentOf, unitsFor } from './rules';
 import { track } from '@/lib/analytics';
 import { contactChannels, sendInquiry } from '@/lib/inquiry';
 import { createInquiryMailto } from '@/features/inquiries/inquiry';
@@ -48,8 +49,9 @@ export function TradeDesk({ lang: siteLang, request }) {
   // The buyer segment of the page the desk was opened on (golden passion fruit's pages): it words the volume question and
   // chooses the units. Not part of the inquiry: HMV reads the segment from the page it was sent from.
   const [segment, setSegment] = useState(/** @type {string | undefined} */ (undefined));
-  // The page a segment's conversation started on: it is the inquiry's source page however the buyer moves on, so HMV reads
-  // the segment the conversation was had in.
+  // The page a segment's conversation started on: for golden passion fruit it is the inquiry's source page however the buyer
+  // moves on, so HMV reads the segment the conversation was had in. Set and cleared together with `segment`, always from the
+  // page the conversation starts on: a segment is never kept from an earlier page.
   const [startedOn, setStartedOn] = useState(/** @type {string | undefined} */ (undefined));
   // Opened with the product known (a product page): the conversation starts at the destination.
   const [preselected, setPreselected] = useState(false);
@@ -79,7 +81,8 @@ export function TradeDesk({ lang: siteLang, request }) {
 
   // A new conversation. Consent is given per inquiry, so it is asked again; after a sent inquiry the contact is
   // cleared too. The buyer's own language choice stays.
-  const startConversation = ({ product = null, destination, volume, segment: opened } = {}) => {
+  const startConversation = ({ product = null, destination, volume, segment: named } = {}) => {
+    const opened = segmentOf(named);
     if (reference) {
       setContact(emptyContact());
       setWebsite('');
@@ -110,7 +113,8 @@ export function TradeDesk({ lang: siteLang, request }) {
   // not seen yet (it arrived while the desk was closed) is shown.
   if (request !== handled) {
     setHandled(request);
-    const { product = null, destination, volume, segment: opened } = request;
+    const { product = null, destination, volume } = request;
+    const opened = segmentOf(request.segment);
     const carried = Boolean(destination || volume);
     // Another buyer segment's page asks its own question in its own units: a new conversation.
     const elsewhere = Boolean(opened) && opened !== segment;
@@ -240,7 +244,10 @@ export function TradeDesk({ lang: siteLang, request }) {
   };
 
   /** The inquiry as it would be sent now and its fingerprint: an exact retry keeps the key, any change takes a new one. */
-  const prepare = () => withKey(toInquiry(brief, { contact, consent, locale: lang, context: segment && startedOn ? { ...visitContext(), page: startedOn } : visitContext(), website }), submission);
+  // The source page is the segment page the conversation started on only while it is about golden passion fruit: another
+  // product, chosen later, is sent from the page the buyer is on, never as a passion fruit lead.
+  const inquiryContext = () => (segment && startedOn && brief.product === 'passion-fruit' ? { ...visitContext(), page: startedOn } : visitContext());
+  const prepare = () => withKey(toInquiry(brief, { contact, consent, locale: lang, context: inquiryContext(), website }), submission);
 
   /** A response for the conversation still on screen: its reference, the field errors to correct, or the failure. */
   const settle = (response, accepted) => {
@@ -352,7 +359,7 @@ export function TradeDesk({ lang: siteLang, request }) {
                     <Dialog.Close asChild>
                       <Button type="button" size="lg" className="day-cta">{t.done}</Button>
                     </Dialog.Close>
-                    <button type="button" className="text-link" onClick={() => startConversation({ product: handled?.product, segment: handled?.segment })}>{t.newInquiry}</button>
+                    <button type="button" className="text-link" onClick={() => startConversation({ product: handled?.product, segment: segmentOfPage(window.location.pathname) })}>{t.newInquiry}</button>
                   </div>
                 </SentCard>
               ) : (

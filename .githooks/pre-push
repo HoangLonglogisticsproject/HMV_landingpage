@@ -1,0 +1,8 @@
+#!/bin/sh
+# Refuses to push a commit whose tree holds an unreviewed image or a protected file (scripts/check-protected-assets.js --rev).
+# Enable once per clone: npm run hooks
+zero=0000000000000000000000000000000000000000
+while read -r _ local_sha _ _; do
+  [ "$local_sha" = "$zero" ] && continue
+  node scripts/check-protected-assets.js --rev "$local_sha" || exit 1
+done

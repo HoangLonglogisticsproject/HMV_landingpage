@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { products } from '@/data/hmv';
-import { PRODUCT_SEGMENTS } from '@/i18n/routes';
+import { PRODUCT_SEGMENTS, isProductSegment } from '@/i18n/routes';
 import { pageMetadata } from '@/next/seo';
 import { ProductView } from '@/views/products/ProductView';
 import { productMeta } from '@/views/meta';
@@ -16,7 +16,7 @@ export const generateStaticParams = () =>
 const pageAt = async ({ params }: Props) => {
   const { id, segment } = await params;
   const product = products.find(p => p.id === id);
-  return product && Object.hasOwn(PRODUCT_SEGMENTS[id] ?? {}, segment) ? { product, segment } : notFound();
+  return product && isProductSegment(id, segment) ? { product, segment } : notFound();
 };
 
 export async function generateMetadata(props: Props) {

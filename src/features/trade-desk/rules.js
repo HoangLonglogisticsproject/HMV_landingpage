@@ -4,6 +4,7 @@
 // data only: no requirement, claim or value is generated. Product-specific lists follow the approved buyer pages
 // (data/productPages.js).
 import { products } from '@/data/hmv';
+import { hasOwn, own } from '@/lib/own';
 
 const t = (en, vi) => ({ en, vi });
 const text = (key, label) => ({ key, kind: 'text', label });
@@ -34,15 +35,17 @@ const PASSION_FRUIT_UNITS = {
   foodservice: ['kg', 'kg_week', 'kg_month', 'mt', 'mt_month'],
   retail: ['kg', 'kg_week', 'kg_month', 'mt', 'mt_month'],
 };
-/** The units offered for a product, and for the buyer segment of the page it is asked on (golden passion fruit only). */
-export const unitsFor = (productId, segment) => (productId === 'passion-fruit' && PASSION_FRUIT_UNITS[segment]) || TRADE_UNITS;
+/** The buyer segment a page or an opener names: one golden passion fruit declares (export, foodservice, retail), else undefined. */
+export const segmentOf = segment => (hasOwn(PASSION_FRUIT_UNITS, segment) ? segment : undefined);
+/** The units offered for a product, and for the buyer segment of the page it is asked on (golden passion fruit only; any other segment, or none, is the usual units). */
+export const unitsFor = (productId, segment) => (productId === 'passion-fruit' ? own(PASSION_FRUIT_UNITS, segment) : undefined) ?? TRADE_UNITS;
 /** The unit the volume starts with: the first of the units offered (the product's usual one for the others). */
 export const defaultUnit = (productId, segment) => {
   if (productId === 'dried-cassava-chips') return 'mt_month';
   return unitsFor(productId, segment)[0];
 };
-/** Whether a unit the contract knows may be sent for this product. */
-export const unitAllowed = (productId, unit) => Object.hasOwn(VOLUME_UNITS, unit) && (productId === 'passion-fruit' || !KILOGRAM_UNITS.has(unit));
+/** Whether a unit the contract knows (a string that is one of its own ids) may be sent for this product. */
+export const unitAllowed = (productId, unit) => hasOwn(VOLUME_UNITS, unit) && (productId === 'passion-fruit' || !KILOGRAM_UNITS.has(unit));
 
 export const TRANSPORT = {
   sea_fcl: t('Sea freight (FCL)', 'Đường biển (FCL)'),

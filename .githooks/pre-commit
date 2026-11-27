@@ -1,0 +1,4 @@
+#!/bin/sh
+# Refuses to commit an unreviewed image or a protected file (scripts/check-protected-assets.js, over the index).
+# Enable once per clone: npm run hooks
+exec node scripts/check-protected-assets.js

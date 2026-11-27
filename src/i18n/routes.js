@@ -2,6 +2,7 @@
 // (pages, proxy, next.config) and the tests. Pure: no React, no framework, relative imports only, so every
 // runtime can load it as-is.
 import { findArticle } from '../data/articles.js';
+import { hasOwn, own } from '../lib/own.js';
 
 export const LOCALES = ['en', 'vi'];
 
@@ -34,7 +35,7 @@ export const SEGMENT_ID = Object.fromEntries(Object.entries(PRODUCT_SEGMENTS).ma
 
 /** English key paths of every product page: each product, then its buyer-segment pages. */
 export const PRODUCT_PATHS = Object.keys(PRODUCT_SLUG_VI).flatMap(id =>
-  [`/products/${id}`, ...Object.keys(PRODUCT_SEGMENTS[id] ?? {}).map(segment => `/products/${id}/${segment}`)]);
+  [`/products/${id}`, ...Object.keys(own(PRODUCT_SEGMENTS, id) ?? {}).map(segment => `/products/${id}/${segment}`)]);
 
 // Page-scoped locales: single pages that also exist in a language outside LOCALES, by English key path → that page's
 // URL. Only these pages carry the language in hreflang and the sitemap; the navigation, the language switcher and every
@@ -47,7 +48,7 @@ const PAGE_LOCALE_URLS = Object.fromEntries(Object.entries(PAGE_LOCALES).flatMap
   Object.entries(urls).map(([locale, url]) => [url, { path, locale }])));
 
 /** The page-scoped locales of the page at English key path `path`. */
-export const pageLocales = path => Object.keys(PAGE_LOCALES[path] ?? {});
+export const pageLocales = path => Object.keys(own(PAGE_LOCALES, path) ?? {});
 
 // Standalone localized content: original pages in one language only, at their own URL. Unlike PAGE_LOCALES, they are
 // not translations of a page, so they have no hreflang set; each is its own canonical, listed in the sitemap.
@@ -79,15 +80,15 @@ const articleSlug = (slug, locale) => findArticle(slug)?.slug[locale] ?? slug;
  * own URL for its pages only; any other page stays English.
  */
 export function localizePath(path, locale) {
-  const scoped = PAGE_LOCALES[path]?.[locale];
+  const scoped = own(own(PAGE_LOCALES, path), locale);
   if (scoped) return scoped;
   const [, product, segment] = path.match(/^\/products\/([^/]+)(?:\/([^/]+))?$/) ?? [];
   const slug = path.match(/^\/blog\/([^/]+)$/)?.[1];
   if (locale !== 'vi') return slug ? `/blog/${articleSlug(slug, 'en')}` : path;
   if (path === '/') return '/vi';
   if (product) {
-    const tail = segment ? `/${PRODUCT_SEGMENTS[product]?.[segment] ?? segment}` : '';
-    return `/vi/san-pham/${PRODUCT_SLUG_VI[product] ?? product}${tail}`;
+    const tail = segment ? `/${own(own(PRODUCT_SEGMENTS, product), segment) ?? segment}` : '';
+    return `/vi/san-pham/${own(PRODUCT_SLUG_VI, product) ?? product}${tail}`;
   }
   if (path === '/products') return '/vi/san-pham';
   if (slug) return `/vi/tin-tuc/${articleSlug(slug, 'vi')}`;
@@ -95,17 +96,32 @@ export function localizePath(path, locale) {
   return `/vi${path}`;
 }
 
+/** Whether `segment` is one of the English segment keys the product has: an own key, never an inherited name. */
+export const isProductSegment = (id, segment) => hasOwn(own(PRODUCT_SEGMENTS, id), segment);
+
+/**
+ * The buyer segment of a product's page URL, in either language: the product's own URL is its default segment (`export`),
+ * a segment page its segment, anything else (another product, another page, an unknown or inherited name) none.
+ */
+export function segmentOfPage(pathname, id = 'passion-fruit') {
+  const parts = delocalizePath(pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname).path.split('/');
+  if (parts[1] !== 'products' || parts[2] !== id || parts.length > 4 || !hasOwn(PRODUCT_SEGMENTS, id)) return undefined;
+  if (parts.length === 3) return 'export';
+  return isProductSegment(id, parts[3]) ? parts[3] : undefined;
+}
+
 /** The English segment a Vietnamese product URL names: its Vietnamese slug, or (legacy /vi/products form) the English key. */
 function segmentKey(collection, id, segment) {
-  if (SEGMENT_ID[id]?.[segment]) return SEGMENT_ID[id][segment];
-  return collection === 'products' && Object.hasOwn(PRODUCT_SEGMENTS[id] ?? {}, segment) ? segment : undefined;
+  const fromSlug = own(own(SEGMENT_ID, id), segment);
+  if (fromSlug) return fromSlug;
+  return collection === 'products' && isProductSegment(id, segment) ? segment : undefined;
 }
 
 /** The English key path of a Vietnamese product URL, or undefined for a segment the product does not have in this form
  * (an English key under /vi/san-pham): that URL stays what it is, no page and no redirect. */
 function productKeyPath(collection, slug, segment) {
   if (!slug) return '/products';
-  const id = PRODUCT_ID[slug] ?? slug;
+  const id = own(PRODUCT_ID, slug) ?? slug;
   if (!segment) return `/products/${id}`;
   const key = segmentKey(collection, id, segment);
   return key ? `/products/${id}/${key}` : undefined;
@@ -115,7 +131,8 @@ function productKeyPath(collection, slug, segment) {
 export function delocalizePath(pathname) {
   let p = pathname === '/index.html' ? '/' : pathname;
   if (p === '/en' || p.startsWith('/en/')) p = p.slice(3) || '/';
-  if (PAGE_LOCALE_URLS[p]) return PAGE_LOCALE_URLS[p];
+  const scoped = own(PAGE_LOCALE_URLS, p);
+  if (scoped) return scoped;
   if (localeOf(p) !== 'vi') return { path: p, locale: 'en' };
   const rest = p.slice(3) || '/';
   const [, collection, slug, segment] = rest.match(/^\/(san-pham|products|tin-tuc|blog)(?:\/([^/]+))?(?:\/([^/]+))?$/) ?? [];
@@ -137,7 +154,7 @@ export function canonicalUrl(pathname, search = '') {
   // A standalone content page exists in its one language: `lang` changes nothing.
   if (CONTENT_PAGE.has(pathname)) return withQuery(pathname, params);
   const { path, locale } = delocalizePath(pathname);
-  return withQuery(localizePath(INDEX_ALIASES[path] ?? path, LOCALES.includes(requested) ? requested : locale), params);
+  return withQuery(localizePath(own(INDEX_ALIASES, path) ?? path, LOCALES.includes(requested) ? requested : locale), params);
 }
 
 /** Redirect target for a legacy URL, or null when the URL is already canonical. */

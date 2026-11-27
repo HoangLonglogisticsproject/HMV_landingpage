@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowUp, ArrowUpRight, Check, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { products } from '@/data/hmv';
+import { own } from '@/lib/own';
 import { VOLUME_UNITS, asksForSupplier, asksForTraceability } from './rules';
 import { fieldId, isRfqReady, summarize } from './brief';
 import { LIMITS, isAmount } from './validation';
@@ -43,7 +44,7 @@ function conversation({ brief, preselected, unclear, exploring, segment }, t, la
   if (known.destination) {
     you('destination', known.destination);
     // Golden passion fruit's pages ask in their buyer's words; every other opener asks the general question.
-    hmv('ask-volume', (brief.product === 'passion-fruit' && t.askVolumeFor[segment]) || t.askVolume);
+    hmv('ask-volume', (brief.product === 'passion-fruit' && own(t.askVolumeFor, segment)) || t.askVolume);
     if (known.volume) you('volume', known.volume);
   }
   if (isRfqReady(brief)) hmv('ready', t.ready);
