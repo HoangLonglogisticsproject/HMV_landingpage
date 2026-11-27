@@ -185,7 +185,7 @@ test('inherited names are not products or segments in any direction: no redirect
       for (const made of [legacyRedirect(url) ?? '', canonicalUrl(url, '?lang=vi'), switchHref(url, '', 'vi')]) assert.ok(!made.includes('function') && !made.includes('[object'), url);
     }
     assert.equal(localizePath(`/products/${name}`, 'vi'), `/vi/san-pham/${name}`);
-    assert.equal(localizePath(`/products/passion-fruit/${name}`, 'vi'), `/vi/san-pham/chanh-day/${name}`);
+    assert.equal(localizePath(`/products/passion-fruit/${name}`, 'vi'), `/products/passion-fruit/${name}`);
     assert.equal(localizePath(`/products/${name}/retail`, 'vi'), `/vi/san-pham/${name}/retail`);
     assert.equal(delocalizePath(`/vi/san-pham/${name}`).path, `/products/${name}`);
     assert.equal(delocalizePath(`/vi/san-pham/chanh-day/${name}`).path, `/san-pham/chanh-day/${name}`);
@@ -204,9 +204,14 @@ test('unknown products and segments, wrong-form segments and ?lang= keep their U
   for (const url of ['/products/no-such-product', '/products/no-such-product/retail', '/vi/san-pham/khong-co', '/vi/san-pham/chanh-day/khong-co', '/products/passion-fruit/export', '/products/passion-fruit/khach-san-nha-hang', '/vi/san-pham/chanh-day/retail']) {
     assert.equal(legacyRedirect(url), null, url);
   }
-  // `lang` is dropped and chooses the language, but a segment named in the wrong form stays no page.
-  assert.equal(legacyRedirect('/vi/san-pham/chanh-day/retail', '?lang=vi'), '/vi/san-pham/chanh-day/retail');
-  assert.equal(legacyRedirect('/products/passion-fruit/khach-san-nha-hang', '?lang=en'), '/products/passion-fruit/khach-san-nha-hang');
+  // `lang` is dropped and chooses the language, but a segment named in the wrong form stays no page, with or without it, in
+  // either direction: a Vietnamese slug under the English path is not redirected to the Vietnamese page that happens to have it.
+  for (const lang of ['', '?lang=vi', '?lang=en']) {
+    if (lang !== '?lang=en') assert.equal(legacyRedirect('/vi/san-pham/chanh-day/retail', lang), lang ? '/vi/san-pham/chanh-day/retail' : null, lang);
+    assert.equal(legacyRedirect('/products/passion-fruit/khach-san-nha-hang', lang), lang ? '/products/passion-fruit/khach-san-nha-hang' : null, lang);
+    assert.equal(legacyRedirect('/products/passion-fruit/doi-tac-ban-le', lang), lang ? '/products/passion-fruit/doi-tac-ban-le' : null, lang);
+  }
+  assert.equal(switchHref('/products/passion-fruit/khach-san-nha-hang', '', 'vi'), '/products/passion-fruit/khach-san-nha-hang');
   assert.equal(canonicalUrl('/products/passion-fruit/retail', '?lang=vi'), '/vi/san-pham/chanh-day/doi-tac-ban-le');
   assert.equal(canonicalUrl('/vi/san-pham/chanh-day/doi-tac-ban-le', '?lang=en'), '/products/passion-fruit/retail');
   assert.deepEqual(pageLocales('/products/dried-cassava-chips'), ['zh-CN', 'ko']);

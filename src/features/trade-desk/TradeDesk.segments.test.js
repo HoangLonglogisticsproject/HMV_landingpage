@@ -328,3 +328,18 @@ test('a segment given for another product changes nothing about it: its units an
   assert.equal(sent().at(-1).product, 'bananas');
   assert.equal(pageOfLast(), '/products/bananas');
 });
+
+test('the starting page is the opener’s, even when the buyer goes Back while the desk is still loading', async () => {
+  goTo(RETAIL);
+  // The open request arrives on the retail page; the history moves before the lazily loaded desk mounts.
+  act(() => {
+    openTradeDesk({ product: 'passion-fruit', segment: 'retail', source: 'test' });
+    goTo('/about');
+  });
+  for (let i = 0; i < 300 && !dialog(); i++) await tick();
+  assert.ok(dialog());
+  await say('destination', 'Da Nang');
+  assert.equal(thread().at(-1), `HMV: ${ASKS.retail}`);
+  await finish('4');
+  assert.equal(pageOfLast(), RETAIL);
+});

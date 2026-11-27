@@ -144,7 +144,9 @@ const has = (text, words) => {
 const PARTY = WHOLE(['supplier', 'suppliers', 'grower', 'growers', 'farmer', 'farmers', 'farm', 'farm owner', 'factory', 'manufacturer', 'plantation', 'orchard',
   'nha cung cap', 'chu vuon', 'chu trang trai', 'nong dan', 'nha vuon', 'nha may', 'vung trong']);
 const DETAIL = WHOLE(['contact', 'phone', 'number', 'email', 'address', 'website', 'name', 'names', 'where exactly', 'location', 'gps', 'whatsapp', 'zalo',
-  'lien he', 'so dien thoai', 'dien thoai', 'dia chi', 'ten', 'vi tri']);
+  'lien he', 'so dien thoai', 'dien thoai', 'dia chi', 'vi tri',
+  // "tên" (name) is matched in the Vietnamese phrases that ask for one, never alone: unaccented, it is English "ten".
+  'ten gi', 'ten la gi', 'ten cua', 'ten chu', 'ten nha', 'ten nong dan', 'ten trang trai', 'ten vung trong']);
 const WHO = WHOLE(['who grows', 'who supplies', 'who produces', 'who is your supplier', 'who are your suppliers', 'ai trong', 'ai cung cap', 'nha cung cap la ai']);
 const TRACE = WHOLE(['traceability', 'traceable', 'certificate', 'certificates', 'certification', 'documentation', 'documents', 'customs', 'audit', 'due diligence',
   'truy xuat', 'chung nhan', 'chung tu', 'kiem toan', 'ho so']);

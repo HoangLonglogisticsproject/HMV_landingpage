@@ -57,18 +57,27 @@ test('the inquiry endpoint answers hostile values with a controlled 400 by field
     const response = await post({ ...base, volume: { amount, unit: 'kg' } });
     expect([response.status(), await fields(response)], JSON.stringify(amount)).toEqual([400, ['volume.amount']]);
   }
-  // Kilograms of another product, a unit that names no container, and arrays or objects in every enum field.
-  expect((await post({ ...base, product: 'dried-cassava-chips' })).status()).toBe(400);
-  for (const body of [
-    { ...base, application: { toString: 1 }, transport: ['air'], origin: { toString: 1 } },
-    { ...base, application: 'constructor', transport: '__proto__', requirements: { toString: 1 } },
-    { ...base, product: ['passion-fruit'] },
-    { ...base, context: { page: { toString: 1 }, utm: { source: ['x'] } } },
-  // 400 for a refused value; 503 where the optional field is dropped and the valid request reaches the missing delivery step. Never 500.
-  ]) expect([400, 503], JSON.stringify(body)).toContain((await post(body)).status());
-  // The accepted forms still reach the delivery step (503 here: no adapter is configured, never 400 or 500).
-  for (const volume of [{ amount: '50', unit: 'kg_week' }, { amount: '2', unit: 'containers' }, { amount: '10', unit: 'mt_month' }, { amount: '' }]) {
-    expect((await post({ ...base, volume })).status(), JSON.stringify(volume)).toBe(503);
+  // Kilograms of another product, and a product, an origin or a unit that is not a name: 400 by field, never a server error.
+  const kilogramsOfCassava = await post({ ...base, product: 'dried-cassava-chips' });
+  expect([kilogramsOfCassava.status(), await fields(kilogramsOfCassava)]).toEqual([400, ['volume.unit']]);
+  for (const product of [['passion-fruit'], {}, { toString: 1 }, 'constructor', '__proto__']) {
+    const response = await post({ ...base, product, volume: { amount: '5', unit: 'mt' } });
+    expect([response.status(), await fields(response)], JSON.stringify(product)).toEqual([400, ['product']]);
   }
-  expect((await post({ ...base, product: 'dried-cassava-chips', origin: 'cambodia', volume: { amount: '5000', unit: 'mt_month' } })).status()).toBe(503);
+  const origin = await post({ ...base, origin: { toString: 1 } });
+  expect([origin.status(), await fields(origin)]).toEqual([400, ['origin']]);
+  // Valid requests reach the delivery step (503 here, which has no adapter): only against the local build, never against a
+  // preview, where they could create a real inquiry. An optional field of the wrong type is dropped, not an error.
+  if (!process.env.PLAYWRIGHT_BASE_URL) {
+    for (const body of [
+      { ...base, application: { toString: 1 }, transport: ['air'] },
+      { ...base, application: 'constructor', transport: '__proto__', requirements: { toString: 1 } },
+      { ...base, context: { page: { toString: 1 }, utm: { source: ['x'] } } },
+      { ...base, volume: { amount: '50', unit: 'kg_week' } },
+      { ...base, volume: { amount: '2', unit: 'containers' } },
+      { ...base, volume: { amount: '10', unit: 'mt_month' } },
+      { ...base, volume: { amount: '' } },
+      { ...base, product: 'dried-cassava-chips', origin: 'cambodia', volume: { amount: '5000', unit: 'mt_month' } },
+    ]) expect((await post(body)).status(), JSON.stringify(body)).toBe(503);
+  }
 });

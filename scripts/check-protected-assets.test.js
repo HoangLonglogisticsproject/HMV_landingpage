@@ -1,7 +1,7 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { findViolations, readManifest, readTracked } from './check-protected-assets.js';
@@ -63,7 +63,7 @@ test('a violation names what to do about it; redacted for public logs it shows n
 test('the committed manifest covers exactly the tracked images, and is checked against the real index', () => {
   const root = path.resolve(import.meta.dirname, '..');
   const { files, ids } = readTracked(root);
-  assert.deepEqual(findViolations(files, { manifest: readManifest(), ids }), []);
+  assert.deepEqual(findViolations(files, { manifest: readManifest(root), ids }), []);
 });
 
 test('against a real Git repository: the index and a commit are both checked, a staged AVIF fails before it is committed', () => {
@@ -91,3 +91,80 @@ test('against a real Git repository: the index and a commit are both checked, a 
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('the approvals are those of the snapshot checked: an unstaged edit of the manifest approves nothing that is staged', () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'protected-manifest-'));
+  const git = (...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', ...args], { cwd: dir, stdio: 'pipe' }).toString();
+  const manifestFile = path.join(dir, 'scripts/approved-assets.json');
+  try {
+    git('init', '-q');
+    mkdirSync(path.join(dir, 'scripts'), { recursive: true });
+    mkdirSync(path.join(dir, 'src/assets'), { recursive: true });
+    writeFileSync(manifestFile, JSON.stringify({ assets: {} }));
+    git('add', 'scripts');
+    git('commit', '-q', '-m', 'manifest');
+    // The image is staged; its approval is only in the working tree.
+    writeFileSync(path.join(dir, 'src/assets/new.avif'), 'unreviewed bytes');
+    git('add', 'src/assets/new.avif');
+    const { files, ids } = readTracked(dir);
+    writeFileSync(manifestFile, JSON.stringify({ assets: { 'src/assets/new.avif': ids['src/assets/new.avif'] } }));
+    assert.deepEqual(readManifest(dir), {});
+    assert.equal(findViolations(files, { manifest: readManifest(dir), ids }).length, 1);
+    // Staged together, the approval counts, in the index and in the commit that follows.
+    git('add', 'scripts/approved-assets.json');
+    assert.equal(findViolations(files, { manifest: readManifest(dir), ids }).length, 0);
+    git('commit', '-q', '-m', 'image and approval');
+    const committed = readTracked(dir, 'HEAD');
+    assert.deepEqual(findViolations(committed.files, { manifest: readManifest(dir, 'HEAD'), ids: committed.ids }), []);
+    // The earlier commit holds the manifest without it: that snapshot has no approval, whatever the disk says.
+    assert.deepEqual(readManifest(dir, 'HEAD~1'), {});
+    // A snapshot without a manifest approves nothing.
+    assert.deepEqual(readManifest(dir, '4b825dc642cb6eb9a060e54bf8d69288fbee4904'), {});
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('the pre-push hook checks every commit a push publishes: a file added in one commit and removed in the next is refused', () => {
+  const root = path.resolve(import.meta.dirname, '..');
+  const dir = mkdtempSync(path.join(tmpdir(), 'protected-push-'));
+  const remote = path.join(dir, 'remote.git');
+  const work = path.join(dir, 'work');
+  const run = (cwd, ...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', ...args], { cwd, stdio: 'pipe' }).toString();
+  try {
+    mkdirSync(work, { recursive: true });
+    run(dir, 'init', '-q', '--bare', remote);
+    run(work, 'init', '-q', '-b', 'main');
+    mkdirSync(path.join(work, 'scripts'), { recursive: true });
+    mkdirSync(path.join(work, '.githooks'), { recursive: true });
+    copyFileSync(path.join(root, 'scripts/check-protected-assets.js'), path.join(work, 'scripts/check-protected-assets.js'));
+    copyFileSync(path.join(root, '.githooks/pre-push'), path.join(work, '.githooks/pre-push'));
+    writeFileSync(path.join(work, 'package.json'), '{"type":"module"}');
+    writeFileSync(path.join(work, 'scripts/approved-assets.json'), '{"assets":{}}');
+    run(work, 'config', 'core.hooksPath', '.githooks');
+    run(work, 'remote', 'add', 'origin', remote);
+    run(work, 'add', '-A');
+    run(work, 'commit', '-q', '-m', 'base');
+    run(work, 'push', '-q', 'origin', 'main');
+    // A clean commit is published.
+    writeFileSync(path.join(work, 'notes.md'), 'notes');
+    run(work, 'add', 'notes.md');
+    run(work, 'commit', '-q', '-m', 'clean');
+    run(work, 'push', '-q', 'origin', 'main');
+    // A adds a supplier document, B removes it: the tip is clean, the history is not.
+    writeFileSync(path.join(work, 'quotation.pdf'), 'confidential');
+    run(work, 'add', 'quotation.pdf');
+    run(work, 'commit', '-q', '-m', 'A');
+    run(work, 'rm', '-q', 'quotation.pdf');
+    run(work, 'commit', '-q', '-m', 'B');
+    assert.equal(execFileSync('node', ['scripts/check-protected-assets.js'], { cwd: work, stdio: 'pipe' }).toString().includes('OK'), true);
+    assert.throws(() => run(work, 'push', 'origin', 'main'));
+    assert.equal(run(remote, 'rev-list', '--count', 'main').trim(), '2');
+    // A new branch is checked the same way, and a branch without such a commit is published.
+    assert.throws(() => run(work, 'push', 'origin', 'main:refs/heads/other'));
+    run(work, 'checkout', '-q', '-b', 'clean-branch', 'HEAD~2');
+    run(work, 'push', '-q', 'origin', 'clean-branch');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}, 60_000);

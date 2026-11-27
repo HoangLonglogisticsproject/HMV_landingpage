@@ -87,6 +87,10 @@ export function localizePath(path, locale) {
   if (locale !== 'vi') return slug ? `/blog/${articleSlug(slug, 'en')}` : path;
   if (path === '/') return '/vi';
   if (product) {
+    // A product with buyer segments has pages only at its declared segments: any other name under it (a Vietnamese slug under
+    // the English path, an unknown name) is no page, and no URL of another language stands for it: it stays what it is.
+    const declared = own(PRODUCT_SEGMENTS, product);
+    if (segment && declared && !hasOwn(declared, segment)) return path;
     const tail = segment ? `/${own(own(PRODUCT_SEGMENTS, product), segment) ?? segment}` : '';
     return `/vi/san-pham/${own(PRODUCT_SLUG_VI, product) ?? product}${tail}`;
   }

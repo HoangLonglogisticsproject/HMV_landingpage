@@ -279,9 +279,12 @@ test('the API refuses kilograms of another product and a quantity of none; the e
     volume: { amount: '5', unit: 'mt_month' }, contact: { company: 'Example Co', email: 'buyer@example.com' }, consent: { contact: true },
   };
   const status = async body => (await request.post('/api/inquiry', { data: body })).status();
-  // Valid inquiries reach the delivery step: 503 here, which has no adapter (never 400).
-  expect(await status(base)).toBe(503);
-  expect(await status({ ...base, product: 'passion-fruit', volume: { amount: '50', unit: 'kg_week' } })).toBe(503);
+  // Valid inquiries reach the delivery step: 503 here, which has no adapter (never 400). Only against the local build: a
+  // preview with delivery enabled would create a real inquiry.
+  if (!process.env.PLAYWRIGHT_BASE_URL) {
+    expect(await status(base)).toBe(503);
+    expect(await status({ ...base, product: 'passion-fruit', volume: { amount: '50', unit: 'kg_week' } })).toBe(503);
+  }
   const refused = await request.post('/api/inquiry', { data: { ...base, volume: { amount: '5', unit: 'kg' } } });
   expect([refused.status(), (await refused.json()).fields]).toEqual([400, ['volume.unit']]);
   const none = await request.post('/api/inquiry', { data: { ...base, product: 'passion-fruit', volume: { amount: '0', unit: 'kg' } } });

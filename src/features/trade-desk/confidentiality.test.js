@@ -18,6 +18,9 @@ test('a request for a supplier\'s identity, contact or location is recognized, i
     'Địa chỉ nhà cung cấp ở đâu',
     'Ai trồng chanh dây này',
     'Tên và liên hệ của nông dân',
+    'Tên chủ vườn là gì',
+    'Cho tôi biết tên nhà cung cấp',
+    'tên của nông dân trồng chanh dây',
   ]) assert.equal(asksForSupplier(words), true, words);
 });
 
@@ -29,6 +32,8 @@ test('ordinary words about suppliers, farms or products are not read as such a r
     'I need dried cassava chips from an orchard region',
     'chanh dây cho khách sạn',
     'nhà cung ứng chanh dây vàng',
+    'We need ten containers from a supplier',
+    'ten farms supply our market',
     '',
     undefined,
   ]) assert.equal(asksForSupplier(words), false, String(words));
@@ -41,6 +46,9 @@ test('a request for traceability or compliance documents is recognized, and a su
   }
   assert.equal(asksForTraceability('the supplier contact and the traceability documents'), false);
   assert.equal(asksForTraceability('passion fruit'), false);
+  // English "ten" is a number, not the Vietnamese word for a name.
+  assert.equal(asksForSupplier('Please send farm audit documents for ten shipments'), false);
+  assert.equal(asksForTraceability('Please send farm audit documents for ten shipments'), true);
 });
 
 test('the answers speak for HMV, in both languages, and name, locate and promise nothing', () => {

@@ -16,7 +16,6 @@
 // a short identifier of the path, not the file name; run the check locally for the name.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -27,7 +26,7 @@ const BASELINE = /^tests\/next-visual\/[^/]+-snapshots\/[^/]+\.png$/;
 // Folders that hold private source material or design references: nothing in them is committed, whatever the extension.
 const PRIVATE_DIRS = [/^specs\/references\//, /^private\//, /^internal\//, /^suppliers?\//];
 
-const MANIFEST_FILE = path.join(import.meta.dirname, 'approved-assets.json');
+const MANIFEST_PATH = 'scripts/approved-assets.json';
 
 /** A short, stable identifier of a path, for logs that must not show the name. */
 const shortId = file => createHash('sha1').update(file).digest('hex').slice(0, 8);
@@ -78,8 +77,19 @@ export function readTracked(root, rev) {
   return { files: Object.keys(ids), ids };
 }
 
-/** @returns {Record<string, string>} */
-export const readManifest = () => JSON.parse(readFileSync(MANIFEST_FILE, 'utf8')).assets;
+/**
+ * The approvals of the snapshot being checked: the index's manifest, or the commit's (`rev`), never the working tree's. An image
+ * staged with its approval left unstaged, or an unrelated edit of the file on disk, changes nothing about what is checked.
+ * A snapshot without a manifest approves nothing.
+ * @returns {Record<string, string>}
+ */
+export function readManifest(root, rev) {
+  try {
+    return JSON.parse(execFileSync('git', ['show', `${rev ?? ''}:${MANIFEST_PATH}`], { cwd: root, stdio: 'pipe' }).toString()).assets ?? {};
+  } catch {
+    return {};
+  }
+}
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const root = path.resolve(import.meta.dirname, '..');
@@ -87,7 +97,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const rev = args.includes('--rev') ? args[args.indexOf('--rev') + 1] : undefined;
   const where = rev ? ` at ${rev.slice(0, 12)}` : '';
   const { files, ids } = readTracked(root, rev);
-  const manifest = readManifest();
+  const manifest = readManifest(root, rev);
   if (args.includes('--manifest')) {
     // For the reviewer: the entries a reviewed change would add. Prints; never writes.
     const missing = files.filter(file => IMAGE.test(file) && !BASELINE.test(file) && manifest[file] !== ids[file]);

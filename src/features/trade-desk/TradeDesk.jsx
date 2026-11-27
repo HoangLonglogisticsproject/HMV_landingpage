@@ -81,7 +81,7 @@ export function TradeDesk({ lang: siteLang, request }) {
 
   // A new conversation. Consent is given per inquiry, so it is asked again; after a sent inquiry the contact is
   // cleared too. The buyer's own language choice stays.
-  const startConversation = ({ product = null, destination, volume, segment: named } = {}) => {
+  const startConversation = ({ product = null, destination, volume, segment: named, page } = {}) => {
     const opened = segmentOf(named);
     if (reference) {
       setContact(emptyContact());
@@ -93,7 +93,7 @@ export function TradeDesk({ lang: siteLang, request }) {
     // editable like any other, and the conversation continues at the next question.
     setBrief(emptyBrief({ product: known, destination, volume, segment: opened }));
     setSegment(opened);
-    setStartedOn(opened ? window.location.pathname : undefined);
+    setStartedOn(opened ? (page ?? window.location.pathname) : undefined);
     setPreselected(Boolean(known));
     setUnclear([]);
     setExploring(false);
@@ -113,13 +113,13 @@ export function TradeDesk({ lang: siteLang, request }) {
   // not seen yet (it arrived while the desk was closed) is shown.
   if (request !== handled) {
     setHandled(request);
-    const { product = null, destination, volume } = request;
+    const { product = null, destination, volume, openedOn } = request;
     const opened = segmentOf(request.segment);
     const carried = Boolean(destination || volume);
     // Another buyer segment's page asks its own question in its own units: a new conversation.
     const elsewhere = Boolean(opened) && opened !== segment;
     const fresh = reference ? acknowledged : Boolean(productById(product)) && (carried || elsewhere || product !== brief.product);
-    if (fresh) startConversation({ product, destination, volume, segment: opened });
+    if (fresh) startConversation({ product, destination, volume, segment: opened, page: openedOn });
     setOpen(true);
   }
   const openChange = next => {
