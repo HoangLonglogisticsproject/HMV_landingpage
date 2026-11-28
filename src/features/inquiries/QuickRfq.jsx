@@ -2,7 +2,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { track } from '@/lib/analytics';
 import { sendInquiry } from '@/lib/inquiry';
-import { defaultUnit, productById } from '@/features/trade-desk/rules';
+import { defaultUnit, productById, unitsFor } from '@/features/trade-desk/rules';
 import { summarize, toInquiry } from '@/features/trade-desk/brief';
 import { LIMITS, contactErrors, isAmount, validateInquiry } from '@/features/trade-desk/validation';
 import { isAccepted, withKey } from '@/features/trade-desk/submission';
@@ -30,14 +30,14 @@ const BLANK = { product: '', destination: '', amount: '', unit: '', company: '',
 const REASON = { 400: 'invalid', 409: 'conflict', 503: 'unavailable' };
 
 /** The requirement and the contact the form's values stand for, trimmed: what is validated and sent. */
-function readValues(values, locked) {
+function readValues(values, locked, segment) {
   const id = locked ?? values.product;
   const trim = key => values[key].trim();
   return {
     brief: {
       product: productById(id) ? id : null,
       destination: trim('destination'),
-      volume: { amount: trim('amount'), unit: values.unit || defaultUnit(id) },
+      volume: { amount: trim('amount'), unit: values.unit || defaultUnit(id, segment) },
       notes: trim('notes'),
     },
     contact: { company: trim('company'), email: trim('email'), name: trim('name'), phone: trim('phone') },
@@ -64,15 +64,16 @@ function placeOf(step, status, locked) {
 }
 
 /**
- * @param {{ lang: 'en' | 'vi', product?: string, source?: string, intro?: import('react').ReactNode, guidance?: boolean | 'started', strip?: boolean }} props
- * `source`: where the form is, for analytics and the Trade Desk it opens. `intro`: the page's own heading, shown at the
+ * @param {{ lang: 'en' | 'vi', product?: string, segment?: string, source?: string, intro?: import('react').ReactNode, guidance?: boolean | 'started', strip?: boolean }} props
+ * `segment`: the buyer segment of the page (golden passion fruit's), which chooses the units offered and the one the volume
+ * starts with, and is handed to the Trade Desk it opens. `source`: where the form is, for analytics and the Trade Desk it opens. `intro`: the page's own heading, shown at the
  * top of the first step (not of the second, nor of the received state). `guidance`: the "Need guidance?" row below the
  * form, which opens the desk with what the buyer has typed: always (`true`, the default), never (`false`), or from the
  * moment the buyer has started the requirement (`'started'`: for a page that already offers the desk elsewhere, so the
  * row says "I started and now need help", not a second copy of the same call to action). `strip`: a compact horizontal
  * layout of the same elements for a wide page (a band under the hero); one column on a phone.
  */
-export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance = true, strip = false }) {
+export function QuickRfq({ lang, product, segment, source = 'quick_rfq', intro, guidance = true, strip = false }) {
   const c = quickRfqCopy[lang];
   const uid = useId().replaceAll(':', '');
   const id = key => `${uid}-${key}`;
@@ -96,7 +97,7 @@ export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance 
   const pendingFocus = useRef(/** @type {string | null} */ (null));
   const rootRef = useRef(/** @type {HTMLDivElement | null} */ (null));
 
-  const read = readValues(values, locked);
+  const read = readValues(values, locked, segment);
   const { brief, contact } = read;
   const facts = stepName => ({ product: brief.product ?? undefined, locale: lang, step: stepName });
 
@@ -143,7 +144,7 @@ export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance 
   const change = (key, value) => {
     const next = { ...values, [key]: value };
     setValues(next);
-    const now = readValues(next, locked);
+    const now = readValues(next, locked, segment);
     const field = FIELD[key];
     if (errors.includes(field) && !localErrors(now, next.consent).includes(field)) {
       setErrors(e => e.filter(f => f !== field));
@@ -245,7 +246,7 @@ export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance 
   // The assisted lane, with what the buyer has already told HMV so the desk does not ask it again.
   const openDesk = () => {
     const given = { product: brief.product, destination: brief.destination, volume: isAmount(brief.volume.amount) ? brief.volume : null };
-    openTradeDesk({ source, ...Object.fromEntries(Object.entries(given).filter(([, answer]) => answer)) });
+    openTradeDesk({ source, segment, ...Object.fromEntries(Object.entries(given).filter(([, answer]) => answer)) });
   };
 
   const another = () => {
@@ -285,7 +286,7 @@ export function QuickRfq({ lang, product, source = 'quick_rfq', intro, guidance 
         <>
           <Steps c={c} step={step} intro={intro} strip={strip} onSubmit={step === 'requirement' ? goToContact : send}>
             {step === 'requirement' ? (
-              <RequirementStep c={c} lang={lang} id={id} error={error} values={values} unit={brief.volume.unit} locked={fixed} strip={strip} onChange={change} />
+              <RequirementStep c={c} lang={lang} id={id} error={error} values={values} unit={brief.volume.unit} units={unitsFor(brief.product, segment)} locked={fixed} strip={strip} onChange={change} />
             ) : (
               <ContactStep
                 c={c}

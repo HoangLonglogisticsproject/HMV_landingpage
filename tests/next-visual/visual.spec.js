@@ -6,7 +6,7 @@ import { LOCALES, PAGES, PAGE_LOCALES, SCOPED_CONTENT_PAGES, localizePath } from
 
 /**
  * D-14 visual baselines: screenshots of the Next.js build, taken before the image and font work of PR-08 and compared
- * on every CI run (playwright.next-visual.config.js). Every page, plus the two buyer product pages and one article:
+ * on every CI run (playwright.next-visual.config.js). Every page, plus the buyer product pages (golden passion fruit's three buyer segments, dried cassava chips) and one article:
  * - the full page in both languages (Vietnamese text exercises the fonts' coverage), images masked: layout, image boxes
  *   and text, at a fraction of the size of photographs;
  * - the first viewport in English with its images, the hero (LCP) image included;
@@ -20,7 +20,7 @@ import { LOCALES, PAGES, PAGE_LOCALES, SCOPED_CONTENT_PAGES, localizePath } from
  * image. Plus Jakarta Sans and Poppins are under the SIL Open Font License. Once the site self-hosts its fonts (D-20),
  * these routes match nothing and fonts/ can go.
  */
-const KEYS = [...PAGES, '/products/passion-fruit', '/products/dried-cassava-chips', `/blog/${articles[0].slug.en}`];
+const KEYS = [...PAGES, '/products/passion-fruit', '/products/passion-fruit/foodservice', '/products/passion-fruit/retail', '/products/dried-cassava-chips', `/blog/${articles[0].slug.en}`];
 const FONTS = path.join(import.meta.dirname, 'fonts');
 
 test.beforeEach(async ({ page }) => {

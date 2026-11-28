@@ -41,25 +41,34 @@ test('contact page renders the inquiry form with expected fields', async ({ page
 //  - select defaultValue={params.get('product') || ''}
 //  - URL param 'Passion fruit' → defaultValue 'Passion fruit' → matches option → preselected
 
-// Buyer pages (passion fruit): the hero CTA opens the HMV Trade Desk with the page's product known. Their own RFQ
-// (ProductRfq) stays lower on the page as the fallback, fixed to the product (read-only field, no product select).
-for (const [id, product, cta] of [
-  ['passion-fruit', 'Passion fruit', 'Discuss Your Passion Fruit Requirements'],
+// Golden passion fruit, International Buyers: the hero's Trade Desk button opens the desk with the page's product known;
+// the page's one form is the Quick RFQ, fixed to the product (it asks no product).
+test('passion-fruit page: the hero opens the Trade Desk with "Passion fruit"; the Quick RFQ stays', async ({ page }) => {
+  await page.goto('/products/passion-fruit?lang=en');
+  await page.getByRole('button', { name: 'Ask HMV Trade Desk' }).click();
+  const desk = page.getByRole('dialog', { name: 'HMV Trade Desk' });
+  await expect(desk).toBeVisible();
+  // The product is known: the summary has it and the conversation starts at the destination.
+  await expect(desk.getByRole('complementary', { name: 'Your requirement' })).toContainText('Passion fruit');
+  await expect(desk.getByRole('log')).toHaveText('HMVWhere would you like the goods delivered?');
+  await page.keyboard.press('Escape');
+  await expect(desk).toBeHidden();
+  const rfq = page.locator('section#rfq');
+  await expect(rfq.locator('form')).toBeAttached();
+  await expect(rfq.getByLabel('Product', { exact: true })).toHaveCount(0);
+});
+
+// The two other segments are their own pages on the Vite site as well, with their own heading and Trade Desk button.
+for (const [path, h1, cta] of [
+  ['/products/passion-fruit/foodservice', 'An Exceptional Ingredient. A Memorable Experience.', 'Discuss Your Supply Needs'],
+  ['/products/passion-fruit/retail', 'Distinctive Fruit. Distinguished Shelves.', 'Discuss a Retail Partnership'],
 ]) {
-  test(`${id} page CTA opens the Trade Desk with "${product}"; the RFQ fallback stays`, async ({ page }) => {
-    await page.goto(`/products/${id}?lang=en`);
+  test(`${path}: its own heading; the button opens the Trade Desk with "Passion fruit"`, async ({ page }) => {
+    await page.goto(`${path}?lang=en`);
+    await expect(page.locator('h1')).toHaveText(h1);
     await page.getByRole('button', { name: cta }).click();
     const desk = page.getByRole('dialog', { name: 'HMV Trade Desk' });
-    await expect(desk).toBeVisible();
-    // The product is known: the summary has it and the conversation starts at the destination.
-    await expect(desk.getByRole('complementary', { name: 'Your requirement' })).toContainText(product);
-    await expect(desk.getByRole('log')).toHaveText('HMVWhere would you like the goods delivered?');
-    await page.keyboard.press('Escape');
-    await expect(desk).toBeHidden();
-    const rfq = page.locator('section#rfq');
-    await expect(rfq.locator('input[readonly]')).toHaveValue(product);
-    await expect(rfq.locator('input[type="hidden"][name="product"]')).toHaveValue(product);
-    await expect(rfq.locator('select[name="product"]')).toHaveCount(0);
+    await expect(desk.getByRole('complementary', { name: 'Your requirement' })).toContainText('Passion fruit');
   });
 }
 

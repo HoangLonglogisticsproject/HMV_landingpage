@@ -1,0 +1,13 @@
+#!/bin/sh
+# Refuses to push a commit whose tree holds an unreviewed image or a protected file (scripts/check-protected-assets.js --rev),
+# for every commit the push publishes, not only the tip: a file added in one commit and removed in the next is still published.
+# Enable once per clone: npm run hooks
+zero=0000000000000000000000000000000000000000
+while read -r _ local_sha _ remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue
+  # An existing ref: the commits after the remote's tip; a new ref, or a remote tip this clone does not have: those no remote branch has.
+  if [ "$remote_sha" != "$zero" ] && commits=$(git rev-list "$local_sha" --not "$remote_sha" 2>/dev/null); then :; else commits=$(git rev-list "$local_sha" --not --remotes); fi
+  for commit in $commits; do
+    node scripts/check-protected-assets.js --rev "$commit" || exit 1
+  done
+done

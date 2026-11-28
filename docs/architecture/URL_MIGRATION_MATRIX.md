@@ -42,6 +42,11 @@ Today, every extension-less path returns **200** with the same SPA shell (`verce
 | M-34 | `/products/{unknown}` (today 200, soft 404) | none | n/a | **404** (global 404, server-rendered) | none | M | ✓ |
 | M-35 | `/vi/san-pham/{unknown}` | none | n/a | **404** | none | L | ✓ |
 | M-36 | `/products`, `/vi/san-pham`, `/vi/products` | `/trade-solutions`, `/vi/trade-solutions` | en/vi | 308, 1 hop (config redirect or proxy) | target | L | ✓ |
+| M-36a | new: golden passion fruit buyer segments | `/products/passion-fruit/{foodservice, retail}`, `/vi/san-pham/chanh-day/{khach-san-nha-hang, doi-tac-ban-le}` | en/vi | No | itself | L | ✓ |
+| M-36b | `/vi/products/passion-fruit/{segment}`, `/products/passion-fruit/{segment}?lang=vi` | the segment's `/vi/san-pham/chanh-day/…` URL | vi | 308, proxy, 1 hop | target | L | ✓ |
+| M-36c | `/products/passion-fruit/{unknown}`, `/products/{other-product}/{segment}`, the Vietnamese slug under the English path or the reverse | none | n/a | **404** | none | L | ✓ |
+
+M-36a: the product's own URL (M-21, M-27) is the International Buyers page and is unchanged; each segment has its own URL, canonical and hreflang pair, and is in the sitemap. The segments are declared in `PRODUCT_SEGMENTS` (`src/i18n/routes.js`); a product without an entry has none.
 
 ### 2.3 Articles: the three bundled articles
 

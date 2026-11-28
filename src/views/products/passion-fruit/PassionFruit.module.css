@@ -1,0 +1,83 @@
+/* Scope of the golden passion fruit pages. Each page sets its palette on its root (`.export`, `.foodservice`, `.retail`),
+   and the components read it as --pf-* custom properties. The hex values are the approved supporting colors (HMV Deep
+   Blue, Botanical Green, Golden Harvest, Natural Cream); Export keeps the site's brighter blue and green.
+
+   The legacy stylesheet has unlayered rules that no Tailwind utility can outrank (docs/architecture/CSS_ARCHITECTURE.md,
+   B): the weight, size and line height of h1–h3 (`.heading` hands them back with `revert-layer`), and their margins (below) and `* { letter-spacing: 0 }`
+   (`.tracked` and `.display` set it). Delete both once those legacy rules are migrated. */
+.export {
+  --pf-bg: #fff;
+  --pf-soft: #f2f7f1;
+  --pf-ink: var(--navy);
+  --pf-muted: #475569;
+  --pf-accent: #1e7a34;
+  --pf-line: #d7e2d6;
+}
+
+.foodservice {
+  --pf-bg: #f3efe3;
+  --pf-soft: #ebe6d6;
+  --pf-ink: #193d2c;
+  --pf-muted: #4b5a50;
+  --pf-accent: #193d2c;
+  --pf-line: #cfc8b0;
+  --pf-gold: #d8b94f;
+  --pf-gold-ink: #7a5f0d;
+}
+
+.retail {
+  --pf-bg: #f3efe3;
+  --pf-soft: #ebe6d6;
+  --pf-ink: #102d43;
+  --pf-muted: #44546a;
+  --pf-accent: #102d43;
+  --pf-line: #cfc8b0;
+  --pf-gold: #d8b94f;
+  --pf-gold-ink: #7a5f0d;
+}
+
+/* `margin: 0` on h1–h3, p and figure is unlayered too, so the pages' margin utilities (mt-4, mx-auto) would do nothing.
+   Handed back inside the pages; the Quick RFQ keeps what it was designed with (`.legacy`). */
+:is(.export, .foodservice, .retail) :is(h1, h2, h3, p, figure) {
+  margin: revert-layer;
+}
+
+:is(.export, .foodservice, .retail) .legacy :is(h1, h2, h3, p, figure) {
+  margin: 0;
+}
+
+.heading {
+  font-size: revert-layer;
+  line-height: revert-layer;
+  font-weight: revert-layer;
+}
+
+.tracked {
+  letter-spacing: 0.14em;
+}
+
+.display {
+  letter-spacing: -0.02em;
+}
+
+/* The FAQ marker: a plus that turns into a minus when the answer is open. */
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq details[open] .plus {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .faq .plus,
+  .lift {
+    transition: transform 0.2s ease;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lift:hover {
+    transform: translateY(-2px);
+  }
+}

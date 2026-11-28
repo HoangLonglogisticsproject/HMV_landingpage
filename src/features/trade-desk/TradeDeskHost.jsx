@@ -40,7 +40,8 @@ export function TradeDeskHost({ lang }) {
       const { product, source = 'unknown' } = event.detail ?? {};
       // Only a real product id reaches analytics; anything else opens the desk without one.
       const known = products.some(p => p.id === product) ? product : undefined;
-      setRequest({ ...event.detail });
+      // The page the opener is on now: the desk loads lazily, and the buyer may have moved on by the time it starts.
+      setRequest({ ...event.detail, openedOn: location.pathname });
       track('trade_desk_open', { source, product: known, locale: lang });
       if (known) track('trade_product_selected', { product: known, source: 'preselected' });
     };

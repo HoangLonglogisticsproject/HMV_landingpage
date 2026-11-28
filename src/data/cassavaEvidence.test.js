@@ -36,8 +36,8 @@ test('copy, alt text and captions in English, Vietnamese, Simplified Chinese and
   }
 });
 
-// The cassava procurement page shows them (views/products/CassavaProcurement), on the EN/VI page too; ProductLanding
-// does not, so no other product page can.
+// The cassava procurement page shows them (views/products/CassavaProcurement), on the EN/VI page too; the other product pages
+// do not, so no other product page can.
 test('the EN/VI dried cassava chips page is the procurement page; no product page carries photographs of its own', () => {
   for (const [id, page] of Object.entries(productPages)) {
     assert.equal(page.supplyEvidence, undefined, id);

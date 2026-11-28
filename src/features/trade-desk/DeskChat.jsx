@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ArrowUp, ArrowUpRight, Check, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { products } from '@/data/hmv';
-import { VOLUME_UNITS } from './rules';
+import { own } from '@/lib/own';
+import { VOLUME_UNITS, asksForSupplier, asksForTraceability } from './rules';
 import { fieldId, isRfqReady, summarize } from './brief';
 import { LIMITS, isAmount } from './validation';
 
@@ -14,8 +15,14 @@ const FieldError = ({ uid, name, error }) => error && <span className="desk-erro
 /** aria attributes of a control with or without an error. */
 const invalid = (uid, name, error) => (error ? { 'aria-invalid': true, 'aria-describedby': errorId(uid, name) } : {});
 
+/** HMV's answer to a buyer who asks who the supplier is, or for their contact, or for traceability documents; null otherwise. */
+const confidentialReply = (words, t) => {
+  if (asksForSupplier(words)) return t.supplierContact;
+  return asksForTraceability(words) ? t.traceability : null;
+};
+
 /** The conversation so far: HMV's questions and the buyer's answers, from the requirement and the buyer's choices. */
-function conversation({ brief, preselected, unclear, exploring }, t, lang) {
+function conversation({ brief, preselected, unclear, exploring, segment }, t, lang) {
   const known = summarize(brief, lang);
   const lines = [];
   const hmv = (id, text) => lines.push({ id, from: 'hmv', text });
@@ -24,15 +31,20 @@ function conversation({ brief, preselected, unclear, exploring }, t, lang) {
     hmv('ask-product', t.askProduct);
     unclear.forEach((words, i) => {
       you(`unclear-${i}`, words);
-      hmv(`unclear-${i}-reply`, t.productUnclear);
+      hmv(`unclear-${i}-reply`, [confidentialReply(words, t), t.productUnclear].filter(Boolean));
     });
-    if (brief.product) you('product', brief.notes || known.product);
+    if (brief.product) {
+      you('product', brief.notes || known.product);
+      const reply = confidentialReply(brief.notes, t);
+      if (reply) hmv('product-reply', reply);
+    }
   }
   if (!brief.product) return lines;
   hmv('ask-destination', t.askDestination);
   if (known.destination) {
     you('destination', known.destination);
-    hmv('ask-volume', t.askVolume);
+    // Golden passion fruit's pages ask in their buyer's words; every other opener asks the general question.
+    hmv('ask-volume', (brief.product === 'passion-fruit' && own(t.askVolumeFor, segment)) || t.askVolume);
     if (known.volume) you('volume', known.volume);
   }
   if (isRfqReady(brief)) hmv('ready', t.ready);
@@ -110,14 +122,17 @@ export function DestinationComposer({ uid, t, onAnswer, onExplore }) {
 }
 
 /** The volume: an amount the inquiry accepts and its unit (the product's usual one first). */
-export function VolumeComposer({ uid, t, lang, unit, onAnswer, onExplore }) {
+export function VolumeComposer({ uid, t, lang, unit, units, onAnswer, onExplore }) {
   const [amount, setAmount] = useState('');
   const [chosen, setChosen] = useState(unit);
   const [error, setError] = useState(false);
+  // The unit the selector shows is the unit that is sent: when the offered units change under a chosen one (another page's),
+  // the brief's own unit, or the first offered, stands in its place.
+  const shown = [chosen, unit].find(id => units.includes(id)) ?? units[0];
   const submit = event => {
     event.preventDefault();
     if (!amount.trim()) return;
-    if (isAmount(amount)) onAnswer({ amount: amount.trim(), unit: chosen });
+    if (isAmount(amount)) onAnswer({ amount: amount.trim(), unit: shown });
     else setError(true);
   };
   const change = value => {
@@ -130,8 +145,8 @@ export function VolumeComposer({ uid, t, lang, unit, onAnswer, onExplore }) {
       <label htmlFor={fieldId(uid, 'volume')} className="sr-only">{t.volumeInput}</label>
       <div className="desk-composer-row">
         <input id={fieldId(uid, 'volume')} inputMode="decimal" autoComplete="off" maxLength={LIMITS['volume.amount']} placeholder={t.volumePlaceholder} value={amount} onChange={e => change(e.target.value)} {...invalid(uid, 'volume', message)} />
-        <select aria-label={t.unit} value={chosen} onChange={e => setChosen(e.target.value)}>
-          {Object.entries(VOLUME_UNITS).map(([id, label]) => <option key={id} value={id}>{label[lang]}</option>)}
+        <select aria-label={t.unit} value={shown} onChange={e => setChosen(e.target.value)}>
+          {units.map(id => <option key={id} value={id}>{VOLUME_UNITS[id][lang]}</option>)}
         </select>
         <button type="submit" className="desk-send" aria-label={t.answer}>
           <ArrowUp size={18} aria-hidden="true" />

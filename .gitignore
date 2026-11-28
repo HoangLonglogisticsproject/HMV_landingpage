@@ -15,3 +15,17 @@ playwright-report/
 .next/
 next-env.d.ts
 *.tsbuildinfo
+
+# Private source media: the supplied photographs and design references are not an archive for this public repository.
+# Only the sanitized WebP derivatives (scripts/passion-fruit-images.mjs) and the Playwright baselines are committed.
+# See "Supplier confidentiality" in AGENTS.md.
+/src/assets/passion-fruit/*.jpg
+/src/assets/passion-fruit/*.jpeg
+/src/assets/passion-fruit/*.png
+/specs/references/*.png
+
+# HMV original photographs of the products (location stamps, plates, people): never committed; the site imports the WebP
+# exports. This was a per-machine rule in .git/info/exclude; it belongs here so every clone and every agent has it.
+/src/assets/products/*.jpg
+/src/assets/products/*.jpeg
+/src/assets/products/*.png

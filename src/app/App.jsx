@@ -55,6 +55,7 @@ export default function App() {
               <Route path="/logistics" element={<LogisticsHubPage />} />
               <Route path="/logistics/vietnam-cambodia-consolidation" element={<StaticPage view={ConsolidationView} meta={consolidationMeta} />} />
               <Route path="/products/:id" element={<ProductDetailPage />} />
+              <Route path="/products/:id/:segment" element={<ProductDetailPage />} />
             </Route>
             {/* Outside SiteLayout on purpose: articles render their own SiteShell
                 and scroll handling, so the chrome (incl. chat) remounts on entry. */}

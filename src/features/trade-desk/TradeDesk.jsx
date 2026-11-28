@@ -5,7 +5,8 @@ import { X } from 'lucide-react';
 import logo from '@/assets/logohmv.webp';
 import Image from '@/lib/image';
 import { Button } from '@/components/ui/button';
-import { productById, recognizeProduct } from './rules';
+import { segmentOfPage } from '@/i18n/routes';
+import { productById, recognizeProduct, segmentOf, unitsFor } from './rules';
 import { track } from '@/lib/analytics';
 import { contactChannels, sendInquiry } from '@/lib/inquiry';
 import { createInquiryMailto } from '@/features/inquiries/inquiry';
@@ -45,6 +46,13 @@ export function TradeDesk({ lang: siteLang, request }) {
   const lang = chosenLang ?? writtenLang ?? siteLang;
   const t = deskCopy[lang];
   const [brief, setBrief] = useState(() => emptyBrief());
+  // The buyer segment of the page the desk was opened on (golden passion fruit's pages): it words the volume question and
+  // chooses the units. Not part of the inquiry: HMV reads the segment from the page it was sent from.
+  const [segment, setSegment] = useState(/** @type {string | undefined} */ (undefined));
+  // The page a segment's conversation started on: for golden passion fruit it is the inquiry's source page however the buyer
+  // moves on, so HMV reads the segment the conversation was had in. Set and cleared together with `segment`, always from the
+  // page the conversation starts on: a segment is never kept from an earlier page.
+  const [startedOn, setStartedOn] = useState(/** @type {string | undefined} */ (undefined));
   // Opened with the product known (a product page): the conversation starts at the destination.
   const [preselected, setPreselected] = useState(false);
   // What the buyer typed for a product that named none (or several) of HMV's.
@@ -73,7 +81,8 @@ export function TradeDesk({ lang: siteLang, request }) {
 
   // A new conversation. Consent is given per inquiry, so it is asked again; after a sent inquiry the contact is
   // cleared too. The buyer's own language choice stays.
-  const startConversation = ({ product = null, destination, volume } = {}) => {
+  const startConversation = ({ product = null, destination, volume, segment: named, page } = {}) => {
+    const opened = segmentOf(named);
     if (reference) {
       setContact(emptyContact());
       setWebsite('');
@@ -82,7 +91,9 @@ export function TradeDesk({ lang: siteLang, request }) {
     const known = productById(product) ? product : null;
     // Destination and volume come from an opener that already asked them (the Quick RFQ): they are answers, shown and
     // editable like any other, and the conversation continues at the next question.
-    setBrief(emptyBrief({ product: known, destination, volume }));
+    setBrief(emptyBrief({ product: known, destination, volume, segment: opened }));
+    setSegment(opened);
+    setStartedOn(opened ? (page ?? window.location.pathname) : undefined);
     setPreselected(Boolean(known));
     setUnclear([]);
     setExploring(false);
@@ -102,10 +113,13 @@ export function TradeDesk({ lang: siteLang, request }) {
   // not seen yet (it arrived while the desk was closed) is shown.
   if (request !== handled) {
     setHandled(request);
-    const { product = null, destination, volume } = request;
+    const { product = null, destination, volume, openedOn } = request;
+    const opened = segmentOf(request.segment);
     const carried = Boolean(destination || volume);
-    const fresh = reference ? acknowledged : Boolean(productById(product)) && (carried || product !== brief.product);
-    if (fresh) startConversation({ product, destination, volume });
+    // Another buyer segment's page asks its own question in its own units: a new conversation.
+    const elsewhere = Boolean(opened) && opened !== segment;
+    const fresh = reference ? acknowledged : Boolean(productById(product)) && (carried || elsewhere || product !== brief.product);
+    if (fresh) startConversation({ product, destination, volume, segment: opened, page: openedOn });
     setOpen(true);
   }
   const openChange = next => {
@@ -153,7 +167,7 @@ export function TradeDesk({ lang: siteLang, request }) {
   // A product (also after an edit): the destination stays; the volume starts over in the product's usual unit, so an
   // amount is never read in another product's unit.
   const chooseProduct = (product, words = '') => {
-    setBrief(b => ({ ...emptyBrief({ product, notes: words }), destination: b.destination }));
+    setBrief(b => ({ ...emptyBrief({ product, notes: words, segment }), destination: b.destination }));
     track('trade_product_selected', { product, source: 'chosen' });
   };
   const answerProduct = words => {
@@ -194,7 +208,7 @@ export function TradeDesk({ lang: siteLang, request }) {
    */
   const edit = key => {
     const next = {
-      product: { ...emptyBrief(), destination: brief.destination },
+      product: { ...emptyBrief({ segment }), destination: brief.destination },
       destination: { ...brief, destination: '' },
       volume: { ...brief, volume: { ...brief.volume, amount: '' } },
     }[key];
@@ -230,7 +244,10 @@ export function TradeDesk({ lang: siteLang, request }) {
   };
 
   /** The inquiry as it would be sent now and its fingerprint: an exact retry keeps the key, any change takes a new one. */
-  const prepare = () => withKey(toInquiry(brief, { contact, consent, locale: lang, context: visitContext(), website }), submission);
+  // The source page is the segment page the conversation started on only while it is about golden passion fruit: another
+  // product, chosen later, is sent from the page the buyer is on, never as a passion fruit lead.
+  const inquiryContext = () => (segment && startedOn && brief.product === 'passion-fruit' ? { ...visitContext(), page: startedOn } : visitContext());
+  const prepare = () => withKey(toInquiry(brief, { contact, consent, locale: lang, context: inquiryContext(), website }), submission);
 
   /** A response for the conversation still on screen: its reference, the field errors to correct, or the failure. */
   const settle = (response, accepted) => {
@@ -335,14 +352,14 @@ export function TradeDesk({ lang: siteLang, request }) {
               locked={status === 'sending'}
             />
             <div className="desk-main">
-              <Thread t={t} lang={lang} brief={brief} preselected={preselected} unclear={unclear} exploring={exploring} />
+              <Thread t={t} lang={lang} brief={brief} preselected={preselected} unclear={unclear} exploring={exploring} segment={segment} />
               {reference ? (
                 <SentCard t={t} route={route} reference={reference} channels={channels} heading={sentHeading}>
                   <div className="desk-sent-actions">
                     <Dialog.Close asChild>
                       <Button type="button" size="lg" className="day-cta">{t.done}</Button>
                     </Dialog.Close>
-                    <button type="button" className="text-link" onClick={() => startConversation({ product: handled?.product })}>{t.newInquiry}</button>
+                    <button type="button" className="text-link" onClick={() => startConversation({ product: handled?.product, segment: segmentOfPage(window.location.pathname) })}>{t.newInquiry}</button>
                   </div>
                 </SentCard>
               ) : (
@@ -350,7 +367,7 @@ export function TradeDesk({ lang: siteLang, request }) {
                 <fieldset key={generation} className="desk-lock" disabled={status === 'sending'}>
                   {stage === 'product' && <ProductComposer uid={uid} t={t} lang={lang} onAnswer={answerProduct} onChoose={chooseProduct} />}
                   {stage === 'destination' && <DestinationComposer uid={uid} t={t} onAnswer={answerDestination} onExplore={explore} />}
-                  {stage === 'volume' && <VolumeComposer uid={uid} t={t} lang={lang} unit={brief.volume.unit} onAnswer={answerVolume} onExplore={explore} />}
+                  {stage === 'volume' && <VolumeComposer uid={uid} t={t} lang={lang} unit={brief.volume.unit} units={unitsFor(brief.product, segment)} onAnswer={answerVolume} onExplore={explore} />}
                   {stage === 'decision' && !contactOpen && <RouteAction uid={uid} t={t} route={route} onClick={openContact} />}
                   {contactOpen && (
                     <ContactForm

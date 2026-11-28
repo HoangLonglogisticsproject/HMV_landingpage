@@ -12,26 +12,31 @@ test('absolute URLs: the www origin over https, the root without a trailing slas
   assert.equal(absoluteUrl('/products/dried-cassava-chips', 'vi'), `${SITE}/vi/san-pham/san-lat-kho`);
 });
 
-// The money pages and the search intent their title leads with.
+// The money pages and the search intent their title leads with: [English key path, language, URL, intent, segment].
 const MONEY = [
-  ['dried-cassava-chips', 'en', '/products/dried-cassava-chips', /^Dried Cassava Chips Supplier in Vietnam\b/],
-  ['dried-cassava-chips', 'vi', '/vi/san-pham/san-lat-kho', /^Nhà cung cấp sắn lát khô B2B\b/],
-  ['passion-fruit', 'en', '/products/passion-fruit', /^Vietnam Passion Fruit Supplier\b/],
-  ['passion-fruit', 'vi', '/vi/san-pham/chanh-day', /^Nguồn chanh dây Việt Nam\b/],
+  ['/products/dried-cassava-chips', 'en', '/products/dried-cassava-chips', /^Dried Cassava Chips Supplier in Vietnam/],
+  ['/products/dried-cassava-chips', 'vi', '/vi/san-pham/san-lat-kho', /^Nhà cung cấp sắn lát khô B2B/],
+  // Golden passion fruit: one page per buyer segment, each with its own search intent.
+  ['/products/passion-fruit', 'en', '/products/passion-fruit', /^Golden Passion Fruit Supplier from Vietnam/, 'export'],
+  ['/products/passion-fruit', 'vi', '/vi/san-pham/chanh-day', /^Nhà cung ứng chanh dây vàng Việt Nam/, 'export'],
+  ['/products/passion-fruit/foodservice', 'en', '/products/passion-fruit/foodservice', /^Golden Passion Fruit for Hotels & Foodservice/, 'foodservice'],
+  ['/products/passion-fruit/foodservice', 'vi', '/vi/san-pham/chanh-day/khach-san-nha-hang', /^Chanh dây vàng cho khách sạn, nhà hàng & F&B/, 'foodservice'],
+  ['/products/passion-fruit/retail', 'en', '/products/passion-fruit/retail', /^Golden Passion Fruit for Retail Businesses/, 'retail'],
+  ['/products/passion-fruit/retail', 'vi', '/vi/san-pham/chanh-day/doi-tac-ban-le', /^Chanh dây vàng cho đối tác bán lẻ/, 'retail'],
 ];
 
 test('money pages: intent-led title and description within SERP length, unique; self canonical; hreflang set; OG and Twitter', () => {
-  const metas = MONEY.map(([id, lang, url, intent]) => {
-    const { title, description } = productMeta(lang, products.find(p => p.id === id));
+  const metas = MONEY.map(([path, lang, url, intent, segment]) => {
+    const { title, description } = productMeta(lang, products.find(p => path.startsWith(`/products/${p.id}`)), segment);
     assert.match(title, intent);
     // ponytail: characters, not pixels; Google cuts at roughly 600 px, about 60-70 characters.
     assert.ok(`${title} | HMV Global`.length <= 70, `${url} title: ${title}`);
     assert.ok(description.length <= 160, `${url} description: ${description.length}`);
-    const m = pageMetadata({ lang, path: `/products/${id}`, title, description });
-    const pair = MONEY.filter(row => row[0] === id).map(([, l, u]) => [l, SITE + u]);
+    const m = pageMetadata({ lang, path, title, description });
+    const pair = MONEY.filter(row => row[0] === path).map(([, l, u]) => [l, SITE + u]);
     assert.equal(m.alternates.canonical, SITE + url);
     // Dried cassava chips also has its page-scoped Chinese and Korean versions (tested below).
-    const scoped = id === 'dried-cassava-chips' ? { 'zh-CN': `${SITE}/zh-cn/cassava-chips`, ko: `${SITE}/ko/tapioca-chips` } : {};
+    const scoped = path === '/products/dried-cassava-chips' ? { 'zh-CN': `${SITE}/zh-cn/cassava-chips`, ko: `${SITE}/ko/tapioca-chips` } : {};
     assert.deepEqual(m.alternates.languages, { ...Object.fromEntries(pair), ...scoped, 'x-default': pair.find(([l]) => l === 'en')[1] });
     assert.equal(m.openGraph.url, SITE + url);
     assert.deepEqual([m.openGraph.title, m.openGraph.description], [`${title} | HMV Global`, description]);

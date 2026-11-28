@@ -27,7 +27,7 @@ const ROUTES = [
   { path: '/logistics/vietnam-cambodia-consolidation', titleFrag: 'Cambodia', h1Text: /vietnam–cambodia cross-border consolidation|ghép hàng việt nam – campuchia/i },
   { path: '/packaging-logistics', titleFrag: 'Packaging', h1Text: /packaging|đóng gói/i },
   // ProductDetailPage: title = product[lang] from data/hmv.js
-  { path: '/products/passion-fruit', titleFrag: 'Passion fruit', h1Text: /passion fruit|chanh dây/i },
+  { path: '/products/passion-fruit', titleFrag: 'Passion Fruit', h1Text: /passion fruit|chanh dây/i },
   { path: '/products/bananas', titleFrag: 'banana', h1Text: /banana|chuối/i },
   { path: '/products/dried-cassava-chips', titleFrag: 'Cassava', h1Text: /dried cassava chips|sắn lát khô/i },
   // ArticlePage: title = a.title[lang] from data/articles.js — "Exporting Passion Fruit..."

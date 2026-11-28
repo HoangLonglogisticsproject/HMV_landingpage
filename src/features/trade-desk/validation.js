@@ -3,7 +3,9 @@
 // buyer types has one length limit, the same in the field (maxLength), here and in the CMS contract: over it is an
 // error for that field, never a silently shortened value. The contact, visit-context and key rules are shared with the
 // route assessment (features/route-assessment/validation.js).
-import { APPLICATIONS, TRANSPORT, VOLUME_UNITS, originsFor, productById, requirementsFor } from './rules';
+import { hasOwn, own } from '@/lib/own';
+import { APPLICATIONS, TRANSPORT, originsFor, productById, requirementsFor, unitAllowed } from './rules';
+import { isQuantityText } from './quantity';
 
 /** Character limits of the buyer's text fields (DeskSteps and TradeDesk use them as maxLength). */
 export const LIMITS = {
@@ -20,7 +22,6 @@ export const LIMITS = {
 const str = (value, max) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
 const text = value => (typeof value === 'string' ? value.trim() : '');
 const PHONE = /^[+\d()\s.-]*$/;
-const AMOUNT = /^\d[\d.,\s]*$/;
 const UTM = /^[\w.+\- ]*$/;
 /** An idempotency key: the Trade Desk's per-inquiry UUID, or another 8–64 character key of letters, digits and dashes. */
 export const KEY = /^[A-Za-z0-9-]{8,64}$/;
@@ -28,7 +29,7 @@ export const KEY = /^[A-Za-z0-9-]{8,64}$/;
 /** A volume amount the inquiry accepts (2, 5000, 2,000), within its limit: the Trade Desk checks an answer with it. */
 export const isAmount = value => {
   const v = text(value);
-  return v.length <= LIMITS['volume.amount'] && AMOUNT.test(v);
+  return v.length <= LIMITS['volume.amount'] && isQuantityText(v);
 };
 
 /** A same-site path (no query or fragment, which can carry personal data); '' otherwise. */
@@ -97,15 +98,23 @@ function checkPlan(body, check) {
   const origin = checkOrigin(body.origin, product, check);
   const destination = typed('destination', body.destination);
   const notes = typed('notes', body.notes);
-  const amount = typed('volume.amount', body.volume?.amount);
-  if (amount && !AMOUNT.test(amount)) fail('volume.amount');
+  // The values of a request are of the type the contract says, else they are errors (a number is not an amount, a list or an
+  // object is not a unit): never coerced into a name, never dropped, never read as another value.
+  const { amount: rawAmount, unit } = body.volume ?? {};
+  const amount = typed('volume.amount', rawAmount);
+  if ((amount && !isQuantityText(amount)) || (rawAmount != null && typeof rawAmount !== 'string')) fail('volume.amount');
+  // A unit that is given must be one the contract has, and one this product may carry: anything else is an error, never read
+  // as containers ("5 kg" must not become "5 containers"). No unit at all is the default, for a client that omits it.
+  const given = unit !== undefined && unit !== null && unit !== '';
+  const usable = unitAllowed(product, unit);
+  if (given && !usable) fail('volume.unit');
   return {
     product,
     origin,
     destination,
-    volume: { amount, unit: Object.hasOwn(VOLUME_UNITS, body.volume?.unit) ? body.volume.unit : 'containers' },
-    application: Object.hasOwn(APPLICATIONS[product] ?? {}, body.application) ? body.application : '',
-    transport: Object.hasOwn(TRANSPORT, body.transport) ? body.transport : '',
+    volume: { amount, unit: given && usable ? unit : 'containers' },
+    application: hasOwn(own(APPLICATIONS, product), body.application) ? body.application : '',
+    transport: hasOwn(TRANSPORT, body.transport) ? body.transport : '',
     notes,
   };
 }

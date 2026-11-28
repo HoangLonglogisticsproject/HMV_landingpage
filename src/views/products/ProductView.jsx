@@ -8,19 +8,21 @@ import { productPages } from '@/data/productPages';
 import { qualityReportPages } from '@/data/cassavaQualityReport';
 import { productMeta } from '../meta';
 import { CassavaProcurementContent } from './CassavaProcurement';
-import { ProductLanding } from './ProductLanding';
+import { PRODUCT_ID } from '@/data/passionFruitPages';
+import { PassionFruitView } from './passion-fruit/PassionFruitView';
 import Image from '@/lib/image';
 
 // Product page body, shared by both builds, inside the site's chrome (SiteShell). `product` is undefined for an unknown
-// id on the Vite site only. Products with buyer-page content (data/productPages.js) get the full page: dried cassava
-// chips the cassava procurement page (`procurement`, as on the Chinese and Korean pages), the others ProductLanding;
-// the remaining products the generic one.
-export function ProductView({ lang, product }) {
+// id on the Vite site only. Golden passion fruit gets its buyer-segment pages (`segment`: export, the product's own URL,
+// foodservice or retail); dried cassava chips the cassava procurement page (`procurement`, data/productPages.js, as on the
+// Chinese and Korean pages); the remaining products the generic one.
+/** @param {{ lang: string, product?: any, segment?: string }} props */
+export function ProductView({ lang, product, segment }) {
+  if (product?.id === PRODUCT_ID) return <PassionFruitView lang={lang} segment={segment} />;
   const page = product && productPages[product.id];
   if (page?.procurement) {
     return <CassavaProcurementContent content={page[lang]} lang={lang} source={lang} reportPages={qualityReportPages} />;
   }
-  if (page) return <ProductLanding lang={lang} product={product} page={page} />;
   const t = copy[lang];
   const photo = product && productPhotos[product.id];
   return (

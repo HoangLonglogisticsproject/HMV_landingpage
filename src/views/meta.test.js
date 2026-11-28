@@ -30,8 +30,15 @@ test('titles: main commercial pages and the seven products are unique per langua
 });
 
 test('buyer pages: their own titles; Dried Cassava Chips and Tapioca Starch never share one', () => {
-  assert.equal(productMeta('en', product('passion-fruit')).title, 'Vietnam Passion Fruit Supplier for Wholesale Buyers');
-  assert.equal(productMeta('vi', product('passion-fruit')).title, 'Nguồn chanh dây Việt Nam cho nhà nhập khẩu & B2B');
+  assert.equal(productMeta('en', product('passion-fruit')).title, 'Golden Passion Fruit Supplier from Vietnam');
+  assert.equal(productMeta('vi', product('passion-fruit')).title, 'Nhà cung ứng chanh dây vàng Việt Nam');
+  // One title and description per buyer segment; the product's own URL is the export one.
+  for (const lang of ['en', 'vi']) {
+    const metas = ['export', 'foodservice', 'retail'].map(segment => productMeta(lang, product('passion-fruit'), segment));
+    assert.deepEqual(metas[0], productMeta(lang, product('passion-fruit')), lang);
+    assert.equal(new Set(metas.map(m => m.title)).size, 3, lang);
+    assert.equal(new Set(metas.map(m => m.description)).size, 3, lang);
+  }
   assert.equal(productMeta('en', product('dried-cassava-chips')).title, 'Dried Cassava Chips Supplier in Vietnam');
   assert.equal(productMeta('vi', product('dried-cassava-chips')).title, 'Nhà cung cấp sắn lát khô B2B tại Việt Nam');
   for (const lang of ['en', 'vi']) {
