@@ -26,8 +26,8 @@
 }
 
 .retail {
-  --pf-bg: #f3efe3;
-  --pf-soft: #ebe6d6;
+  --pf-bg: #faf6ed;
+  --pf-soft: #f1ead8;
   --pf-ink: #102d43;
   --pf-muted: #44546a;
   --pf-accent: #102d43;
@@ -58,6 +58,15 @@
 
 .display {
   letter-spacing: -0.02em;
+}
+
+/* A hero photograph that melts into the cream of the copy column from 1024 px (stacked below it, the photograph comes first
+   and needs no fade). Set on the photograph's own frame, never on the caption or an inset beside it. */
+@media (min-width: 1024px) {
+  .fadeLeft {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24%);
+    mask-image: linear-gradient(to right, transparent 0, #000 24%);
+  }
 }
 
 /* The FAQ marker: a plus that turns into a minus when the answer is open. */

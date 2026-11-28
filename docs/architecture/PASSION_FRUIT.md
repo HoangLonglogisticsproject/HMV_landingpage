@@ -28,7 +28,7 @@ The segment navigation (`SegmentNav`) is `<nav>` with three real links and `aria
 | Direction | Luxury Corporate Agriculture: the approved mockup | Luxury Hospitality Editorial | Premium Produce Branding |
 | Palette | white, HMV blue, farm green | botanical green `#193D2C`, cream `#F3EFE3`, gold `#D8B94F` (rules and dark bands only; text uses `#7A5F0D`) | deep blue `#102D43`, cream, the same gold |
 | Type | Plus Jakarta Sans, extra bold | Poppins light, large | Plus Jakarta Sans semibold |
-| Composition | four-photo collage hero, proof strip, four cards, gallery rows, FAQ, conversion band | editorial split, ruled lists, a dark applications band, no cards, no icons | hero with an inset, ruled numbered lists, a packaging mosaic, a deep-blue partnership band |
+| Composition | four-photo collage hero, proof strip, four cards, gallery rows, FAQ, conversion band | editorial hero fading into the cream, a four-point line-icon value strip, an applications grid of four photographic cards (the dessert card is text-led), ruled lists, a dark botanical-green supply band | hero with the AI-generated gift-carton concept (labelled) and a carton inset, a five-point line-icon value strip, ruled numbered lists, a two-photo packaging mosaic, a deep-blue partnership band; warm ivory `#FAF6ED` background, so it differs from Foodservice |
 | Inquiry | Quick RFQ (fixed to passion fruit) and the Trade Desk | Trade Desk | Trade Desk |
 
 No new font, no new dependency. Styles are Tailwind utilities with the palette as `--pf-*` properties on each page's root (`PassionFruit.module.css`). The module also hands back, inside these pages only, what the unlayered legacy CSS takes from utilities (weight, size, line height and margin of h1–h3, `p` and `figure`; `letter-spacing: 0` on `*`): see CSS_ARCHITECTURE.md, B. The Quick RFQ is excluded from the margin rule (`.legacy`) so it renders as on the home page.
@@ -49,7 +49,21 @@ Verified, shown: fresh whole golden passion fruit, Vietnam, sorted fruit, a grow
 
 ## 4. Media register
 
-Sources: `src/assets/passion-fruit/` holds the ten originals as supplied (seven JPG, three PNG), **untracked**. The site imports only the WebP derivatives written by `scripts/passion-fruit-images.mjs`, which **are tracked**: a clean checkout builds without the originals (`passionFruitPages.test.js` checks that every imported file is tracked and that the data imports no JPG or PNG). Regeneration needs the originals in that folder and `sharp` (already a dependency of Next.js): `node scripts/passion-fruit-images.mjs`. Sources are found by name without extension (Unicode-normalized), so JPG or PNG makes no difference; output is ASCII-named WebP, quality 80, no metadata, never enlarged, colors untouched. The crop boxes in the script are the publication decisions.
+Layout of `src/assets/passion-fruit/` (no loose image in its root; `passionFruitPages.test.js` checks it):
+
+```text
+private-sources/   LOCAL ONLY: ignored by Git and refused by the protected-asset check, whatever the extension or the manifest
+  farming/         ảnh vùng trồng 1, ảnh vùng trồng, chanh dây farming 2, chanh dây tại farm, farming field   (JPG)
+  operations/      ảnh nhà máy 2, chanh dây organic   (JPG)
+  product/         chanh day 2, chanh day 4, hữu cơ 1   (PNG)
+  v2-media/        signature-drinks, luxury-culinary, retail-presentation   (PNG, AI-generated concepts)
+production/        TRACKED and manifest-approved: what the site imports
+  shared/{product,farming,operations,packaging}/   used by Export, Foodservice and Retail (one file, never copied per page)
+  foodservice/     signature-drinks.webp, luxury-culinary.webp
+  retail/          premium-packaging.webp
+```
+
+The site imports only the WebP derivatives in `production/`, written by `scripts/passion-fruit-images.mjs` and **tracked**: a clean checkout and CI build without the originals (`passionFruitPages.test.js` checks that every imported file is tracked, lives under `production/`, and that nothing imports from `private-sources/`). Regeneration needs the originals in `private-sources/` and `sharp` (already a dependency of Next.js): `node scripts/passion-fruit-images.mjs`, or with output names to write only those (`node scripts/passion-fruit-images.mjs signature-drinks`). Do not regenerate the V1 derivatives only to move them: a new `sharp` or libwebp build changes their bytes and their manifest blob ids. Sources are found by name without extension (Unicode-normalized), so JPG or PNG makes no difference; output is ASCII-named WebP, quality 80, no metadata, never enlarged, colors untouched. The crop boxes in the script are the publication decisions.
 
 Three kinds of image, told apart on the pages by their captions:
 
@@ -64,19 +78,22 @@ Removing visible branding does not establish publication rights. For every edite
 | PF-01 | documentary | **Withheld, pending approval.** | none |
 | PF-02 | documentary | **Withheld, pending approval.** | none |
 | PF-03 | documentary | **Withheld, pending approval.** | none |
-| PF-04 | edited product | **Used** (updated image), publication rights to be confirmed. The caption never reads a grade into the fruit. | `golden-fruit-scene` (Export collage), `golden-fruit-display` (Export quality, Retail hero), `golden-fruit-on-tree` (Export orchard and conversion band), `golden-fruit-cluster` (Foodservice hero), `golden-fruit-pile` (Foodservice ingredient, Retail presentation), `golden-fruit-halved` (Foodservice culinary), `fruit-protective-nets` (Retail packaging) |
-| PF-05 | illustrative packaging | **Used** (updated image), publication rights to be confirmed. Caption: a packaging presentation reference, not HMV packaging. | `carton-twelve-compartments` (Export collage and packing, Retail hero inset and packaging) |
+| PF-04 | edited product | **Used** (updated image), publication rights to be confirmed. The caption never reads a grade into the fruit. | `golden-fruit-scene` (Export collage), `golden-fruit-display` (Export quality), `golden-fruit-on-tree` (Export orchard and conversion band), `golden-fruit-cluster` (Foodservice hero), `golden-fruit-pile` (Foodservice ingredient, Retail presentation), `golden-fruit-halved` (not used in a page since V2), `fruit-protective-nets` (Retail packaging) |
+| PF-05 | illustrative packaging | **Used** (updated image), publication rights to be confirmed. Caption: a packaging presentation reference, not HMV packaging. | `carton-twelve-compartments` (Export collage and packing, Retail hero inset) |
 | PF-06 | documentary | **Used**; the caption says the fruit is still green. | `vine-green-fruit` (Export collage and orchard) |
 | PF-07 | documentary | **Used as a fruit-only crop**: the frame holds sorted fruit on a tarpaulin and no person, hand or background, because the permission to publish people in the photograph is pending. | `manual-sorting` (Export collage and sorting, Retail origin) |
 | PF-08 | documentary | **Used.** | `orchard-trellis` (Export orchard, Foodservice origin) |
 | PF-09 | documentary | **Withheld, pending approval.** | none |
-| PF-10 | illustrative packaging | **Used** (updated image: plain cartons, nothing printed), publication rights to be confirmed. The fruit is shown lime-green and the caption says so. | `neutral-packaging-cartons` (Export and Retail packaging), `neutral-carton-fruit` (not used in a page today) |
+| V2-01 | AI-generated application illustration | **Used.** Golden-yellow fruit and a beverage; no text, logo or person. Caption: *Illustrative application imagery*; not an HMV customer or a finished HMV drink. Owner-approved visual direction; provenance is the generator's output as supplied, rights to be confirmed like the other generated images. | `signature-drinks` (Foodservice applications) |
+| V2-02 | AI-generated application illustration | **Used.** A plated fish dish with golden passion fruit sauce; no text, logo or person. Caption: *Illustrative application imagery*; not a restaurant partnership or a finished HMV dish. It is not a dessert photograph. | `luxury-culinary` (Foodservice applications) |
+| V2-03 | AI-generated packaging concept | **Used.** A cream and gold gift carton with twelve golden fruit; no mark on fruit or box. Caption: *Illustrative packaging concept — not official HMV packaging*; not manufactured packaging or a confirmed pack. | `premium-packaging` (Retail hero) |
+| PF-10 | illustrative packaging | **Used** (updated image: plain cartons, nothing printed), publication rights to be confirmed. The fruit is shown lime-green and the caption says so. | `neutral-packaging-cartons` (Export and Retail packaging), `neutral-carton-fruit` (Foodservice hospitality supply card) |
 
-Not used anywhere: purple fruit, generated hospitality scenes, stock images, any logo other than the site's own. No image shows or invents an HMV wordmark or a leaf logo.
+Not used anywhere: purple fruit, stock images, photographs cropped out of design mockups, any logo other than the site's own. No image shows or invents an HMV wordmark or a leaf logo.
 
 ### Future media
 
-`culinary.media` in `passionFruitPages.js` (`[]` today) takes approved hospitality photographs, `{ photo, caption }` each; nothing is shown while it is empty. `passionFruitMedia.js` is where an approved packaging or studio photograph replaces a derivative. Sections that still want dedicated photography: Foodservice applications (a resort beverage, a hotel breakfast, a dessert, a bartender at work), Foodservice culinary inspiration, Retail packaging (HMV's own cartons once designed), and the Export orchard and sorting (more documentary photographs of HMV's own visits once approved: PF-02, PF-03, PF-09). The brand film "Qua Bao Đôi Tay" gets a player when it exists, not before.
+`photos` in `FoodserviceSegment.jsx` maps an application card to its photograph; the Refined desserts card is text-led until an approved golden-fruit dessert photograph exists (the plated fish image is not one). `passionFruitMedia.js` is where an approved packaging or studio photograph replaces a derivative. Not supplied for V2 and still wanted: a Foodservice macro hero (whole and halved golden fruit), a spoon-and-pulp detail, a dessert and a supply photograph (the hero uses the cleared `golden-fruit-cluster`), Retail packaging (HMV's own cartons once designed), and the Export orchard and sorting (more documentary photographs of HMV's own visits once approved: PF-02, PF-03, PF-09). The brand film "Qua Bao Đôi Tay" gets a player when it exists, not before.
 
 ## 5. Inquiry flow, units and CRM compatibility
 
@@ -110,7 +127,7 @@ Business information: the golden passion fruit specification (size, weight, Brix
 
 Approvals: the source and the right to publish PF-04, PF-05 and PF-10; PF-01, 02, 03 and 09 (above); the permission to publish the people in the PF-07 photograph, if the full photograph is ever to be used (only the fruit-only crop is).
 
-Media: hospitality and culinary photography; studio photography; HMV's own packaging; larger originals (all thirteen derivatives are source-limited, IMAGE_ASSET_DEBT.md).
+Media: hospitality and culinary photography; studio photography; HMV's own packaging; larger originals (the thirteen V1 derivatives are source-limited, IMAGE_ASSET_DEBT.md).
 
 Design: final visual approval is pending; the review screenshots are local (`review-artifacts/passion-fruit-final/`, untracked); the Linux baselines are generated in the pinned Docker image, never on Windows.
 
@@ -120,8 +137,8 @@ HMV Global is the single commercial point of contact between its supply network 
 
 ### Prevention
 
-- **Source media stays local.** The supplied photographs and the design reference are kept on the machine, untracked and ignored (`.gitignore` lists `src/assets/passion-fruit/*`, `src/assets/products/*` source images and `specs/references/*`). The site imports only sanitized WebP derivatives generated by a script (`scripts/passion-fruit-images.mjs`): cropped or edited without supplier marks, ASCII names, no EXIF or GPS.
-- **`npm run lint` fails on a protected file.** `scripts/check-protected-assets.js` checks everything Git tracks (so also what is staged) against `scripts/approved-assets.json`: every image, in any format and letter case (WebP, AVIF, HEIC, TIFF, JPEG, PNG, SVG...), must be listed there by path and Git blob id, apart from the Playwright baselines; private design references and office, PDF or archive files are refused; an entry for a file that is no longer tracked is stale. `npm run hooks` enables the same check before each commit and push, and `--rev <commit>` checks a commit's tree. In CI the output names no files. The check is preventive, not a substitute for media approval: a person reviews every new image (names, logos, contact details, codes, labels, documents, faces, metadata) before it is added to the manifest, in a reviewed change.
+- **Source media stays local.** The supplied photographs and the design reference are kept on the machine, untracked and ignored (`.gitignore` lists `/src/assets/passion-fruit/private-sources/` (whole folder, any depth and extension; the older loose-image rules stay as a guard), `src/assets/products/*` source images and `specs/references/*`). The site imports only sanitized WebP derivatives generated by a script (`scripts/passion-fruit-images.mjs`): cropped or edited without supplier marks, ASCII names, no EXIF or GPS.
+- **`npm run lint` fails on a protected file.** `scripts/check-protected-assets.js` checks everything Git tracks (so also what is staged) against `scripts/approved-assets.json`: every image, in any format and letter case (WebP, AVIF, HEIC, TIFF, JPEG, PNG, SVG...), must be listed there by path and Git blob id, apart from the Playwright baselines; everything under `src/assets/passion-fruit/private-sources/` is refused at any depth, in any letter case and whatever the manifest says (a force-added original fails `npm run lint`, the pre-commit and the pre-push hooks); private design references and office, PDF or archive files are refused; an entry for a file that is no longer tracked is stale. `npm run hooks` enables the same check before each commit and push, and `--rev <commit>` checks a commit's tree. In CI the output names no files. The check is preventive, not a substitute for media approval: a person reviews every new image (names, logos, contact details, codes, labels, documents, faces, metadata) before it is added to the manifest, in a reviewed change.
 - **Stage by explicit path.** With private source files in the working tree, never use `git add .`, `git add -A`, `git add -u` or a bare directory such as `git add src`: list the paths (`git add src/features src/data`), then read `git status` and `git diff --cached --name-only` before every commit. A file that Git ignores can still be force-added: the lint check is the backstop, not the habit.
 - **Public output is audited.** Derivatives are inspected for supplier names, logos, telephone numbers, e-mail and web addresses, QR codes, barcodes, labels, documents, faces and metadata; a photograph that cannot be cleaned is withheld. The Next and Vite builds, the sitemap, structured data and public files are checked for supplier identifiers and source files.
 - **Public copy stays at country level and HMV-centered.** Pages say "growing areas in Vietnam", never a supplier, a farm, a facility or a precise place, and never that HMV owns one; every call to action is the Trade Desk, the Quick RFQ or an HMV channel. `src/data/unsupportedClaims.js` guards ownership, customers, certification and capacity wording, and a test applies it.

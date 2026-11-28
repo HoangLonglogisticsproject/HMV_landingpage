@@ -1,26 +1,32 @@
-// Photographs of the golden passion fruit pages, one entry per web derivative (scripts/passion-fruit-images.mjs,
-// src/assets/passion-fruit/). Two kinds, told apart in the captions:
+// Photographs of the golden passion fruit pages, one entry per web derivative (scripts/passion-fruit-images.mjs, written into
+// src/assets/passion-fruit/production/; the originals are local, in the ignored private-sources/). Three kinds, told apart in the captions:
 //  - documentary: genuine photographs HMV supplied of a growing area and of sorted fruit (vine, sorting, orchard), cropped so that
 //    no person and no supplier mark is in the frame;
 //  - illustrative: edited product and packaging images (golden fruit presentation, cartons), without any marking. They show
-//    how the fruit can be presented, not shipments, HMV packaging, a grade or a specification, and say so in their captions.
+//    how the fruit can be presented, not shipments, HMV packaging, a grade or a specification, and say so in their captions;
+//  - AI-generated (V2: signatureDrinks, luxuryCulinary, premiumPackaging): marketing concepts of golden passion fruit in a
+//    beverage, a plated dish and a gift carton. Application and packaging illustrations: not specimens, not a customer's venue,
+//    not a finished HMV product, not manufactured packaging. Register: docs/architecture/IMAGE_ASSET_DEBT.md.
 // No photograph is recolored. Used, withheld and pending photographs, and why: docs/architecture/PASSION_FRUIT.md.
 //
 // A page asks for a photograph by key and never by file, so approved hospitality or packaging photography replaces an entry
 // here (or fills `culinary.media` in data/passionFruitPages.js) without touching a component.
-import scene from '@/assets/passion-fruit/golden-fruit-scene.webp';
-import display from '@/assets/passion-fruit/golden-fruit-display.webp';
-import onTree from '@/assets/passion-fruit/golden-fruit-on-tree.webp';
-import pile from '@/assets/passion-fruit/golden-fruit-pile.webp';
-import cluster from '@/assets/passion-fruit/golden-fruit-cluster.webp';
-import halved from '@/assets/passion-fruit/golden-fruit-halved.webp';
-import nets from '@/assets/passion-fruit/fruit-protective-nets.webp';
-import carton from '@/assets/passion-fruit/carton-twelve-compartments.webp';
-import neutralCartons from '@/assets/passion-fruit/neutral-packaging-cartons.webp';
-import neutralFruit from '@/assets/passion-fruit/neutral-carton-fruit.webp';
-import vine from '@/assets/passion-fruit/vine-green-fruit.webp';
-import sorting from '@/assets/passion-fruit/manual-sorting.webp';
-import orchard from '@/assets/passion-fruit/orchard-trellis.webp';
+import scene from '@/assets/passion-fruit/production/shared/product/golden-fruit-scene.webp';
+import display from '@/assets/passion-fruit/production/shared/product/golden-fruit-display.webp';
+import onTree from '@/assets/passion-fruit/production/shared/product/golden-fruit-on-tree.webp';
+import pile from '@/assets/passion-fruit/production/shared/product/golden-fruit-pile.webp';
+import cluster from '@/assets/passion-fruit/production/shared/product/golden-fruit-cluster.webp';
+import halved from '@/assets/passion-fruit/production/shared/product/golden-fruit-halved.webp';
+import nets from '@/assets/passion-fruit/production/shared/packaging/fruit-protective-nets.webp';
+import carton from '@/assets/passion-fruit/production/shared/packaging/carton-twelve-compartments.webp';
+import neutralCartons from '@/assets/passion-fruit/production/shared/packaging/neutral-packaging-cartons.webp';
+import neutralFruit from '@/assets/passion-fruit/production/shared/packaging/neutral-carton-fruit.webp';
+import vine from '@/assets/passion-fruit/production/shared/farming/vine-green-fruit.webp';
+import sorting from '@/assets/passion-fruit/production/shared/operations/manual-sorting.webp';
+import orchard from '@/assets/passion-fruit/production/shared/farming/orchard-trellis.webp';
+import signatureDrinks from '@/assets/passion-fruit/production/foodservice/signature-drinks.webp';
+import luxuryCulinary from '@/assets/passion-fruit/production/foodservice/luxury-culinary.webp';
+import premiumPackaging from '@/assets/passion-fruit/production/retail/premium-packaging.webp';
 import { assetSrc } from '@/lib/utils';
 
 const photo = (image, width, height, alt, caption) => ({ src: assetSrc(image), width, height, alt, caption });
@@ -60,6 +66,16 @@ export const passionFruitMedia = {
   neutralFruit: photo(neutralFruit, 808, 570,
     t('An open carton with twenty-four fruit in yellow foam nets, in separate compartments', 'Thùng mở với hai mươi bốn trái bọc lưới xốp vàng, trong các ngăn riêng'),
     t('Separated fruit in an open carton. Illustrative packaging format.', 'Trái được tách riêng trong thùng mở. Định dạng đóng gói minh họa.')),
+  // AI-generated application and packaging illustrations (V2), labelled as such on the pages.
+  signatureDrinks: photo(signatureDrinks, 1448, 1086,
+    t('A coupe glass of golden passion fruit drink with crushed ice and seeds, beside a whole and a halved golden passion fruit on a brass tray', 'Ly đồ uống chanh dây vàng với đá bào và hạt, bên cạnh một trái chanh dây vàng nguyên quả và một trái bổ đôi trên khay đồng'),
+    t('Illustrative application imagery. A beverage idea, not an HMV customer or a finished HMV drink.', 'Hình ảnh minh họa ứng dụng. Gợi ý đồ uống, không phải khách hàng của HMV hay đồ uống thành phẩm của HMV.')),
+  luxuryCulinary: photo(luxuryCulinary, 1448, 1086,
+    t('A plated fish fillet with golden passion fruit sauce, asparagus and edible flowers, with whole and halved golden passion fruit behind', 'Món cá phi lê sốt chanh dây vàng với măng tây và hoa ăn được, phía sau là chanh dây vàng nguyên quả và bổ đôi'),
+    t('Illustrative application imagery. A culinary idea, not a restaurant partnership or a finished HMV dish.', 'Hình ảnh minh họa ứng dụng. Gợi ý ẩm thực, không phải hợp tác với nhà hàng hay món ăn thành phẩm của HMV.')),
+  premiumPackaging: photo(premiumPackaging, 1448, 1086,
+    t('A cream and gold gift carton with twelve golden passion fruit in yellow foam nets, each in its own compartment, beside cut-out lid boxes and whole and halved golden fruit', 'Hộp quà màu kem và vàng với mười hai trái chanh dây vàng bọc lưới xốp vàng, mỗi trái một ngăn, cạnh các hộp nắp đục hoa văn và trái vàng nguyên quả, bổ đôi'),
+    t('Illustrative packaging concept — not official HMV packaging.', 'Concept bao bì minh họa — chưa phải bao bì chính thức của HMV.')),
   // Documentary photographs supplied by HMV.
   vine: photo(vine, 960, 1280,
     t('Green passion fruit growing on the vine in a field', 'Chanh dây xanh đang phát triển trên giàn ngoài đồng'),

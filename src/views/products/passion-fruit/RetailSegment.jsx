@@ -1,14 +1,17 @@
-import { ArrowDown, ArrowRight } from 'lucide-react';
+import { ArrowDown, ArrowRight, CalendarDays, Gem, PackageOpen, ShieldCheck, Store } from 'lucide-react';
 import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
 import { Link } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { PRODUCT_ID, passionFruitPages } from '@/data/passionFruitPages';
 import { passionFruitMedia as media } from '@/data/passionFruitMedia';
-import { Eyebrow, Faq, Figure, Numbered, Photo, SectionTitle, SegmentNav } from './parts';
+import { Eyebrow, Faq, Figure, Numbered, Photo, SectionTitle, SegmentNav, ValueStrip } from './parts';
 import styles from './PassionFruit.module.css';
 
-// Premium Retail Business: product-led, on cream and deep blue. The fruit's appearance and its presentation come before the
-// farm; the packaging shown is a market reference, never an HMV pack, and there are no prices or shopping controls.
+// Premium Retail Business: product-led, on champagne cream and deep blue. The fruit's appearance and its presentation come
+// before the farm. The hero is an AI-generated gift-carton concept, labelled as such; the packaging shown elsewhere is a market
+// reference. Never an HMV pack, and there are no prices or shopping controls.
+
+const VALUE_ICONS = [PackageOpen, Store, ShieldCheck, Gem, CalendarDays];
 
 const title = cn(styles.heading, styles.display, 'font-semibold text-(--pf-ink)');
 const solid = 'h-12 rounded-md bg-(--pf-accent) px-7 text-sm font-semibold text-[#f3efe3] hover:bg-(--pf-accent)/90';
@@ -16,15 +19,22 @@ const textLink = 'inline-flex min-h-11 items-center gap-2 border-b border-(--pf-
 
 function Hero({ lang, c }) {
   const { hero } = c;
+  const sentences = hero.title.split(/(?<=\.)\s+/);
   return (
-    <header className="bg-(--pf-bg) pt-10 pb-12 sm:pt-16 sm:pb-20">
-      <div className="content-width grid items-center gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-14">
-        <div>
-          <Eyebrow className="text-(--pf-gold-ink)">{hero.eyebrow}</Eyebrow>
-          <h1 className={cn(title, 'mt-5 text-[38px] leading-[1.1] text-balance sm:text-5xl lg:text-[54px]')}>{hero.title}</h1>
-          <span aria-hidden="true" className="mt-6 block h-1 w-12 bg-(--pf-gold)" />
-          <p className="mt-6 max-w-md text-base leading-relaxed text-(--pf-muted) sm:text-lg">{hero.lead}</p>
-          <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
+    <header className="bg-(--pf-bg) pt-8 pb-10 sm:pt-12 sm:pb-14">
+      <div className="content-width grid items-center gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-6">
+        <div className="relative z-10">
+          <Eyebrow className="flex items-center gap-3 text-(--pf-gold-ink)">
+            <span aria-hidden="true" className="block h-px w-10 bg-(--pf-gold)" />
+            {hero.eyebrow}
+          </Eyebrow>
+          <h1 className={cn(title, 'mt-5 text-[34px] leading-[1.12] sm:text-5xl lg:text-[50px]')}>
+            {sentences.map((sentence, i) => (
+              <span key={sentence} className={cn('block text-balance', i > 0 && 'text-(--pf-gold-ink)')}>{sentence} </span>
+            ))}
+          </h1>
+          <p className="mt-5 max-w-md text-base leading-relaxed text-(--pf-muted) sm:text-lg">{hero.lead}</p>
+          <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4">
             <TradeDeskButton size="lg" product={PRODUCT_ID} segment="retail" source="pf_retail_hero" className={solid}>
               {hero.primary}
               <ArrowRight />
@@ -35,15 +45,16 @@ function Hero({ lang, c }) {
             </a>
           </div>
         </div>
-        <div className="relative pb-8 pl-0 sm:pl-10">
-          <div className="aspect-[8/5] overflow-hidden rounded-sm bg-(--pf-soft)">
-            <Photo photo={media.display} lang={lang} sizes="(max-width: 1023px) calc(100vw - 32px), 640px" eager />
+        <figure className="relative order-first m-0 lg:order-none">
+          <div className={cn(styles.fadeLeft, 'aspect-[4/3] overflow-hidden bg-(--pf-soft)')}>
+            <Photo photo={media.premiumPackaging} lang={lang} sizes="(max-width: 1023px) calc(100vw - 32px), 700px" eager />
           </div>
-          {/* A different photograph and another view of the product: an open carton of separated fruit, not a crop of the main image. */}
-          <div className="absolute bottom-0 left-0 hidden aspect-[4/5] w-[26%] overflow-hidden rounded-sm border-4 border-(--pf-bg) sm:block">
-            <Photo photo={media.carton} lang={lang} sizes="200px" />
+          <figcaption className="mt-2 text-xs leading-snug text-(--pf-muted) lg:text-right">{media.premiumPackaging.caption[lang]}</figcaption>
+          {/* A different photograph and another view of the product: an open twelve-compartment carton, not a crop of the main image. */}
+          <div className="absolute bottom-6 left-3 hidden aspect-[4/5] w-[22%] overflow-hidden rounded-xl border-4 border-(--pf-bg) shadow-sm sm:block lg:bottom-9 lg:-left-2">
+            <Photo photo={media.carton} lang={lang} sizes="170px" />
           </div>
-        </div>
+        </figure>
       </div>
     </header>
   );
@@ -71,7 +82,7 @@ function Presentation({ lang, c }) {
   );
 }
 
-// The packaging references: a tall carton, the nets and the display, then what each shows. Third-party, so captioned as such.
+// The packaging references: the nets and display, and plain divided cartons (the twelve-compartment carton is in the hero), then what each shows. Third-party, so captioned as such.
 function Packaging({ lang, c }) {
   const { packaging } = c;
   return (
@@ -83,9 +94,8 @@ function Packaging({ lang, c }) {
           <p className="mt-4 text-base leading-relaxed text-(--pf-muted)">{packaging.text}</p>
         </div>
         <div className="mt-10 grid items-start gap-5 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-          <Figure photo={media.carton} lang={lang} ratio="aspect-[3/4]" className="md:row-span-2" sizes="(max-width: 767px) calc(100vw - 32px), 460px" />
-          <Figure photo={media.nets} lang={lang} ratio="aspect-[7/5]" sizes="(max-width: 767px) calc(100vw - 32px), 485px" />
-          <Figure photo={media.neutralCartons} lang={lang} ratio="aspect-[3/2]" sizes="(max-width: 767px) calc(100vw - 32px), 640px" />
+          <Figure photo={media.nets} lang={lang} ratio="aspect-square" sizes="(max-width: 767px) calc(100vw - 32px), 460px" />
+          <Figure photo={media.neutralCartons} lang={lang} ratio="aspect-[4/3]" sizes="(max-width: 767px) calc(100vw - 32px), 640px" />
         </div>
         <ol className="m-0 mt-10 grid gap-x-10 gap-y-6 p-0 sm:grid-cols-3">
           {packaging.items.map((item, i) => <Numbered key={item.title} index={i} {...item} />)}
@@ -186,6 +196,7 @@ export function RetailSegment({ lang }) {
     <div className={cn(styles.retail, 'bg-(--pf-bg) text-(--pf-ink)')}>
       <Hero lang={lang} c={c} />
       <SegmentNav lang={lang} active="retail" />
+      <ValueStrip items={c.values} icons={VALUE_ICONS} />
       <Presentation lang={lang} c={c} />
       <Packaging lang={lang} c={c} />
       <Opportunities c={c} />

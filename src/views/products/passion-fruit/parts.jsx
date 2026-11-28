@@ -104,3 +104,25 @@ export function Numbered({ index, title, text }) {
     </li>
   );
 }
+
+/** A row of short commercial points under the segment navigation: a line icon, a title and a line, thin vertical rules between them. */
+export function ValueStrip({ items, icons, label, className }) {
+  return (
+    <section aria-label={label} className={cn('content-width', className)}>
+      <ul className="m-0 grid gap-x-6 gap-y-6 p-0 py-8 sm:grid-cols-2 lg:grid-flow-col lg:auto-cols-fr lg:gap-x-0">
+        {items.map(({ title, text }, i) => {
+          const Icon = icons[i];
+          return (
+            <li key={title} className="flex list-none items-start gap-3 lg:px-5 lg:first:pl-0 lg:last:pr-0 lg:[&:not(:first-child)]:border-l lg:[&:not(:first-child)]:border-(--pf-line)">
+              <Icon aria-hidden="true" size={26} strokeWidth={1.5} className="mt-0.5 shrink-0 text-(--pf-gold-ink)" />
+              <div>
+                <p className="text-[15px] leading-snug font-semibold text-(--pf-ink)">{title}</p>
+                <p className="mt-1 text-[13px] leading-snug text-(--pf-muted)">{text}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}

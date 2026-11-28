@@ -9,7 +9,8 @@
 //   1. Every tracked image file (any format: JPG, PNG, WebP, AVIF, HEIC, TIFF, SVG...) must be in that manifest, by path
 //      AND by Git blob id, so an unreviewed file, and an approved name with other content, both fail. The only exception
 //      is the Playwright baselines of the visual tests (`*-snapshots/*.png`), which are screenshots of the site.
-//   2. Private folders (design references, internal and supplier material) hold nothing, whatever the extension.
+//   2. Private folders (design references, internal and supplier material, src/assets/passion-fruit/private-sources/) hold nothing,
+//      whatever the extension, the name or the manifest.
 //   3. Supplier and customer papers, design sources and archives (PDF, office, CSV, PSD, ZIP, TAR.GZ...) are refused.
 //   4. A manifest entry for a file that is no longer tracked is stale and fails, so the manifest stays the truth.
 // A file name can itself be sensitive: where CI logs are public (`CI` is set) a violation names the folder, the extension and
@@ -24,7 +25,9 @@ const DOCUMENT = /\.(pdf|docx?|xlsx?|pptx?|csv|odt|ods|eml|msg|psd|ai|indd|sketc
 // Screenshots of the site made by the visual tests: reviewed as a diff of the pages, not as source media.
 const BASELINE = /^tests\/next-visual\/[^/]+-snapshots\/[^/]+\.png$/;
 // Folders that hold private source material or design references: nothing in them is committed, whatever the extension.
-const PRIVATE_DIRS = [/^specs\/references\//, /^private\//, /^internal\//, /^suppliers?\//];
+// `private-sources/` holds the local originals of the golden passion fruit pages; it is matched at any depth and in any letter case
+// (case-insensitive file systems), before the manifest is consulted, so no approval can ever admit a file in it.
+const PRIVATE_DIRS = [/^specs\/references\//, /^private\//, /^internal\//, /^suppliers?\//, /^src\/assets\/passion-fruit\/private-sources\//i];
 
 const MANIFEST_PATH = 'scripts/approved-assets.json';
 

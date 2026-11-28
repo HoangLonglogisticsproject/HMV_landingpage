@@ -182,12 +182,19 @@ const content = {
       eyebrow: t('HMV GOLDEN PASSION FRUIT — FOODSERVICE', 'HMV CHANH DÂY VÀNG — KHÁCH SẠN & F&B'),
       title: t('An Exceptional Ingredient. A Memorable Experience.', 'Nguyên liệu khác biệt. Trải nghiệm đáng nhớ.'),
       lead: t(
-        'Fresh golden passion fruit for hospitality, culinary and beverage businesses seeking distinctive ingredients.',
-        'Chanh dây vàng tươi dành cho khách sạn, nhà hàng và doanh nghiệp đồ uống đang tìm kiếm nguyên liệu khác biệt.',
+        'Fresh golden passion fruit from Vietnam, bringing tropical inspiration to beverages, desserts and culinary creations.',
+        'Chanh dây vàng tươi từ Việt Nam, mang cảm hứng nhiệt đới cho đồ uống, món tráng miệng và những sáng tạo ẩm thực.',
       ),
       primary: t('Discuss Your Supply Needs', 'Trao đổi nhu cầu cung ứng'),
       secondary: t('Explore Applications', 'Khám phá ứng dụng'),
     },
+    // Four value points under the navigation: what to discuss, never a promise of quality, sweetness, aroma or yield.
+    values: [
+      item('Tropical inspiration', 'Inspiration for distinctive menus.', 'Cảm hứng nhiệt đới', 'Gợi mở hương vị cho thực đơn sáng tạo.'),
+      item('Quality requirements', 'Discuss specifications for your application.', 'Yêu cầu chất lượng', 'Trao đổi quy cách theo nhu cầu sử dụng.'),
+      item('Culinary versatility', 'Beverages, desserts and culinary dishes.', 'Ứng dụng đa dạng', 'Đồ uống, tráng miệng và món ăn.'),
+      item('Foodservice partnership', 'Discuss your requirements and supply plans with HMV.', 'Đồng hành cùng F&B', 'Thảo luận nhu cầu và kế hoạch cung ứng cùng HMV.'),
+    ],
     ingredient: {
       eyebrow: t('THE INGREDIENT', 'NGUYÊN LIỆU'),
       title: t('An Ingredient with Character', 'Nguyên liệu có cá tính'),
@@ -202,33 +209,22 @@ const content = {
       ],
       link: t('Request product specifications', 'Yêu cầu thông số sản phẩm'),
     },
+    // The visual centerpiece (#applications). `id` picks the photograph in the view: the beverage and the plated dish are AI-generated
+    // application illustrations, the supply card shows separated fruit in a carton. No dessert photograph exists, so that card is
+    // text (add one to FoodserviceSegment.jsx's `photos` when an approved golden-fruit dessert image is supplied).
     applications: {
-      eyebrow: t('APPLICATIONS', 'ỨNG DỤNG'),
-      title: t('Crafted for Hospitality', 'Dành cho ngành khách sạn & ẩm thực'),
+      eyebrow: t('APPLICATIONS IN HOSPITALITY', 'ỨNG DỤNG TRONG KHÁCH SẠN & F&B'),
+      title: t('From signature drinks to culinary creations.', 'Từ đồ uống đến ẩm thực sáng tạo.'),
       text: t(
-        'Possible uses of the fresh fruit across hospitality. They are ideas for your menu, not finished products from HMV.',
-        'Những cách dùng chanh dây tươi trong ngành khách sạn và ẩm thực. Đây là gợi ý cho thực đơn của bạn, không phải sản phẩm thành phẩm của HMV.',
+        'Inspiration for your menu, bar and kitchen. These are ideas, not finished products from HMV and not HMV customers.',
+        'Nguồn cảm hứng cho thực đơn, quầy bar và bếp của bạn. Đây là gợi ý, không phải sản phẩm thành phẩm hay khách hàng của HMV.',
       ),
       items: [
-        { title: t('Hotels & Resorts', 'Khách sạn & Resort'), text: t('A distinctive fresh fruit for the first drink a guest is offered and the table they sit at in the morning.', 'Một loại trái cây tươi khác biệt cho ly thức uống đầu tiên chào đón khách và bàn ăn buổi sáng.'), uses: [t('Welcome drinks', 'Thức uống chào đón'), t('Breakfast service', 'Bữa sáng'), t('Hospitality beverage menus', 'Thực đơn đồ uống')] },
-        { title: t('Restaurants & Fine Dining', 'Nhà hàng & Fine dining'), text: t('A fruit with enough character to carry a dessert, a sauce or a seasonal menu.', 'Một loại trái cây đủ cá tính để làm điểm nhấn cho món tráng miệng, nước sốt hay thực đơn theo mùa.'), uses: [t('Desserts', 'Món tráng miệng'), t('Sauces', 'Nước sốt'), t('Culinary presentations', 'Trình bày món ăn'), t('Seasonal menus', 'Thực đơn theo mùa')] },
-        { title: t('Bars & Mixology', 'Quầy bar & Pha chế'), text: t('Fresh fruit for a signature drink, with or without alcohol.', 'Trái cây tươi cho đồ uống đặc trưng, có cồn hoặc không cồn.'), uses: [t('Signature beverages', 'Đồ uống đặc trưng'), t('Cocktails', 'Cocktail'), t('Mocktails', 'Mocktail')] },
-        { title: t('Cafés & Beverage Businesses', 'Quán cà phê & Doanh nghiệp đồ uống'), text: t('Fresh fruit for juices and seasonal drinks that give a menu a reason to change.', 'Trái cây tươi cho nước ép và đồ uống theo mùa, tạo lý do để thực đơn đổi mới.'), uses: [t('Fresh juice', 'Nước ép tươi'), t('Fruit-based beverages', 'Đồ uống từ trái cây'), t('Seasonal beverage concepts', 'Ý tưởng đồ uống theo mùa')] },
+        { id: 'beverages', ...item('Signature beverages', 'Inspiration for juices, tea and mocktails.', 'Đồ uống đặc trưng', 'Gợi ý cho nước ép, trà và mocktail.') },
+        { id: 'desserts', ...item('Refined desserts', 'Dessert ideas, not a finished HMV product.', 'Tráng miệng tinh tế', 'Gợi ý cho món tráng miệng, không phải sản phẩm thành phẩm của HMV.') },
+        { id: 'culinary', ...item('Culinary creations', 'Potential savory and culinary applications.', 'Món ăn sáng tạo', 'Những ứng dụng mặn và ẩm thực có thể có.') },
+        { id: 'supply', ...item('Hospitality supply', 'Discuss quantities and delivery requirements.', 'Cung ứng cho Hospitality', 'Trao đổi sản lượng và yêu cầu giao hàng.') },
       ],
-    },
-    culinary: {
-      eyebrow: t('CULINARY INSPIRATION', 'CẢM HỨNG ẨM THỰC'),
-      title: t('Ideas to take to your kitchen and bar', 'Gợi ý cho bếp và quầy bar của bạn'),
-      lines: [
-        t('A welcome drink that opens the stay.', 'Một ly thức uống chào đón mở đầu kỳ nghỉ.'),
-        t('A dessert that finishes the evening with a golden note.', 'Một món tráng miệng khép lại buổi tối bằng sắc vàng.'),
-        t('A signature cocktail, or a mocktail, built around one fruit.', 'Một ly cocktail hoặc mocktail đặc trưng xây dựng quanh một loại trái cây.'),
-        t('A seasonal beverage that gives a café a reason to be visited.', 'Một đồ uống theo mùa tạo lý do để khách ghé quán.'),
-      ],
-      note: t('Serving inspiration only, not examples of existing HMV customers.', 'Chỉ là gợi ý phục vụ, không phải ví dụ về khách hàng hiện có của HMV.'),
-      // Approved hospitality photographs (a resort beverage, a hotel breakfast, a dessert, a bartender) go here as
-      // { photo, caption } entries: a photograph in the list is shown, an empty list leaves the text alone.
-      media: [],
     },
     origin: {
       eyebrow: t('FROM ORCHARD TO HOSPITALITY', 'TỪ VÙNG TRỒNG ĐẾN NHÀ HÀNG & KHÁCH SẠN'),
@@ -295,12 +291,20 @@ const content = {
       eyebrow: t('HMV GOLDEN PASSION FRUIT — RETAIL BUSINESS', 'HMV CHANH DÂY VÀNG — ĐỐI TÁC BÁN LẺ'),
       title: t('Distinctive Fruit. Distinguished Shelves.', 'Trái cây khác biệt. Giá trị tại điểm bán.'),
       lead: t(
-        'Fresh golden passion fruit for retailers and distributors who value product presentation and origin.',
-        'Chanh dây vàng tươi dành cho đối tác phân phối và bán lẻ chú trọng hình thức sản phẩm và nguồn gốc.',
+        'Fresh golden passion fruit for retailers and distributors who value origin, product presentation and packaging options.',
+        'Chanh dây vàng tươi cho các đối tác phân phối và bán lẻ chú trọng nguồn gốc, hình thức sản phẩm và quy cách đóng gói.',
       ),
       primary: t('Discuss a Retail Partnership', 'Trao đổi hợp tác phân phối'),
-      secondary: t('Explore Packaging', 'Khám phá đóng gói'),
+      secondary: t('Explore Packaging', 'Khám phá quy cách đóng gói'),
     },
+    // Five commercial points under the navigation: no promise of damage-free transport, grading, fixed supply, margins or private label.
+    values: [
+      item('Packaging options', 'Discuss formats for your distribution channel.', 'Quy cách đóng gói', 'Thảo luận định dạng phù hợp với kênh phân phối.'),
+      item('Shelf presentation', 'Distinctive golden appearance and display inspiration.', 'Hình thức tại điểm bán', 'Màu vàng đặc trưng, gợi mở cách trưng bày.'),
+      item('Individual fruit protection', 'Explore protective nets and divided cartons.', 'Bảo vệ từng trái', 'Tham khảo lưới và ngăn carton.'),
+      item('Product value', 'Origin and product presentation.', 'Giá trị sản phẩm', 'Câu chuyện nguồn gốc và cách trình bày.'),
+      item('Supply planning', 'Discuss quantities and delivery schedules.', 'Kế hoạch cung ứng', 'Trao đổi lượng mua và lịch giao theo nhu cầu.'),
+    ],
     presentation: {
       eyebrow: t('PRODUCT PRESENTATION', 'HÌNH THỨC SẢN PHẨM'),
       title: t('A fruit that stands out on the shelf', 'Một loại trái cây nổi bật trên quầy'),
@@ -325,8 +329,8 @@ const content = {
       items: [
         item('Individual fruit protection', 'Foam nets around each fruit.',
              'Bảo vệ từng trái', 'Lưới xốp bao quanh mỗi trái.'),
-        item('Compartmentalised cartons', 'One fruit per compartment, as in this twelve-fruit carton.',
-             'Thùng có ngăn', 'Mỗi trái một ngăn, như thùng mười hai trái này.'),
+        item('Compartmentalised cartons', 'One fruit per compartment, in cartons with divided trays.',
+             'Thùng có ngăn', 'Mỗi trái một ngăn, trong thùng có khay chia ngăn.'),
         item('Premium fruit display', 'Fruit presented on a display stand.',
              'Trưng bày trái cây cao cấp', 'Trái được trưng bày trên kệ.'),
       ],

@@ -28,7 +28,7 @@ const ORIGINAL_LIMITED = new Set(['car.webp', 'cassava-bulk-stock.webp', 'cassav
   'forest-team.webp', 'fruitFarm.webp', 'fruitWeighing.webp', 'grower-visit.webp', 'material-discussion.webp',
   'mijack.webp', 'mijack2.webp', 'mijack3.webp', 'passion-fruit-cut.webp', 'tapioca-starch-reference.webp',
   'team-gathering.webp', 'vietnam-bananas.webp', 'visitfactory.webp',
-  // The golden passion fruit images (src/assets/passion-fruit/, derived by scripts/passion-fruit-images.mjs): the sources
+  // The golden passion fruit images (src/assets/passion-fruit/production/, derived by scripts/passion-fruit-images.mjs): the sources
   // are 1086 to 1448 px wide edited images and 960 to 1280 px photographs, the crops smaller still.
   'golden-fruit-scene.webp', 'golden-fruit-display.webp', 'golden-fruit-on-tree.webp', 'golden-fruit-pile.webp',
   'golden-fruit-halved.webp', 'golden-fruit-cluster.webp', 'fruit-protective-nets.webp', 'carton-twelve-compartments.webp',
