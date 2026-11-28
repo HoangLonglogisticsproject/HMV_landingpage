@@ -17,6 +17,9 @@ import { resolve } from './localized.js';
 const t = (en, vi) => lang => ({ en, vi })[lang];
 /** A card, step or question: the English title and text, then the Vietnamese title and text. */
 const item = (enTitle, enText, viTitle, viText) => ({ title: t(enTitle, viTitle), text: t(enText, viText) });
+/** The same row, named for what it is: a cooperation step, and a question with its answer. */
+const step = item;
+const qa = item;
 
 export const PRODUCT_ID = 'passion-fruit';
 /** The page's segments in navigation order; the first is the product's own, already indexed URL. */
@@ -355,9 +358,9 @@ const content = {
         'Trao đổi nhu cầu phân phối, quy cách sản phẩm và kế hoạch nhập hàng để cùng HMV xây dựng phương án hợp tác phù hợp.',
       ),
       steps: [
-        item('Understand Your Market', 'Distribution channels, target customers and expected purchasing volume.', 'Hiểu thị trường', 'Kênh phân phối, nhóm khách hàng và sản lượng dự kiến.'),
-        item('Discuss the Right Format', 'Product specifications, retail presentation and packaging requirements.', 'Lựa chọn quy cách', 'Thông số sản phẩm, hình thức trưng bày và nhu cầu đóng gói.'),
-        item('Plan the Partnership', 'Purchasing frequency, delivery destination and commercial arrangements.', 'Kế hoạch hợp tác', 'Tần suất nhập hàng, địa điểm giao nhận và đề xuất thương mại.'),
+        step('Understand Your Market', 'Distribution channels, target customers and expected purchasing volume.', 'Hiểu thị trường', 'Kênh phân phối, nhóm khách hàng và sản lượng dự kiến.'),
+        step('Discuss the Right Format', 'Product specifications, retail presentation and packaging requirements.', 'Lựa chọn quy cách', 'Thông số sản phẩm, hình thức trưng bày và nhu cầu đóng gói.'),
+        step('Plan the Partnership', 'Purchasing frequency, delivery destination and commercial arrangements.', 'Kế hoạch hợp tác', 'Tần suất nhập hàng, địa điểm giao nhận và đề xuất thương mại.'),
       ],
       note: t('HMV works with businesses only and does not publish prices, price tiers or margins on this page.', 'HMV chỉ làm việc với doanh nghiệp và không công bố giá, bậc giá hay biên lợi nhuận trên trang này.'),
       cta: t('Discuss a Retail Partnership', 'Bắt đầu trao đổi hợp tác'),
@@ -366,15 +369,15 @@ const content = {
       title: t('Questions about Golden Passion Fruit for Retail Partners', 'Giải đáp về hợp tác phân phối chanh dây vàng'),
       text: t('For category buyers, distributors and gifting businesses.', 'Dành cho bộ phận mua hàng, nhà phân phối và doanh nghiệp quà tặng.'),
       items: [
-        item('Where does HMV golden passion fruit come from?', 'From growing areas in Vietnam. HMV connects that sourcing with distribution partners, and the buyer page shows the growing area and the sorting in more detail. All commercial contact goes through HMV.',
+        qa('Where does HMV golden passion fruit come from?', 'From growing areas in Vietnam. HMV connects that sourcing with distribution partners, and the buyer page shows the growing area and the sorting in more detail. All commercial contact goes through HMV.',
              'Chanh dây vàng HMV có nguồn gốc từ đâu?', 'Từ các vùng trồng tại Việt Nam. HMV kết nối nguồn hàng này với đối tác phân phối; trang dành cho khách hàng xuất khẩu trình bày chi tiết hơn về vùng trồng và khâu phân loại. Mọi trao đổi thương mại đều thông qua HMV.'),
-        item('Can packaging be discussed for my distribution channel?', 'Yes. Packaging is discussed for each channel: protective nets and divided cartons are examples, and the format is agreed in the proposal. No pack size or private-label option is offered on this page.',
+        qa('Can packaging be discussed for my distribution channel?', 'Yes. Packaging is discussed for each channel: protective nets and divided cartons are examples, and the format is agreed in the proposal. No pack size or private-label option is offered on this page.',
              'Có thể trao đổi quy cách đóng gói theo kênh phân phối không?', 'Có. Quy cách đóng gói được trao đổi theo từng kênh phân phối: lưới bảo vệ và thùng có ngăn là các ví dụ, quy cách cụ thể được thống nhất trong đề xuất. Trang này không nêu kích cỡ đóng gói hay tùy chọn nhãn riêng.'),
-        item('Is the illustrated packaging official HMV packaging?', 'No. The gift carton at the top of the page is an AI-generated concept and the other carton and net images are market references. None is official or manufactured HMV packaging, and HMV-branded or private-label packaging is not confirmed.',
+        qa('Is the illustrated packaging official HMV packaging?', 'No. The gift carton at the top of the page is an AI-generated concept and the other carton and net images are market references. None is official or manufactured HMV packaging, and HMV-branded or private-label packaging is not confirmed.',
              'Bao bì minh họa có phải bao bì chính thức của HMV không?', 'Không. Hộp quà ở đầu trang là concept do AI tạo ra, các hình thùng và lưới còn lại là tham khảo thị trường. Không hình nào là bao bì chính thức hay do HMV sản xuất, và bao bì mang nhãn HMV hay nhãn riêng chưa được xác nhận.'),
-        item('How do I discuss specifications and purchasing volume?', 'Open the HMV Trade Desk and share your expected volume, destination and packaging needs. HMV replies with what is confirmed for your inquiry. Prices are not published here; commercial terms are discussed once the requirement is clear.',
+        qa('How do I discuss specifications and purchasing volume?', 'Open the HMV Trade Desk and share your expected volume, destination and packaging needs. HMV replies with what is confirmed for your inquiry. Prices are not published here; commercial terms are discussed once the requirement is clear.',
              'Làm thế nào để trao đổi thông số và sản lượng nhập hàng?', 'Hãy mở HMV Trade Desk và chia sẻ sản lượng dự kiến, địa điểm giao hàng và nhu cầu đóng gói. HMV phản hồi bằng những thông tin đã xác nhận cho yêu cầu của bạn. Trang này không niêm yết giá; điều kiện thương mại được trao đổi khi nhu cầu đã rõ.'),
-        item('What do I need to share to receive a proposal?', 'Your market and distribution channel, expected volume and purchasing frequency, product and packaging requirements, and the delivery destination. HMV reviews them and replies with a proposal for your channel.',
+        qa('What do I need to share to receive a proposal?', 'Your market and distribution channel, expected volume and purchasing frequency, product and packaging requirements, and the delivery destination. HMV reviews them and replies with a proposal for your channel.',
              'Tôi cần cung cấp thông tin gì để nhận đề xuất hợp tác?', 'Kênh phân phối và thị trường, sản lượng dự kiến và tần suất nhập hàng, yêu cầu về sản phẩm và đóng gói, cùng địa điểm giao hàng. HMV xem xét và phản hồi bằng đề xuất phù hợp với kênh của bạn.'),
       ],
     },
