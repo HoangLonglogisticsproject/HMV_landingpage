@@ -13,8 +13,8 @@ const WIDTHS = [360, 390, 768, 1024, 1440];
 // Written out, as in passion-fruit.spec.js. The language menu is the desktop header's (a phone has its own menu).
 const SEGMENTS = [
   { key: 'export', en: '/products/passion-fruit', vi: '/vi/san-pham/chanh-day', h1: 'Nhà cung ứng chanh dây vàng Việt Nam' },
-  { key: 'foodservice', en: '/products/passion-fruit/foodservice', vi: '/vi/san-pham/chanh-day/khach-san-nha-hang', h1: 'Nguyên liệu khác biệt. Trải nghiệm đáng nhớ.' },
-  { key: 'retail', en: '/products/passion-fruit/retail', vi: '/vi/san-pham/chanh-day/doi-tac-ban-le', h1: 'Trái cây khác biệt. Giá trị tại điểm bán.' },
+  { key: 'foodservice', en: '/products/passion-fruit/foodservice', vi: '/vi/san-pham/chanh-day/khach-san-nha-hang', h1: 'Chanh dây vàng cho ẩm thực và đồ uống chuyên nghiệp' },
+  { key: 'retail', en: '/products/passion-fruit/retail', vi: '/vi/san-pham/chanh-day/doi-tac-ban-le', h1: 'Chanh dây vàng cho đối tác phân phối và bán lẻ' },
 ];
 
 for (const { key, en, vi, h1 } of SEGMENTS) {

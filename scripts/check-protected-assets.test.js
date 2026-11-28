@@ -49,6 +49,56 @@ test('private design references, supplier and customer papers and archives are r
   ]) assert.equal(check([file]).length, 1, file);
 });
 
+test('everything under passion-fruit/private-sources is refused: any depth, extension, letter case and manifest entry', () => {
+  const root = 'src/assets/passion-fruit/private-sources';
+  const files = [
+    `${root}/farming/ảnh vùng trồng.jpg`, `${root}/operations/chanh dây organic.jpg`, `${root}/product/chanh day 2.png`, `${root}/v2-media/signature-drinks.png`,
+    `${root}/v2-media/signature-drinks.webp`, `${root}/v2-media/notes.txt`, `${root}/README`, `${root}/a/b/c/d/deep.avif`, `${root}/quote.pdf`,
+    'src/assets/Passion-Fruit/Private-Sources/x.webp', 'src/assets/passion-fruit/PRIVATE-SOURCES/x.md',
+  ];
+  for (const file of files) assert.equal(check([file]).length, 1, file);
+  // An approval, even one with the right blob id, does not admit it.
+  for (const file of files) assert.equal(findViolations([file], { manifest: { [file]: 'x' }, ids: { [file]: 'x' } }).length, 1, file);
+  // The production folders next to it are not private.
+  assert.deepEqual(findViolations(['src/assets/passion-fruit/production/retail/x.webp'], { manifest: { 'src/assets/passion-fruit/production/retail/x.webp': 'x' } }), []);
+});
+
+test('unfinished browser downloads are refused: any folder, any letter case, even with a manifest entry', () => {
+  const files = [
+    'src/assets/passion-fruit/production/foodservice/Unconfirmed 235061.crdownload', 'src/assets/new.webp.crdownload', 'public/photo.CRDOWNLOAD',
+    'src/assets/passion-fruit/hero.png.part', 'hero.PART', 'src/assets/x.jpg.download', 'x.Download',
+  ];
+  for (const file of files) {
+    assert.equal(check([file]).length, 1, file);
+    assert.equal(findViolations([file], { manifest: { [file]: 'x' }, ids: { [file]: 'x' } }).length, 1, file);
+  }
+  // A name that merely contains the word is not a download.
+  assert.deepEqual(check(['docs/download-guide.md', 'src/data/partners.js']), []);
+});
+
+test('a force-added file inside private-sources is refused in the index and in a commit', () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'protected-private-'));
+  const git = (...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', ...args], { cwd: dir, stdio: 'pipe' }).toString();
+  try {
+    git('init', '-q');
+    mkdirSync(path.join(dir, 'src/assets/passion-fruit/private-sources/v2-media'), { recursive: true });
+    writeFileSync(path.join(dir, '.gitignore'), '/src/assets/passion-fruit/private-sources/\n');
+    writeFileSync(path.join(dir, 'src/assets/passion-fruit/private-sources/v2-media/concept.png'), 'private bytes');
+    git('add', '-A');
+    assert.deepEqual(readTracked(dir).files, ['.gitignore'], 'the ignore rule keeps it out of git add -A');
+    git('add', '-f', 'src/assets/passion-fruit/private-sources/v2-media/concept.png');
+    const staged = readTracked(dir);
+    const file = 'src/assets/passion-fruit/private-sources/v2-media/concept.png';
+    // Approved by path and blob id, it is still refused.
+    assert.equal(findViolations(staged.files, { manifest: { [file]: staged.ids[file] }, ids: staged.ids }).length, 1);
+    git('commit', '-q', '-m', 'x');
+    const committed = readTracked(dir, 'HEAD');
+    assert.equal(findViolations(committed.files, { manifest: { [file]: committed.ids[file] }, ids: committed.ids }).length, 1);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('a violation names what to do about it; redacted for public logs it shows no file name', () => {
   const [message] = check(['src/assets/x.jpg']);
   assert.match(message, /^src\/assets\/x\.jpg: /);

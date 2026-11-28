@@ -165,7 +165,7 @@ Without CI, the same can be run locally: `npx vercel@65.2.0 build --local-config
 | Layer | Files | Runs against |
 |---|---|---|
 | Unit (Vitest) | `src/**/*.test.js`, including `src/i18n/routes.test.js` | Node |
-| Vite browser E2E | `tests/*.spec.js` (`playwright.config.js`), CMS mode `tests/cms-*.spec.js` | `vite preview` (4173/4174) |
+| Vite browser E2E | `tests/*.spec.js` (`playwright.config.js`), CMS mode `tests/cms-*.spec.js` | `npm run vite:preview` (4173/4174) |
 | Rollback compatibility | `tests/rollback-compat.spec.js` | the Vite build, and later the rollback target |
 | Next E2E (preview acceptance) | `tests/next/*.spec.js` (`playwright.next.config.js`) | `next start` (4175) or a preview URL |
 | Production acceptance | `tests/production/*.spec.js` (`playwright.production.config.js`, PR-09) | `https://www.hmv-global.com`, read-only |

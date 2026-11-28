@@ -6,6 +6,11 @@ dist-cms
 .env
 coverage/
 
+# Unfinished browser downloads (Chrome, Firefox, generic): never source material, and locked while they download
+*.crdownload
+*.part
+*.download
+
 # Playwright
 tests/screenshots/
 test-results/
@@ -22,6 +27,9 @@ next-env.d.ts
 /src/assets/passion-fruit/*.jpg
 /src/assets/passion-fruit/*.jpeg
 /src/assets/passion-fruit/*.png
+# Everything under private-sources/ (photographs, V2 marketing concepts, any extension, any depth) stays local. The three rules
+# above stay on purpose: they guard the previous flat layout while a clone or a stash still holds files there.
+/src/assets/passion-fruit/private-sources/
 /specs/references/*.png
 
 # HMV original photographs of the products (location stamps, plates, people): never committed; the site imports the WebP

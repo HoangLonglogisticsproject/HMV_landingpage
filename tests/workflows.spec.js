@@ -60,13 +60,14 @@ test('passion-fruit page: the hero opens the Trade Desk with "Passion fruit"; th
 
 // The two other segments are their own pages on the Vite site as well, with their own heading and Trade Desk button.
 for (const [path, h1, cta] of [
-  ['/products/passion-fruit/foodservice', 'An Exceptional Ingredient. A Memorable Experience.', 'Discuss Your Supply Needs'],
-  ['/products/passion-fruit/retail', 'Distinctive Fruit. Distinguished Shelves.', 'Discuss a Retail Partnership'],
+  ['/products/passion-fruit/foodservice', 'Golden Passion Fruit for Professional Food & Beverage', 'Discuss Your Supply Needs'],
+  ['/products/passion-fruit/retail', 'Golden Passion Fruit for Retail & Distribution', 'Discuss a Retail Partnership'],
 ]) {
   test(`${path}: its own heading; the button opens the Trade Desk with "Passion fruit"`, async ({ page }) => {
     await page.goto(`${path}?lang=en`);
     await expect(page.locator('h1')).toHaveText(h1);
-    await page.getByRole('button', { name: cta }).click();
+    // The hero's button; the partnership section repeats the Retail label.
+    await page.getByRole('button', { name: cta }).first().click();
     const desk = page.getByRole('dialog', { name: 'HMV Trade Desk' });
     await expect(desk.getByRole('complementary', { name: 'Your requirement' })).toContainText('Passion fruit');
   });

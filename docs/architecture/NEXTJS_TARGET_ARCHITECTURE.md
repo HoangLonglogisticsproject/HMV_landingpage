@@ -353,8 +353,8 @@ The only place these numbers are kept; the other documents link here.
 
 | Check | `main` (baseline) | Branch (revision 6) |
 |---|---|---|
-| `npm run build` (Vite) JS / CSS | 620.42 kB / 156.50 kB `index-CUg3tHd_.css` | 626.37 kB (gzip 200.60 kB) / **156.50 kB, same file hash**; `dist/assets` 8.0 MB with the re-exported images; `dist/sitemap.xml` and `dist/robots.txt` are `main`'s files (line endings follow the checkout) |
-| `npm run build:cms` | passes | passes |
+| `npm run vite:build` (was `npm run build`) JS / CSS | 620.42 kB / 156.50 kB `index-CUg3tHd_.css` | 626.37 kB (gzip 200.60 kB) / **156.50 kB, same file hash**; `dist/assets` 8.0 MB with the re-exported images; `dist/sitemap.xml` and `dist/robots.txt` are `main`'s files (line endings follow the checkout) |
+| `npm run vite:build:cms` (was `build:cms`) | passes | passes |
 | `npm test` (Vitest) | 49/49 | 71/71: +9 layer checker, +4 route contract, +1 product slugs, +4 CMS mappers, +4 structured data |
 | `npm run lint` | 0 errors, 9 warnings | 0 errors, 9 warnings; layer boundaries OK (two ports) |
 | `tsc --noEmit`, `next build` type check | n/a | pass with `strict: true` |

@@ -17,6 +17,9 @@ import { resolve } from './localized.js';
 const t = (en, vi) => lang => ({ en, vi })[lang];
 /** A card, step or question: the English title and text, then the Vietnamese title and text. */
 const item = (enTitle, enText, viTitle, viText) => ({ title: t(enTitle, viTitle), text: t(enText, viText) });
+/** The same row, named for what it is: a cooperation step, and a question with its answer. */
+const step = item;
+const qa = item;
 
 export const PRODUCT_ID = 'passion-fruit';
 /** The page's segments in navigation order; the first is the product's own, already indexed URL. */
@@ -25,6 +28,24 @@ export const SEGMENTS = ['export', 'foodservice', 'retail'];
 export const segmentPath = segment => (segment === 'export' ? `/products/${PRODUCT_ID}` : `/products/${PRODUCT_ID}/${segment}`);
 /** The segment a URL's last path part names; the product's own URL has none. */
 export const isSegmentSlug = slug => isProductSegment(PRODUCT_ID, slug);
+
+/** The short points under a segment's navigation: rows of [English title, English line, Vietnamese title, Vietnamese line]. */
+const valueRows = rows => rows.map(([enTitle, enText, viTitle, viText]) => item(enTitle, enText, viTitle, viText));
+// Four value points under the Foodservice navigation: what to discuss, never a promise of quality, sweetness, aroma or yield.
+const foodserviceValues = valueRows([
+  ['Tropical inspiration', 'Fresh ideas for your menu.', 'Cảm hứng nhiệt đới', 'Gợi mở những sáng tạo mới cho thực đơn.'],
+  ['Specifications for your use', 'Discuss product requirements to suit your application.', 'Quy cách theo nhu cầu', 'Trao đổi thông số phù hợp với mục đích sử dụng.'],
+  ['Versatile applications', 'From beverages and desserts to cuisine.', 'Ứng dụng đa dạng', 'Từ đồ uống, món tráng miệng đến ẩm thực.'],
+  ['Supply partnership', 'Discuss volumes and purchasing plans with HMV.', 'Hợp tác cung ứng', 'Cùng HMV trao đổi sản lượng và kế hoạch nhập hàng.'],
+]);
+// Five commercial points under the Retail navigation: no promise of damage-free transport, grading, fixed supply, margins or private label.
+const retailValues = valueRows([
+  ['Appearance and origin', 'Distinctive golden colour and a Vietnamese origin.', 'Hình thức và nguồn gốc', 'Màu vàng đặc trưng, xuất xứ từ Việt Nam.'],
+  ['Shelf presentation', 'Display inspiration with a distinctive golden look.', 'Giá trị trưng bày', 'Gợi ý cách trình bày nổi bật tại điểm bán.'],
+  ['Packaging formats', 'Discuss formats suited to your distribution channel.', 'Quy cách đóng gói', 'Trao đổi định dạng phù hợp với kênh phân phối.'],
+  ['Individual fruit protection', 'Explore protective nets and divided cartons.', 'Bảo vệ từng trái', 'Tham khảo lưới xốp và thùng có ngăn.'],
+  ['Supply planning', 'Discuss quantities and delivery schedules.', 'Kế hoạch cung ứng', 'Trao đổi sản lượng và lịch giao hàng theo nhu cầu.'],
+]);
 
 const content = {
   nav: {
@@ -172,112 +193,93 @@ const content = {
   // ─────────────────────────────── Foodservice & Luxury Hospitality ───────────────────────────────
   foodservice: {
     seo: {
-      title: t('Golden Passion Fruit for Hotels & Foodservice', 'Chanh dây vàng cho khách sạn, nhà hàng & F&B'),
+      title: t('Golden Passion Fruit for Hotels & Foodservice', 'Chanh dây vàng cho khách sạn & F&B'),
       description: t(
-        'Fresh golden passion fruit from Vietnam for hotels, restaurants, bars, cafés and beverage businesses. Discuss quantities, applications and packaging with HMV.',
-        'Chanh dây vàng tươi Việt Nam cho khách sạn, nhà hàng, quầy bar, quán cà phê và doanh nghiệp đồ uống. Trao đổi sản lượng, ứng dụng và đóng gói cùng HMV.',
+        'Fresh Vietnamese golden passion fruit for hotels, restaurants and beverage businesses. Discuss specifications, quantities and supply needs with HMV Global.',
+        'Chanh dây vàng tươi Việt Nam dành cho khách sạn, nhà hàng và doanh nghiệp đồ uống. Trao đổi quy cách, sản lượng và nhu cầu cung ứng cùng HMV Global.',
       ),
     },
     hero: {
       eyebrow: t('HMV GOLDEN PASSION FRUIT — FOODSERVICE', 'HMV CHANH DÂY VÀNG — KHÁCH SẠN & F&B'),
-      title: t('An Exceptional Ingredient. A Memorable Experience.', 'Nguyên liệu khác biệt. Trải nghiệm đáng nhớ.'),
+      title: t('Golden Passion Fruit for Professional Food & Beverage', 'Chanh dây vàng cho ẩm thực và đồ uống chuyên nghiệp'),
+      tagline: t('An Exceptional Ingredient. A Memorable Experience.', 'Nguyên liệu khác biệt. Trải nghiệm đáng nhớ.'),
       lead: t(
-        'Fresh golden passion fruit for hospitality, culinary and beverage businesses seeking distinctive ingredients.',
-        'Chanh dây vàng tươi dành cho khách sạn, nhà hàng và doanh nghiệp đồ uống đang tìm kiếm nguyên liệu khác biệt.',
+        'Fresh golden passion fruit from Vietnam, bringing tropical inspiration to hospitality menus, restaurant kitchens and beverage concepts.',
+        'Chanh dây vàng tươi từ Việt Nam, mang cảm hứng nhiệt đới đến thực đơn của khách sạn, nhà hàng và các thương hiệu đồ uống.',
       ),
       primary: t('Discuss Your Supply Needs', 'Trao đổi nhu cầu cung ứng'),
       secondary: t('Explore Applications', 'Khám phá ứng dụng'),
     },
-    ingredient: {
-      eyebrow: t('THE INGREDIENT', 'NGUYÊN LIỆU'),
-      title: t('An Ingredient with Character', 'Nguyên liệu có cá tính'),
+    values: foodserviceValues,
+    // #applications. `id` picks the photograph in the view (`photos` in FoodserviceSegment.jsx): the beverage, the dessert and the
+    // plated dish are AI-generated application illustrations. The supply information of the old fourth card is in `partnership`.
+    applications: {
+      eyebrow: t('APPLICATIONS IN HOSPITALITY', 'ỨNG DỤNG TRONG KHÁCH SẠN & F&B'),
+      title: t('Versatile Inspiration for Exceptional Menus', 'Đa dạng ứng dụng, nâng tầm thực đơn'),
       text: t(
-        'Fresh whole golden passion fruit, recognisable by its golden skin. A single ingredient that kitchens and bars can take in many directions, from the plate to the glass.',
-        'Chanh dây vàng tươi nguyên quả, dễ nhận ra nhờ lớp vỏ vàng. Một nguyên liệu mà bếp và quầy bar có thể phát triển theo nhiều hướng, từ đĩa ăn đến ly đồ uống.',
+        'From signature beverages to refined desserts and culinary creations, golden passion fruit offers a range of possibilities for professional foodservice teams.',
+        'Từ những thức uống đặc trưng đến món tráng miệng và các sáng tạo ẩm thực, chanh dây vàng mở ra nhiều cách khai thác nguyên liệu cho đội ngũ F&B.',
+      ),
+      items: [
+        { id: 'beverages', ...item('Signature Beverages', 'Ideas for juices, fruit teas, mocktails and seasonal drinks.', 'Đồ uống đặc trưng', 'Gợi cảm hứng cho nước ép, trà trái cây, mocktail và các thức uống theo mùa.') },
+        { id: 'desserts', ...item('Refined Desserts', 'A tropical note for panna cotta, pastries, ice cream and creative desserts.', 'Tráng miệng tinh tế', 'Điểm nhấn nhiệt đới cho panna cotta, bánh ngọt, kem và món tráng miệng sáng tạo.') },
+        { id: 'culinary', ...item('Culinary Creations', 'Possibilities in sauces, main courses and the art of plating.', 'Ẩm thực sáng tạo', 'Khám phá các ứng dụng trong nước sốt, món chính và nghệ thuật trình bày món ăn.') },
+      ],
+      note: t(
+        'The beverage, dessert and dish images are illustrations of possible uses. HMV supplies fresh golden passion fruit, not finished food or drinks.',
+        'Các hình ảnh đồ uống, món tráng miệng và món ăn là minh họa cho ý tưởng ứng dụng. HMV cung ứng chanh dây vàng tươi, không cung cấp món ăn hay đồ uống thành phẩm.',
+      ),
+    },
+    origin: {
+      eyebrow: t('ORIGIN & INGREDIENT', 'NGUỒN GỐC & NGUYÊN LIỆU'),
+      title: t('From Vietnamese Growing Areas to the Table', 'Từ vùng trồng Việt Nam đến bàn ăn'),
+      text: t(
+        'HMV connects Vietnamese golden passion fruit sourcing with the needs of hospitality, culinary and beverage businesses. Product specifications and supply arrangements are discussed according to each partner requirements.',
+        'HMV kết nối nguồn chanh dây vàng tươi từ các vùng trồng tại Việt Nam với nhu cầu của khách sạn, nhà hàng và doanh nghiệp F&B. Quy cách sản phẩm và phương án cung ứng được trao đổi theo mục đích sử dụng của từng đối tác.',
       ),
       points: [
         t('Fresh whole fruit', 'Trái tươi nguyên quả'),
-        t('Distinctive golden appearance', 'Vẻ ngoài vàng đặc trưng'),
-        t('Versatile across food and beverage', 'Linh hoạt cho cả món ăn và đồ uống'),
+        t('Distinctive golden skin', 'Vỏ vàng đặc trưng'),
+        t('Versatile across food and beverage', 'Dùng được cho cả món ăn và đồ uống'),
       ],
-      link: t('Request product specifications', 'Yêu cầu thông số sản phẩm'),
+      specs: t('Request product specifications', 'Yêu cầu thông số sản phẩm'),
+      link: t('Explore the product origin', 'Khám phá nguồn gốc sản phẩm'),
     },
-    applications: {
-      eyebrow: t('APPLICATIONS', 'ỨNG DỤNG'),
-      title: t('Crafted for Hospitality', 'Dành cho ngành khách sạn & ẩm thực'),
+    partnership: {
+      eyebrow: t('FOODSERVICE PARTNERSHIP', 'ĐỒNG HÀNH CÙNG ĐỐI TÁC F&B'),
+      title: t('A Clear Path to Foodservice Partnership', 'Quy trình hợp tác đơn giản, rõ ràng'),
       text: t(
-        'Possible uses of the fresh fruit across hospitality. They are ideas for your menu, not finished products from HMV.',
-        'Những cách dùng chanh dây tươi trong ngành khách sạn và ẩm thực. Đây là gợi ý cho thực đơn của bạn, không phải sản phẩm thành phẩm của HMV.',
+        'Share your business requirements so HMV can discuss a suitable golden passion fruit supply arrangement with your team.',
+        'Chia sẻ nhu cầu của doanh nghiệp để HMV cùng bạn trao đổi phương án cung ứng chanh dây vàng phù hợp.',
       ),
-      items: [
-        { title: t('Hotels & Resorts', 'Khách sạn & Resort'), text: t('A distinctive fresh fruit for the first drink a guest is offered and the table they sit at in the morning.', 'Một loại trái cây tươi khác biệt cho ly thức uống đầu tiên chào đón khách và bàn ăn buổi sáng.'), uses: [t('Welcome drinks', 'Thức uống chào đón'), t('Breakfast service', 'Bữa sáng'), t('Hospitality beverage menus', 'Thực đơn đồ uống')] },
-        { title: t('Restaurants & Fine Dining', 'Nhà hàng & Fine dining'), text: t('A fruit with enough character to carry a dessert, a sauce or a seasonal menu.', 'Một loại trái cây đủ cá tính để làm điểm nhấn cho món tráng miệng, nước sốt hay thực đơn theo mùa.'), uses: [t('Desserts', 'Món tráng miệng'), t('Sauces', 'Nước sốt'), t('Culinary presentations', 'Trình bày món ăn'), t('Seasonal menus', 'Thực đơn theo mùa')] },
-        { title: t('Bars & Mixology', 'Quầy bar & Pha chế'), text: t('Fresh fruit for a signature drink, with or without alcohol.', 'Trái cây tươi cho đồ uống đặc trưng, có cồn hoặc không cồn.'), uses: [t('Signature beverages', 'Đồ uống đặc trưng'), t('Cocktails', 'Cocktail'), t('Mocktails', 'Mocktail')] },
-        { title: t('Cafés & Beverage Businesses', 'Quán cà phê & Doanh nghiệp đồ uống'), text: t('Fresh fruit for juices and seasonal drinks that give a menu a reason to change.', 'Trái cây tươi cho nước ép và đồ uống theo mùa, tạo lý do để thực đơn đổi mới.'), uses: [t('Fresh juice', 'Nước ép tươi'), t('Fruit-based beverages', 'Đồ uống từ trái cây'), t('Seasonal beverage concepts', 'Ý tưởng đồ uống theo mùa')] },
+      // The six topics HMV asks about, in three steps: quantities, frequency and destination; applications, specifications and packaging.
+      steps: [
+        item('Share Your Requirements', 'Expected quantities, purchasing frequency and delivery destination.', 'Chia sẻ nhu cầu', 'Sản lượng dự kiến, tần suất nhập hàng và địa điểm giao hàng.'),
+        item('Discuss Product Specifications', 'Intended applications, product requirements and packaging preferences.', 'Trao đổi quy cách', 'Mục đích sử dụng, thông số sản phẩm và yêu cầu đóng gói.'),
+        item('Review a Supply Proposal', 'HMV reviews your requirements and discusses suitable commercial arrangements.', 'Đề xuất cung ứng', 'HMV xem xét nhu cầu và trao đổi phương án hợp tác thương mại.'),
       ],
-    },
-    culinary: {
-      eyebrow: t('CULINARY INSPIRATION', 'CẢM HỨNG ẨM THỰC'),
-      title: t('Ideas to take to your kitchen and bar', 'Gợi ý cho bếp và quầy bar của bạn'),
-      lines: [
-        t('A welcome drink that opens the stay.', 'Một ly thức uống chào đón mở đầu kỳ nghỉ.'),
-        t('A dessert that finishes the evening with a golden note.', 'Một món tráng miệng khép lại buổi tối bằng sắc vàng.'),
-        t('A signature cocktail, or a mocktail, built around one fruit.', 'Một ly cocktail hoặc mocktail đặc trưng xây dựng quanh một loại trái cây.'),
-        t('A seasonal beverage that gives a café a reason to be visited.', 'Một đồ uống theo mùa tạo lý do để khách ghé quán.'),
-      ],
-      note: t('Serving inspiration only, not examples of existing HMV customers.', 'Chỉ là gợi ý phục vụ, không phải ví dụ về khách hàng hiện có của HMV.'),
-      // Approved hospitality photographs (a resort beverage, a hotel breakfast, a dessert, a bartender) go here as
-      // { photo, caption } entries: a photograph in the list is shown, an empty list leaves the text alone.
-      media: [],
-    },
-    origin: {
-      eyebrow: t('FROM ORCHARD TO HOSPITALITY', 'TỪ VÙNG TRỒNG ĐẾN NHÀ HÀNG & KHÁCH SẠN'),
-      title: t('It begins in a Vietnamese orchard', 'Mọi thứ bắt đầu từ một vùng trồng Việt Nam'),
-      text: t(
-        'Golden passion fruit is sourced from growing areas in Vietnam. For the orchard, the sorting and the quality evidence behind the fruit, see the buyer page.',
-        'Chanh dây vàng được thu mua từ các vùng trồng tại Việt Nam. Về vùng trồng, công đoạn phân loại và bằng chứng chất lượng của trái, xem trang dành cho khách hàng nhập khẩu.',
-      ),
-      link: t('See sourcing and quality evidence', 'Xem nguồn hàng và bằng chứng chất lượng'),
-    },
-    supply: {
-      eyebrow: t('PROFESSIONAL SUPPLY', 'CUNG ỨNG CHUYÊN NGHIỆP'),
-      title: t('Professional Foodservice Supply', 'Cung ứng chuyên nghiệp cho F&B'),
-      text: t('What to share with HMV so the supply can be discussed around your kitchen or venue.', 'Những gì cần chia sẻ với HMV để trao đổi cung ứng phù hợp với bếp hoặc cơ sở của bạn.'),
-      items: [
-        item('Required quantities', 'How much you expect to use.',
-             'Sản lượng cần', 'Lượng bạn dự kiến sử dụng.'),
-        item('Delivery destination', 'Where the fruit needs to arrive.',
-             'Nơi giao hàng', 'Nơi trái cần được giao đến.'),
-        item('Intended applications', 'The dishes or drinks you have in mind.',
-             'Ứng dụng dự kiến', 'Các món ăn hoặc đồ uống bạn đang nghĩ đến.'),
-        item('Product specifications', 'The size and selection that suit your use.',
-             'Thông số sản phẩm', 'Kích cỡ và cách chọn lọc phù hợp với cách bạn sử dụng.'),
-        item('Purchasing frequency', 'One order or a regular need.',
-             'Tần suất mua', 'Một đơn hàng hay nhu cầu thường xuyên.'),
-        item('Packaging requirements', 'How you need the fruit packed.',
-             'Yêu cầu đóng gói', 'Cách bạn cần đóng gói trái.'),
-      ],
-      note: t('Availability, quantities and delivery are confirmed with each inquiry.', 'Nguồn hàng, sản lượng và giao hàng được xác nhận theo từng yêu cầu.'),
+      note: t('Availability, quantities and delivery are confirmed with each inquiry.', 'Nguồn hàng, sản lượng và lịch giao được xác nhận theo từng yêu cầu cụ thể.'),
+      cta: t('Start a Foodservice Partnership', 'Bắt đầu hợp tác cùng HMV'),
     },
     faq: {
-      title: t('Foodservice questions', 'Câu hỏi của khách hàng F&B'),
+      title: t('Questions about Golden Passion Fruit Supply for Foodservice', 'Câu hỏi thường gặp về cung ứng chanh dây vàng cho F&B'),
       text: t('For purchasing managers, chefs and beverage teams.', 'Dành cho bộ phận thu mua, bếp trưởng và đội ngũ đồ uống.'),
       items: [
-        item('What does HMV supply to foodservice businesses?', 'Fresh whole golden passion fruit from Vietnam. HMV does not supply juice, purée or finished drinks on this page.',
-             'HMV cung ứng gì cho doanh nghiệp F&B?', 'Chanh dây vàng tươi nguyên quả từ Việt Nam. Trên trang này, HMV không cung cấp nước ép, cốt hay đồ uống thành phẩm.'),
-        item('How do I start a supply discussion?', 'Open the HMV Trade Desk and tell us the product, your destination and the quantity you expect. Applications, packaging and frequency can follow.',
-             'Làm sao để bắt đầu trao đổi cung ứng?', 'Mở HMV Trade Desk và cho chúng tôi biết sản phẩm, nơi giao hàng và sản lượng dự kiến. Ứng dụng, đóng gói và tần suất có thể trao đổi sau.'),
-        item('Can I get product specifications?', 'Yes. Ask for them through the Trade Desk; HMV provides what is confirmed for your inquiry and does not publish values that are not verified.',
-             'Tôi có thể nhận thông số sản phẩm không?', 'Có. Hãy hỏi qua Trade Desk; HMV cung cấp những thông tin đã xác nhận cho yêu cầu của bạn và không công bố các giá trị chưa được xác minh.'),
-        item('What packaging is available?', 'Packaging is discussed for your use. Divided cartons and protective nets are examples; the format is agreed in the proposal.',
-             'Có những quy cách đóng gói nào?', 'Quy cách đóng gói được trao đổi theo cách bạn sử dụng. Thùng có ngăn và lưới bảo vệ là các ví dụ; quy cách được thống nhất trong đề xuất.'),
-        item('Is there a minimum order or a delivery schedule?', 'None is promised on this page. Quantities, frequency and delivery are confirmed for each inquiry.',
-             'Có đơn hàng tối thiểu hay lịch giao cố định không?', 'Trang này không cam kết điều đó. Sản lượng, tần suất và giao hàng được xác nhận theo từng yêu cầu.'),
+        item('Which businesses does HMV supply golden passion fruit to?', 'This page is for hotels, resorts, restaurants, bars, cafés and beverage businesses. HMV supplies fresh whole golden passion fruit from Vietnam; it does not supply juice, purée or finished food and drinks.',
+             'HMV cung ứng chanh dây vàng cho những nhóm doanh nghiệp nào?', 'Trang này dành cho khách sạn, khu nghỉ dưỡng, nhà hàng, quầy bar, quán cà phê và doanh nghiệp đồ uống. HMV cung ứng chanh dây vàng tươi nguyên quả từ Việt Nam; HMV không cung cấp nước ép, cốt hay món ăn, đồ uống thành phẩm.'),
+        item('Can I discuss specifications and quantities for my needs?', 'Yes. Open the HMV Trade Desk and share your intended use, expected quantity and delivery destination. HMV replies with what is confirmed for your inquiry and does not publish values that are not verified.',
+             'Tôi có thể trao đổi quy cách và sản lượng theo nhu cầu không?', 'Có. Hãy mở HMV Trade Desk và cho biết mục đích sử dụng, sản lượng dự kiến và địa điểm giao hàng. HMV phản hồi bằng những thông tin đã được xác nhận cho yêu cầu của bạn và không công bố các số liệu chưa được kiểm chứng.'),
+        item('Are the dishes and drinks in the images HMV products?', 'No. The beverage, dessert and dish images are AI-generated illustrations of possible uses. HMV supplies fresh golden passion fruit and does not make finished dishes or beverages; the images do not show HMV customers.',
+             'Hình ảnh món ăn và đồ uống có phải sản phẩm do HMV sản xuất không?', 'Không. Các hình ảnh đồ uống, món tráng miệng và món ăn do AI tạo ra để minh họa ý tưởng ứng dụng. HMV cung ứng chanh dây vàng tươi, không sản xuất món ăn hay đồ uống thành phẩm, và các hình ảnh này không đại diện cho khách hàng của HMV.'),
+        item('Does HMV help with product specifications?', 'Yes. Ask through the Trade Desk and HMV provides the information confirmed for your inquiry. Divided cartons and protective nets are examples of packaging; the format is agreed in the proposal.',
+             'HMV có hỗ trợ trao đổi thông số sản phẩm không?', 'Có. Hãy gửi yêu cầu qua Trade Desk, HMV sẽ cung cấp thông tin đã xác nhận cho yêu cầu của bạn. Thùng có ngăn và lưới bảo vệ là các ví dụ về quy cách đóng gói; quy cách cụ thể được thống nhất trong đề xuất.'),
+        item('How do I start a supply partnership?', 'Open the HMV Trade Desk and tell HMV your product, destination and expected quantity. Frequency, applications and packaging can follow. No minimum order or delivery schedule is stated on this page; both are confirmed for each inquiry.',
+             'Làm thế nào để bắt đầu hợp tác cung ứng?', 'Hãy mở HMV Trade Desk và cho HMV biết sản phẩm, địa điểm giao hàng và sản lượng dự kiến. Tần suất nhập hàng, ứng dụng và quy cách đóng gói có thể trao đổi sau. Trang này không nêu đơn hàng tối thiểu hay lịch giao cố định; những nội dung đó được xác nhận theo từng yêu cầu.'),
       ],
     },
     cta: {
-      title: t('Bring Something Exceptional to Your Menu.', 'Mang đến điều đặc biệt cho thực đơn của bạn.'),
-      text: t('Start with a conversation about your kitchen, your bar and your supply needs.', 'Hãy bắt đầu bằng một cuộc trao đổi về bếp, quầy bar và nhu cầu cung ứng của bạn.'),
+      title: t('Bring Tropical Inspiration to Your Menu', 'Mang cảm hứng nhiệt đới vào thực đơn của bạn'),
+      text: t('Connect with HMV to discuss your product requirements and supply arrangements.', 'Kết nối với HMV để trao đổi nhu cầu và phương án cung ứng phù hợp với doanh nghiệp.'),
       button: t('Become a Foodservice Partner', 'Trở thành đối tác F&B'),
     },
   },
@@ -285,117 +287,104 @@ const content = {
   // ─────────────────────────────── Premium Retail Business ───────────────────────────────
   retail: {
     seo: {
-      title: t('Golden Passion Fruit for Retail Businesses', 'Chanh dây vàng cho đối tác bán lẻ'),
+      title: t('Golden Passion Fruit Supplier for Retailers', 'Nhà cung ứng chanh dây vàng cho đối tác bán lẻ'),
       description: t(
-        'Fresh golden passion fruit from Vietnam for supermarkets, specialty fruit retailers, distributors and gifting businesses. Discuss volume and packaging with HMV.',
-        'Chanh dây vàng tươi Việt Nam cho siêu thị, cửa hàng trái cây đặc sản, nhà phân phối và doanh nghiệp quà tặng. Trao đổi sản lượng và đóng gói cùng HMV.',
+        'Vietnamese golden passion fruit for retailers, supermarkets and distributors. Discuss product presentation, packaging and commercial supply with HMV Global.',
+        'Chanh dây vàng Việt Nam dành cho siêu thị, cửa hàng trái cây và nhà phân phối. Trao đổi quy cách đóng gói và phương án cung ứng cùng HMV Global.',
       ),
     },
     hero: {
       eyebrow: t('HMV GOLDEN PASSION FRUIT — RETAIL BUSINESS', 'HMV CHANH DÂY VÀNG — ĐỐI TÁC BÁN LẺ'),
-      title: t('Distinctive Fruit. Distinguished Shelves.', 'Trái cây khác biệt. Giá trị tại điểm bán.'),
+      title: t('Golden Passion Fruit for Retail & Distribution', 'Chanh dây vàng cho đối tác phân phối và bán lẻ'),
+      tagline: t('Distinctive Fruit. Distinguished Shelves.', 'Trái cây khác biệt. Giá trị tại điểm bán.'),
       lead: t(
-        'Fresh golden passion fruit for retailers and distributors who value product presentation and origin.',
-        'Chanh dây vàng tươi dành cho đối tác phân phối và bán lẻ chú trọng hình thức sản phẩm và nguồn gốc.',
+        'Fresh Vietnamese golden passion fruit for distributors and retailers who value product origin, presentation and shelf appeal.',
+        'Chanh dây vàng tươi từ Việt Nam dành cho những đối tác chú trọng nguồn gốc, hình thức sản phẩm và giá trị trưng bày tại điểm bán.',
       ),
       primary: t('Discuss a Retail Partnership', 'Trao đổi hợp tác phân phối'),
-      secondary: t('Explore Packaging', 'Khám phá đóng gói'),
+      secondary: t('Explore Packaging', 'Khám phá quy cách đóng gói'),
     },
-    presentation: {
-      eyebrow: t('PRODUCT PRESENTATION', 'HÌNH THỨC SẢN PHẨM'),
-      title: t('A fruit that stands out on the shelf', 'Một loại trái cây nổi bật trên quầy'),
-      text: t(
-        'Whole golden passion fruit with a clear golden skin, shown here in illustrative product images. Further product details are provided with your inquiry.',
-        'Chanh dây vàng nguyên quả với lớp vỏ vàng rõ nét, được thể hiện ở đây bằng hình ảnh minh họa sản phẩm. Các thông tin sản phẩm khác được cung cấp kèm yêu cầu của bạn.',
-      ),
-      facts: [
-        [t('Product', 'Sản phẩm'), t('Fresh whole golden passion fruit', 'Chanh dây vàng tươi nguyên quả')],
-        [t('Appearance', 'Hình thức'), t('Golden skin, whole fruit', 'Vỏ vàng, nguyên quả')],
-        [t('Origin', 'Xuất xứ'), t('Vietnam', 'Việt Nam')],
-        [t('Further details', 'Thông tin khác'), t('Provided with your inquiry', 'Cung cấp kèm yêu cầu của bạn')],
-      ],
-    },
+    values: retailValues,
     packaging: {
       eyebrow: t('PACKAGING & PRESENTATION', 'ĐÓNG GÓI & TRƯNG BÀY'),
-      title: t('Packaging & Presentation', 'Đóng gói & trưng bày'),
+      title: t('Flexible Packaging, Refined Presentation', 'Quy cách linh hoạt, trưng bày ấn tượng'),
       text: t(
-        'Illustrative formats for protecting and presenting golden passion fruit. They are packaging presentation references, not confirmed HMV packaging or pack sizes.',
-        'Các định dạng minh họa cách bảo vệ và trưng bày chanh dây vàng. Đây là hình ảnh tham khảo về cách đóng gói, không phải bao bì hay quy cách đóng gói đã xác nhận của HMV.',
+        'From individual fruit protection to retail presentation, HMV works with buyers to discuss packaging formats suited to their distribution channels.',
+        'Từ cách bảo vệ từng trái đến hình thức trưng bày, HMV cùng đối tác trao đổi quy cách đóng gói phù hợp với từng kênh phân phối.',
       ),
       items: [
         item('Individual fruit protection', 'Foam nets around each fruit.',
-             'Bảo vệ từng trái', 'Lưới xốp bao quanh mỗi trái.'),
-        item('Compartmentalised cartons', 'One fruit per compartment, as in this twelve-fruit carton.',
-             'Thùng có ngăn', 'Mỗi trái một ngăn, như thùng mười hai trái này.'),
-        item('Premium fruit display', 'Fruit presented on a display stand.',
-             'Trưng bày trái cây cao cấp', 'Trái được trưng bày trên kệ.'),
+             'Bảo vệ từng trái', 'Lưới xốp bao quanh từng trái.'),
+        item('Divided cartons', 'One fruit per compartment, in cartons with divided trays.',
+             'Thùng có ngăn', 'Mỗi trái một ngăn, trong thùng có khay chia.'),
+        item('Display presentation', 'Fruit shown on a display stand.',
+             'Trưng bày tại điểm bán', 'Trái được trình bày trên kệ trưng bày.'),
       ],
       note: t(
-        'Pack sizes and private-label options are not offered on this page. Packaging arrangements are subject to buyer requirements: ask HMV what is available for your channel.',
-        'Trang này không đưa ra quy cách đóng gói hay tùy chọn nhãn riêng. Cách đóng gói tùy theo yêu cầu của khách hàng: hãy hỏi HMV về những gì có thể đáp ứng cho kênh của bạn.',
+        'The gift carton at the top of the page is an illustrative concept, and the carton and net images are market references: none is official HMV packaging. Pack sizes and private-label options are not offered on this page; packaging is discussed for each buyer channel.',
+        'Hộp quà ở đầu trang là concept minh họa, các hình thùng và lưới chỉ là tham khảo thị trường: không hình nào là bao bì chính thức của HMV. Trang này không nêu kích cỡ đóng gói hay tùy chọn nhãn riêng; phương án đóng gói được trao đổi theo kênh phân phối của từng đối tác.',
       ),
     },
     opportunities: {
-      eyebrow: t('RETAIL OPPORTUNITIES', 'CƠ HỘI BÁN LẺ'),
-      title: t('Where golden passion fruit can fit', 'Chanh dây vàng có thể phù hợp ở đâu'),
+      eyebrow: t('RETAIL OPPORTUNITIES', 'CƠ HỘI PHÂN PHỐI'),
+      title: t('Golden Passion Fruit for Premium Retail Channels', 'Cơ hội phân phối chanh dây vàng'),
+      text: t(
+        'With its distinctive golden appearance and Vietnamese origin, golden passion fruit offers another product direction for premium fresh-produce businesses.',
+        'Với màu vàng đặc trưng và câu chuyện nguồn gốc từ Việt Nam, chanh dây vàng mở ra thêm lựa chọn cho các doanh nghiệp kinh doanh trái cây và thực phẩm cao cấp.',
+      ),
       items: [
-        item('Premium supermarkets & gourmet grocery', 'A distinctive fresh fruit for a premium produce section, where presentation and origin matter.',
-             'Siêu thị cao cấp & cửa hàng thực phẩm gourmet', 'Một loại trái cây tươi khác biệt cho quầy rau quả cao cấp, nơi hình thức và nguồn gốc được coi trọng.'),
-        item('Specialty fruit retailers', 'A golden fruit to set a specialist range apart from standard fruit offers.',
-             'Cửa hàng trái cây đặc sản', 'Một loại trái vàng giúp danh mục đặc sản khác biệt so với trái cây thông thường.'),
-        item('Distributors & gifting businesses', 'Fresh fruit for distributors, and for businesses that assemble premium fruit gifts.',
-             'Nhà phân phối & doanh nghiệp quà tặng', 'Trái cây tươi cho nhà phân phối và doanh nghiệp làm quà tặng trái cây cao cấp.'),
+        item('Premium supermarkets and grocery retailers', 'A distinctive fresh fruit for produce sections where presentation and origin matter.',
+             'Siêu thị và cửa hàng thực phẩm cao cấp', 'Một loại trái cây tươi nổi bật cho quầy rau quả, nơi hình thức và nguồn gốc được coi trọng.'),
+        item('Specialty fruit stores', 'A golden fruit that sets a specialist range apart from standard offers.',
+             'Cửa hàng trái cây đặc sản', 'Một lựa chọn màu vàng giúp danh mục đặc sản khác với trái cây thông thường.'),
+        item('Distributors and premium gifting businesses', 'Fresh fruit for distributors, and for businesses that assemble premium fruit gifts.',
+             'Nhà phân phối và doanh nghiệp quà tặng', 'Trái cây tươi cho nhà phân phối và đơn vị làm quà tặng trái cây cao cấp.'),
       ],
     },
     origin: {
-      eyebrow: t('ORIGIN BEHIND THE PRODUCT', 'NGUỒN GỐC SẢN PHẨM'),
-      title: t('Presentation starts in the orchard', 'Hình thức sản phẩm bắt đầu từ vùng trồng'),
+      eyebrow: t('ORIGIN & PRODUCT', 'NGUỒN GỐC & SẢN PHẨM'),
+      title: t('Product Value Begins with Origin', 'Giá trị sản phẩm bắt đầu từ nguồn gốc'),
       text: t(
-        'Fruit grown in Vietnamese growing areas and sorted by hand before packing. The buyer page shows the orchard, the sorting and the product specification in more detail.',
-        'Trái được trồng tại các vùng trồng ở Việt Nam và phân loại thủ công trước khi đóng gói. Trang dành cho khách hàng nhập khẩu trình bày chi tiết hơn về vùng trồng, công đoạn phân loại và thông số sản phẩm.',
+        'HMV connects Vietnamese golden passion fruit sourcing with the needs of distribution partners. Product specifications and packaging requirements are discussed for each market.',
+        'HMV kết nối nguồn chanh dây vàng từ các vùng trồng tại Việt Nam với nhu cầu của đối tác phân phối. Thông số sản phẩm và quy cách đóng gói được trao đổi theo yêu cầu của từng thị trường.',
       ),
-      links: [t('Sourcing and orchard', 'Nguồn hàng và vùng trồng'), t('Product specification', 'Thông số sản phẩm')],
+      links: [t('Explore the product origin', 'Khám phá nguồn gốc sản phẩm'), t('Request product specifications', 'Yêu cầu thông số sản phẩm')],
     },
     partnership: {
-      eyebrow: t('COMMERCIAL PARTNERSHIP', 'HỢP TÁC THƯƠNG MẠI'),
-      title: t('A clear way to start', 'Một cách bắt đầu rõ ràng'),
-      text: t('Tell HMV about your business in a few points. Details follow in the conversation.', 'Hãy cho HMV biết vài điểm về doanh nghiệp của bạn. Chi tiết sẽ được trao đổi tiếp trong cuộc trò chuyện.'),
-      note: t('HMV does not publish prices, price tiers or margins on this page.', 'HMV không công bố giá, bậc giá hay biên lợi nhuận trên trang này.'),
-      items: [
-        item('Purchasing volume', 'The quantity you expect to buy.',
-             'Sản lượng mua', 'Lượng bạn dự kiến mua.'),
-        item('Product specifications', 'The product details your range needs.',
-             'Thông số sản phẩm', 'Thông tin sản phẩm mà danh mục của bạn cần.'),
-        item('Packaging needs', 'How the fruit should be packed and presented.',
-             'Nhu cầu đóng gói', 'Cách trái cần được đóng gói và trưng bày.'),
-        item('Destination', 'Where the fruit needs to be delivered.',
-             'Nơi giao hàng', 'Nơi trái cần được giao đến.'),
-        item('Purchasing frequency', 'A single order or a regular supply.',
-             'Tần suất mua', 'Một đơn hàng hay nguồn cung thường xuyên.'),
-        item('Distribution requirements', 'How the fruit reaches your stores or customers.',
-             'Yêu cầu phân phối', 'Cách trái đến cửa hàng hoặc khách hàng của bạn.'),
+      eyebrow: t('PARTNER WITH HMV GLOBAL', 'HỢP TÁC CÙNG HMV GLOBAL'),
+      title: t('Develop Your Market with HMV', 'Cùng HMV phát triển thị trường của bạn'),
+      text: t(
+        'Discuss your distribution needs, product requirements and purchasing plans with HMV to explore suitable commercial arrangements.',
+        'Trao đổi nhu cầu phân phối, quy cách sản phẩm và kế hoạch nhập hàng để cùng HMV xây dựng phương án hợp tác phù hợp.',
+      ),
+      steps: [
+        step('Understand Your Market', 'Distribution channels, target customers and expected purchasing volume.', 'Hiểu thị trường', 'Kênh phân phối, nhóm khách hàng và sản lượng dự kiến.'),
+        step('Discuss the Right Format', 'Product specifications, retail presentation and packaging requirements.', 'Lựa chọn quy cách', 'Thông số sản phẩm, hình thức trưng bày và nhu cầu đóng gói.'),
+        step('Plan the Partnership', 'Purchasing frequency, delivery destination and commercial arrangements.', 'Kế hoạch hợp tác', 'Tần suất nhập hàng, địa điểm giao nhận và đề xuất thương mại.'),
       ],
+      note: t('HMV works with businesses only and does not publish prices, price tiers or margins on this page.', 'HMV chỉ làm việc với doanh nghiệp và không công bố giá, bậc giá hay biên lợi nhuận trên trang này.'),
+      cta: t('Discuss a Retail Partnership', 'Bắt đầu trao đổi hợp tác'),
     },
     faq: {
+      title: t('Questions about Golden Passion Fruit for Retail Partners', 'Giải đáp về hợp tác phân phối chanh dây vàng'),
       text: t('For category buyers, distributors and gifting businesses.', 'Dành cho bộ phận mua hàng, nhà phân phối và doanh nghiệp quà tặng.'),
-      title: t('Retail business questions', 'Câu hỏi của đối tác bán lẻ'),
       items: [
-        item('Who is this page for?', 'Businesses: retailers, distributors and gifting companies. HMV does not sell to individual shoppers.',
-             'Trang này dành cho ai?', 'Dành cho doanh nghiệp: nhà bán lẻ, nhà phân phối và công ty quà tặng. HMV không bán cho người mua lẻ cá nhân.'),
-        item('What does HMV supply?', 'Fresh whole golden passion fruit from Vietnam. Processed products are not part of this offer.',
-             'HMV cung ứng gì?', 'Chanh dây vàng tươi nguyên quả từ Việt Nam. Sản phẩm chế biến không nằm trong phần chào hàng này.'),
-        item('Is HMV-branded or private-label packaging available?', 'Not confirmed. The packaging shown is a market reference. Ask HMV what can be arranged for your channel.',
-             'Có bao bì mang nhãn HMV hoặc nhãn riêng không?', 'Chưa được xác nhận. Bao bì trong ảnh chỉ là tham khảo thị trường. Hãy hỏi HMV những gì có thể sắp xếp cho kênh của bạn.'),
-        item('How do I ask about volume and specifications?', 'Open the HMV Trade Desk and share your volume, destination and packaging needs. HMV replies with what is confirmed for your inquiry.',
-             'Làm sao để hỏi về sản lượng và thông số?', 'Mở HMV Trade Desk và chia sẻ sản lượng, nơi giao hàng và nhu cầu đóng gói. HMV phản hồi với những gì đã xác nhận cho yêu cầu của bạn.'),
-        item('Can I see prices here?', 'No. Commercial terms are discussed with each business once the requirement is clear.',
-             'Tôi có thể xem giá tại đây không?', 'Không. Điều kiện thương mại được trao đổi với từng doanh nghiệp khi yêu cầu đã rõ.'),
+        qa('Where does HMV golden passion fruit come from?', 'From growing areas in Vietnam. HMV connects that sourcing with distribution partners, and the buyer page shows the growing area and the sorting in more detail. All commercial contact goes through HMV.',
+             'Chanh dây vàng HMV có nguồn gốc từ đâu?', 'Từ các vùng trồng tại Việt Nam. HMV kết nối nguồn hàng này với đối tác phân phối; trang dành cho khách hàng xuất khẩu trình bày chi tiết hơn về vùng trồng và khâu phân loại. Mọi trao đổi thương mại đều thông qua HMV.'),
+        qa('Can packaging be discussed for my distribution channel?', 'Yes. Packaging is discussed for each channel: protective nets and divided cartons are examples, and the format is agreed in the proposal. No pack size or private-label option is offered on this page.',
+             'Có thể trao đổi quy cách đóng gói theo kênh phân phối không?', 'Có. Quy cách đóng gói được trao đổi theo từng kênh phân phối: lưới bảo vệ và thùng có ngăn là các ví dụ, quy cách cụ thể được thống nhất trong đề xuất. Trang này không nêu kích cỡ đóng gói hay tùy chọn nhãn riêng.'),
+        qa('Is the illustrated packaging official HMV packaging?', 'No. The gift carton at the top of the page is an AI-generated concept and the other carton and net images are market references. None is official or manufactured HMV packaging, and HMV-branded or private-label packaging is not confirmed.',
+             'Bao bì minh họa có phải bao bì chính thức của HMV không?', 'Không. Hộp quà ở đầu trang là concept do AI tạo ra, các hình thùng và lưới còn lại là tham khảo thị trường. Không hình nào là bao bì chính thức hay do HMV sản xuất, và bao bì mang nhãn HMV hay nhãn riêng chưa được xác nhận.'),
+        qa('How do I discuss specifications and purchasing volume?', 'Open the HMV Trade Desk and share your expected volume, destination and packaging needs. HMV replies with what is confirmed for your inquiry. Prices are not published here; commercial terms are discussed once the requirement is clear.',
+             'Làm thế nào để trao đổi thông số và sản lượng nhập hàng?', 'Hãy mở HMV Trade Desk và chia sẻ sản lượng dự kiến, địa điểm giao hàng và nhu cầu đóng gói. HMV phản hồi bằng những thông tin đã xác nhận cho yêu cầu của bạn. Trang này không niêm yết giá; điều kiện thương mại được trao đổi khi nhu cầu đã rõ.'),
+        qa('What do I need to share to receive a proposal?', 'Your market and distribution channel, expected volume and purchasing frequency, product and packaging requirements, and the delivery destination. HMV reviews them and replies with a proposal for your channel.',
+             'Tôi cần cung cấp thông tin gì để nhận đề xuất hợp tác?', 'Kênh phân phối và thị trường, sản lượng dự kiến và tần suất nhập hàng, yêu cầu về sản phẩm và đóng gói, cùng địa điểm giao hàng. HMV xem xét và phản hồi bằng đề xuất phù hợp với kênh của bạn.'),
       ],
     },
     cta: {
-      title: t('Bring the Golden Taste of Vietnam to Your Market.', 'Mang hương vị vàng của Việt Nam đến thị trường của bạn.'),
-      button: t('Become a Retail Partner', 'Trở thành đối tác bán lẻ'),
-      text: t('Share your market and your range. HMV will take it from there.', 'Hãy chia sẻ về thị trường và danh mục của bạn. HMV sẽ tiếp tục từ đó.'),
+      title: t('Bring Distinctive Value to Your Shelves', 'Đưa giá trị khác biệt đến điểm bán của bạn'),
+      text: t('Connect with HMV Global to discuss your golden passion fruit distribution and supply requirements.', 'Liên hệ HMV Global để trao đổi nhu cầu phân phối và phương án cung ứng chanh dây vàng.'),
+      button: t('Become a Retail Partner', 'Trở thành đối tác phân phối'),
     },
   },
 };

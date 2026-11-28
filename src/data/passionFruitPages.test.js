@@ -50,11 +50,21 @@ test('no image description or caption turns a file name into a claim', () => {
 test('every image the pages import is a tracked WebP derivative; no original is imported', () => {
   const root = path.resolve(import.meta.dirname, '../..');
   const imports = [...fs.readFileSync(path.join(import.meta.dirname, 'passionFruitMedia.js'), 'utf8').matchAll(/from '@\/assets\/(passion-fruit\/[^']+)'/g)].map(m => m[1]);
-  assert.ok(imports.length >= 10);
+  assert.ok(imports.length >= 16);
   for (const file of imports) {
-    assert.match(file, /^passion-fruit\/[a-z0-9-]+\.webp$/, file);
+    assert.match(file, /^passion-fruit\/production\/(shared\/(product|farming|operations|packaging)|foodservice|retail)\/[a-z0-9-]+\.webp$/, file);
     const relative = `src/assets/${file}`;
     assert.ok(fs.existsSync(path.join(root, relative)), `${relative} exists`);
     assert.equal(execFileSync('git', ['ls-files', relative], { cwd: root }).toString().trim(), relative, `${relative} is tracked`);
   }
+});
+
+test('nothing in the source tree reaches into the private originals, and no loose image is left in the passion fruit folder root', () => {
+  const root = path.resolve(import.meta.dirname, '../..');
+  const files = fs.readdirSync(path.join(root, 'src'), { recursive: true }).filter(f => /\.(jsx?|tsx?|css)$/.test(f));
+  assert.ok(files.length > 100);
+  const stale = files.filter(f => /passion-fruit\/(private-sources|[^/'"]+\.(webp|png|jpe?g))/i.test(fs.readFileSync(path.join(root, 'src', f), 'utf8')));
+  assert.deepEqual(stale, []);
+  const folder = path.join(root, 'src/assets/passion-fruit');
+  assert.deepEqual(fs.readdirSync(folder, { withFileTypes: true }).filter(e => e.isFile()).map(e => e.name), []);
 });

@@ -31,7 +31,7 @@ Contract sources: `CMS_HMV/docs/api/public-content-contract.md`, `CMS_HMV/docs/a
 
 | Piece | File |
 |---|---|
-| Mode flag | `.env.cms` sets `VITE_CMS_CONTENT=true`; it is loaded only by `--mode cms` (`npm run dev:cms`, `npm run build:cms` → `dist-cms/`). With the flag off, the CMS client is tree-shaken out of the bundle. |
+| Mode flag | `.env.cms` sets `VITE_CMS_CONTENT=true`; it is loaded only by `--mode cms` (`npm run vite:dev:cms`, `npm run vite:build:cms` → `dist-cms/`). With the flag off, the CMS client is tree-shaken out of the bundle. |
 | Same-origin access | `vite.config.js` proxies **only** `/api/v1/public` to `CMS_API_ORIGIN` (shell variable, default `http://localhost:4000`) for `vite` and `vite preview`, and strips the `Cookie` header (localhost cookies ignore the port, so the admin `hmv_session` would otherwise be forwarded). |
 | CMS contract | `src/lib/cms.js`: the URL builder (`/api/v1/public/...`) and error helpers. A transport is `get(path, params)` that rejects with `{ status }`. |
 | Browser transport (Vite) | `src/app/cms.js` (`browserCms(signal)`: relative URLs, `credentials: 'omit'`, only an `Accept` header) and `src/lib/useFetched.js` (`CMS_CONTENT` flag, keyed fetch hook with abort). Next.js gets a server transport in the CMS PR (docs/architecture/NEXTJS_TARGET_ARCHITECTURE.md §7). |
@@ -46,8 +46,8 @@ With CMS mode on, the CMS is the only source: a failed request shows an error st
 
 ```bash
 # CMS_HMV: Postgres (docker compose up -d postgres), then pnpm dev:backend (:4000) and pnpm dev:frontend (:3000)
-npm run dev:cms                     # landing on :5173, EcoNews from the local CMS
-CMS_API_ORIGIN=http://host:4000 npm run dev:cms   # another CMS
+npm run vite:dev:cms                # legacy Vite landing on :5173, EcoNews from the local CMS
+CMS_API_ORIGIN=http://host:4000 npm run vite:dev:cms   # another CMS
 ```
 
 ## Locale and slug resolution

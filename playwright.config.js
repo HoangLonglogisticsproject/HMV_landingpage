@@ -4,11 +4,11 @@ import { defineConfig } from '@playwright/test';
  * Playwright E2E configuration.
  *
  * Build freshness:
- *   - In CI (`CI=true`): webServer runs `npm run build && npm run preview`,
+ *   - In CI (`CI=true`): webServer runs `npm run vite:build && npm run vite:preview`,
  *     ensuring tests always run against the latest build.
  *   - In local dev: reuses an existing preview server if one is already
  *     running on port 4173 to keep the feedback loop fast.
- *     Run `npm run test:e2e` (not `npm run preview` separately) to get a
+ *     Run `npm run test:e2e` (not `npm run vite:preview` separately) to get a
  *     fresh build guarantee locally too.
  */
 // Specs scoped by file name instead of skipped at run time: *.mobile.spec.js runs in the phone project only,
@@ -54,8 +54,8 @@ export default defineConfig({
   webServer: {
     // In CI, always build first. Locally, reuse existing server if available.
     command: process.env.CI
-      ? 'npm run build && npm run preview'
-      : 'npm run preview',
+      ? 'npm run vite:build && npm run vite:preview'
+      : 'npm run vite:preview',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
