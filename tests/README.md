@@ -18,7 +18,8 @@ This directory contains the reproducible smoke test suite for HMV Global landing
 
 ```bash
 npm ci                        # Install all deps
-npm run build                 # Build the production bundle
+npm run build                 # Next.js production build (the primary framework)
+npm run vite:build            # legacy Vite bundle, which the Vite E2E suite below tests
 ```
 
 ### Unit tests (fast, no browser needed)
@@ -41,7 +42,7 @@ npm run test:e2e
 npx playwright test --ignore-snapshots
 ```
 
-Playwright spins up `vite preview` on port 4173 automatically. Tests cover:
+This is the legacy Vite suite: Playwright spins up `vite preview` (`npm run vite:preview`) on port 4173 automatically; in CI it builds first with `npm run vite:build`. Tests cover:
 
 | File | Coverage |
 |---|---|
@@ -55,7 +56,7 @@ Playwright spins up `vite preview` on port 4173 automatically. Tests cover:
 
 `npm run test:e2e` builds both bundles and runs both suites. The default config ignores `cms-*.spec.js`, so `test:e2e:fast` and `test:visual` need only `dist`.
 
-Next.js (migration branch): `npm run test:e2e:next` builds and tests the Next.js site (`tests/next/`, port 4175). `npm run test:e2e:next-cms` starts a mock CMS (port 4400), builds Next.js with `CMS_CONTENT=true` against it and runs `tests/next-cms/` (port 4176), then rebuilds with a 2 s revalidation interval for the stale-on-error test (`playwright.next-cms-stale.config.js`); those builds replace `.next`, so run them last. `scripts/check-boundaries.test.js` runs with `npm test`.
+Next.js (primary): `npm run test:e2e:next` builds and tests the Next.js site (`tests/next/`, port 4175). `npm run test:e2e:next-cms` starts a mock CMS (port 4400), builds Next.js with `CMS_CONTENT=true` against it and runs `tests/next-cms/` (port 4176), then rebuilds with a 2 s revalidation interval for the stale-on-error test (`playwright.next-cms-stale.config.js`); those builds replace `.next`, so run them last. `scripts/check-boundaries.test.js` runs with `npm test`.
 
 Both desktop (1280×720) and mobile (375×667) viewports are tested.
 
@@ -99,5 +100,5 @@ npx playwright show-report
 ## CI notes
 
 - Set `CI=true` to enable single-worker mode and retries.
-- The webServer auto-starts `npm run preview`; ensure port 4173 is free.
+- The webServer auto-starts `npm run vite:preview`; ensure port 4173 is free.
 - Legacy locale redirect tests (`/en/*`, `/vi/*`) reflect client-side React Router behavior; they pass once the SPA is loaded. On production Vercel, these are pre-handled by `vercel.json` 301 redirects.

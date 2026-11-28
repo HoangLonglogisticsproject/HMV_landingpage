@@ -132,14 +132,17 @@ URLs are locale-free. Adding `?lang=en` or `?lang=vi` to any URL sets the langua
 
 ## Checks
 
-- `npm run build` — Vite production build; must pass before any commit.
+- **Next.js is the primary framework** (App Router, `app/`; the deployed site). `npm run dev` serves it on port 4175, `npm run build` is `next build` (must pass before any commit) and `npm run start` serves the build on 4175. `npm run next:dev|next:build|next:start` remain as aliases.
+- **Vite is the legacy compatibility and rollback path** (`index.html`, `src/main.jsx`, kept until the migration is closed; no Vite dependency is removed): `npm run vite:dev` (5173; `vite:dev:cms` for CMS mode), `npm run vite:build` (`vite:build:cms` → `dist-cms`, `vite:build:dev`), `npm run vite:preview` (4173). Its Playwright configs build with the `vite:*` scripts; the Next.js ones with `next build`. Unit tests (`npm test`) run under Vitest through `vite.config.js` for both.
+- The dev server's watcher ignores unfinished browser downloads and `private-sources/` (Windows `EBUSY` on a locked `.crdownload`), and it will not serve the private media (`server.fs.deny`); see `PASSION_FRUIT.md`, 'Prevention'.
 - `package-lock.json` — regenerate it on Linux (CI, or Docker `node:24.18.0`). npm on Windows leaves out `@emnapi/core` and `@emnapi/runtime` (optional dependencies of the wasm builds of `sharp` and Tailwind's oxide), and `npm ci` on Linux then fails.
 - `npm test` — Vitest unit tests (co-located `*.test.js` files): inquiry + RFQ logic, CMS API clients, rich-text renderer, About page and its data hooks. `npm run test:coverage` writes `coverage/lcov.info` for SonarQube.
 - `npm run lint` — ESLint flat config (React Hooks + React Refresh checks), then the layer boundary check (`scripts/check-boundaries.js`). Baseline has 0 errors / 9 warnings.
-- `npm run test:e2e` — Playwright smoke tests (routes, i18n, navigation, workflows, visual) against `vite preview` on port 4173, then the CMS-mode suite (`tests/cms-*.spec.js`, mocked API) against `dist-cms` on port 4174.
+- `npm run test:e2e` — the legacy Vite suite: builds both Vite bundles, then Playwright smoke tests (routes, i18n, navigation, workflows, visual) against `vite preview` on port 4173, then the CMS-mode suite (`tests/cms-*.spec.js`, mocked API) against `dist-cms` on port 4174.
 - `npm run test:e2e:cms` — CMS-mode suite only (builds `dist-cms` first).
-- `npm run dev:cms` / `npm run build:cms` — EcoNews from the CMS public API (proxied to `CMS_API_ORIGIN`, default `http://localhost:4000`).
-- `npm run test:visual` — Visual screenshot smoke tests only.
+- `npm run test:e2e:next` — the Next.js suite (`tests/next/`, port 4175); `npm run test:e2e:next-cms` — Next.js against a mock CMS.
+- `npm run vite:dev:cms` / `npm run vite:build:cms` — EcoNews from the CMS public API (proxied to `CMS_API_ORIGIN`, default `http://localhost:4000`).
+- `npm run test:visual` — the legacy Vite visual smoke tests only (the Next.js baselines run in CI's `visual` job, `playwright.next-visual.config.js`, in the pinned Linux image).
 
 ---
 

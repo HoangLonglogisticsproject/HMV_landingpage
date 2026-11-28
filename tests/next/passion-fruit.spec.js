@@ -32,13 +32,13 @@ test('the segment navigation: three real links, the current page marked, back an
 
   await nav.getByRole('link', { name: 'Foodservice' }).click();
   await expect(page).toHaveURL(/\/products\/passion-fruit\/foodservice$/);
-  await expect(page.locator('h1')).toHaveText('An Exceptional Ingredient. A Memorable Experience.');
+  await expect(page.locator('h1')).toHaveText('Golden Passion Fruit for Professional Food & Beverage');
   await expect(nav.getByRole('link', { name: 'Foodservice' })).toHaveAttribute('aria-current', 'page');
   await nav.getByRole('link', { name: 'Retail Business' }).click();
   await expect(page).toHaveURL(/\/products\/passion-fruit\/retail$/);
   await page.goBack();
   await expect(page).toHaveURL(/\/foodservice$/);
-  await expect(page.locator('h1')).toHaveText('An Exceptional Ingredient. A Memorable Experience.');
+  await expect(page.locator('h1')).toHaveText('Golden Passion Fruit for Professional Food & Beverage');
   await page.goBack();
   await expect(page).toHaveURL(/\/products\/passion-fruit$/);
   await page.goForward();

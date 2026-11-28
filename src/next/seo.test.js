@@ -20,9 +20,9 @@ const MONEY = [
   ['/products/passion-fruit', 'en', '/products/passion-fruit', /^Golden Passion Fruit Supplier from Vietnam/, 'export'],
   ['/products/passion-fruit', 'vi', '/vi/san-pham/chanh-day', /^Nhà cung ứng chanh dây vàng Việt Nam/, 'export'],
   ['/products/passion-fruit/foodservice', 'en', '/products/passion-fruit/foodservice', /^Golden Passion Fruit for Hotels & Foodservice/, 'foodservice'],
-  ['/products/passion-fruit/foodservice', 'vi', '/vi/san-pham/chanh-day/khach-san-nha-hang', /^Chanh dây vàng cho khách sạn, nhà hàng & F&B/, 'foodservice'],
-  ['/products/passion-fruit/retail', 'en', '/products/passion-fruit/retail', /^Golden Passion Fruit for Retail Businesses/, 'retail'],
-  ['/products/passion-fruit/retail', 'vi', '/vi/san-pham/chanh-day/doi-tac-ban-le', /^Chanh dây vàng cho đối tác bán lẻ/, 'retail'],
+  ['/products/passion-fruit/foodservice', 'vi', '/vi/san-pham/chanh-day/khach-san-nha-hang', /^Chanh dây vàng cho khách sạn & F&B/, 'foodservice'],
+  ['/products/passion-fruit/retail', 'en', '/products/passion-fruit/retail', /^Golden Passion Fruit Supplier for Retailers/, 'retail'],
+  ['/products/passion-fruit/retail', 'vi', '/vi/san-pham/chanh-day/doi-tac-ban-le', /^Nhà cung ứng chanh dây vàng cho đối tác bán lẻ/, 'retail'],
 ];
 
 test('money pages: intent-led title and description within SERP length, unique; self canonical; hreflang set; OG and Twitter', () => {
