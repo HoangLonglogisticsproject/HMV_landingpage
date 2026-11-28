@@ -221,9 +221,8 @@ const content = {
       ],
       link: t('Request product specifications', 'Yêu cầu thông số sản phẩm'),
     },
-    // The visual centerpiece (#applications). `id` picks the photograph in the view: the beverage and the plated dish are AI-generated
-    // application illustrations, the supply card shows separated fruit in a carton. No dessert photograph exists, so that card is
-    // text (add one to FoodserviceSegment.jsx's `photos` when an approved golden-fruit dessert image is supplied).
+    // The visual centerpiece (#applications). `id` picks the photograph in the view (`photos` in FoodserviceSegment.jsx): the beverage,
+    // the dessert and the plated dish are AI-generated application illustrations, the supply card shows separated fruit in a carton.
     applications: {
       eyebrow: t('APPLICATIONS IN HOSPITALITY', 'ỨNG DỤNG TRONG KHÁCH SẠN & F&B'),
       title: t('From signature drinks to culinary creations.', 'Từ đồ uống đến ẩm thực sáng tạo.'),

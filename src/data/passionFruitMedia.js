@@ -4,8 +4,8 @@
 //    no person and no supplier mark is in the frame;
 //  - illustrative: edited product and packaging images (golden fruit presentation, cartons), without any marking. They show
 //    how the fruit can be presented, not shipments, HMV packaging, a grade or a specification, and say so in their captions;
-//  - AI-generated (V2: signatureDrinks, luxuryCulinary, premiumPackaging): marketing concepts of golden passion fruit in a
-//    beverage, a plated dish and a gift carton. Application and packaging illustrations: not specimens, not a customer's venue,
+//  - AI-generated (V2: foodserviceHero, foodservicePulp, signatureDrinks, refinedDessert, luxuryCulinary, premiumPackaging): marketing concepts of golden passion fruit in a
+//    beverage, a plated dish, a dessert, ingredient close-ups and a gift carton. Application and packaging illustrations: not specimens, not a customer's venue,
 //    not a finished HMV product, not manufactured packaging. Register: docs/architecture/IMAGE_ASSET_DEBT.md.
 // No photograph is recolored. Used, withheld and pending photographs, and why: docs/architecture/PASSION_FRUIT.md.
 //
@@ -24,6 +24,9 @@ import neutralFruit from '@/assets/passion-fruit/production/shared/packaging/neu
 import vine from '@/assets/passion-fruit/production/shared/farming/vine-green-fruit.webp';
 import sorting from '@/assets/passion-fruit/production/shared/operations/manual-sorting.webp';
 import orchard from '@/assets/passion-fruit/production/shared/farming/orchard-trellis.webp';
+import foodserviceHero from '@/assets/passion-fruit/production/foodservice/foodservice-hero.webp';
+import foodservicePulp from '@/assets/passion-fruit/production/foodservice/foodservice-pulp.webp';
+import refinedDessert from '@/assets/passion-fruit/production/foodservice/refined-dessert.webp';
 import signatureDrinks from '@/assets/passion-fruit/production/foodservice/signature-drinks.webp';
 import luxuryCulinary from '@/assets/passion-fruit/production/foodservice/luxury-culinary.webp';
 import premiumPackaging from '@/assets/passion-fruit/production/retail/premium-packaging.webp';
@@ -67,6 +70,15 @@ export const passionFruitMedia = {
     t('An open carton with twenty-four fruit in yellow foam nets, in separate compartments', 'Thùng mở với hai mươi bốn trái bọc lưới xốp vàng, trong các ngăn riêng'),
     t('Separated fruit in an open carton. Illustrative packaging format.', 'Trái được tách riêng trong thùng mở. Định dạng đóng gói minh họa.')),
   // AI-generated application and packaging illustrations (V2), labelled as such on the pages.
+  foodserviceHero: photo(foodserviceHero, 1086, 1448,
+    t('Three whole golden passion fruit with water droplets and one cut open to show the pulp, on a travertine stone slab with green leaves in warm light', 'Ba trái chanh dây vàng nguyên quả còn đọng giọt nước và một trái bổ đôi để lộ phần ruột, trên phiến đá travertine cùng lá xanh trong ánh sáng ấm'),
+    t('Whole and halved golden passion fruit. Illustrative product imagery.', 'Chanh dây vàng nguyên quả và bổ đôi. Hình ảnh minh họa sản phẩm.')),
+  foodservicePulp: photo(foodservicePulp, 1086, 1448,
+    t('A spoon lifting golden passion fruit pulp above a glass bowl, with a whole and a halved golden passion fruit behind', 'Chiếc thìa múc phần ruột chanh dây vàng phía trên bát thủy tinh, phía sau là một trái nguyên quả và một trái bổ đôi'),
+    t('Golden passion fruit pulp. Illustrative product imagery, not a finished HMV product.', 'Ruột chanh dây vàng. Hình ảnh minh họa sản phẩm, không phải sản phẩm thành phẩm của HMV.')),
+  refinedDessert: photo(refinedDessert, 1086, 1448,
+    t('A panna cotta topped with golden passion fruit pulp and seeds on a stoneware plate, with a whole and a halved golden passion fruit behind', 'Món panna cotta phủ ruột chanh dây vàng trên đĩa gốm, phía sau là một trái nguyên quả và một trái bổ đôi'),
+    t('Illustrative application imagery. A dessert idea, not a finished HMV product.', 'Hình ảnh minh họa ứng dụng. Gợi ý món tráng miệng, không phải sản phẩm thành phẩm của HMV.')),
   signatureDrinks: photo(signatureDrinks, 1448, 1086,
     t('A coupe glass of golden passion fruit drink with crushed ice and seeds, beside a whole and a halved golden passion fruit on a brass tray', 'Ly đồ uống chanh dây vàng với đá bào và hạt, bên cạnh một trái chanh dây vàng nguyên quả và một trái bổ đôi trên khay đồng'),
     t('Illustrative application imagery. A beverage idea, not an HMV customer or a finished HMV drink.', 'Hình ảnh minh họa ứng dụng. Gợi ý đồ uống, không phải khách hàng của HMV hay đồ uống thành phẩm của HMV.')),

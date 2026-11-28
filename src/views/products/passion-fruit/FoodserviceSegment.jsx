@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowRight, CakeSlice, ConciergeBell, Handshake, Leaf, ListChecks } from 'lucide-react';
+import { ArrowDown, ArrowRight, ConciergeBell, Handshake, Leaf, ListChecks } from 'lucide-react';
 import { TradeDeskButton } from '@/features/trade-desk/TradeDeskButton';
 import { Link } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
@@ -8,21 +8,32 @@ import { Eyebrow, Faq, Figure, Photo, SectionTitle, SegmentNav, ValueStrip } fro
 import styles from './PassionFruit.module.css';
 
 // Foodservice & Luxury Hospitality: an editorial page on cream and botanical green, led by the fruit and what a kitchen or a
-// bar can do with it, before any logistics. Type, hairlines, thin line icons in the value strip and large photographs. The
-// applications are the centerpiece: two AI-generated application illustrations (a beverage, a plated dish), separated fruit in a
-// carton, and a text-led dessert card (no approved golden-fruit dessert photograph exists yet: `photos` takes it later).
+// bar can do with it, before any logistics. A Playfair Display serif for the headings (self-hosted, this page only), hairlines,
+// thin line icons in the value strip and large photographs. The hero is the AI-generated macro of whole and halved golden fruit
+// with a pulp-detail inset; the applications are the centerpiece: AI-generated illustrations of a beverage, a dessert and a plated
+// dish, and separated fruit in a carton for the supply card.
 
-const display = cn(styles.heading, styles.display, 'font-light text-(--pf-ink)');
+const display = cn(styles.heading, styles.serif, 'font-medium text-(--pf-ink)');
 const solid = 'h-12 rounded-none bg-(--pf-accent) px-7 text-sm font-semibold text-[#f3efe3] hover:bg-(--pf-accent)/90';
 
 const VALUE_ICONS = [Leaf, ListChecks, ConciergeBell, Handshake];
-// The photograph of each application card (`id` in data/passionFruitPages.js); a card without one is text-led.
-const photos = { beverages: media.signatureDrinks, culinary: media.luxuryCulinary, supply: media.neutralFruit };
+// The photograph of each application card (`id` in data/passionFruitPages.js) and where its frame is centred: the dessert is a
+// portrait, so the plate (the lower middle) is kept; the others are landscape.
+const photos = {
+  beverages: { photo: media.signatureDrinks, position: 'object-[50%_50%]' },
+  desserts: { photo: media.refinedDessert, position: 'object-[50%_58%]' },
+  culinary: { photo: media.luxuryCulinary, position: 'object-[50%_50%]' },
+  supply: { photo: media.neutralFruit, position: 'object-[50%_50%]' },
+};
 
 const Rule = ({ className }) => <span aria-hidden="true" className={cn('block h-px w-12 bg-(--pf-gold)', className)} />;
 
 // The hero: the heading one sentence to a line, the primary call to action and the ingredient, whole and halved, in the first
 // screen of a laptop and of a phone (where the photograph comes first, the call to action next).
+// The hero: the heading one sentence to a line, the primary call to action and the ingredient, whole and halved, in the first
+// screen of a laptop and of a phone (where the photograph comes first, the call to action next). The macro is a portrait: the
+// frame crops it to a landscape window that keeps the cut fruit, centred a little below the middle. The pulp detail overlaps its
+// lower left from 1024 px, where the copy column leaves room; it is left out below that.
 function Hero({ lang, c }) {
   const { hero } = c;
   const sentences = hero.title.split(/(?<=\.)\s+/);
@@ -34,7 +45,7 @@ function Hero({ lang, c }) {
             <Rule />
             {hero.eyebrow}
           </Eyebrow>
-          <h1 className={cn(display, 'mt-4 text-[32px] leading-[1.12] sm:text-[42px] lg:mt-5 lg:text-[46px]')}>
+          <h1 className={cn(display, 'mt-4 text-[29px] leading-[1.18] font-semibold sm:text-[42px] lg:mt-5 lg:text-[44px]')}>
             {sentences.map(sentence => <span key={sentence} className="block text-balance">{sentence} </span>)}
           </h1>
           <p className="mt-4 max-w-md text-[15px] leading-relaxed text-(--pf-muted) sm:text-lg lg:mt-5">{hero.lead}</p>
@@ -49,11 +60,15 @@ function Hero({ lang, c }) {
             </a>
           </div>
         </div>
-        <div className="relative order-first lg:order-2">
-          <div className={cn(styles.fadeLeft, 'relative aspect-[4/3] overflow-hidden bg-(--pf-soft) lg:aspect-[6/5]')}>
-            <Photo photo={media.cluster} lang={lang} sizes="(max-width: 1023px) calc(100vw - 32px), 620px" eager />
+        <figure className="relative order-first m-0 lg:order-2">
+          <div className={cn(styles.fadeLeft, 'aspect-[16/11] overflow-hidden bg-(--pf-soft) sm:aspect-[3/2] lg:aspect-[6/5]')}>
+            <Photo photo={media.foodserviceHero} lang={lang} sizes="(max-width: 1023px) calc(100vw - 32px), 620px" className="object-[50%_58%]" eager />
           </div>
-        </div>
+          <figcaption className="mt-2 text-xs leading-snug text-(--pf-muted) lg:text-right">{media.foodserviceHero.caption[lang]}</figcaption>
+          <div className="absolute bottom-7 -left-10 hidden aspect-[4/5] w-[30%] overflow-hidden rounded-xl border-4 border-(--pf-bg) shadow-md lg:block">
+            <Photo photo={media.foodservicePulp} lang={lang} sizes="190px" />
+          </div>
+        </figure>
       </div>
     </header>
   );
@@ -101,22 +116,16 @@ function Applications({ lang, c }) {
         </div>
         <ol className="m-0 grid gap-5 p-0 sm:grid-cols-2 lg:grid-cols-4">
           {applications.items.map(({ id, title, text }) => {
-            const photo = photos[id];
+            const { photo, position } = photos[id];
             return (
               <li key={id} className="flex list-none flex-col">
-                {photo ? (
-                  <div className="aspect-[4/3] overflow-hidden rounded-xl bg-(--pf-soft)">
-                    <Photo photo={photo} lang={lang} sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 1023px) 340px, 280px" />
-                  </div>
-                ) : (
-                  <div aria-hidden="true" className="flex aspect-[4/3] items-center justify-center rounded-xl border border-(--pf-gold)/60 bg-(--pf-soft)">
-                    <CakeSlice size={44} strokeWidth={1} className="text-(--pf-gold-ink)" />
-                  </div>
-                )}
-                <h3 className={cn(styles.heading, display, 'mt-4 text-xl leading-snug font-medium text-(--pf-ink)')}>{title}</h3>
+                <div className="aspect-[5/4] overflow-hidden rounded-xl bg-(--pf-soft)">
+                  <Photo photo={photo} lang={lang} sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 1023px) 340px, 280px" className={position} />
+                </div>
+                <h3 className={cn(display, 'mt-4 text-xl leading-snug')}>{title}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-(--pf-muted)">{text}</p>
                 <span aria-hidden="true" className="mt-3 block h-px w-full bg-(--pf-gold)/60" />
-                {photo && <p className="mt-2 text-xs leading-snug text-(--pf-muted)">{photo.caption[lang]}</p>}
+                <p className="mt-2 text-xs leading-snug text-(--pf-muted)">{photo.caption[lang]}</p>
               </li>
             );
           })}
@@ -195,7 +204,7 @@ function Cta({ c }) {
   return (
     <section aria-labelledby="pf-fs-cta" className="bg-[#193d2c] px-4 py-16 text-center text-[#f3efe3] sm:py-24">
       <Rule className="mx-auto" />
-      <h2 id="pf-fs-cta" className={cn(styles.heading, styles.display, 'mx-auto mt-6 max-w-3xl text-[32px] leading-tight font-light text-balance sm:text-5xl')}>{c.cta.title}</h2>
+      <h2 id="pf-fs-cta" className={cn(styles.heading, styles.serif, 'mx-auto mt-6 max-w-3xl text-[32px] leading-tight font-medium text-balance sm:text-5xl')}>{c.cta.title}</h2>
       <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-[#f3efe3]/80">{c.cta.text}</p>
       <TradeDeskButton size="lg" product={PRODUCT_ID} segment="foodservice" source="pf_foodservice_cta" className="mt-8 h-12 rounded-none border border-(--pf-gold) bg-[#f3efe3] px-8 text-sm font-semibold text-[#193d2c] hover:bg-white">
         {c.cta.button}

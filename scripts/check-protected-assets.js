@@ -12,7 +12,8 @@
 //   2. Private folders (design references, internal and supplier material, src/assets/passion-fruit/private-sources/) hold nothing,
 //      whatever the extension, the name or the manifest.
 //   3. Supplier and customer papers, design sources and archives (PDF, office, CSV, PSD, ZIP, TAR.GZ...) are refused.
-//   4. A manifest entry for a file that is no longer tracked is stale and fails, so the manifest stays the truth.
+//   4. Unfinished browser downloads (.crdownload, .part, .download) are refused: not an asset in any state.
+//   5. A manifest entry for a file that is no longer tracked is stale and fails, so the manifest stays the truth.
 // A file name can itself be sensitive: where CI logs are public (`CI` is set) a violation names the folder, the extension and
 // a short identifier of the path, not the file name; run the check locally for the name.
 import { execFileSync } from 'node:child_process';
@@ -28,6 +29,9 @@ const BASELINE = /^tests\/next-visual\/[^/]+-snapshots\/[^/]+\.png$/;
 // `private-sources/` holds the local originals of the golden passion fruit pages; it is matched at any depth and in any letter case
 // (case-insensitive file systems), before the manifest is consulted, so no approval can ever admit a file in it.
 const PRIVATE_DIRS = [/^specs\/references\//, /^private\//, /^internal\//, /^suppliers?\//, /^src\/assets\/passion-fruit\/private-sources\//i];
+
+// An incomplete download: neither a reviewed image nor a document, and never approvable.
+const PARTIAL_DOWNLOAD = /\.(crdownload|part|download)$/i;
 
 const MANIFEST_PATH = 'scripts/approved-assets.json';
 
@@ -53,6 +57,7 @@ export function findViolations(files, { manifest = {}, ids = {}, redact = false 
   for (const file of files) {
     const name = label(file, redact);
     if (PRIVATE_DIRS.some(dir => dir.test(file))) violations.push(`${name}: a private folder (design references, internal or supplier material)`);
+    else if (PARTIAL_DOWNLOAD.test(file)) violations.push(`${name}: an unfinished browser download (not committed; finish or delete it)`);
     else if (DOCUMENT.test(file)) violations.push(`${name}: a document, design source or archive (supplier, customer or internal papers are not committed)`);
     else if (IMAGE.test(file) && !BASELINE.test(file)) {
       if (!Object.hasOwn(manifest, file)) violations.push(`${name}: an image that is not in the approved-asset manifest (scripts/approved-assets.json); review it, then approve it there`);

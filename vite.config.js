@@ -24,6 +24,9 @@ const viteSeoFiles = {
   },
 };
 
+// Local-only media: the originals of the passion fruit pages and the design references. Never watched, never served.
+const PRIVATE_MEDIA = ['**/private-sources/**', '**/specs/references/**'];
+
 export default defineConfig({
   plugins: [react(), tailwindcss(), viteSeoFiles],
   resolve: {
@@ -41,6 +44,11 @@ export default defineConfig({
   // CMS mode (`--mode cms`): same-origin access to the CMS public API, for `vite` and `vite preview`.
   // Only /api/v1/public is forwarded, so admin routes are unreachable through this origin.
   server: {
+    // A browser's unfinished download in a watched folder (Chrome: "Unconfirmed 123.crdownload") is locked on Windows, and
+    // watching it crashes the dev server with EBUSY. Vite adds these to its own defaults (.git, node_modules, test-results).
+    watch: { ignored: ['**/*.crdownload', '**/*.part', '**/*.download', ...PRIVATE_MEDIA] },
+    // Ignoring a path in the watcher does not stop the server from serving it: `deny` replaces Vite's default list, so that is repeated.
+    fs: { deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/**', ...PRIVATE_MEDIA] },
     proxy: {
       '/api/v1/public': {
         target: process.env.CMS_API_ORIGIN ?? 'http://localhost:4000',

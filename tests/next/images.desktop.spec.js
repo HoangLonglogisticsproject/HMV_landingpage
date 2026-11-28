@@ -32,7 +32,9 @@ const ORIGINAL_LIMITED = new Set(['car.webp', 'cassava-bulk-stock.webp', 'cassav
   // are 1086 to 1448 px wide edited images and 960 to 1280 px photographs, the crops smaller still.
   'golden-fruit-scene.webp', 'golden-fruit-display.webp', 'golden-fruit-on-tree.webp', 'golden-fruit-pile.webp',
   'golden-fruit-halved.webp', 'golden-fruit-cluster.webp', 'fruit-protective-nets.webp', 'carton-twelve-compartments.webp',
-  'neutral-packaging-cartons.webp', 'neutral-carton-fruit.webp', 'vine-green-fruit.webp', 'manual-sorting.webp', 'orchard-trellis.webp']);
+  'neutral-packaging-cartons.webp', 'neutral-carton-fruit.webp', 'vine-green-fruit.webp', 'manual-sorting.webp', 'orchard-trellis.webp',
+  // V2 Foodservice hero: a 1086 px portrait painted about 620 px wide at DPR 2 (the supplied size, never enlarged).
+  'foodservice-hero.webp']);
 
 /** @param {import('@playwright/test').Locator} images */
 async function measure(images) {

@@ -6,6 +6,11 @@ dist-cms
 .env
 coverage/
 
+# Unfinished browser downloads (Chrome, Firefox, generic): never source material, and locked while they download
+*.crdownload
+*.part
+*.download
+
 # Playwright
 tests/screenshots/
 test-results/

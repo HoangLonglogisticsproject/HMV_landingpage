@@ -63,6 +63,19 @@ test('everything under passion-fruit/private-sources is refused: any depth, exte
   assert.deepEqual(findViolations(['src/assets/passion-fruit/production/retail/x.webp'], { manifest: { 'src/assets/passion-fruit/production/retail/x.webp': 'x' } }), []);
 });
 
+test('unfinished browser downloads are refused: any folder, any letter case, even with a manifest entry', () => {
+  const files = [
+    'src/assets/passion-fruit/production/foodservice/Unconfirmed 235061.crdownload', 'src/assets/new.webp.crdownload', 'public/photo.CRDOWNLOAD',
+    'src/assets/passion-fruit/hero.png.part', 'hero.PART', 'src/assets/x.jpg.download', 'x.Download',
+  ];
+  for (const file of files) {
+    assert.equal(check([file]).length, 1, file);
+    assert.equal(findViolations([file], { manifest: { [file]: 'x' }, ids: { [file]: 'x' } }).length, 1, file);
+  }
+  // A name that merely contains the word is not a download.
+  assert.deepEqual(check(['docs/download-guide.md', 'src/data/partners.js']), []);
+});
+
 test('a force-added file inside private-sources is refused in the index and in a commit', () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'protected-private-'));
   const git = (...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', ...args], { cwd: dir, stdio: 'pipe' }).toString();

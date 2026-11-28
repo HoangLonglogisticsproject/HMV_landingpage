@@ -57,6 +57,10 @@ const DERIVATIVES = [
   { dir: 'foodservice', out: 'signature-drinks', group: 'v2-media', from: 'signature-drinks' },
   { dir: 'foodservice', out: 'luxury-culinary', group: 'v2-media', from: 'luxury-culinary' },
   { dir: 'retail', out: 'premium-packaging', group: 'v2-media', from: 'retail-presentation' },
+  // V2 Foodservice portraits (1086×1448, AI-generated, golden-yellow fruit): the hero macro, the pulp detail and the dessert.
+  { dir: 'foodservice', out: 'foodservice-hero', group: 'v2-media', from: 'foodservice-hero' },
+  { dir: 'foodservice', out: 'foodservice-pulp', group: 'v2-media', from: 'foodservice-pulp' },
+  { dir: 'foodservice', out: 'refined-dessert', group: 'v2-media', from: 'refined-dessert' },
 ];
 
 const only = process.argv.slice(2);
