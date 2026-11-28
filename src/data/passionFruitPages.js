@@ -26,6 +26,24 @@ export const segmentPath = segment => (segment === 'export' ? `/products/${PRODU
 /** The segment a URL's last path part names; the product's own URL has none. */
 export const isSegmentSlug = slug => isProductSegment(PRODUCT_ID, slug);
 
+/** The short points under a segment's navigation: rows of [English title, English line, Vietnamese title, Vietnamese line]. */
+const valueRows = rows => rows.map(([enTitle, enText, viTitle, viText]) => item(enTitle, enText, viTitle, viText));
+// Four value points under the navigation: what to discuss, never a promise of quality, sweetness, aroma or yield.
+const foodserviceValues = valueRows([
+  ['Tropical inspiration', 'Inspiration for distinctive menus.', 'Cảm hứng nhiệt đới', 'Gợi mở hương vị cho thực đơn sáng tạo.'],
+  ['Quality requirements', 'Discuss specifications for your application.', 'Yêu cầu chất lượng', 'Trao đổi quy cách theo nhu cầu sử dụng.'],
+  ['Culinary versatility', 'Beverages, desserts and culinary dishes.', 'Ứng dụng đa dạng', 'Đồ uống, tráng miệng và món ăn.'],
+  ['Foodservice partnership', 'Discuss your requirements and supply plans with HMV.', 'Đồng hành cùng F&B', 'Thảo luận nhu cầu và kế hoạch cung ứng cùng HMV.'],
+]);
+// Five commercial points under the navigation: no promise of damage-free transport, grading, fixed supply, margins or private label.
+const retailValues = valueRows([
+  ['Packaging options', 'Discuss formats for your distribution channel.', 'Quy cách đóng gói', 'Thảo luận định dạng phù hợp với kênh phân phối.'],
+  ['Shelf presentation', 'Distinctive golden appearance and display inspiration.', 'Hình thức tại điểm bán', 'Màu vàng đặc trưng, gợi mở cách trưng bày.'],
+  ['Individual fruit protection', 'Explore protective nets and divided cartons.', 'Bảo vệ từng trái', 'Tham khảo lưới và ngăn carton.'],
+  ['Product value', 'Origin and product presentation.', 'Giá trị sản phẩm', 'Câu chuyện nguồn gốc và cách trình bày.'],
+  ['Supply planning', 'Discuss quantities and delivery schedules.', 'Kế hoạch cung ứng', 'Trao đổi lượng mua và lịch giao theo nhu cầu.'],
+]);
+
 const content = {
   nav: {
     label: t('Buyer segments', 'Nhóm khách hàng'),
@@ -188,13 +206,7 @@ const content = {
       primary: t('Discuss Your Supply Needs', 'Trao đổi nhu cầu cung ứng'),
       secondary: t('Explore Applications', 'Khám phá ứng dụng'),
     },
-    // Four value points under the navigation: what to discuss, never a promise of quality, sweetness, aroma or yield.
-    values: [
-      item('Tropical inspiration', 'Inspiration for distinctive menus.', 'Cảm hứng nhiệt đới', 'Gợi mở hương vị cho thực đơn sáng tạo.'),
-      item('Quality requirements', 'Discuss specifications for your application.', 'Yêu cầu chất lượng', 'Trao đổi quy cách theo nhu cầu sử dụng.'),
-      item('Culinary versatility', 'Beverages, desserts and culinary dishes.', 'Ứng dụng đa dạng', 'Đồ uống, tráng miệng và món ăn.'),
-      item('Foodservice partnership', 'Discuss your requirements and supply plans with HMV.', 'Đồng hành cùng F&B', 'Thảo luận nhu cầu và kế hoạch cung ứng cùng HMV.'),
-    ],
+    values: foodserviceValues,
     ingredient: {
       eyebrow: t('THE INGREDIENT', 'NGUYÊN LIỆU'),
       title: t('An Ingredient with Character', 'Nguyên liệu có cá tính'),
@@ -297,14 +309,7 @@ const content = {
       primary: t('Discuss a Retail Partnership', 'Trao đổi hợp tác phân phối'),
       secondary: t('Explore Packaging', 'Khám phá quy cách đóng gói'),
     },
-    // Five commercial points under the navigation: no promise of damage-free transport, grading, fixed supply, margins or private label.
-    values: [
-      item('Packaging options', 'Discuss formats for your distribution channel.', 'Quy cách đóng gói', 'Thảo luận định dạng phù hợp với kênh phân phối.'),
-      item('Shelf presentation', 'Distinctive golden appearance and display inspiration.', 'Hình thức tại điểm bán', 'Màu vàng đặc trưng, gợi mở cách trưng bày.'),
-      item('Individual fruit protection', 'Explore protective nets and divided cartons.', 'Bảo vệ từng trái', 'Tham khảo lưới và ngăn carton.'),
-      item('Product value', 'Origin and product presentation.', 'Giá trị sản phẩm', 'Câu chuyện nguồn gốc và cách trình bày.'),
-      item('Supply planning', 'Discuss quantities and delivery schedules.', 'Kế hoạch cung ứng', 'Trao đổi lượng mua và lịch giao theo nhu cầu.'),
-    ],
+    values: retailValues,
     presentation: {
       eyebrow: t('PRODUCT PRESENTATION', 'HÌNH THỨC SẢN PHẨM'),
       title: t('A fruit that stands out on the shelf', 'Một loại trái cây nổi bật trên quầy'),
